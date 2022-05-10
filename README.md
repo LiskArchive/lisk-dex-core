@@ -8,6 +8,12 @@ This project was bootstrapped with [Lisk SDK](https://github.com/LiskHQ/lisk-sdk
 ./bin/run start
 ```
 
+Docker
+
+```
+docker run -v ${PWD}:/usr/src/app -it --name lisk-dex-core lisk-dex-core /bin/bash
+```
+
 ### Add a new module
 
 ```
