@@ -12,6 +12,50 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+export const poolsSchema = {
+    $id: '/dex/pools',
+    "type": "object",
+    "required": [
+        "liquidity",
+        "sqrtPrice",
+        "feeGrowthGlobal0",
+        "feeGrowthGlobal1",
+        "protocolFees0",
+        "protocolFees1",
+        "tickSpacing"
+    ],
+    "properties": {
+        "liquidity": {
+            "dataType": "uint64",
+            "fieldNumber": 1
+        },
+        "sqrtPrice": {
+            "dataType": "bytes",
+            "fieldNumber": 2
+        },
+        "feeGrowthGlobal0": {
+            "dataType": "bytes",
+            "fieldNumber": 3
+        },
+        "feeGrowthGlobal1": {
+            "dataType": "bytes",
+            "fieldNumber": 4
+        },
+        "protocolFees0": {
+            "dataType": "uint64",
+            "fieldNumber": 5
+        },
+        "protocolFees1": {
+            "dataType": "uint64",
+            "fieldNumber": 6
+        },
+        "tickSpacing": {
+            "dataType": "uint32",
+            "fieldNumber": 7
+        }
+    }
+}
+
 export const priceTickSchema = {
     $id: '/dex/priceTick',
     "type": "object",
