@@ -119,6 +119,40 @@ export const positionSchema = {
     }
 }
 
+export const positionSchema = {
+    $id: '/dex/position',
+    "type": "object",
+    "required": [
+        "tickLower",
+        "tickUpper",
+        "liquidity",
+        "feeGrowthInsideLast0",
+        "feeGrowthInsideLast1"
+    ],
+    "properties": {
+        "tickLower": {
+            "dataType": "sint32",
+            "fieldNumber": 1
+        },
+        "tickUpper": {
+            "dataType": "sint32",
+            "fieldNumber": 2
+        },
+        "liquidity": {
+            "dataType": "uint64",
+            "fieldNumber": 3
+        },
+        "feeGrowthInsideLast0": {
+            "dataType": "bytes",
+            "fieldNumber": 4
+        },
+        "feeGrowthInsideLast1": {
+            "dataType": "bytes",
+            "fieldNumber": 5
+        }
+    }
+}
+
 export const settingsSchema = {
     $id: '/dex/settings',
     "type": "object",
