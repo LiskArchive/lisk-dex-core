@@ -152,3 +152,37 @@ export const settingsSchema = {
         }
     }
 }
+
+export const settingsSchema = {
+    $id: '/dex/settings',
+    "type": "object",
+    "required": ["protocolFeeAddress", "protocolFeePercentage", "poolCreationSettings"],
+    "properties": {
+        "protocolFeeAddress": {
+            "dataType": "bytes",
+            "fieldNumber": 1
+        },
+        "protocolFeePercentage": {
+            "dataType": "uint32",
+            "fieldNumber": 2
+        },
+        "poolCreationSettings": {
+            "type": "array",
+            "fieldNumber": 3,
+            "items": {
+                "type": "object",
+                "required": ["feeTier", "tickSpacing"],
+                "properties": {
+                    "feeTier": {
+                        "dataType": "uint32",
+                        "fieldNumber": 1
+                    },
+                    "tickSpacing": {
+                        "dataType": "uint32",
+                        "fieldNumber": 2
+                    }
+                }
+            }
+        }
+    }
+}
