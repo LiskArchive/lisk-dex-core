@@ -13,7 +13,7 @@
  */
 
 import JSBI from 'jsbi';
-import {toBigIntBE, toBigIntLE, toBufferBE, toBufferLE} from 'bigint-buffer';
+import { toBufferBE } from 'bigint-buffer';
 import {Q96} from '../types';
 import { NUM_BYTES_Q96 } from '../constants';
 import { ONE, TWO, N_96} from "./math_constants";
