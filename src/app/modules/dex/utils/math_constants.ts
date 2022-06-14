@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import JSBI from './jsbi';
+import JSBI from 'jsbi';
 import invariant from 'tiny-invariant'
 
 export const MAX_SAFE_INTEGER = JSBI.BigInt(Number.MAX_SAFE_INTEGER)
