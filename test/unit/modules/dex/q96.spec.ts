@@ -1,42 +1,41 @@
-import {/*
-	qn_r,
-	roundDown_n,
-	roundUp_n,*/
-	add_n,/*
-	sub_n,
-	mul_n,
+import JSBI from 'jsbi';
+import {
+	add_n,
 	div_n,
 	muldiv_n,
-	muldiv_n_RoundUp,
-	Q_n_ToInt,
-	Q_n_ToIntRoundUp,
-	inv_n,
+	mul_n,
+	sub_n,
 	bytesToQ96,
-	q96ToBytes*/
+	q96ToBytes
 } from '../../../../src/app/modules/dex/utils/q96';
-import JSBI from 'jsbi';
 
 describe('DexQ96Module', () => {
 	describe('constructor', () => {
-		const test = JSBI.BigInt('100');
-		console.log("RESULT", add_n(test,test))
-		it('add', async () => {
-			expect(add_n(test,test)).toEqual('7fffffff');
-		});
-		it('sub', async () => {
+		const testValue1 = JSBI.BigInt('100');
+		const testValue2 = JSBI.BigInt('200');
 
+		it('add', async () => {
+			expect(add_n(testValue1, testValue2)).toEqual(JSBI.BigInt('300'));
 		});
+
+		it('sub', async () => {
+			expect(sub_n(testValue2, testValue1)).toEqual(testValue1);
+		});
+
 		it('mul', async () => {
-			
+			expect(mul_n(testValue1, JSBI.BigInt('2'))).toEqual(testValue2);
 		});
+
 		it('div', async () => {
-			
+			expect(div_n(testValue2, JSBI.BigInt('2'))).toEqual(testValue1);
 		});
+
 		it('muldiv', async () => {
-			
+			expect(muldiv_n(testValue1, JSBI.BigInt('4'), JSBI.BigInt('2'))).toEqual(testValue2);
 		});
+		
 		it('bytesToQ96', async () => {
-			
+			expect(q96ToBytes(bytesToQ96(Buffer.from('ffffffff', 'hex')))).toEqual(Buffer.from('ffffffff', 'hex'))
 		});
 	});
-}); 
+});
