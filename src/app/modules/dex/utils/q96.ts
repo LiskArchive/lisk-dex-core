@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import JSBI from 'jsbi';
+import JSBI from './jsbi';
 import { toBufferBE } from 'bigint-buffer';
 import {Q96} from '../types';
 import { NUM_BYTES_Q96 } from '../constants';
