@@ -120,7 +120,7 @@ export const bytesToQ96 = (numberBytes: Buffer): Q96 => {
     let _hex_bi = _hex.join("");
 
     //return big-endian decoding of bytes
-    return JSBI.BigInt(Number(_hex_bi));
+    return JSBI.BigInt(String(BigInt("0x" + _hex_bi)));
 }
 
 export const q96ToBytes = (numberQ96: Q96): Buffer => {
