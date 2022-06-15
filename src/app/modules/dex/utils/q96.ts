@@ -137,5 +137,5 @@ export const q96ToBytes = (numberQ96: Q96): Buffer => {
     }
 
     // return result padded to length NUM_BYTES_Q96 with zero bytes
-    return toBufferBE(BigInt(_hex), NUM_BYTES_Q96) //big-endian encoding of numberQ96 as integer
+    return toBufferBE(BigInt("0x" + _hex), NUM_BYTES_Q96) //big-endian encoding of numberQ96 as integer
 }
