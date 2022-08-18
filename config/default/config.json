@@ -14,16 +14,14 @@
 	"genesis": {
 		"blockTime": 10,
 		"bftBatchSize": 103,
-		"communityIdentifier": "sdk",
+		"communityIdentifier": "dex",
 		"maxTransactionsSize": 15360,
 		"minFeePerByte": 1000,
-		"baseFees": [],
 		"modules": {}
 	},
 	"generation": {
 		"force": true,
 		"waitThreshold": 2,
-		"delegates": [],
 		"generators": [
 			{
 				"encryptedPassphrase": "kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=11f10e79db7ec4a5224e1202b152c4e7d6d25ab0f8885a01d233094a9b18b18ba62d7bc5f629a1be523c636825077875df4d39acf15254c53ad99de0e468e323b4f911f0dd91418a9de930b017f4bc4b88ad993c5513177f76607261bc4e0a696195be04e478027ae3425b0da2148869e6e66d5a623e1c2c5f2847ceeeceac37367e1a8a0399ae3c7c4cfcec4e51546ff2674caf34c32649a23286d4bf1270e274c480&mac=e31c61ee86311dad77185a25a6c39e56e920bddabb46ed020ce0968fe53a4621&salt=c9a40a38d72c6c6b86948c0576697580&iv=f1b2f465ad61fd4dbfec47b2&tag=c280c581fb9e7c1e16a729f2bb6d1875&iterations=1&parallelism=4&memorySize=2024",
@@ -2164,10 +2162,5 @@
 		"transactionExpiryTime": 10800000,
 		"minEntranceFeePriority": "0",
 		"minReplacementFeeDifference": "10"
-	},
-	"plugins": {
-		"reportMisbehavior": {
-			"encryptedPassphrase": "iterations=10&cipherText=5dea8b928a3ea2481ebc02499ae77679b7552189181ff189d4aa1f8d89e8d07bf31f7ebd1c66b620769f878629e1b90499506a6f752bf3323799e3a54600f8db02f504c44d&iv=37e0b1753b76a90ed0b8c319&salt=963c5b91d3f7ba02a9d001eed49b5836&tag=c3e30e8f3440ba3f5b6d9fbaccc8918d&version=1"
-		}
 	}
 }
