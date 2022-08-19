@@ -8,12 +8,6 @@ This project was bootstrapped with [Lisk SDK](https://github.com/LiskHQ/lisk-sdk
 ./bin/run start
 ```
 
-Docker
-
-```
-docker run -v ${PWD}:/usr/src/app -it --name lisk-dex-core lisk-dex-core /bin/bash
-```
-
 ### Add a new module
 
 ```
@@ -33,11 +27,11 @@ lisk generate:asset token transfer 1
 ### Add a new plugin
 
 ```
-lisk generate:plugin PluginAlias
+lisk generate:plugin PluginName
 // Example
 lisk generate:plugin httpAPI
 ```
 
 ## Learn More
 
-You can learn more in the [documentation](https://lisk.io/documentation/lisk-sdk/index.html).
+You can learn more in the [documentation](https://lisk.com/documentation/lisk-sdk/).
