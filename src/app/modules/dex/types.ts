@@ -1,4 +1,3 @@
-
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -13,13 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import JSBI from "jsbi"
-
 export interface FeeTier {
-	[id: number] : number 
+	[id: number]: number;
 }
 
-export type Q96 = JSBI;
+export type Q96 = BigInt;
 export type TokenID = Buffer;
 export type PoolID = Buffer;
 export type PositionID = Buffer;
