@@ -18,7 +18,6 @@ export const MAX_NUM_BYTES_Q96 = 24; // The number of bytes of a fractional numb
 export const MAX_UINT_32 = 4294967295;
 export const MAX_UINT_64 = BigInt('18446744073709551615');
 
-
 // DEX Module Constants
 export const MODULE_ID_DEX = Buffer.from('0x000'); // TBA	ID of the DEX module (bytes)
 export const NFT_COLLECTION_DEX = Buffer.from('0x0000'); // The collection of the NFTs created for every position. (bytes)
