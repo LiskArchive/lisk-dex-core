@@ -1,4 +1,4 @@
-import { poolsSchema } from '../../../src/app/modules/dex/schemas'
+import { poolsSchema } from '../../../../src/app/modules/dex/schemas'
 
 describe('account:create', () => {
 	it('should have the pool schema defined', async () => {
