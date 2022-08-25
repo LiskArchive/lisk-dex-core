@@ -12,36 +12,33 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import JSBI from 'jsbi';
-import invariant from 'tiny-invariant'
+export const MAX_SAFE_INTEGER = BigInt(Number.MAX_SAFE_INTEGER)
 
-export const MAX_SAFE_INTEGER = JSBI.BigInt(Number.MAX_SAFE_INTEGER)
-
-export const ZERO = JSBI.BigInt(0)
-export const N_96 = JSBI.BigInt(96);
-export const ONE = JSBI.BigInt(1);
-export const TWO = JSBI.BigInt(2);
-//export const SQRT_EXP = JSBI.divide(ONE, TWO);
+export const ZERO = BigInt(0)
+export const N_96 = BigInt(96);
+export const ONE = BigInt(1);
+export const TWO = BigInt(2);
 
 /**
  * Computes floor(sqrt(value))
  * @param value the value for which to compute the square root, rounded down
  */
-export const sqrt = (value: JSBI): JSBI => {
-  invariant(JSBI.greaterThanOrEqual(value, ZERO), 'NEGATIVE')
+export const sqrt = (value: bigint): bigint => {
+  if (value < ZERO)
+    throw new Error('NEGATIVE');
 
   // rely on built in sqrt if possible
-  if (JSBI.lessThan(value, MAX_SAFE_INTEGER)) {
-    return JSBI.BigInt(Math.floor(Math.sqrt(JSBI.toNumber(value))))
+  if (value <= MAX_SAFE_INTEGER) {
+    return BigInt(Math.floor(Math.sqrt(Number(value))))
   }
 
-  let z: JSBI
-  let x: JSBI
+  let z: bigint
+  let x: bigint
   z = value
-  x = JSBI.add(JSBI.divide(value, TWO), ONE)
-  while (JSBI.lessThan(x, z)) {
+  x = (value / TWO) + ONE
+  while (x < z) {
     z = x
-    x = JSBI.divide(JSBI.add(JSBI.divide(value, x), x), TWO)
+    x = (value / x + x) / TWO
   }
   return z
 }
