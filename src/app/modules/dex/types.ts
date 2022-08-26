@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export interface FeeTier {
+export interface FeeTiers {
 	[id: number]: number;
 }
 
