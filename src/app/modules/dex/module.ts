@@ -26,12 +26,15 @@ import {
 	MODULE_NAME_DEX,
 } from './constants';
 
+import { DexAPI } from './api';
+import { DexEndpoint } from './endpoint';
+
 export class DexModule extends BaseModule {
 	public name = MODULE_NAME_DEX;
 	public id = MODULE_ID_DEX;
-	public endpoint;
-	public api;
-	private _feeTiers!: FeeTiers;
+	public endpoint = new DexEndpoint(this.id);
+	public api = new DexAPI(this.id);
+	private _feeTiers: FeeTiers = {};
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public commands = [];
