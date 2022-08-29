@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-
 export const NUM_BYTES_ADDRESS = 20; // The number of bytes of an address (uint32)
 export const MAX_NUM_BYTES_Q96 = 24; // The number of bytes of a fractional number stored in Q96 format (uint32)
 export const MAX_UINT_32 = 4294967295;
@@ -20,6 +19,7 @@ export const MAX_UINT_64 = BigInt('18446744073709551615');
 
 // DEX Module Constants
 export const MODULE_ID_DEX = Buffer.from('0x000'); // TBA	ID of the DEX module (bytes)
+export const MODULE_NAME_DEX = 'dex';
 export const NFT_COLLECTION_DEX = Buffer.from('0x0000'); // The collection of the NFTs created for every position. (bytes)
 export const NUM_BYTES_POOL_ID = 16; // The number of bytes of a pool ID. (uint32)
 export const NUM_BYTES_TICK_ID = 20; // The number of bytes of a price tick ID. (uint32)

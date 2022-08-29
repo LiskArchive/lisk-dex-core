@@ -12,12 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export interface FeeTiers {
-	[id: number]: number;
-}
+import {
+	BaseEndpoint,
+} from 'lisk-sdk';
 
-export type Q96 = BigInt;
-export type TokenID = Buffer;
-export type PoolID = Buffer;
-export type PositionID = Buffer;
-export type Address = Buffer;
+
+export class DexEndpoint extends BaseEndpoint {
+}
