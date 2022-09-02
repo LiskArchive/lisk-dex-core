@@ -3,9 +3,9 @@ import {
 	uint32be,
 	int32beInv,
 	uint32beInv
-} from '../../../../src/app/modules/dex/utils/big_endiant';
+} from '../../../../src/app/modules/dex/utils/bigEndian';
 
-describe('DexBigEndianModule', () => {
+describe('dex:bigEndian', () => {
 	describe('constructor', () => {
 		it('int32be/int32beInv should convert and revert to original values', async () => {
 			expect(int32be(2147483647)).toEqual('7fffffff');
