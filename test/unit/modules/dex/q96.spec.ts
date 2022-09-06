@@ -1,41 +1,54 @@
-import JSBI from 'jsbi';
 import {
-	add_n,
-	div_n,
-	muldiv_n,
-	mul_n,
-	sub_n,
+	addQ96,
+	divQ96,
+	numberToQ96,
+	mulQ96,
+	subQ96,
 	bytesToQ96,
-	q96ToBytes
+	q96ToBytes,
+	q96ToInt,
+	mulDivQ96
 } from '../../../../src/app/modules/dex/utils/q96';
+
+import {
+	Q96
+} from '../../../../src/app/modules/dex/types';
+
+import {
+	MAX_SQRT_RATIO,
+	MAX_UINT_64
+} from '../../../../src/app/modules/dex/constants';
 
 describe('DexQ96Module', () => {
 	describe('constructor', () => {
-		const testValue1 = JSBI.BigInt('100');
-		const testValue2 = JSBI.BigInt('200');
+		const testValueMax: Q96 = numberToQ96(MAX_SQRT_RATIO);
+		const testValueMaxUint: Q96 = numberToQ96(BigInt(MAX_UINT_64));
+		const testValue2: Q96 = numberToQ96(BigInt(2));
 
 		it('add', async () => {
-			expect(add_n(testValue1, testValue2)).toEqual(JSBI.BigInt('300'));
+			expect(q96ToInt(addQ96(testValueMaxUint, testValue2))).toBe(BigInt("18446744073709551617"));
 		});
 
 		it('sub', async () => {
-			expect(sub_n(testValue2, testValue1)).toEqual(testValue1);
+			expect(q96ToInt(subQ96(testValueMax, testValue2))).toBe(BigInt("1461446703529909599612049957420313862569572983182"));
 		});
 
 		it('mul', async () => {
-			expect(mul_n(testValue1, JSBI.BigInt('2'))).toEqual(testValue2);
+			expect(q96ToInt(mulQ96(testValueMaxUint, testValue2))).toBe(BigInt("36893488147419103230"));
 		});
 
 		it('div', async () => {
-			expect(div_n(testValue2, JSBI.BigInt('2'))).toEqual(testValue1);
+			const test = mulQ96(testValue2, testValueMaxUint);
+			expect(divQ96(test, q96ToInt(testValueMaxUint))).toEqual(q96ToInt(testValue2));
 		});
 
-		it('muldiv', async () => {
-			expect(muldiv_n(testValue1, JSBI.BigInt('4'), JSBI.BigInt('2'))).toEqual(testValue2);
+		it('mulDiv', async () => {
+			const test = divQ96(testValueMaxUint, testValue2);
+			expect(mulDivQ96(test, numberToQ96(BigInt('2')), numberToQ96(BigInt('2')))).toEqual(test);
 		});
 		
-		it('bytesToQ96', async () => {
-			expect(q96ToBytes(bytesToQ96(Buffer.from('ffffffff', 'hex')))).toEqual(Buffer.from('ffffffff', 'hex'))
+		it('bytesToQ96 and q96ToBytes', async () => {
+			expect(bytesToQ96(q96ToBytes(testValueMaxUint))).toBe(testValueMaxUint)
 		});
 	});
 });
