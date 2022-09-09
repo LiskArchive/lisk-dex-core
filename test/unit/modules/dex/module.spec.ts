@@ -20,11 +20,11 @@ import { DexEndpoint } from '../../../../src/app/modules/dex/endpoint';
 
 import {
 	MODULE_NAME_DEX,
-	MODULE_ID_DEX
+	MODULE_ID_DEX,
+	defaultConfig
 } from '../../../../src/app/modules/dex/constants';
 
 import {  } from '../../../../src/app/modules/dex/schemas';
-import {  } from '../../../../src/app/modules/dex/types';
 
 describe('DexModule', () => {
 	let dexModule: DexModule;
@@ -58,8 +58,15 @@ describe('DexModule', () => {
 	});
 
 	describe('init', () => {
+		it('should initialize config with defaultConfig', async () => {
+			const moduleConfig = {
+				feeTiers: defaultConfig.feeTiers,
+			} as any;
+			await expect(dexModule.init({ moduleConfig: {} })).resolves.toBeUndefined();
+			expect(dexModule['_moduleConfig']).toEqual(moduleConfig);
+		});
 		it('should initialize fee tiers', async () => {
-			await expect(dexModule.init()).resolves.toBeUndefined();
+			await expect(dexModule.init({moduleConfig: defaultConfig})).resolves.toBeUndefined();
 
             const defaultFeeTiers = {}
             defaultFeeTiers[100] = 2;
@@ -67,7 +74,7 @@ describe('DexModule', () => {
             defaultFeeTiers[3000] = 60;
             defaultFeeTiers[10000] = 200;
 
-			expect(dexModule['_feeTiers']).toEqual(defaultFeeTiers);
+			expect(dexModule['_moduleConfig']['feeTiers']).toEqual(defaultFeeTiers);
 		});
 	});
 });
