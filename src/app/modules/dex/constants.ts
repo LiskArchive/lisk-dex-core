@@ -57,3 +57,12 @@ export const MAX_TICK = 887272 // The maximum possible tick value as a sint32.
 export const MIN_SQRT_RATIO = BigInt(4295128738) // Todo: check with devs	The minimum possible price value in the Q96 representation.
 export const MAX_SQRT_RATIO = BigInt('1461446703529909599612049957420313862569572983184') // Todo: check with devs	The maximum possible price value in the Q96 representation.
 export const PRICE_VALUE_FOR_BIT_POSITION_IN_Q96 = []; // TBA	Array of uint256 values with the pre-computed values of price for certain values of tickValue in the Q96 representation.
+
+export const defaultConfig = {
+    feeTiers: {
+        100: 2,
+        500: 10,
+        3000: 60,
+        10000: 200
+    }
+};

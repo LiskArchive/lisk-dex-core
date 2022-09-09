@@ -15,29 +15,44 @@
 import {
 	BaseModule,
 	ModuleMetadata,
+	TokenAPI,
+	ValidatorsAPI,
+	utils
 } from 'lisk-sdk';
-
-import {
-	FeeTiers,
-} from './types';
 
 import {
 	MODULE_ID_DEX,
 	MODULE_NAME_DEX,
+	defaultConfig
 } from './constants';
 
-import { DexAPI } from './api';
-import { DexEndpoint } from './endpoint';
+import {
+	DexAPI
+} from './api';
+import {
+	DexEndpoint
+} from './endpoint';
+import {
+	ModuleConfig,
+	ModuleInitArgs
+} from './types';
 
 export class DexModule extends BaseModule {
 	public name = MODULE_NAME_DEX;
 	public id = MODULE_ID_DEX;
 	public endpoint = new DexEndpoint(this.id);
 	public api = new DexAPI(this.id);
-	private _feeTiers: FeeTiers = {};
+	public _tokenAPI!: TokenAPI;
+	public _validatorsAPI!: ValidatorsAPI;
+	public _moduleConfig!: ModuleConfig;
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public commands = [];
+
+	public addDependencies(tokenAPI: TokenAPI, validatorsAPI: ValidatorsAPI) {
+		this._tokenAPI = tokenAPI;
+		this._validatorsAPI = validatorsAPI;
+	}
 
 	public metadata(): ModuleMetadata {
 		return {
@@ -51,10 +66,10 @@ export class DexModule extends BaseModule {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async init() {
-        this._feeTiers[100] = 2;
-        this._feeTiers[500] = 10;
-        this._feeTiers[3000] = 60;
-        this._feeTiers[10000] = 200;
+	public async init(args: ModuleInitArgs) {
+		const {
+			moduleConfig
+		} = args;
+		this._moduleConfig = utils.objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfig;
 	}
 }
