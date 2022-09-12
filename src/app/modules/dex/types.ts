@@ -18,7 +18,7 @@ export interface FeeTiers {
 	[id: number]: number;
 }
 
-export type Q96 = BigInt;
+export type Q96 = bigint;
 export type TokenID = Buffer;
 export type PoolID = Buffer;
 export type PositionID = Buffer;
