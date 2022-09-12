@@ -14,9 +14,10 @@
 
 
 import {
-    cryptography,
     TokenAPI
 } from 'lisk-sdk';
+
+import { utils } from '@liskhq/lisk-cryptography';
 
 import {
     NUM_BYTES_ADDRESS,
@@ -38,17 +39,16 @@ import {
 } from "../types";
 
 export const poolIdToAddress = (poolId: PoolID): Address => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const _address: Buffer = cryptography.hash(poolId);
+    const _address: Buffer = utils.hash(poolId);
     return _address.slice(0, NUM_BYTES_ADDRESS);
 }
 
-export const getToken0Id = (poolId: PoolID): TokenID => poolId.slice(0, NUM_BYTES_TOKEN_ID);
+export const getToken0Id = (poolId: PoolID): TokenID => poolId.subarray(0, NUM_BYTES_TOKEN_ID);
 
-export const getToken1Id = (poolId: PoolID): TokenID => poolId.slice(NUM_BYTES_TOKEN_ID, 2 * NUM_BYTES_TOKEN_ID);
+export const getToken1Id = (poolId: PoolID): TokenID => poolId.subarray(NUM_BYTES_TOKEN_ID, 2 * NUM_BYTES_TOKEN_ID);
 
 export const getFeeTier = (poolId: PoolID): number => {
-    const _buffer: Buffer = poolId.slice(2 * NUM_BYTES_TOKEN_ID, NUM_BYTES_ADDRESS);
+    const _buffer: Buffer = poolId.subarray(2 * NUM_BYTES_TOKEN_ID, NUM_BYTES_ADDRESS);
     const _hexBuffer: string = _buffer.toString('hex');
 
     return uint32beInv(_hexBuffer);
