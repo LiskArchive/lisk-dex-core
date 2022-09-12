@@ -37,13 +37,10 @@ export const numberToQ96 = (r: bigint): Q96 => {
     return num;
 }
 
-export const roundDownQ96 = (a: Q96): Q96 => a >> N_96
+export const roundDownQ96 = (a: Q96): bigint => a >> N_96
 
-export const roundUpQ96 = (a: Q96) => {
-    if (a <= 0) {
-        throw new Error('Division by zero')
-    }
-    const _x = ONE >> N_96;
+export const roundUpQ96 = (a: Q96): bigint => {
+    const _x = ONE << N_96;
     const _y = a % _x;
 
     const _z = Number(_y);
@@ -66,8 +63,7 @@ export const subQ96 = (a: Q96, b: Q96): Q96 => {
         return a - b;
     }
 
-    return BigInt(0); //To discuss
-
+    throw new Error ("Result can't be negative");
 }
 
 export const mulQ96 = (a: Q96, b: Q96): Q96 => {
@@ -76,21 +72,21 @@ export const mulQ96 = (a: Q96, b: Q96): Q96 => {
 }
 
 export const divQ96 = (a: Q96, b: Q96): Q96 => {
-    const _x: bigint = a >> N_96;
+    const _x: Q96 = a << N_96;
     return _x / b;
 }
 
-export const mulDivQ96 = (a: Q96, b: Q96, c: Q96): Q96 => {
+export const mulDivQ96 = (a: Q96, b: Q96, c: Q96): bigint => {
     const _x: bigint = a * b;
-    const _y: bigint = _x >> N_96;
+    const _y: bigint = _x << N_96;
     const _z: bigint = _y / c;
 
     return roundDownQ96(_z);
 }
 
-export const mulDivRoundUpQ96 = (a: Q96, b: Q96, c: Q96): Q96 => {
+export const mulDivRoundUpQ96 = (a: Q96, b: Q96, c: Q96): bigint => {
     const _x: bigint = a * b;
-    const _y: bigint = _x >> N_96;
+    const _y: bigint = _x << N_96;
     const _z: bigint = _y / c;
 
     return roundUpQ96(_z)
@@ -101,7 +97,7 @@ export const q96ToInt = (a: Q96): bigint => roundDownQ96(a)
 export const q96ToIntRoundUp = (a: Q96): bigint => roundUpQ96(a)
 
 export const invQ96 = (a: Q96): Q96 => {
-    const _x: bigint = ONE >> N_96;
+    const _x: bigint = ONE << N_96;
     return divQ96(_x, a);
 }
 
