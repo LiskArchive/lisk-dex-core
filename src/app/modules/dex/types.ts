@@ -36,7 +36,7 @@ export interface ReclaimParamsData {
 export type TokenIDReclaim = Buffer;
 
 export interface ModuleConfig {
-	tokenIDReclaim: TokenIDReclaim;
+	protocolFeeAddress: Address;
 }
 
 export type ModuleConfigJSON = JSONObject<ModuleConfig>;
