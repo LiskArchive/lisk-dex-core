@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { JSONObject } from 'lisk-sdk';
+
 export interface FeeTiers {
 	[id: number]: number;
 }
@@ -21,3 +23,24 @@ export type TokenID = Buffer;
 export type PoolID = Buffer;
 export type PositionID = Buffer;
 export type Address = Buffer;
+
+export interface LegacyStoreData {
+	legacyAddress: string;
+	balance: bigint;
+}
+
+export interface ReclaimParamsData {
+	amount: bigint;
+}
+
+export type TokenIDReclaim = Buffer;
+
+export interface ModuleConfig {
+	protocolFeeAddress: Address;
+}
+
+export type ModuleConfigJSON = JSONObject<ModuleConfig>;
+
+export interface ModuleInitArgs {
+	moduleConfig: Record<string, unknown>;
+}
