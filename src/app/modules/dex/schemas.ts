@@ -12,6 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import {
+    MAX_NUM_BYTES_Q96,
+    NUM_BYTES_ADDRESS,
+    NUM_BYTES_POOL_ID,
+    NUM_BYTES_POSITION_ID,
+    NUM_BYTES_TICK_ID
+} from './constants'
+
 export const poolsSchema = {
     $id: '/dex/pools',
     "type": "object",
@@ -20,8 +28,6 @@ export const poolsSchema = {
         "sqrtPrice",
         "feeGrowthGlobal0",
         "feeGrowthGlobal1",
-        "protocolFees0",
-        "protocolFees1",
         "tickSpacing"
     ],
     "properties": {
@@ -31,33 +37,28 @@ export const poolsSchema = {
         },
         "sqrtPrice": {
             "dataType": "bytes",
+            "maxLength": MAX_NUM_BYTES_Q96,
             "fieldNumber": 2
         },
         "feeGrowthGlobal0": {
             "dataType": "bytes",
+            "maxLength": MAX_NUM_BYTES_Q96,
             "fieldNumber": 3
         },
         "feeGrowthGlobal1": {
             "dataType": "bytes",
+            "maxLength": MAX_NUM_BYTES_Q96,
             "fieldNumber": 4
-        },
-        "protocolFees0": {
-            "dataType": "uint64",
-            "fieldNumber": 5
-        },
-        "protocolFees1": {
-            "dataType": "uint64",
-            "fieldNumber": 6
         },
         "tickSpacing": {
             "dataType": "uint32",
-            "fieldNumber": 7
+            "fieldNumber": 5
         }
     }
 }
 
-export const priceTickSchema = {
-    $id: '/dex/priceTick',
+export const priceTicksSchema = {
+    $id: '/dex/priceTicks',
     "type": "object",
     "required": [
         "liquidityNet",
@@ -76,24 +77,27 @@ export const priceTickSchema = {
         },
         "feeGrowthOutside0": {
             "dataType": "bytes",
+            "maxLength": MAX_NUM_BYTES_Q96,
             "fieldNumber": 3
         },
         "feeGrowthOutside1": {
             "dataType": "bytes",
+            "maxLength": MAX_NUM_BYTES_Q96,
             "fieldNumber": 4
         }
     }
 }
 
-export const positionSchema = {
-    $id: '/dex/position',
+export const positionsSchema = {
+    $id: '/dex/positions',
     "type": "object",
     "required": [
         "tickLower",
         "tickUpper",
         "liquidity",
         "feeGrowthInsideLast0",
-        "feeGrowthInsideLast1"
+        "feeGrowthInsideLast1",
+        "ownerAddress"
     ],
     "properties": {
         "tickLower": {
@@ -110,11 +114,18 @@ export const positionSchema = {
         },
         "feeGrowthInsideLast0": {
             "dataType": "bytes",
+            "maxLength": MAX_NUM_BYTES_Q96,
             "fieldNumber": 4
         },
         "feeGrowthInsideLast1": {
             "dataType": "bytes",
+            "maxLength": MAX_NUM_BYTES_Q96,
             "fieldNumber": 5
+        },
+        "ownerAddress": {
+            "dataType": "bytes",
+            "length": NUM_BYTES_ADDRESS,
+            "fieldNumber": 6
         }
     }
 }
@@ -122,19 +133,29 @@ export const positionSchema = {
 export const settingsSchema = {
     $id: '/dex/settings',
     "type": "object",
-    "required": ["protocolFeeAddress", "protocolFeePercentage", "poolCreationSettings"],
+    "required": [
+        "protocolFeeAddress",
+        "protocolFeePart",
+        "validatorsLSKRewardsPart",
+        "poolCreationSettings"
+    ],
     "properties": {
         "protocolFeeAddress": {
             "dataType": "bytes",
+            "length": NUM_BYTES_ADDRESS,
             "fieldNumber": 1
         },
-        "protocolFeePercentage": {
+        "protocolFeePart": {
             "dataType": "uint32",
             "fieldNumber": 2
         },
+        "validatorsLSKRewardsPart": {
+            "dataType": "uint32",
+            "fieldNumber": 3
+        },
         "poolCreationSettings": {
             "type": "array",
-            "fieldNumber": 3,
+            "fieldNumber": 4,
             "items": {
                 "type": "object",
                 "required": ["feeTier", "tickSpacing"],
@@ -157,15 +178,34 @@ export const genesisDEXSchema = {
     $id: '/dex/genesis',
     "type": "object",
     "required": [
+        "stateSubstore",
         "poolSubstore",
         "priceTickSubstore",
         "positionSubstore",
         "settingsSubstore"
     ],
     "properties": {
+        "stateSubstore": {
+            "type": "object",
+            "fieldNumber": 1,
+            "required": [
+                "positionCounter",
+                "collectableLSKFees"
+            ],
+            "properties": {
+                "positionCounter": {
+                    "dataType": "uint64",
+                    "fieldNumber": 1
+                },
+                "collectableLSKFees": {
+                    "dataType": "uint64",
+                    "fieldNumber": 2
+                }
+            }
+        },
         "poolSubstore": {
             "type": "array",
-            "fieldNumber": 1,
+            "fieldNumber": 2,
             "items": {
                 "type": "object",
                 "required": [
@@ -174,13 +214,12 @@ export const genesisDEXSchema = {
                     "sqrtPrice",
                     "feeGrowthGlobal0",
                     "feeGrowthGlobal1",
-                    "protocolFees0",
-                    "protocolFees1",
                     "tickSpacing"
                 ],
                 "properties": {
                     "poolId": {
                         "dataType": "bytes",
+                        "length": NUM_BYTES_POOL_ID,
                         "fieldNumber": 1
                     },
                     "liquidity": {
@@ -189,34 +228,29 @@ export const genesisDEXSchema = {
                     },
                     "sqrtPrice": {
                         "dataType": "bytes",
+                        "maxLength": MAX_NUM_BYTES_Q96,
                         "fieldNumber": 3
                     },
                     "feeGrowthGlobal0": {
                         "dataType": "bytes",
+                        "maxLength": MAX_NUM_BYTES_Q96,
                         "fieldNumber": 4
                     },
                     "feeGrowthGlobal1": {
                         "dataType": "bytes",
+                        "maxLength": MAX_NUM_BYTES_Q96,
                         "fieldNumber": 5
-                    },
-                    "protocolFees0": {
-                        "dataType": "uint64",
-                        "fieldNumber": 6
-                    },
-                    "protocolFees1": {
-                        "dataType": "uint64",
-                        "fieldNumber": 7
                     },
                     "tickSpacing": {
                         "dataType": "uint32",
-                        "fieldNumber": 8
+                        "fieldNumber": 6
                     }
                 }
             }
         },
         "priceTickSubstore": {
             "type": "array",
-            "fieldNumber": 2,
+            "fieldNumber": 3,
             "items": {
                 "type": "object",
                 "required": [
@@ -229,6 +263,7 @@ export const genesisDEXSchema = {
                 "properties": {
                     "tickId": {
                         "dataType": "bytes",
+                        "length": NUM_BYTES_TICK_ID,
                         "fieldNumber": 1
                     },
                     "liquidityNet": {
@@ -241,10 +276,12 @@ export const genesisDEXSchema = {
                     },
                     "feeGrowthOutside0": {
                         "dataType": "bytes",
+                        "maxLength": MAX_NUM_BYTES_Q96,
                         "fieldNumber": 4
                     },
                     "feeGrowthOutside1": {
                         "dataType": "bytes",
+                        "maxLength": MAX_NUM_BYTES_Q96,
                         "fieldNumber": 5
                     }
                 }
@@ -252,7 +289,7 @@ export const genesisDEXSchema = {
         },
         "positionSubstore": {
             "type": "array",
-            "fieldNumber": 3,
+            "fieldNumber": 4,
             "items": {
                 "type": "object",
                 "required": [
@@ -266,6 +303,7 @@ export const genesisDEXSchema = {
                 "properties": {
                     "positionId": {
                         "dataType": "bytes",
+                        "length": NUM_BYTES_POSITION_ID,
                         "fieldNumber": 1
                     },
                     "tickLower": {
@@ -282,30 +320,48 @@ export const genesisDEXSchema = {
                     },
                     "feeGrowthInsideLast0": {
                         "dataType": "bytes",
+                        "maxLength": MAX_NUM_BYTES_Q96,
                         "fieldNumber": 5
                     },
                     "feeGrowthInsideLast1": {
                         "dataType": "bytes",
+                        "maxLength": MAX_NUM_BYTES_Q96,
                         "fieldNumber": 6
+                    },
+                    "ownerAddress": {
+                        "dataType": "bytes",
+                        "length": NUM_BYTES_ADDRESS,
+                        "fieldNumber": 7
                     }
                 }
             }
         },
         "settingsSubstore": {
             "type": "object",
-            "required": ["protocolFeeAddress", "protocolFeePercentage", "poolCreationSettings"],
+            "fieldNumber": 5,
+            "required": [
+                "protocolFeeAddress",
+                "protocolFeePart",
+                "validatorsLSKRewardsPart",
+                "poolCreationSettings"
+            ],
             "properties": {
                 "protocolFeeAddress": {
                     "dataType": "bytes",
+                    "length": NUM_BYTES_ADDRESS,
                     "fieldNumber": 1
                 },
-                "protocolFeePercentage": {
+                "protocolFeePart": {
                     "dataType": "uint32",
                     "fieldNumber": 2
                 },
+                "validatorsLSKRewardsPart": {
+                    "dataType": "uint32",
+                    "fieldNumber": 3
+                },
                 "poolCreationSettings": {
                     "type": "array",
-                    "fieldNumber": 3,
+                    "fieldNumber": 4,
                     "items": {
                         "type": "object",
                         "required": ["feeTier", "tickSpacing"],
