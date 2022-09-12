@@ -17,7 +17,9 @@ import {
     TokenAPI
 } from 'lisk-sdk';
 
-import { utils } from '@liskhq/lisk-cryptography';
+import {
+    utils
+} from '@liskhq/lisk-cryptography';
 
 import {
     NUM_BYTES_ADDRESS,
@@ -43,12 +45,12 @@ export const poolIdToAddress = (poolId: PoolID): Address => {
     return _address.slice(0, NUM_BYTES_ADDRESS);
 }
 
-export const getToken0Id = (poolId: PoolID): TokenID => poolId.subarray(0, NUM_BYTES_TOKEN_ID);
+export const getToken0Id = (poolId: PoolID): TokenID => poolId.slice(0, NUM_BYTES_TOKEN_ID + 1);
 
-export const getToken1Id = (poolId: PoolID): TokenID => poolId.subarray(NUM_BYTES_TOKEN_ID, 2 * NUM_BYTES_TOKEN_ID);
+export const getToken1Id = (poolId: PoolID): TokenID => poolId.slice(NUM_BYTES_TOKEN_ID, (2 * NUM_BYTES_TOKEN_ID) + 1);
 
 export const getFeeTier = (poolId: PoolID): number => {
-    const _buffer: Buffer = poolId.subarray(2 * NUM_BYTES_TOKEN_ID, NUM_BYTES_ADDRESS);
+    const _buffer: Buffer = poolId.slice(-4);
     const _hexBuffer: string = _buffer.toString('hex');
 
     return uint32beInv(_hexBuffer);
@@ -104,4 +106,13 @@ export const transferToProtocolFeeAccount = async (
     amount: bigint
 ): Promise < void > => {
     await tokenAPI.transfer(apiContext, senderAddress, settings.protocolFeeAddress, tokenId, amount)
+}
+
+// Convert a hex string to a byte array
+export const hexToBytes = (hex) => {
+    const bytes: number[] = [];
+    for (let c = 0; c < hex.length; c += 2)
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        bytes.push(parseInt(hex.substr(c, 2), 16));
+    return bytes;
 }
