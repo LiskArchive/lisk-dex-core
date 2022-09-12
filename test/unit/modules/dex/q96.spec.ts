@@ -48,8 +48,8 @@ describe('DexQ96Module', () => {
 			const test = mulQ96(testValue2, testValueMaxUint);
 			expect(divQ96(test, (testValueMaxUint))).toEqual(testValue2);
 
-			const zero = numberToQ96(BigInt(1));
-			expect(divQ96(testValue2, zero)).toThrow();
+			const zero = numberToQ96(BigInt(0));
+			expect(() => divQ96(testValue2, zero)).toThrow();
 		});
 
 		it('mulDiv', async () => {
