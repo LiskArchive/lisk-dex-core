@@ -4,10 +4,12 @@ import {
 	numberToQ96,
 	mulQ96,
 	subQ96,
+	invQ96,
 	bytesToQ96,
 	q96ToBytes,
 	q96ToInt,
-	mulDivQ96
+	mulDivQ96,
+	q96ToIntRoundUp
 } from '../../../../src/app/modules/dex/utils/q96';
 
 import {
@@ -38,15 +40,28 @@ describe('DexQ96Module', () => {
 		});
 
 		it('div', async () => {
+			const one = numberToQ96(BigInt(1));
+			const div = divQ96(one, testValue2);
+			expect(q96ToInt(div)).toEqual(BigInt("0"));
+			expect(q96ToIntRoundUp(div)).toEqual(BigInt("1"));
+
 			const test = mulQ96(testValue2, testValueMaxUint);
-			expect(divQ96(test, q96ToInt(testValueMaxUint))).toEqual(q96ToInt(testValue2));
+			expect(divQ96(test, (testValueMaxUint))).toEqual(testValue2);
+
+			const zero = numberToQ96(BigInt(1));
+			expect(divQ96(testValue2, zero)).toThrow();
 		});
 
 		it('mulDiv', async () => {
-			const test = divQ96(testValueMaxUint, testValue2);
-			expect(mulDivQ96(test, numberToQ96(BigInt('2')), numberToQ96(BigInt('2')))).toEqual(test);
+			const test = divQ96(testValueMax, testValueMax);
+			expect(mulDivQ96((test), numberToQ96(BigInt('4')), numberToQ96(BigInt('4')))).toEqual(test);
 		});
-		
+
+		it('invQ96', async () => {
+			const three = numberToQ96(BigInt(3)); // 3 is an odd number, not nicely invertible in binary
+			expect(q96ToInt(invQ96(invQ96(three)))).toEqual(BigInt("3"));
+		});
+
 		it('bytesToQ96 and q96ToBytes', async () => {
 			expect(bytesToQ96(q96ToBytes(testValueMaxUint))).toBe(testValueMaxUint)
 		});
