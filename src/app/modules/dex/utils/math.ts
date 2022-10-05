@@ -1,3 +1,5 @@
+/* eslint-disable no-param-reassign */
+/* eslint-disable no-bitwise */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -12,39 +14,164 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import JSBI from 'jsbi';
-import {toBigIntBE, toBigIntLE, toBufferBE, toBufferLE} from 'bigint-buffer';
+import {toBufferBE} from 'bigint-buffer';
 
-import { NUM_BYTES_Q96, PRICE_VALUE_FOR_BIT_POSITION_IN_Q96, MIN_TICK, MAX_TICK } from '../constants';
-import { sqrt } from "./math_constants";
+import {
+    MAX_NUM_BYTES_Q96,
+    PRICE_VALUE_FOR_BIT_POSITION_IN_Q96,
+    MIN_TICK,
+    MAX_TICK,
+    LOG_MAX_TICK,
+    PRICE_VALUE_FOR_TICK_1
+} from '../constants';
+import {
+    sqrt
+} from "./mathConstants";
 
-import { Q96 } from '../types';
-import { qn_r, mul_n, inv_n } from './q96';
+import { Q96, SqrtPrice } from '../types';
+import { invQ96, numberToQ96, addQ96, divQ96, mulDivQ96, mulDivRoundUpQ96, mulQ96, q96ToInt, q96ToIntRoundUp, subQ96 } from './q96';
 
-export const computeSqrtPrice = (a: JSBI): Buffer => {
-    const sq_a = sqrt(a);
-    const a_hex: string = sq_a.toString(16);
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+const range = (from: number, to: number, step: number): number[] => [...Array(Math.floor((to - from) / step) + 1)].map((_, i) => from + i * step);
 
-    return toBufferBE(BigInt(a_hex), NUM_BYTES_Q96);
+export const computeSqrtPrice = (a: Q96): Buffer => {
+    const sqrtA = sqrt(a);
+    const sqrtAHex: string = sqrtA.toString(16);
+    return toBufferBE(BigInt(sqrtAHex), MAX_NUM_BYTES_Q96);
 }
 
 export const tickToPrice = (tickValue: number): Q96 => {
 
     if(tickValue < MIN_TICK || tickValue > MAX_TICK){
-        //return;
+        throw new Error()
     }
 
-    let absTick: number = Math.abs(tickValue)
-    let sqrtPrice: JSBI = qn_r(1);
+    const absTick: number = Math.abs(tickValue)
+    let sqrtPrice: Q96 = numberToQ96(BigInt(1));
     
     PRICE_VALUE_FOR_BIT_POSITION_IN_Q96.forEach((e, i) => {
         if ((absTick >> i) & 1){
-            sqrtPrice = mul_n(sqrtPrice, e);
+            sqrtPrice = mulQ96(sqrtPrice, e);
         }
     });
 
     if(tickValue > 0)
-        sqrtPrice = inv_n(sqrtPrice)
+        sqrtPrice = invQ96(sqrtPrice)
 
     return sqrtPrice
+}
+
+export const priceToTick = (sqrtPrice: Q96): number => {
+    let invertedPrice = false;
+    const sqrtPriceOriginal = sqrtPrice
+    if (sqrtPrice >= PRICE_VALUE_FOR_TICK_1) {
+        sqrtPrice = invQ96(sqrtPrice)
+        invertedPrice = true
+    }
+
+    let tickValue = 0
+    let tempPrice = numberToQ96(BigInt(1))
+    range(LOG_MAX_TICK, -1, -1).forEach(i => {
+        const sqrtPriceAtBit = PRICE_VALUE_FOR_BIT_POSITION_IN_Q96[i]
+        const newPrice = mulQ96(tempPrice, sqrtPriceAtBit)
+        if (sqrtPrice <= newPrice) {
+            tickValue += 1 << i
+            tempPrice = newPrice
+        }
+    });
+
+    if (!invertedPrice) {
+        tickValue = -tickValue
+    }
+    if (tickToPrice(tickValue) > sqrtPriceOriginal) {
+        tickValue -= 1
+    }
+
+    return tickValue
+}
+
+
+export const getAmount0Delta = (
+    sqrtPrice1: SqrtPrice,
+    sqrtPrice2: SqrtPrice,
+    liquidity: bigint,
+    roundUp: boolean
+): bigint => {
+    if (liquidity === BigInt(0)) {
+        throw new Error()
+    }
+
+    if (sqrtPrice1 > sqrtPrice2) {
+        [sqrtPrice1, sqrtPrice2] = [sqrtPrice2, sqrtPrice1]
+    }
+
+    const num1 = numberToQ96(liquidity)
+    const num2 = subQ96(sqrtPrice2, sqrtPrice1)
+
+    let amount0 = divQ96(mulDivQ96(num1, num2, sqrtPrice2), sqrtPrice1)
+
+    if (!roundUp) {
+        amount0 = q96ToInt(amount0)
+    } else {
+        amount0 = q96ToIntRoundUp(amount0)
+    }
+    return amount0
+}
+
+
+export const getAmount1Delta = (
+    sqrtPrice1: SqrtPrice,
+    sqrtPrice2: SqrtPrice,
+    liquidity: bigint,
+    roundUp: boolean
+): bigint => {
+    if (liquidity === BigInt(0)) {
+        throw new Error()
+    }
+
+    if (sqrtPrice1 > sqrtPrice2) {
+        [sqrtPrice1, sqrtPrice2] = [sqrtPrice2, sqrtPrice1]
+    }
+
+    const liquidityQ96 = numberToQ96(liquidity)
+    let amount1 = mulQ96(liquidityQ96, subQ96(sqrtPrice2, sqrtPrice1))
+
+    if (!roundUp) {
+        amount1 = q96ToInt(amount1)
+    } else {
+        amount1 = q96ToIntRoundUp(amount1)
+    }
+    return amount1
+}
+
+
+export const computeNextPrice = (
+    sqrtPrice: SqrtPrice,
+    liquidity: bigint,
+    amount: bigint,
+    isToken0: boolean,
+    addsAmount: boolean
+): SqrtPrice => {
+    if (liquidity === BigInt(0)) {
+        throw new Error()
+    }
+
+    const liquidityQ96 = numberToQ96(liquidity);
+    const amountQ96 = numberToQ96(amount);
+    let denom: Q96;
+    let nextSqrtPrice: bigint;
+    if (isToken0) {
+        if (addsAmount) {
+            denom = addQ96(mulQ96(amountQ96, sqrtPrice), liquidityQ96)
+        } else {
+            denom = subQ96(liquidityQ96, mulQ96(amountQ96, sqrtPrice))
+        }
+        nextSqrtPrice = mulDivRoundUpQ96(liquidityQ96, sqrtPrice, denom)
+
+    } else if (addsAmount) {
+            nextSqrtPrice = addQ96(sqrtPrice, divQ96(amountQ96, liquidityQ96))
+        } else {
+            nextSqrtPrice = subQ96(sqrtPrice, mulDivRoundUpQ96(amountQ96, numberToQ96(BigInt(1)), liquidityQ96))
+        }
+    return nextSqrtPrice
 }

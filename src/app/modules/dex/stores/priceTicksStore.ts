@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import {
-    BaseStore
+    BaseStore, StoreGetter
 } from 'lisk-sdk';
 import {
     MAX_NUM_BYTES_Q96,
@@ -80,4 +80,37 @@ export const priceTicksStoreSchema = {
 
 export class PriceTicksStore extends BaseStore < PriceTicksStoreData > {
     public schema = priceTicksStoreSchema;
+
+    public async getKey(
+        context: StoreGetter,
+        keys: Buffer[],
+    ): Promise < PriceTicksStoreData > {
+        const key = Buffer.concat(keys);
+        return this.get(context, key);
+    }
+
+    public async hasKey(
+        context: StoreGetter,
+        keys: Buffer[],
+    ): Promise < boolean > {
+        const key = Buffer.concat(keys);
+        return this.has(context, key);
+    }
+
+    public async setKey(
+        context: StoreGetter,
+        keys: Buffer[],
+        value: PriceTicksStoreData
+    ): Promise < void > {
+        const key = Buffer.concat(keys);
+        await this.set(context, key, value);
+    }
+
+    public async delKey(
+        context: StoreGetter,
+        keys: Buffer[]
+    ): Promise < void > {
+        const key = Buffer.concat(keys);
+        await this.del(context, key);
+    }
 }

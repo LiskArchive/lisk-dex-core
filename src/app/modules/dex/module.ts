@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -15,20 +18,16 @@
 import {
 	BaseModule,
 	ModuleMetadata,
-	TokenAPI,
-	ValidatorsAPI,
-	utils
+	utils,
+	TokenMethod,
+	ValidatorsMethod
 } from 'lisk-sdk';
 
 import {
 	MODULE_ID_DEX,
-	MODULE_NAME_DEX,
 	defaultConfig
 } from './constants';
 
-import {
-	DexAPI
-} from './api';
 import {
 	DexEndpoint
 } from './endpoint';
@@ -37,30 +36,63 @@ import {
 	ModuleInitArgs
 } from './types';
 
+import {
+	AmountBelowMinEvent,
+	PoolCreatedEvent,
+	PoolCreationFailedEvent
+} from './events';
+
+import {
+	CreatePoolCommand
+} from './commands/createPool';
+import {
+	PoolsStore,
+	PositionsStore,
+	PriceTicksStore,
+	SettingsStore
+} from './stores';
+import {
+	DexMethod
+} from './method';
+import { DexGlobalStore } from './stores/dexGlobalStore';
+
 export class DexModule extends BaseModule {
-	public name = MODULE_NAME_DEX;
 	public id = MODULE_ID_DEX;
-	public endpoint = new DexEndpoint(this.id);
-	public api = new DexAPI(this.id);
-	public _tokenAPI!: TokenAPI;
-	public _validatorsAPI!: ValidatorsAPI;
+	public endpoint = new DexEndpoint(this.stores, this.offchainStores);
+	public method = new DexMethod(this.stores, this.events);
+	public _tokenMethod = new TokenMethod(this.stores, this.events, this.name);
+	public _validatorsMethod = new ValidatorsMethod(this.stores, this.events);
 	public _moduleConfig!: ModuleConfig;
 
-	// eslint-disable-next-line @typescript-eslint/member-ordering
-	public commands = [];
+	private readonly _createPoolCommand = new CreatePoolCommand(this.stores, this.events)
 
-	public addDependencies(tokenAPI: TokenAPI, validatorsAPI: ValidatorsAPI) {
-		this._tokenAPI = tokenAPI;
-		this._validatorsAPI = validatorsAPI;
+	// eslint-disable-next-line @typescript-eslint/member-ordering
+	public commands = [this._createPoolCommand];
+
+	public constructor() {
+		super();
+		this.stores.register(DexGlobalStore, new DexGlobalStore(this.name));
+		this.stores.register(PoolsStore, new PoolsStore(this.name));
+		this.stores.register(PositionsStore, new PositionsStore(this.name));
+		this.stores.register(PriceTicksStore, new PriceTicksStore(this.name));
+		this.stores.register(SettingsStore, new SettingsStore(this.name));
+		this.events.register(PoolCreatedEvent, new PoolCreatedEvent(this.name));
+		this.events.register(PoolCreationFailedEvent, new PoolCreationFailedEvent(this.name));
+		this.events.register(AmountBelowMinEvent, new AmountBelowMinEvent(this.name));
 	}
 
 	public metadata(): ModuleMetadata {
 		return {
-			id: this.id,
 			name: this.name,
 			endpoints: [],
-			commands: [],
-			events: [],
+			commands: this.commands.map(command => ({
+				name: command.name,
+				params: command.schema,
+			})),
+			events: this.events.values().map(v => ({
+				name: v.name,
+				data: v.schema,
+			})),
 			assets: [],
 		};
 	}
@@ -71,5 +103,11 @@ export class DexModule extends BaseModule {
 			moduleConfig
 		} = args;
 		this._moduleConfig = utils.objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfig;
+
+		this._createPoolCommand.init({
+			moduleConfig: this._moduleConfig,
+			moduleId: this.id,
+			tokenMethod: this._tokenMethod
+		});
 	}
 }

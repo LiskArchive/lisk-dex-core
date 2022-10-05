@@ -1,13 +1,13 @@
 import {
 	getToken0Id,
 	getToken1Id,
-	getFeeTier,
-	hexToBytes
+	getFeeTier
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import {
 	PoolID, TokenID
 } from '../../../../src/app/modules/dex/types';
+import { hexToBytes } from '../../../../src/app/modules/dex/constants';
 
 describe('dex:auxiliaryFunctions', () => {
 	describe('constructor', () => {

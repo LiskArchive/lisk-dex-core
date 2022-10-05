@@ -20,116 +20,6 @@ import {
     NUM_BYTES_TICK_ID
 } from './constants'
 
-export const poolsSchema = {
-    $id: '/dex/pools',
-    "type": "object",
-    "required": [
-        "liquidity",
-        "sqrtPrice",
-        "feeGrowthGlobal0",
-        "feeGrowthGlobal1",
-        "tickSpacing"
-    ],
-    "properties": {
-        "liquidity": {
-            "dataType": "uint64",
-            "fieldNumber": 1
-        },
-        "sqrtPrice": {
-            "dataType": "bytes",
-            "maxLength": MAX_NUM_BYTES_Q96,
-            "fieldNumber": 2
-        },
-        "feeGrowthGlobal0": {
-            "dataType": "bytes",
-            "maxLength": MAX_NUM_BYTES_Q96,
-            "fieldNumber": 3
-        },
-        "feeGrowthGlobal1": {
-            "dataType": "bytes",
-            "maxLength": MAX_NUM_BYTES_Q96,
-            "fieldNumber": 4
-        },
-        "tickSpacing": {
-            "dataType": "uint32",
-            "fieldNumber": 5
-        }
-    }
-}
-
-export const priceTicksSchema = {
-    $id: '/dex/priceTicks',
-    "type": "object",
-    "required": [
-        "liquidityNet",
-        "liquidityGross",
-        "feeGrowthOutside0",
-        "feeGrowthOutside1"
-    ],
-    "properties": {
-        "liquidityNet": {
-            "dataType": "sint64",
-            "fieldNumber": 1
-        },
-        "liquidityGross": {
-            "dataType": "uint64",
-            "fieldNumber": 2
-        },
-        "feeGrowthOutside0": {
-            "dataType": "bytes",
-            "maxLength": MAX_NUM_BYTES_Q96,
-            "fieldNumber": 3
-        },
-        "feeGrowthOutside1": {
-            "dataType": "bytes",
-            "maxLength": MAX_NUM_BYTES_Q96,
-            "fieldNumber": 4
-        }
-    }
-}
-
-export const positionsSchema = {
-    $id: '/dex/positions',
-    "type": "object",
-    "required": [
-        "tickLower",
-        "tickUpper",
-        "liquidity",
-        "feeGrowthInsideLast0",
-        "feeGrowthInsideLast1",
-        "ownerAddress"
-    ],
-    "properties": {
-        "tickLower": {
-            "dataType": "sint32",
-            "fieldNumber": 1
-        },
-        "tickUpper": {
-            "dataType": "sint32",
-            "fieldNumber": 2
-        },
-        "liquidity": {
-            "dataType": "uint64",
-            "fieldNumber": 3
-        },
-        "feeGrowthInsideLast0": {
-            "dataType": "bytes",
-            "maxLength": MAX_NUM_BYTES_Q96,
-            "fieldNumber": 4
-        },
-        "feeGrowthInsideLast1": {
-            "dataType": "bytes",
-            "maxLength": MAX_NUM_BYTES_Q96,
-            "fieldNumber": 5
-        },
-        "ownerAddress": {
-            "dataType": "bytes",
-            "length": NUM_BYTES_ADDRESS,
-            "fieldNumber": 6
-        }
-    }
-}
-
 export const settingsSchema = {
     $id: '/dex/settings',
     "type": "object",
@@ -378,6 +268,69 @@ export const genesisDEXSchema = {
                     }
                 }
             }
+        }
+    }
+}
+
+export const createPoolParamsSchema = {
+    $id: '/dex/createPoolParamsSchema',
+    "type": "object",
+    "required": [
+        "tokenID0",
+        "tokenID1",
+        "feeTier",
+        "tickInitialPrice",
+        "initialPosition",
+        "maxTimestampValid"
+    ],
+    "properties": {
+        "tokenID0": {
+            "dataType": "bytes",
+            "fieldNumber": 1
+        },
+        "tokenID1": {
+            "dataType": "bytes",
+            "fieldNumber": 2
+        },
+        "feeTier": {
+            "dataType": "uint32",
+            "fieldNumber": 3
+        },
+        "tickInitialPrice": {
+            "dataType": "sint32",
+            "fieldNumber": 4
+        },
+        "initialPosition": {
+            "type": "object",
+            "fieldNumber": 5,
+            "required": [
+                "tickLower",
+                "tickUpper",
+                "amount0Desired",
+                "amount1Desired"
+            ],
+            "properties": {
+                "tickLower": {
+                    "dataType": "sint32",
+                    "fieldNumber": 1
+                },
+                "tickUpper": {
+                    "dataType": "sint32",
+                    "fieldNumber": 2
+                },
+                "amount0Desired": {
+                    "dataType": "uint64",
+                    "fieldNumber": 3
+                },
+                "amount1Desired": {
+                    "dataType": "uint64",
+                    "fieldNumber": 4
+                }
+            }
+        },
+        "maxTimestampValid": {
+            "dataType": "uint64",
+            "fieldNumber": 6
         }
     }
 }

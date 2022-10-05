@@ -12,10 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import {
-    BaseStore
+    BaseStore, StoreGetter
 } from 'lisk-sdk';
 import {
-    MAX_NUM_BYTES_Q96, NUM_BYTES_ADDRESS
+    MAX_NUM_BYTES_Q96,
+    NUM_BYTES_ADDRESS
 } from '../constants';
 
 export interface PositionsStoreData {
@@ -71,4 +72,29 @@ export const positionsStoreSchema = {
 
 export class PositionsStore extends BaseStore < PositionsStoreData > {
     public schema = positionsStoreSchema;
+
+    public async getKey(
+        context: StoreGetter,
+        keys: Buffer[],
+    ): Promise < unknown > {
+        const key = Buffer.concat(keys);
+        return this.get(context, key);
+    }
+
+    public async hasKey(
+        context: StoreGetter,
+        keys: Buffer[],
+    ): Promise < unknown > {
+        const key = Buffer.concat(keys);
+        return this.has(context, key);
+    }
+
+    public async setKey(
+        context: StoreGetter,
+        keys: Buffer[],
+        value
+    ): Promise < void > {
+        const key = Buffer.concat(keys);
+        await this.set(context, key, value);
+    }
 }
