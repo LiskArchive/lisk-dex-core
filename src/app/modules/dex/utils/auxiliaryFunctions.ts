@@ -22,7 +22,6 @@ import {
     TokenMethod
 } from 'lisk-sdk';
 
-
 import {
     utils
 } from '@liskhq/lisk-cryptography';
@@ -548,4 +547,3 @@ export const updatePosition = async (methodContext: MethodContext, events: Named
 
     return [amount0, amount1]
 }
-

@@ -14,7 +14,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {toBufferBE} from 'bigint-buffer';
+import {
+    toBufferBE
+} from 'bigint-buffer';
 
 import {
     MAX_NUM_BYTES_Q96,
@@ -28,8 +30,22 @@ import {
     sqrt
 } from "./mathConstants";
 
-import { Q96, SqrtPrice } from '../types';
-import { invQ96, numberToQ96, addQ96, divQ96, mulDivQ96, mulDivRoundUpQ96, mulQ96, q96ToInt, q96ToIntRoundUp, subQ96 } from './q96';
+import {
+    Q96,
+    SqrtPrice
+} from '../types';
+import {
+    invQ96,
+    numberToQ96,
+    addQ96,
+    divQ96,
+    mulDivQ96,
+    mulDivRoundUpQ96,
+    mulQ96,
+    q96ToInt,
+    q96ToIntRoundUp,
+    subQ96
+} from './q96';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const range = (from: number, to: number, step: number): number[] => [...Array(Math.floor((to - from) / step) + 1)].map((_, i) => from + i * step);
@@ -42,20 +58,20 @@ export const computeSqrtPrice = (a: Q96): Buffer => {
 
 export const tickToPrice = (tickValue: number): Q96 => {
 
-    if(tickValue < MIN_TICK || tickValue > MAX_TICK){
+    if (tickValue < MIN_TICK || tickValue > MAX_TICK) {
         throw new Error()
     }
 
     const absTick: number = Math.abs(tickValue)
     let sqrtPrice: Q96 = numberToQ96(BigInt(1));
-    
+
     PRICE_VALUE_FOR_BIT_POSITION_IN_Q96.forEach((e, i) => {
-        if ((absTick >> i) & 1){
+        if ((absTick >> i) & 1) {
             sqrtPrice = mulQ96(sqrtPrice, e);
         }
     });
 
-    if(tickValue > 0)
+    if (tickValue > 0)
         sqrtPrice = invQ96(sqrtPrice)
 
     return sqrtPrice
@@ -169,9 +185,9 @@ export const computeNextPrice = (
         nextSqrtPrice = mulDivRoundUpQ96(liquidityQ96, sqrtPrice, denom)
 
     } else if (addsAmount) {
-            nextSqrtPrice = addQ96(sqrtPrice, divQ96(amountQ96, liquidityQ96))
-        } else {
-            nextSqrtPrice = subQ96(sqrtPrice, mulDivRoundUpQ96(amountQ96, numberToQ96(BigInt(1)), liquidityQ96))
-        }
+        nextSqrtPrice = addQ96(sqrtPrice, divQ96(amountQ96, liquidityQ96))
+    } else {
+        nextSqrtPrice = subQ96(sqrtPrice, mulDivRoundUpQ96(amountQ96, numberToQ96(BigInt(1)), liquidityQ96))
+    }
     return nextSqrtPrice
 }
