@@ -36,7 +36,9 @@ export interface ReclaimParamsData {
 export type TokenIDReclaim = Buffer;
 
 export interface ModuleConfig {
-	protocolFeeAddress: Address;
+	feeTiers: {
+		number: number;
+	};
 }
 
 export type ModuleConfigJSON = JSONObject<ModuleConfig>;
