@@ -51,7 +51,9 @@ export interface CreatePoolParamsData {
 export type TokenIDReclaim = Buffer;
 
 export interface ModuleConfig {
-	api: DexAPI;
+	feeTiers: {
+		number: number;
+	};
 }
 
 export type ModuleConfigJSON = JSONObject < ModuleConfig > ;

@@ -34,7 +34,6 @@ import {
     POOL_CREATION_FEE,
     POOL_CREATION_SUCCESS,
     POSITION_CREATION_SUCCESS,
-    STORE_PREFIX_POOL,
     TOKEN_ID_FEE_DEX,
 } from '../constants';
 import {
@@ -80,16 +79,13 @@ export class CreatePoolCommand extends BaseCommand {
     public id = COMMAND_ID_CREATE_POOL;
     public schema = createPoolParamsSchema;
     private _moduleConfig!: ModuleConfig;
-    private _moduleId!: Buffer;
     private _tokenMethod!: TokenMethod;
 
     public init({
         moduleConfig,
-        moduleId,
         tokenMethod
     }): void {
         this._moduleConfig = moduleConfig;
-        this._moduleId = moduleId;
         this._tokenMethod = tokenMethod;
     }
 
@@ -150,10 +146,10 @@ export class CreatePoolCommand extends BaseCommand {
 
 
         const poolId = computePoolID(tokenID0, tokenID1, Buffer.from([feeTier]));
-        const poolStore = ctx.getStore(this._moduleId, STORE_PREFIX_POOL);
-        const doesPoolAlreadyExist = await poolStore.has(poolId);
+        const poolStore = this.stores.get(PoolsStore);
+        const doesPoolAlreadyExist = await poolStore.has(ctx.getMethodContext(), poolId);
 
-        if (!doesPoolAlreadyExist) {
+        if (doesPoolAlreadyExist) {
             return {
                 status: VerifyStatus.FAIL,
                 error: new Error(
