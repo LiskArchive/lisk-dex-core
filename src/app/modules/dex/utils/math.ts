@@ -23,8 +23,7 @@ import {
     PRICE_VALUE_FOR_BIT_POSITION_IN_Q96,
     MIN_TICK,
     MAX_TICK,
-    LOG_MAX_TICK,
-    PRICE_VALUE_FOR_TICK_1
+    LOG_MAX_TICK
 } from '../constants';
 import {
     sqrt
@@ -80,6 +79,7 @@ export const tickToPrice = (tickValue: number): Q96 => {
 export const priceToTick = (sqrtPrice: Q96): number => {
     let invertedPrice = false;
     const sqrtPriceOriginal = sqrtPrice
+    const PRICE_VALUE_FOR_TICK_1 = sqrt((divQ96(numberToQ96(BigInt(10001)), numberToQ96(BigInt(10000)))) * BigInt(2) ** BigInt(96));
     if (sqrtPrice >= PRICE_VALUE_FOR_TICK_1) {
         sqrtPrice = invQ96(sqrtPrice)
         invertedPrice = true
