@@ -54,7 +54,12 @@ import {
 import {
 	DexMethod
 } from './method';
-import { DexGlobalStore } from './stores/dexGlobalStore';
+import {
+	DexGlobalStore
+} from './stores/dexGlobalStore';
+import {
+	CreatePositionCommand
+} from './commands/createPosition';
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
@@ -65,9 +70,10 @@ export class DexModule extends BaseModule {
 	public _moduleConfig!: ModuleConfig;
 
 	private readonly _createPoolCommand = new CreatePoolCommand(this.stores, this.events)
+	private readonly _createPositionCommand = new CreatePositionCommand(this.stores, this.events)
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
-	public commands = [this._createPoolCommand];
+	public commands = [this._createPoolCommand, this._createPositionCommand];
 
 	public constructor() {
 		super();
@@ -106,7 +112,9 @@ export class DexModule extends BaseModule {
 
 		this._createPoolCommand.init({
 			moduleConfig: this._moduleConfig,
-			moduleId: this.id,
+			tokenMethod: this._tokenMethod
+		});
+		this._createPositionCommand.init({
 			tokenMethod: this._tokenMethod
 		});
 	}
