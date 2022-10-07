@@ -369,3 +369,25 @@ export const removeLiquiditySchema = {
         },
     }
 }
+
+export const collectFeesSchema = {
+    $id: '/dex/collectFees',
+    "type": "object",
+    "required": ["positions"],
+    "properties": {
+        "positions": {
+            "type": "array",
+            "fieldNumber": 1,
+            "items": {
+                "type": "object",
+                "required": ["positionID"],
+                "properties": {
+                    "positionID": {
+                        "dataType": "bytes",
+                        "fieldNumber": 1
+                    },
+                }
+            }
+        }
+    }
+}
