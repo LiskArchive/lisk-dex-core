@@ -348,7 +348,6 @@ export const removeLiquiditySchema = {
     "properties": {
         "positionID": {
             "dataType": "bytes",
-            "length": NUM_BYTES_POSITION_ID,
             "fieldNumber": 1
         },
         "liquidityToRemove": {
