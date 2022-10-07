@@ -55,6 +55,7 @@ import {
 	DexMethod
 } from './method';
 import { DexGlobalStore } from './stores/dexGlobalStore';
+import { AddLiquidityCommand } from './commands/addLiquidity';
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
@@ -65,9 +66,10 @@ export class DexModule extends BaseModule {
 	public _moduleConfig!: ModuleConfig;
 
 	private readonly _createPoolCommand = new CreatePoolCommand(this.stores, this.events)
+	private readonly _addLiquidityCommand = new AddLiquidityCommand(this.stores, this.events)
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
-	public commands = [this._createPoolCommand];
+	public commands = [this._createPoolCommand, this._addLiquidityCommand];
 
 	public constructor() {
 		super();
@@ -106,7 +108,9 @@ export class DexModule extends BaseModule {
 
 		this._createPoolCommand.init({
 			moduleConfig: this._moduleConfig,
-			moduleId: this.id,
+			tokenMethod: this._tokenMethod
+		});
+		this._addLiquidityCommand.init({
 			tokenMethod: this._tokenMethod
 		});
 	}
