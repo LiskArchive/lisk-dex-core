@@ -37,6 +37,30 @@ import {
 	ModuleInitArgs
 } from './types';
 
+<<<<<<< HEAD
+=======
+import {
+	AmountBelowMinEvent,
+	PoolCreatedEvent,
+	PoolCreationFailedEvent
+} from './events';
+
+import {
+	CreatePoolCommand
+} from './commands/createPool';
+import {
+	PoolsStore,
+	PositionsStore,
+	PriceTicksStore,
+	SettingsStore
+} from './stores';
+import {
+	DexMethod
+} from './method';
+import { DexGlobalStore } from './stores/dexGlobalStore';
+import { AddLiquidityCommand } from './commands/addLiquidity';
+
+>>>>>>> 3f95c9f (Add liquidity)
 export class DexModule extends BaseModule {
 	public name = MODULE_NAME_DEX;
 	public id = MODULE_ID_DEX;
@@ -46,8 +70,16 @@ export class DexModule extends BaseModule {
 	public _validatorsAPI!: ValidatorsAPI;
 	public _moduleConfig!: ModuleConfig;
 
+<<<<<<< HEAD
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public commands = [];
+=======
+	private readonly _createPoolCommand = new CreatePoolCommand(this.stores, this.events)
+	private readonly _addLiquidityCommand = new AddLiquidityCommand(this.stores, this.events)
+
+	// eslint-disable-next-line @typescript-eslint/member-ordering
+	public commands = [this._createPoolCommand, this._addLiquidityCommand];
+>>>>>>> 3f95c9f (Add liquidity)
 
 	public addDependencies(tokenAPI: TokenAPI, validatorsAPI: ValidatorsAPI) {
 		this._tokenAPI = tokenAPI;
@@ -71,5 +103,16 @@ export class DexModule extends BaseModule {
 			moduleConfig
 		} = args;
 		this._moduleConfig = utils.objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfig;
+<<<<<<< HEAD
+=======
+
+		this._createPoolCommand.init({
+			moduleConfig: this._moduleConfig,
+			tokenMethod: this._tokenMethod
+		});
+		this._addLiquidityCommand.init({
+			tokenMethod: this._tokenMethod
+		});
+>>>>>>> 3f95c9f (Add liquidity)
 	}
 }

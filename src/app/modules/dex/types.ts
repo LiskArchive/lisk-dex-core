@@ -33,6 +33,15 @@ export interface ReclaimParamsData {
 	amount: bigint;
 }
 
+export interface AddLiquidityParamsData {
+	positionID: Buffer;
+	amount0Desired: bigint;
+	amount1Desired: bigint;
+	amount0Min: bigint;
+	amount1Min: bigint;
+	maxTimestampValid: bigint;
+}
+
 export type TokenIDReclaim = Buffer;
 
 export interface ModuleConfig {
