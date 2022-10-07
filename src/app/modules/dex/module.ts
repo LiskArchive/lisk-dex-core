@@ -37,16 +37,24 @@ import {
 	PositionCreationFailedEvent,
 } from './events';
 
-import { CreatePoolCommand } from './commands/createPool';
-import { AddLiquidityCommand } from './commands/addLiquidity';
-import { PoolsStore, PositionsStore, PriceTicksStore, SettingsStore } from './stores';
-import { DexMethod } from './method';
-import { DexGlobalStore } from './stores/dexGlobalStore';
-import { CollectFeesCommand } from './commands/collectFees';
-
-import { RemoveLiquidityFailedEvent } from './events/removeLiquidityFailed';
-import { RemoveLiquidityEvent } from './events/removeLiquidity';
-import { RemoveLiquidityCommand } from './commands/removeLiquidity';
+import {
+	CreatePoolCommand
+} from './commands/createPool';
+import {
+	PoolsStore,
+	PositionsStore,
+	PriceTicksStore,
+	SettingsStore
+} from './stores';
+import {
+	DexMethod
+} from './method';
+import {
+	DexGlobalStore
+} from './stores/dexGlobalStore';
+import {
+	CreatePositionCommand
+} from './commands/createPosition';
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
@@ -83,12 +91,7 @@ export class DexModule extends BaseModule {
 		this.events.register(FeesIncentivesCollectedEvent, new FeesIncentivesCollectedEvent(DexModule.name));
 		this.events.register(RemoveLiquidityFailedEvent, new RemoveLiquidityFailedEvent(DexModule.name));
 		this.events.register(RemoveLiquidityEvent, new RemoveLiquidityEvent(DexModule.name));
-
-
 	}
-
-
-
 
 	public metadata(): ModuleMetadata {
 		return {
@@ -116,6 +119,10 @@ export class DexModule extends BaseModule {
 			moduleConfig: this._moduleConfig,
 			tokenMethod: this._tokenMethod
 		});
+		this._createPositionCommand.init({
+			tokenMethod: this._tokenMethod,
+		});
+
 		this._addLiquidityCommand.init({
 			tokenMethod: this._tokenMethod,
 		});

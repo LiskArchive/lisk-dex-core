@@ -45,16 +45,15 @@ export interface AddLiquidityParamsData {
 	maxTimestampValid: bigint;
 }
 
-export interface RemoveLiquidityParamsData {
-	positionID: Buffer;
-	liquidityToRemove: bigint;
+export interface CreatePositionParamsData {
+	poolID: Buffer;
+	tickLower: number;
+	tickUpper: number;
+	amount0Desired: bigint;
+	amount1Desired: bigint;
 	amount0Min: bigint;
 	amount1Min: bigint;
 	maxTimestampValid: bigint;
-}
-
-export interface CollectFeesParamData {
-	positions: [];
 }
 
 export type TokenIDReclaim = Buffer;
