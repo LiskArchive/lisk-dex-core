@@ -11,90 +11,75 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import {
-    BaseStore, StoreGetter
-} from 'lisk-sdk';
-import {
-    MAX_NUM_BYTES_Q96,
-    NUM_BYTES_ADDRESS
-} from '../constants';
+import { BaseStore, StoreGetter } from 'lisk-sdk';
+import { MAX_NUM_BYTES_Q96, NUM_BYTES_ADDRESS } from '../constants';
 
 export interface PositionsStoreData {
-    tickLower: number;
-    tickUpper: number;
-    liquidity: bigint;
-    feeGrowthInsideLast0: Buffer;
-    feeGrowthInsideLast1: Buffer;
-    ownerAddress: Buffer;
+	tickLower: number;
+	tickUpper: number;
+	liquidity: bigint;
+	feeGrowthInsideLast0: Buffer;
+	feeGrowthInsideLast1: Buffer;
+	ownerAddress: Buffer;
 }
 
 export const positionsStoreSchema = {
-    $id: '/dex/store/positions',
-    "type": "object",
-    "required": [
-        "tickLower",
-        "tickUpper",
-        "liquidity",
-        "feeGrowthInsideLast0",
-        "feeGrowthInsideLast1",
-        "ownerAddress"
-    ],
-    "properties": {
-        "tickLower": {
-            "dataType": "sint32",
-            "fieldNumber": 1
-        },
-        "tickUpper": {
-            "dataType": "sint32",
-            "fieldNumber": 2
-        },
-        "liquidity": {
-            "dataType": "uint64",
-            "fieldNumber": 3
-        },
-        "feeGrowthInsideLast0": {
-            "dataType": "bytes",
-            "maxLength": MAX_NUM_BYTES_Q96,
-            "fieldNumber": 4
-        },
-        "feeGrowthInsideLast1": {
-            "dataType": "bytes",
-            "maxLength": MAX_NUM_BYTES_Q96,
-            "fieldNumber": 5
-        },
-        "ownerAddress": {
-            "dataType": "bytes",
-            "length": NUM_BYTES_ADDRESS,
-            "fieldNumber": 6
-        }
-    }
+	$id: '/dex/store/positions',
+	type: 'object',
+	required: [
+		'tickLower',
+		'tickUpper',
+		'liquidity',
+		'feeGrowthInsideLast0',
+		'feeGrowthInsideLast1',
+		'ownerAddress',
+	],
+	properties: {
+		tickLower: {
+			dataType: 'sint32',
+			fieldNumber: 1,
+		},
+		tickUpper: {
+			dataType: 'sint32',
+			fieldNumber: 2,
+		},
+		liquidity: {
+			dataType: 'uint64',
+			fieldNumber: 3,
+		},
+		feeGrowthInsideLast0: {
+			dataType: 'bytes',
+			maxLength: MAX_NUM_BYTES_Q96,
+			fieldNumber: 4,
+		},
+		feeGrowthInsideLast1: {
+			dataType: 'bytes',
+			maxLength: MAX_NUM_BYTES_Q96,
+			fieldNumber: 5,
+		},
+		ownerAddress: {
+			dataType: 'bytes',
+			length: NUM_BYTES_ADDRESS,
+			fieldNumber: 6,
+		},
+	},
 };
 
-export class PositionsStore extends BaseStore < PositionsStoreData > {
-    public schema = positionsStoreSchema;
+export class PositionsStore extends BaseStore<PositionsStoreData> {
+	public schema = positionsStoreSchema;
 
-    public async getKey(
-        context: StoreGetter,
-        keys: Buffer[],
-    ): Promise < unknown > {
-        const key = Buffer.concat(keys);
-        return this.get(context, key);
-    }
+	public async getKey(context: StoreGetter, keys: Buffer[]): Promise<unknown> {
+		const key = Buffer.concat(keys);
+		return this.get(context, key);
+	}
 
-    public async hasKey(
-        context: StoreGetter,
-        keys: Buffer[],
-    ): Promise < unknown > {
-        const key = Buffer.concat(keys);
-        return this.has(context, key);
-    }
+	public async hasKey(context: StoreGetter, keys: Buffer[]): Promise<unknown> {
+		const key = Buffer.concat(keys);
+		return this.has(context, key);
+	}
 
-    public async setKey(
-        context: StoreGetter,
-        keys: Buffer[],
-        value
-    ): Promise < void > {
-        const key = Buffer.concat(keys);
-        await this.set(context, key, value);
-    }
+	public async setKey(context: StoreGetter, keys: Buffer[], value): Promise<void> {
+		const key = Buffer.concat(keys);
+		await this.set(context, key, value);
+	}
 }

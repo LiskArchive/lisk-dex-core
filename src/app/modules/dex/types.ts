@@ -12,12 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	JSONObject
-} from 'lisk-sdk';
-import {
-	DexAPI
-} from './api';
+import { JSONObject } from 'lisk-sdk';
+import { DexAPI } from './api';
 
 export interface FeeTiers {
 	[id: number]: number;
@@ -56,10 +52,10 @@ export interface ModuleConfig {
 	};
 }
 
-export type ModuleConfigJSON = JSONObject < ModuleConfig > ;
+export type ModuleConfigJSON = JSONObject<ModuleConfig>;
 
 export interface ModuleInitArgs {
-	moduleConfig: Record < string, unknown > ;
+	moduleConfig: Record<string, unknown>;
 }
 
 export type SqrtPrice = Q96;

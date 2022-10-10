@@ -15,45 +15,18 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	BaseModule,
-	ModuleMetadata,
-	utils,
-	TokenMethod,
-	ValidatorsMethod
-} from 'lisk-sdk';
+import { BaseModule, ModuleMetadata, utils, TokenMethod, ValidatorsMethod } from 'lisk-sdk';
 
-import {
-	MODULE_ID_DEX,
-	defaultConfig
-} from './constants';
+import { MODULE_ID_DEX, defaultConfig } from './constants';
 
-import {
-	DexEndpoint
-} from './endpoint';
-import {
-	ModuleConfig,
-	ModuleInitArgs
-} from './types';
+import { DexEndpoint } from './endpoint';
+import { ModuleConfig, ModuleInitArgs } from './types';
 
-import {
-	AmountBelowMinEvent,
-	PoolCreatedEvent,
-	PoolCreationFailedEvent
-} from './events';
+import { AmountBelowMinEvent, PoolCreatedEvent, PoolCreationFailedEvent } from './events';
 
-import {
-	CreatePoolCommand
-} from './commands/createPool';
-import {
-	PoolsStore,
-	PositionsStore,
-	PriceTicksStore,
-	SettingsStore
-} from './stores';
-import {
-	DexMethod
-} from './method';
+import { CreatePoolCommand } from './commands/createPool';
+import { PoolsStore, PositionsStore, PriceTicksStore, SettingsStore } from './stores';
+import { DexMethod } from './method';
 import { DexGlobalStore } from './stores/dexGlobalStore';
 
 export class DexModule extends BaseModule {
@@ -64,7 +37,7 @@ export class DexModule extends BaseModule {
 	public _validatorsMethod = new ValidatorsMethod(this.stores, this.events);
 	public _moduleConfig!: ModuleConfig;
 
-	private readonly _createPoolCommand = new CreatePoolCommand(this.stores, this.events)
+	private readonly _createPoolCommand = new CreatePoolCommand(this.stores, this.events);
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public commands = [this._createPoolCommand];
@@ -99,15 +72,12 @@ export class DexModule extends BaseModule {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs) {
-		const {
-			moduleConfig
-		} = args;
+		const { moduleConfig } = args;
 		this._moduleConfig = utils.objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfig;
 
 		this._createPoolCommand.init({
 			moduleConfig: this._moduleConfig,
-			moduleId: this.id,
-			tokenMethod: this._tokenMethod
+			tokenMethod: this._tokenMethod,
 		});
 	}
 }

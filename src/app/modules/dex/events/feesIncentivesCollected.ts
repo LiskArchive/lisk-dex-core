@@ -21,62 +21,62 @@ export const enum FeesIncentivesCollectedEventResult {
 
 export interface FeesIncentivesCollectedEventData {
 	senderAddress: Buffer;
-    positionID: Buffer;
-    collectedFees0: bigint;
-    tokenID0: Buffer;
-    collectedFees1: bigint;
-    tokenID1: Buffer;
-    collectedIncentives: bigint;
-    tokenIDIncentives: Buffer;
+	positionID: Buffer;
+	collectedFees0: bigint;
+	tokenID0: Buffer;
+	collectedFees1: bigint;
+	tokenID1: Buffer;
+	collectedIncentives: bigint;
+	tokenIDIncentives: Buffer;
 }
 
 export const FeesIncentivesCollectedEventSchema = {
 	$id: '/dex/events/feesIncentivesCollected',
-    "type": "object",
-    "required": [
-        "senderAddress",
-        "positionID",
-        "collectedFees0",
-        "tokenID0",
-        "collectedFees1",
-        "tokenID1",
-        "collectedIncentives",
-        "tokenIDIncentives"
-    ],
-    "properties": {
-        "senderAddress": {
-            "dataType": "bytes",
-            "fieldNumber": 1
-        },
-        "positionID": {
-            "dataType": "bytes",
-            "fieldNumber": 2
-        },
-        "collectedFees0": {
-            "dataType": "uint64",
-            "fieldNumber": 3
-        },
-        "tokenID0": {
-            "dataType": "bytes",
-            "fieldNumber": 4
-        },
-        "collectedFees1": {
-            "dataType": "uint64",
-            "fieldNumber": 5
-        },
-        "tokenID1": {
-            "dataType": "bytes",
-            "fieldNumber": 6
-        },
-        "collectedIncentives": {
-            "dataType": "uint64",
-            "fieldNumber": 7
-        },
-        "tokenIDIncentives": {
-            "dataType": "bytes",
-            "fieldNumber": 8
-        }
-    }
+	type: 'object',
+	required: [
+		'senderAddress',
+		'positionID',
+		'collectedFees0',
+		'tokenID0',
+		'collectedFees1',
+		'tokenID1',
+		'collectedIncentives',
+		'tokenIDIncentives',
+	],
+	properties: {
+		senderAddress: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+		positionID: {
+			dataType: 'bytes',
+			fieldNumber: 2,
+		},
+		collectedFees0: {
+			dataType: 'uint64',
+			fieldNumber: 3,
+		},
+		tokenID0: {
+			dataType: 'bytes',
+			fieldNumber: 4,
+		},
+		collectedFees1: {
+			dataType: 'uint64',
+			fieldNumber: 5,
+		},
+		tokenID1: {
+			dataType: 'bytes',
+			fieldNumber: 6,
+		},
+		collectedIncentives: {
+			dataType: 'uint64',
+			fieldNumber: 7,
+		},
+		tokenIDIncentives: {
+			dataType: 'bytes',
+			fieldNumber: 8,
+		},
+	},
 };
 
 export class FeesIncentivesCollectedEvent extends BaseEvent<FeesIncentivesCollectedEventData> {

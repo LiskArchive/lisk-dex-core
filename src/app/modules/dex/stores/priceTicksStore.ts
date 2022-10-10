@@ -11,106 +11,86 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import {
-    BaseStore, StoreGetter
-} from 'lisk-sdk';
-import {
-    MAX_NUM_BYTES_Q96,
-    MAX_TICK,
-    MIN_TICK
-} from '../constants';
+import { BaseStore, StoreGetter } from 'lisk-sdk';
+import { MAX_NUM_BYTES_Q96, MAX_TICK, MIN_TICK } from '../constants';
 
 export const tickToBytes = (tickValue: number): Buffer => {
-    if (tickValue > MAX_TICK || tickValue < MIN_TICK) {
-        throw new Error();
-    }
-    const result = Buffer.alloc(4);
-    result.writeInt32BE(tickValue + 2 ** 31, 0);
-    return result
-}
+	if (tickValue > MAX_TICK || tickValue < MIN_TICK) {
+		throw new Error();
+	}
+	const result = Buffer.alloc(4);
+	result.writeInt32BE(tickValue + 2 ** 31, 0);
+	return result;
+};
 
 export const bytesToTick = (serializedTick: Buffer): number => {
-    if (serializedTick.length !== 4) {
-        throw new Error();
-    }
-    const tickValue = serializedTick.readInt32BE(0) - 2 ** 31;
-    if (tickValue > MAX_TICK || tickValue < MIN_TICK) {
-        throw new Error();
-    }
-    return Number(tickValue)
-}
+	if (serializedTick.length !== 4) {
+		throw new Error();
+	}
+	const tickValue = serializedTick.readInt32BE(0) - 2 ** 31;
+	if (tickValue > MAX_TICK || tickValue < MIN_TICK) {
+		throw new Error();
+	}
+	return Number(tickValue);
+};
 
 export interface PriceTicksStoreData {
-    liquidityNet: bigint;
-    liquidityGross: bigint;
-    feeGrowthOutside0: Buffer;
-    feeGrowthOutside1: Buffer;
+	liquidityNet: bigint;
+	liquidityGross: bigint;
+	feeGrowthOutside0: Buffer;
+	feeGrowthOutside1: Buffer;
 }
 
 export const priceTicksStoreSchema = {
-    $id: '/dex/store/priceTicks',
-    "type": "object",
-    "required": [
-        "liquidityNet",
-        "liquidityGross",
-        "feeGrowthOutside0",
-        "feeGrowthOutside1"
-    ],
-    "properties": {
-        "liquidityNet": {
-            "dataType": "sint64",
-            "fieldNumber": 1
-        },
-        "liquidityGross": {
-            "dataType": "uint64",
-            "fieldNumber": 2
-        },
-        "feeGrowthOutside0": {
-            "dataType": "bytes",
-            "maxLength": MAX_NUM_BYTES_Q96,
-            "fieldNumber": 3
-        },
-        "feeGrowthOutside1": {
-            "dataType": "bytes",
-            "maxLength": MAX_NUM_BYTES_Q96,
-            "fieldNumber": 4
-        }
-    }
+	$id: '/dex/store/priceTicks',
+	type: 'object',
+	required: ['liquidityNet', 'liquidityGross', 'feeGrowthOutside0', 'feeGrowthOutside1'],
+	properties: {
+		liquidityNet: {
+			dataType: 'sint64',
+			fieldNumber: 1,
+		},
+		liquidityGross: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+		feeGrowthOutside0: {
+			dataType: 'bytes',
+			maxLength: MAX_NUM_BYTES_Q96,
+			fieldNumber: 3,
+		},
+		feeGrowthOutside1: {
+			dataType: 'bytes',
+			maxLength: MAX_NUM_BYTES_Q96,
+			fieldNumber: 4,
+		},
+	},
 };
 
-export class PriceTicksStore extends BaseStore < PriceTicksStoreData > {
-    public schema = priceTicksStoreSchema;
+export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
+	public schema = priceTicksStoreSchema;
 
-    public async getKey(
-        context: StoreGetter,
-        keys: Buffer[],
-    ): Promise < PriceTicksStoreData > {
-        const key = Buffer.concat(keys);
-        return this.get(context, key);
-    }
+	public async getKey(context: StoreGetter, keys: Buffer[]): Promise<PriceTicksStoreData> {
+		const key = Buffer.concat(keys);
+		return this.get(context, key);
+	}
 
-    public async hasKey(
-        context: StoreGetter,
-        keys: Buffer[],
-    ): Promise < boolean > {
-        const key = Buffer.concat(keys);
-        return this.has(context, key);
-    }
+	public async hasKey(context: StoreGetter, keys: Buffer[]): Promise<boolean> {
+		const key = Buffer.concat(keys);
+		return this.has(context, key);
+	}
 
-    public async setKey(
-        context: StoreGetter,
-        keys: Buffer[],
-        value: PriceTicksStoreData
-    ): Promise < void > {
-        const key = Buffer.concat(keys);
-        await this.set(context, key, value);
-    }
+	public async setKey(
+		context: StoreGetter,
+		keys: Buffer[],
+		value: PriceTicksStoreData,
+	): Promise<void> {
+		const key = Buffer.concat(keys);
+		await this.set(context, key, value);
+	}
 
-    public async delKey(
-        context: StoreGetter,
-        keys: Buffer[]
-    ): Promise < void > {
-        const key = Buffer.concat(keys);
-        await this.del(context, key);
-    }
+	public async delKey(context: StoreGetter, keys: Buffer[]): Promise<void> {
+		const key = Buffer.concat(keys);
+		await this.del(context, key);
+	}
 }

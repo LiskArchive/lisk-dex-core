@@ -1,4 +1,3 @@
-
 import { Application, PartialApplicationConfig, TokenModule, ValidatorsModule } from 'lisk-sdk';
 
 import { DexModule } from './modules';
