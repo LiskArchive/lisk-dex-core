@@ -13,13 +13,14 @@
  */
 
 import { Transaction, VerifyStatus } from 'lisk-framework';
-import { codec } from 'lisk-sdk';
+import { codec, testing } from 'lisk-sdk';
 import { utils } from '@liskhq/lisk-cryptography';
-import { createTransactionContext } from 'lisk-framework/dist-node/testing';
 import { DexModule } from '../../../../src/app/modules';
 import { CreatePoolCommand } from '../../../../src/app/modules/dex/commands/createPool';
 import { defaultConfig, MAX_TICK, MIN_TICK } from '../../../../src/app/modules/dex/constants';
 import { createPoolSchema } from '../../../../src/app/modules/dex/schemas';
+
+const { createTransactionContext } = testing;
 
 describe('dex:command:createPool', () => {
 	const dexModule = new DexModule();
