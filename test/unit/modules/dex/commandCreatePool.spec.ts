@@ -13,12 +13,12 @@
  */
 
 import { Transaction, VerifyStatus } from 'lisk-framework';
-import { codec, testing } from 'lisk-sdk';
-import { utils } from '@liskhq/lisk-cryptography';
+import { testing } from 'lisk-sdk';
 import { DexModule } from '../../../../src/app/modules';
 import { CreatePoolCommand } from '../../../../src/app/modules/dex/commands/createPool';
-import { defaultConfig, MAX_TICK, MIN_TICK } from '../../../../src/app/modules/dex/constants';
+import { defaultConfig } from '../../../../src/app/modules/dex/constants';
 import { createPoolSchema } from '../../../../src/app/modules/dex/schemas';
+import { createPoolFixtures } from './fixtures/createPoolFixture';
 
 const { createTransactionContext } = testing;
 
@@ -52,124 +52,21 @@ describe('dex:command:createPool', () => {
 	});
 
 	describe('verify', () => {
-		it('should be successful when all the parameters are correct', async () => {
+		it.each(createPoolFixtures)('%s', async (...args) => {
+			const [_desc, input, err] = args;
 			const context = createTransactionContext({
-				transaction: new Transaction({
-					module: 'dex',
-					command: 'createPool',
-					fee: BigInt(5000000),
-					nonce: BigInt(0),
-					senderPublicKey: utils.getRandomBytes(32),
-					params: codec.encode(createPoolSchema, {
-						tokenID0: Buffer.from('0000000100', 'hex'),
-						tokenID1: Buffer.from('0000000101', 'hex'),
-						feeTier: 100,
-						tickInitialPrice: 1,
-						initialPosition: {
-							tickLower: MIN_TICK,
-							tickUpper: MAX_TICK,
-							amount0Desired: BigInt(1000),
-							amount1Desired: BigInt(1000),
-						},
-						maxTimestampValid: BigInt(1000),
-					}),
-					signatures: [utils.getRandomBytes(64)],
-				}),
+				transaction: new Transaction(input as any),
 			});
+
 			const result = await command.verify(context.createCommandVerifyContext(createPoolSchema));
 
-			expect(result.error?.message).not.toBeDefined();
-			expect(result.status).toEqual(VerifyStatus.OK);
-		});
-
-		it('should fail when tokenID0 and tokenID1 are not sorted lexicographically', async () => {
-			const context = createTransactionContext({
-				transaction: new Transaction({
-					module: 'dex',
-					command: 'createPool',
-					fee: BigInt(5000000),
-					nonce: BigInt(0),
-					senderPublicKey: utils.getRandomBytes(32),
-					params: codec.encode(createPoolSchema, {
-						tokenID0: Buffer.from('0000000101', 'hex'),
-						tokenID1: Buffer.from('0000000100', 'hex'),
-						feeTier: 100,
-						tickInitialPrice: 1,
-						initialPosition: {
-							tickLower: MIN_TICK,
-							tickUpper: MAX_TICK,
-							amount0Desired: BigInt(1000),
-							amount1Desired: BigInt(1000),
-						},
-						maxTimestampValid: BigInt(1000),
-					}),
-					signatures: [utils.getRandomBytes(64)],
-				}),
-			});
-			const result = await command.verify(context.createCommandVerifyContext(createPoolSchema));
-
-			expect(result.error?.message).toBe('Please sort tokenID0 and tokenID1 lexicographically.');
-			expect(result.status).toEqual(VerifyStatus.FAIL);
-		});
-
-		it('should fail when amount0Desired or amount1Desired are zero', async () => {
-			const context = createTransactionContext({
-				transaction: new Transaction({
-					module: 'dex',
-					command: 'createPool',
-					fee: BigInt(5000000),
-					nonce: BigInt(0),
-					senderPublicKey: utils.getRandomBytes(32),
-					params: codec.encode(createPoolSchema, {
-						tokenID0: Buffer.from('0000000100', 'hex'),
-						tokenID1: Buffer.from('0000000101', 'hex'),
-						feeTier: 100,
-						tickInitialPrice: 1,
-						initialPosition: {
-							tickLower: MIN_TICK,
-							tickUpper: MAX_TICK,
-							amount0Desired: BigInt(0),
-							amount1Desired: BigInt(0),
-						},
-						maxTimestampValid: BigInt(1000),
-					}),
-					signatures: [utils.getRandomBytes(64)],
-				}),
-			});
-			const result = await command.verify(context.createCommandVerifyContext(createPoolSchema));
-
-			expect(result.error?.message).toBe('Please specify amount0Desired or amount1Desired.');
-			expect(result.status).toEqual(VerifyStatus.FAIL);
-		});
-
-		it('should fail when tickLower and tickUpper do not meet requirements', async () => {
-			const context = createTransactionContext({
-				transaction: new Transaction({
-					module: 'dex',
-					command: 'createPool',
-					fee: BigInt(5000000),
-					nonce: BigInt(0),
-					senderPublicKey: utils.getRandomBytes(32),
-					params: codec.encode(createPoolSchema, {
-						tokenID0: Buffer.from('0000000100', 'hex'),
-						tokenID1: Buffer.from('0000000101', 'hex'),
-						feeTier: 100,
-						tickInitialPrice: 1,
-						initialPosition: {
-							tickLower: MIN_TICK - 10,
-							tickUpper: MAX_TICK + 10,
-							amount0Desired: BigInt(1000),
-							amount1Desired: BigInt(1000),
-						},
-						maxTimestampValid: BigInt(1000),
-					}),
-					signatures: [utils.getRandomBytes(64)],
-				}),
-			});
-			const result = await command.verify(context.createCommandVerifyContext(createPoolSchema));
-
-			expect(result.error?.message).toBe('Please specify valid tick values.');
-			expect(result.status).toEqual(VerifyStatus.FAIL);
+			if (err === false) {
+				expect(result.error?.message).not.toBeDefined();
+				expect(result.status).toEqual(VerifyStatus.OK);
+			} else {
+				expect(result.error?.message).toBe(err);
+				expect(result.status).toEqual(VerifyStatus.FAIL);
+			}
 		});
 	});
 });

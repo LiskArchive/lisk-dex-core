@@ -13,8 +13,6 @@
  */
 
 import { JSONObject } from 'lisk-sdk';
-import { DexAPI } from './api';
-
 export interface FeeTiers {
 	[id: number]: number;
 }
