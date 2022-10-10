@@ -19,7 +19,7 @@ export interface DexGlobalStoreData {
 }
 
 export const dexGlobalStoreSchema = {
-	$id: '',
+	$id: '/dex/store/global',
 	type: 'object',
 	required: ['positionCounter', 'collectableLSKFees'],
 	properties: {

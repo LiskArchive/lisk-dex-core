@@ -36,7 +36,7 @@ import { AmountBelowMinEvent, PoolCreatedEvent, PoolCreationFailedEvent } from '
 import { PositionCreatedEvent } from '../events/positionCreated';
 import { PositionCreationFailedEvent } from '../events/positionCreationFailed';
 
-import { createPoolParamsSchema } from '../schemas';
+import { createPoolSchema } from '../schemas';
 import { PoolsStore, SettingsStore } from '../stores';
 import { CreatePoolParamsData, ModuleConfig, PoolID, TokenID } from '../types';
 import {
@@ -52,7 +52,7 @@ const computePoolID = (tokenID0: TokenID, tokenID1: TokenID, feeTier: Buffer): P
 	Buffer.concat([tokenID0, tokenID1, feeTier]);
 
 export class CreatePoolCommand extends BaseCommand {
-	public schema = createPoolParamsSchema;
+	public schema = createPoolSchema;
 	private _moduleConfig!: ModuleConfig;
 	private _tokenMethod!: TokenMethod;
 
@@ -65,7 +65,7 @@ export class CreatePoolCommand extends BaseCommand {
 		ctx: CommandVerifyContext<CreatePoolParamsData>,
 	): Promise<VerificationResult> {
 		try {
-			validator.validate(createPoolParamsSchema, ctx.params);
+			validator.validate(createPoolSchema, ctx.params);
 		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -78,7 +78,7 @@ export class CreatePoolCommand extends BaseCommand {
 		if (tokenID0 >= tokenID1) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('Please sort tokenID0 and tokenID1 lexicographically'),
+				error: new Error('Please sort tokenID0 and tokenID1 lexicographically.'),
 			};
 		}
 
@@ -88,7 +88,7 @@ export class CreatePoolCommand extends BaseCommand {
 		) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('Please specify amount0Desired or amount1Desired'),
+				error: new Error('Please specify amount0Desired or amount1Desired.'),
 			};
 		}
 
@@ -101,7 +101,7 @@ export class CreatePoolCommand extends BaseCommand {
 		) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('Please specify valid tick values'),
+				error: new Error('Please specify valid tick values.'),
 			};
 		}
 
@@ -118,7 +118,7 @@ export class CreatePoolCommand extends BaseCommand {
 		if (doesPoolAlreadyExist) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error(`Pool ${poolId.readInt32LE(0)} already exists`),
+				error: new Error(`Pool ${poolId.readInt32LE(0)} already exists.`),
 			};
 		}
 
@@ -155,7 +155,7 @@ export class CreatePoolCommand extends BaseCommand {
 				[senderAddress],
 				true,
 			);
-			throw new Error();
+			throw new Error(`Pool creation failed with code ${result}.`);
 		}
 
 		const poolID = computePoolID(tokenID0, tokenID1, Buffer.from([feeTier]));
@@ -170,7 +170,6 @@ export class CreatePoolCommand extends BaseCommand {
 				feeTier,
 			},
 			[senderAddress, poolID],
-			true,
 		);
 
 		const [positionCreationResult, positionID] = await createPosition(
@@ -189,13 +188,13 @@ export class CreatePoolCommand extends BaseCommand {
 					poolID,
 					tickLower: initialPosition.tickLower,
 					tickUpper: initialPosition.tickUpper,
-					result: result,
+					result,
 				},
 				[senderAddress],
 				true,
 			);
 
-			throw new Error();
+			throw new Error(`Position creation failed with code ${positionCreationResult}.`);
 		}
 
 		const tickLowerSqrtPrice = tickToPrice(initialPosition.tickLower);
@@ -231,11 +230,11 @@ export class CreatePoolCommand extends BaseCommand {
 				[senderAddress],
 				true,
 			);
-			throw new Error();
+			throw new Error('Please specify a valid value for amount0 and amount1.');
 		}
 
 		if (amount0 > initialPosition.amount0Desired || amount1 > initialPosition.amount1Desired) {
-			throw new Error();
+			throw new Error('Parameter amountX cannot be larger than amountXDesired.');
 		}
 
 		await transferToProtocolFeeAccount(

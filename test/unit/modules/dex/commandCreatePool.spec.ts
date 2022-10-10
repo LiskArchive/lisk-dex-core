@@ -19,7 +19,7 @@ import { createTransactionContext } from 'lisk-framework/dist-node/testing';
 import { DexModule } from '../../../../src/app/modules';
 import { CreatePoolCommand } from '../../../../src/app/modules/dex/commands/createPool';
 import { defaultConfig, MAX_TICK, MIN_TICK } from '../../../../src/app/modules/dex/constants';
-import { createPoolParamsSchema } from '../../../../src/app/modules/dex/schemas';
+import { createPoolSchema } from '../../../../src/app/modules/dex/schemas';
 
 describe('dex:command:createPool', () => {
 	const dexModule = new DexModule();
@@ -59,7 +59,7 @@ describe('dex:command:createPool', () => {
 					fee: BigInt(5000000),
 					nonce: BigInt(0),
 					senderPublicKey: utils.getRandomBytes(32),
-					params: codec.encode(createPoolParamsSchema, {
+					params: codec.encode(createPoolSchema, {
 						tokenID0: Buffer.from('0000000100', 'hex'),
 						tokenID1: Buffer.from('0000000101', 'hex'),
 						feeTier: 100,
@@ -75,9 +75,7 @@ describe('dex:command:createPool', () => {
 					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
-			const result = await command.verify(
-				context.createCommandVerifyContext(createPoolParamsSchema),
-			);
+			const result = await command.verify(context.createCommandVerifyContext(createPoolSchema));
 
 			expect(result.error?.message).not.toBeDefined();
 			expect(result.status).toEqual(VerifyStatus.OK);
@@ -91,7 +89,7 @@ describe('dex:command:createPool', () => {
 					fee: BigInt(5000000),
 					nonce: BigInt(0),
 					senderPublicKey: utils.getRandomBytes(32),
-					params: codec.encode(createPoolParamsSchema, {
+					params: codec.encode(createPoolSchema, {
 						tokenID0: Buffer.from('0000000101', 'hex'),
 						tokenID1: Buffer.from('0000000100', 'hex'),
 						feeTier: 100,
@@ -107,11 +105,9 @@ describe('dex:command:createPool', () => {
 					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
-			const result = await command.verify(
-				context.createCommandVerifyContext(createPoolParamsSchema),
-			);
+			const result = await command.verify(context.createCommandVerifyContext(createPoolSchema));
 
-			expect(result.error?.message).toBe('Please sort tokenID0 and tokenID1 lexicographically');
+			expect(result.error?.message).toBe('Please sort tokenID0 and tokenID1 lexicographically.');
 			expect(result.status).toEqual(VerifyStatus.FAIL);
 		});
 
@@ -123,7 +119,7 @@ describe('dex:command:createPool', () => {
 					fee: BigInt(5000000),
 					nonce: BigInt(0),
 					senderPublicKey: utils.getRandomBytes(32),
-					params: codec.encode(createPoolParamsSchema, {
+					params: codec.encode(createPoolSchema, {
 						tokenID0: Buffer.from('0000000100', 'hex'),
 						tokenID1: Buffer.from('0000000101', 'hex'),
 						feeTier: 100,
@@ -139,11 +135,9 @@ describe('dex:command:createPool', () => {
 					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
-			const result = await command.verify(
-				context.createCommandVerifyContext(createPoolParamsSchema),
-			);
+			const result = await command.verify(context.createCommandVerifyContext(createPoolSchema));
 
-			expect(result.error?.message).toBe('Please specify amount0Desired or amount1Desired');
+			expect(result.error?.message).toBe('Please specify amount0Desired or amount1Desired.');
 			expect(result.status).toEqual(VerifyStatus.FAIL);
 		});
 
@@ -155,7 +149,7 @@ describe('dex:command:createPool', () => {
 					fee: BigInt(5000000),
 					nonce: BigInt(0),
 					senderPublicKey: utils.getRandomBytes(32),
-					params: codec.encode(createPoolParamsSchema, {
+					params: codec.encode(createPoolSchema, {
 						tokenID0: Buffer.from('0000000100', 'hex'),
 						tokenID1: Buffer.from('0000000101', 'hex'),
 						feeTier: 100,
@@ -171,11 +165,9 @@ describe('dex:command:createPool', () => {
 					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
-			const result = await command.verify(
-				context.createCommandVerifyContext(createPoolParamsSchema),
-			);
+			const result = await command.verify(context.createCommandVerifyContext(createPoolSchema));
 
-			expect(result.error?.message).toBe('Please specify valid tick values');
+			expect(result.error?.message).toBe('Please specify valid tick values.');
 			expect(result.status).toEqual(VerifyStatus.FAIL);
 		});
 	});

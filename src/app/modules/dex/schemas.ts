@@ -269,8 +269,8 @@ export const genesisDEXSchema = {
 	},
 };
 
-export const createPoolParamsSchema = {
-	$id: '/dex/createPoolParamsSchema',
+export const createPoolSchema = {
+	$id: '/dex/createPoolSchema',
 	type: 'object',
 	required: [
 		'tokenID0',
