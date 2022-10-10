@@ -1,4 +1,8 @@
-import { MIN_SQRT_RATIO, MAX_SQRT_RATIO, STORE_PREFIX_POOL } from '../../../../src/app/modules/dex/constants'
+import {
+	MIN_SQRT_RATIO,
+	MAX_SQRT_RATIO,
+	STORE_PREFIX_POOL,
+} from '../../../../src/app/modules/dex/constants';
 
 describe('dex:constants', () => {
 	it('should have the constants defined', async () => {

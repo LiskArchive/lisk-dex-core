@@ -2,12 +2,19 @@ import {
 	getToken0Id,
 	getToken1Id,
 	getFeeTier,
+<<<<<<< HEAD
 	hexToBytes
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import {
 	PoolID, TokenID
 } from '../../../../src/app/modules/dex/types';
+=======
+} from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
+
+import { PoolID, TokenID } from '../../../../src/app/modules/dex/types';
+import { hexToBytes } from '../../../../src/app/modules/dex/constants';
+>>>>>>> b3502bb (Remove dependencies, fix formatting)
 
 describe('dex:auxiliaryFunctions', () => {
 	describe('constructor', () => {

@@ -13,6 +13,7 @@
  */
 
 import { JSONObject } from 'lisk-sdk';
+import { DexAPI } from './api';
 
 export interface FeeTiers {
 	[id: number]: number;
@@ -55,3 +56,5 @@ export type ModuleConfigJSON = JSONObject<ModuleConfig>;
 export interface ModuleInitArgs {
 	moduleConfig: Record<string, unknown>;
 }
+
+export type SqrtPrice = Q96;
