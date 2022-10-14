@@ -15,6 +15,7 @@
 import { BaseCommand, BaseModule, ModuleMetadata, TokenMethod, ValidatorsMethod } from 'lisk-sdk';
 
 import { DexRewardsEndpoint } from './endpoint';
+import { GeneratorRewardMintedEvent, ValidatorTradeRewardsPayoutEvent } from './events';
 
 import { DexRewardsMethod } from './method';
 
@@ -25,6 +26,15 @@ export class DexRewardsModule extends BaseModule {
 	public _validatorsMethod = new ValidatorsMethod(this.stores, this.events);
 
 	public commands = [];
+
+	public constructor() {
+		super();
+		this.events.register(
+			ValidatorTradeRewardsPayoutEvent,
+			new ValidatorTradeRewardsPayoutEvent(this.name),
+		);
+		this.events.register(GeneratorRewardMintedEvent, new GeneratorRewardMintedEvent(this.name));
+	}
 
 	public metadata(): ModuleMetadata {
 		return {
