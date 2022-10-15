@@ -56,29 +56,5 @@ describe('dex:command:removeLiquidity', () => {
 			expect(result.error?.message).not.toBeDefined();
 			expect(result.status).toEqual(VerifyStatus.OK);
 		});
-
-		it('should fail when a parameter is not correct', async () => {
-			const context = createTransactionContext({
-				transaction: new Transaction({
-					module: 'dex',
-					command: 'removeLiquidty',
-					fee: BigInt(5000000),
-					nonce: BigInt(0),
-					senderPublicKey: utils.getRandomBytes(32),
-					params: codec.encode(removeLiquiditySchema, {
-						positionID:Buffer.from('0000000100', 'hex'),
-                        liquidityToRemove:BigInt(250),
-                        amount0Min:Buffer.from('0000000100', 'hex'),
-                        amount1Min:BigInt(1000),
-						maxTimestampValid: BigInt(1000)
-					}),
-					signatures: [utils.getRandomBytes(64)],
-				}),
-			});
-			const result = await command.verify(context.createCommandVerifyContext(removeLiquiditySchema));
-
-			expect(result.error?.message).not.toBeDefined();
-			expect(result.status).toEqual(VerifyStatus.OK);
-		});
 	});
 });
