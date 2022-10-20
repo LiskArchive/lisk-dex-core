@@ -39,9 +39,9 @@ import { getValidatorBlockReward, transferValidatorLSKRewards } from './utils/au
 export class DexRewardsModule extends BaseModule {
 	public endpoint = new DexRewardsEndpoint(this.stores, this.offchainStores);
 	public method = new DexRewardsMethod(this.stores, this.events);
-	public _tokenMethod = new TokenMethod(this.stores, this.events, this.name);
-	public _randomMethod = new RandomMethod(this.stores, this.events, this.name);
-	public _validatorsMethod = new ValidatorsMethod(this.stores, this.events);
+	public _tokenMethod!: TokenMethod;
+	public _randomMethod!: RandomMethod;
+	public _validatorsMethod!: ValidatorsMethod;
 
 	public commands = [];
 
@@ -69,6 +69,17 @@ export class DexRewardsModule extends BaseModule {
 			assets: [],
 		};
 	}
+
+	public addDependencies(
+		tokenMethod: TokenMethod,
+		validatorsMethod: ValidatorsMethod,
+		randomMethod: RandomMethod,
+	) {
+		this._tokenMethod = tokenMethod;
+		this._validatorsMethod = validatorsMethod;
+		this._randomMethod = randomMethod;
+	}
+
 	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
 		const methodContext = context.getMethodContext();
 		const { header } = context;
