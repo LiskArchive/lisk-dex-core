@@ -14,6 +14,16 @@
 
 import { RandomMethod, TokenMethod } from 'lisk-sdk';
 import { MODULE_NAME_DEX } from '../../dex/constants';
+import {
+	ADDRESS_VALIDATOR_REWARDS_POOL,
+	TOKEN_ID_LSK,
+	REWARD_REDUCTION_SEED_REVEAL,
+	BLOCK_REWARD_VALIDATORS,
+	REWARD_REDUCTION_FACTOR_BFT,
+	REWARD_REDUCTION_MAX_PREVOTES,
+	REWARD_NO_REDUCTION,
+} from '../constants';
+import { ValidatorTradeRewardsPayoutEvent } from '../events';
 
 export const transferValidatorLSKRewards = async (
 	validators,
@@ -27,6 +37,7 @@ export const transferValidatorLSKRewards = async (
 		TOKEN_ID_LSK,
 		MODULE_NAME_DEX,
 	);
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 	const shareAmount = availableRewards / BigInt(validators.length);
 	if (shareAmount !== BigInt(0)) {
 		await tokenMethod.unlock(
@@ -34,9 +45,11 @@ export const transferValidatorLSKRewards = async (
 			ADDRESS_VALIDATOR_REWARDS_POOL,
 			MODULE_NAME_DEX,
 			TOKEN_ID_LSK,
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			shareAmount * BigInt(validators.length),
 		);
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 		validators.forEach(async validator => {
 			await tokenMethod.transfer(
 				methodContext,
@@ -46,10 +59,12 @@ export const transferValidatorLSKRewards = async (
 				shareAmount,
 			);
 
-			await events.get(ValidatorTradeRewardsPayout).log(
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+			events.get(ValidatorTradeRewardsPayoutEvent).add(
 				methodContext,
 				{
 					amount: shareAmount,
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 					validatorAddress: validator,
 				},
 				[validator],
@@ -61,18 +76,22 @@ export const transferValidatorLSKRewards = async (
 export const getValidatorBlockReward = async (
 	methodContext,
 	randomMethod: RandomMethod,
-	blockHeader: BlockHeader,
+	blockHeader,
+	impliesMaximalPrevotes,
 ): Promise<[bigint, number]> => {
 	if (
 		!(await randomMethod.isSeedRevealValid(
 			methodContext,
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			blockHeader.generatorAddress,
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			blockHeader.seedReveal,
 		))
 	) {
-		return [0, REWARD_REDUCTION_SEED_REVEAL];
+		return [BigInt(0), REWARD_REDUCTION_SEED_REVEAL];
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 	if (!impliesMaximalPrevotes(blockHeader)) {
 		return [BLOCK_REWARD_VALIDATORS / REWARD_REDUCTION_FACTOR_BFT, REWARD_REDUCTION_MAX_PREVOTES];
 	}

@@ -61,6 +61,6 @@ export const EVENT_NAME_GENERATOR_REWARDS_PAYOUT = 'generatorRewardsPayout'; // 
 export const REWARD_NO_REDUCTION = 0; // Return code for no block reward reduction.
 export const REWARD_REDUCTION_SEED_REVEAL = 1; // Return code for block reward reduction because of the failed seed reveal.
 export const REWARD_REDUCTION_MAX_PREVOTES = 2; // Return code for block reward reduction because the block header does not imply the maximal number of prevotes.
-export const REWARD_REDUCTION_FACTOR_BFT = 4; // The reduction factor for validator block reward in case when the block header does not imply the maximal number of prevotes.
+export const REWARD_REDUCTION_FACTOR_BFT = BigInt(4); // The reduction factor for validator block reward in case when the block header does not imply the maximal number of prevotes.
 
 export const defaultConfig = {};

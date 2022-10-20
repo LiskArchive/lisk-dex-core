@@ -12,17 +12,35 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseCommand, BaseModule, ModuleMetadata, TokenMethod, ValidatorsMethod } from 'lisk-sdk';
+import {
+	BaseCommand,
+	BaseModule,
+	BlockAfterExecuteContext,
+	ModuleMetadata,
+	RandomMethod,
+	TokenMethod,
+	ValidatorsMethod,
+} from 'lisk-sdk';
+import {
+	ADDRESS_LIQUIDITY_PROVIDER_REWARDS_POOL,
+	ADDRESS_TRADER_REWARDS_POOL,
+	BLOCK_REWARD_LIQUIDITY_PROVIDERS,
+	BLOCK_REWARD_TRADERS,
+	MODULE_NAME_DEX,
+	TOKEN_ID_DEX_NATIVE,
+} from './constants';
 
 import { DexRewardsEndpoint } from './endpoint';
 import { GeneratorRewardMintedEvent, ValidatorTradeRewardsPayoutEvent } from './events';
 
 import { DexRewardsMethod } from './method';
+import { getValidatorBlockReward, transferValidatorLSKRewards } from './utils/auxiliaryFunctions';
 
 export class DexRewardsModule extends BaseModule {
 	public endpoint = new DexRewardsEndpoint(this.stores, this.offchainStores);
 	public method = new DexRewardsMethod(this.stores, this.events);
 	public _tokenMethod = new TokenMethod(this.stores, this.events, this.name);
+	public _randomMethod = new RandomMethod(this.stores, this.events, this.name);
 	public _validatorsMethod = new ValidatorsMethod(this.stores, this.events);
 
 	public commands = [];
@@ -50,5 +68,65 @@ export class DexRewardsModule extends BaseModule {
 			})),
 			assets: [],
 		};
+	}
+	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
+		const methodContext = context.getMethodContext();
+		const { header } = context;
+		const [blockReward, reduction] = await getValidatorBlockReward(
+			methodContext,
+			this._randomMethod,
+			header,
+			context.impliesMaxPrevote,
+		);
+
+		if (blockReward > 0) {
+			await this._tokenMethod.mint(
+				methodContext,
+				header.generatorAddress,
+				TOKEN_ID_DEX_NATIVE,
+				blockReward,
+			);
+		}
+		this.events.get(GeneratorRewardMintedEvent).add(
+			methodContext,
+			{
+				amount: blockReward,
+				reduction,
+				generatorAddress: header.generatorAddress,
+			},
+			[header.generatorAddress],
+		);
+
+		await this._tokenMethod.mint(
+			methodContext,
+			ADDRESS_LIQUIDITY_PROVIDER_REWARDS_POOL,
+			TOKEN_ID_DEX_NATIVE,
+			BLOCK_REWARD_LIQUIDITY_PROVIDERS,
+		);
+		await this._tokenMethod.lock(
+			methodContext,
+			ADDRESS_LIQUIDITY_PROVIDER_REWARDS_POOL,
+			MODULE_NAME_DEX,
+			TOKEN_ID_DEX_NATIVE,
+			BLOCK_REWARD_LIQUIDITY_PROVIDERS,
+		);
+		await this._tokenMethod.mint(
+			methodContext,
+			ADDRESS_TRADER_REWARDS_POOL,
+			TOKEN_ID_DEX_NATIVE,
+			BLOCK_REWARD_TRADERS,
+		);
+		await this._tokenMethod.lock(
+			methodContext,
+			ADDRESS_TRADER_REWARDS_POOL,
+			MODULE_NAME_DEX,
+			TOKEN_ID_DEX_NATIVE,
+			BLOCK_REWARD_TRADERS,
+		);
+
+		const validators = context.currentValidators;
+		if (header.height % validators.length === 0) {
+			await transferValidatorLSKRewards(validators, methodContext, this._tokenMethod, this.events);
+		}
 	}
 }
