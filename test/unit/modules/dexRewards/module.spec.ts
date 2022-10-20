@@ -19,7 +19,11 @@ import { DexRewardsEndpoint } from '../../../../src/app/modules/dexRewards/endpo
 
 import { MODULE_NAME_DEX_REWARDS } from '../../../../src/app/modules/dexRewards/constants';
 
-import { createGenesisBlockContext } from '../../../../node_modules/lisk-framework/dist-node/testing';
+import {
+	createGenesisBlockContext,
+	createBlockHeaderWithDefaults,
+	createBlockContext,
+} from '../../../../node_modules/lisk-framework/dist-node/testing';
 import { DexRewardsMethod } from '../../../../src/app/modules/dexRewards/method';
 
 describe('DexRewardsModule', () => {
@@ -54,5 +58,57 @@ describe('DexRewardsModule', () => {
 			const context = createGenesisBlockContext({}).createInitGenesisStateContext();
 			return expect(dexRewardsModule.initGenesisState?.(context)).toBeUndefined();
 		});
+	});
+
+	describe('afterTransactionsExecute', () => {
+		const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
+		const blockAfterExecuteContext = createBlockContext({
+			header: blockHeader,
+		}).getBlockAfterExecuteContext();
+
+		it(`should call mint for a valid bracket`, async () => {
+			await dexRewardsModule.afterTransactionsExecute(blockAfterExecuteContext);
+			expect(dexRewardsModule._tokenMethod.mint).toHaveBeenCalledTimes(100);
+			expect(dexRewardsModule._tokenMethod.lock).toHaveBeenCalledTimes(100);
+		});
+
+		// it('should emit rewardMinted event for event type REWARD_NO_REDUCTION', async () => {
+		// 	dexRewardsModule.method.getBlockReward = jest
+		// 		.fn()
+		// 		.mockReturnValue([BigInt(1), REWARD_NO_REDUCTION]);
+		// 	await dexRewardsModule.afterTransactionsExecute(blockAfterExecuteContext);
+		// 	expect(mint).toHaveBeenCalledTimes(1);
+		// 	expect(blockAfterExecuteContext.eventQueue.getEvents()[0].toObject().name).toBe(
+		// 		EVENT_REWARD_MINTED_DATA_NAME,
+		// 	);
+		// 	expect(blockAfterExecuteContext.eventQueue.getEvents()[0].toObject().module).toBe('reward');
+		// });
+
+		// it('should emit rewardMinted event for event type REWARD_REDUCTION_SEED_REVEAL', async () => {
+		// 	dexRewardsModule.method.getBlockReward = jest
+		// 		.fn()
+		// 		.mockReturnValue([BigInt(0), REWARD_REDUCTION_SEED_REVEAL]);
+		// 	await dexRewardsModule.afterTransactionsExecute(blockAfterExecuteContext);
+		// 	expect(mint).toHaveBeenCalledTimes(0);
+		// 	expect(blockAfterExecuteContext.eventQueue.getEvents()[0].toObject().name).toBe(
+		// 		EVENT_REWARD_MINTED_DATA_NAME,
+		// 	);
+		// 	expect(blockAfterExecuteContext.eventQueue.getEvents()[0].toObject().module).toBe('reward');
+		// });
+
+		// it('should emit rewardMinted event for event type REWARD_REDUCTION_MAX_PREVOTES', async () => {
+		// 	dexRewardsModule.method.getBlockReward = jest
+		// 		.fn()
+		// 		.mockReturnValue([
+		// 			BigInt(1) / BigInt(REWARD_REDUCTION_FACTOR_BFT),
+		// 			REWARD_REDUCTION_MAX_PREVOTES,
+		// 		]);
+		// 	expect(mint).toHaveBeenCalledTimes(0);
+		// 	await dexRewardsModule.afterTransactionsExecute(blockAfterExecuteContext);
+		// 	expect(blockAfterExecuteContext.eventQueue.getEvents()[0].toObject().name).toBe(
+		// 		EVENT_REWARD_MINTED_DATA_NAME,
+		// 	);
+		// 	expect(blockAfterExecuteContext.eventQueue.getEvents()[0].toObject().module).toBe('reward');
+		// });
 	});
 });
