@@ -38,7 +38,7 @@ export const transferValidatorLSKRewards = async (
 		MODULE_NAME_DEX,
 	);
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-	const shareAmount = availableRewards / BigInt(validators.length);
+	const shareAmount = BigInt(availableRewards) / BigInt(validators.length);
 	if (shareAmount !== BigInt(0)) {
 		await tokenMethod.unlock(
 			methodContext,
@@ -50,7 +50,7 @@ export const transferValidatorLSKRewards = async (
 		);
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-		validators.forEach(async validator => {
+		await validators.forEach(async validator => {
 			await tokenMethod.transfer(
 				methodContext,
 				ADDRESS_VALIDATOR_REWARDS_POOL,
@@ -92,7 +92,7 @@ export const getValidatorBlockReward = async (
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-	if (!impliesMaximalPrevotes(blockHeader)) {
+	if (!impliesMaximalPrevotes) {
 		return [BLOCK_REWARD_VALIDATORS / REWARD_REDUCTION_FACTOR_BFT, REWARD_REDUCTION_MAX_PREVOTES];
 	}
 	return [BLOCK_REWARD_VALIDATORS, REWARD_NO_REDUCTION];
