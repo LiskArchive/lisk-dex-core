@@ -1,4 +1,4 @@
-import { Application, PartialApplicationConfig, TokenModule, ValidatorsModule } from 'lisk-sdk';
+import { Application, PartialApplicationConfig, RandomModule, SidechainInteroperabilityModule, TokenModule, ValidatorsModule } from 'lisk-sdk';
 
 import { DexModule } from './modules';
 
@@ -8,8 +8,13 @@ export const getApplication = (config: PartialApplicationConfig): Application =>
 	const tokenModule = new TokenModule();
 	const validatorModule = new ValidatorsModule();
 
-	dexModule.addDependencies(tokenModule.api, validatorModule.api);
+	const interoperabilityModule = new SidechainInteroperabilityModule();
+	tokenModule.addDependencies(interoperabilityModule.method);
+	dexModule.addDependencies(tokenModule.method, validatorModule.method);
+	
 	app.registerModule(dexModule);
 
 	return app;
 };
+
+

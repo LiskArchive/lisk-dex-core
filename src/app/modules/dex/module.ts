@@ -80,4 +80,9 @@ export class DexModule extends BaseModule {
 			tokenMethod: this._tokenMethod,
 		});
 	}
+
+	public addDependencies(tokenMethod: TokenMethod, validatorsMethod: ValidatorsMethod) {
+		this._tokenMethod = tokenMethod;
+		this._validatorsMethod = validatorsMethod;
+	}
 }
