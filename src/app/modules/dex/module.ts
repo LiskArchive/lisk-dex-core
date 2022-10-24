@@ -123,4 +123,9 @@ export class DexModule extends BaseModule {
 		});
 >>>>>>> 3f95c9f (Add liquidity)
 	}
+
+	public addDependencies(tokenMethod: TokenMethod, validatorsMethod: ValidatorsMethod) {
+		this._tokenMethod = tokenMethod;
+		this._validatorsMethod = validatorsMethod;
+	}
 }

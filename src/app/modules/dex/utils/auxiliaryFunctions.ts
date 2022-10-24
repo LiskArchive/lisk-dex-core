@@ -102,6 +102,7 @@ export const transferToPool = async (
 	amount: bigint,
 ): Promise<void> => {
 	const poolAddress = poolIdToAddress(poolId);
+	
 	await tokenMethod.transfer(methodContext, senderAddress, poolAddress, tokenId, amount);
 	await tokenMethod.lock(methodContext, poolAddress, MODULE_ID_DEX.toString(), tokenId, amount);
 };

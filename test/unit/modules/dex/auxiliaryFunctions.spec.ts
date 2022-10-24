@@ -39,9 +39,15 @@ import {
 	getLiquidityForAmounts,
 	checkPositionExistenceAndOwnership,
 	computeCollectableFees,
+<<<<<<< HEAD
 	computeCollectableIncentives
 	
 >>>>>>> fce1422 (added the unit test for auxiliary functions)
+=======
+	computeCollectableIncentives,
+	transferToPool
+
+>>>>>>> f65f23d (updated the testcases)
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
@@ -66,8 +72,8 @@ import { InMemoryPrefixedStateDB } from './inMemoryPrefixedStateDB';
 
 describe('dex:auxiliaryFunctions', () => {
 	const poolId: PoolID = Buffer.from(hexToBytes('0x000000000000000000000001000000000000c8'));
-	const token0Id: TokenID = Buffer.from(hexToBytes('0x0000000000000000'));
-	const token1Id: TokenID = Buffer.from(hexToBytes('0x0000000100000000'));
+	const token0Id: TokenID = Buffer.from(hexToBytes('0x00000000000000'));
+	const token1Id: TokenID = Buffer.from(hexToBytes('0x00000100000000'));
 	const senderAddress: Address = Buffer.from(hexToBytes('0x0000000000000000'));
 	const positionId: PositionID = Buffer.from(hexToBytes('0x000000000000000000000001000000000000c8'));
 	const feeTier: Number = Number('0x00000c8');
@@ -83,6 +89,7 @@ describe('dex:auxiliaryFunctions', () => {
 	let priceTicksStore: PriceTicksStore;
 	let dexGlobalStore: DexGlobalStore;
 	let positionsStore: PositionsStore;
+	
 
 	methodContext = createMethodContext({
 		stateStore,
@@ -158,6 +165,15 @@ describe('dex:auxiliaryFunctions', () => {
 		it('should return the feeTier from the poolID', async () => {
 			expect(getFeeTier(poolId)).toEqual(feeTier);
 		});
+		
+		it('should return the feeTier from the poolID', async () => {
+			tokenMethod.mint(methodContext,senderAddress,token1Id,BigInt(1));
+			//  mint(methodContext: MethodContext, address: Buffer, tokenID: TokenID, amount: bigint): Promise<void>;
+			console.log(transferToPool(tokenMethod,methodContext,senderAddress,poolId,token1Id,BigInt(1)));
+			
+		});
+		
+		
 
 		// it('getPositionIndex', async () => {
 		// 	expect(getPositionIndex(positionId)).toEqual(Number('0x1000000'));			
@@ -176,7 +192,7 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('should return 0 for POSITION_CREATION_SUCCESS and positionID in result', async () => {
-			await createPosition(methodContext, tokenModule.stores, senderAddress, getPoolIDFromPositionID(positionId), positionsStoreData.tickLower, positionsStoreData.tickUpper).then(res=>{
+			await createPosition(methodContext, tokenModule.stores, senderAddress, getPoolIDFromPositionID(positionId), positionsStoreData.tickLower, positionsStoreData.tickUpper).then(res => {
 				expect(res[0]).toBe(0);
 			});
 		});
@@ -207,7 +223,7 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('should return [0n, 0n, 0n, 0n] as feeGrowthInside0, feeGrowthInside1 in result', async () => {
-			await computeCollectableFees(tokenModule.stores, methodContext, positionId).then(res=>{
+			await computeCollectableFees(tokenModule.stores, methodContext, positionId).then(res => {
 				expect(res[0]).toBe(BigInt(0));
 				expect(res[1]).toBe(BigInt(0));
 				expect(res[2]).toBe(BigInt(0));
@@ -216,7 +232,7 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('should return [0,0] as feeGrowthInside0, feeGrowthInside1 in result', async () => {
-			await computeCollectableIncentives(dexGlobalStoreData, tokenMethod, positionId, BigInt(1), BigInt(2)).then(res=>{
+			await computeCollectableIncentives(dexGlobalStoreData, tokenMethod, positionId, BigInt(1), BigInt(2)).then(res => {
 				expect(res[0]).toBe(BigInt(0));
 				expect(res[1]).toBe(BigInt(0));
 			})
