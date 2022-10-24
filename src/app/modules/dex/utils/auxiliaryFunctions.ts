@@ -419,7 +419,6 @@ export const createPosition = async (
 	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
 
 	const positionID = getNewPositionID(dexGlobalStoreData, poolID);
-	await console.log (positionID);
 	const positionValue = {
 		tickLower: tickLower,
 		tickUpper: tickUpper,
@@ -445,7 +444,6 @@ export const getFeeGrowthInside = async (
 	const poolInfo = await poolsStore.get(methodContext, poolID);
 
 	const { tickLower, tickUpper } = positionInfo;
-	await console.log(poolInfo.sqrtPrice);
 	const tickCurrent = priceToTick(bytesToQ96(poolInfo.sqrtPrice));
 	const lowerTickInfo = await priceTicksStore.getKey(methodContext, [
 		poolID,
@@ -561,7 +559,6 @@ export const getLiquidityForAmount1 = (
 
 export const getNewPositionID = (dexGlobalStoreData, poolID: PoolID): Buffer => {
 	const positionIndex:BigInt = dexGlobalStoreData.positionCounter;
-	console.log(positionIndex);
 	// eslint-disable-next-line no-param-reassign
 	dexGlobalStoreData.positionCounter++;
 	return Buffer.concat([poolID, Buffer.from(positionIndex.toString())]);
