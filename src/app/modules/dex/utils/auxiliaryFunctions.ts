@@ -397,7 +397,6 @@ export const createPosition(apiContext, poolsStore, priceTicksStore, priceTickSc
 >>>>>>> fce1422 (added the unit test for auxiliary functions)
 
 	const positionID = getNewPositionID(dexGlobalStoreData, poolID);
-	await console.log (positionID);
 	const positionValue = {
 		"tickLower": tickLower,
 		"tickUpper": tickUpper,
@@ -423,7 +422,6 @@ export const getFeeGrowthInside = async (
 	const poolInfo = await poolsStore.get(methodContext, poolID);
 
 	const { tickLower, tickUpper } = positionInfo;
-	await console.log(poolInfo.sqrtPrice);
 	const tickCurrent = priceToTick(bytesToQ96(poolInfo.sqrtPrice));
 	const lowerTickInfo = await priceTicksStore.getKey(methodContext, [
 		poolID,
@@ -547,7 +545,6 @@ export const getNewPositionID = async (dexGlobalState, poolID: PoolID, ownerAddr
 =======
 export const getNewPositionID = (dexGlobalStoreData, poolID: PoolID): Buffer => {
 	const positionIndex:BigInt = dexGlobalStoreData.positionCounter;
-	console.log(positionIndex);
 	// eslint-disable-next-line no-param-reassign
 	dexGlobalStoreData.positionCounter++;
 	return Buffer.concat([poolID, Buffer.from(positionIndex.toString())]);
