@@ -101,7 +101,7 @@ export const MAX_TICK = 887272; // The maximum possible tick value as a sint32.
 export const LOG_MAX_TICK = Math.log(MAX_TICK);
 export const MIN_SQRT_RATIO = BigInt(4295128738); // Todo: check with devs	The minimum possible price value in the Q96 representation.
 export const MAX_SQRT_RATIO = BigInt('1461446703529909599612049957420313862569572983184'); // Todo: check with devs	The maximum possible price value in the Q96 representation.
-export const PRICE_VALUE_FOR_BIT_POSITION_IN_Q96 = []; // TBA	Array of uint256 values with the pre-computed values of price for certain values of tickValue in the Q96 representation.
+export const PRICE_VALUE_FOR_BIT_POSITION_IN_Q96 = [BigInt(0)]; // TBA	Array of uint256 values with the pre-computed values of price for certain values of tickValue in the Q96 representation.
 
 export const POOL_CREATION_SUCCESS = 0; // Return code for successful pool creation.           |
 export const POOL_CREATION_FAILED_INVALID_FEE_TIER = 1; // Return code for failed pool creation due to an invalid fee tier in the pool creation. |
@@ -113,8 +113,8 @@ export const POSITION_CREATION_FAILED_INVALID_TICKS = 3; // Return code for fail
 export const POSITION_UPDATE_FAILED_NOT_EXISTS = 1; // Return code for failed position update as position does not exist. |
 export const POSITION_UPDATE_FAILED_NOT_OWNER = 2; // Return code for failed position update as position owner is different from transaction sender. |
 export const POSITION_UPDATE_FAILED_INSUFFICIENT_LIQUIDITY = 3; // Return code for failed position update as transaction sender is not position owner. |
-export const TOKEN_ID_LSK = Buffer.from('0x0000000100000000'); // The token ID of the LSK token.           |
-export const TOKEN_ID_REWARDS = Buffer.from(''); // The token ID of the token used for liquidity provider incentives.           |
+export const TOKEN_ID_LSK = Buffer.from(hexToBytes('0x00000001000000')); // The token ID of the LSK token.  Added conversion to hex for testing in auxiliaryFunctions         |
+export const TOKEN_ID_REWARDS = Buffer.from(hexToBytes('0x00000001000000')); // The token ID of the token used for liquidity provider incentives. For testing added hexToBytes  and using LSK token as an example         |
 
 export const ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL = Buffer.from([]);
 
