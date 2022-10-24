@@ -59,7 +59,7 @@ export const positionsStoreSchema = {
 		},
 		ownerAddress: {
 			dataType: 'bytes',
-			length: NUM_BYTES_ADDRESS,
+			maxLength: NUM_BYTES_ADDRESS,
 			fieldNumber: 6,
 		},
 	},

@@ -82,7 +82,7 @@ export const priceToTick = (sqrtPrice: Q96): number => {
 	let tickValue = 0;
 	let tempPrice = numberToQ96(BigInt(1));
 	range(LOG_MAX_TICK, -1, -1).forEach(i => {
-		const sqrtPriceAtBit = PRICE_VALUE_FOR_BIT_POSITION_IN_Q96[i];
+		const sqrtPriceAtBit = PRICE_VALUE_FOR_BIT_POSITION_IN_Q96[0];
 		const newPrice = mulQ96(tempPrice, sqrtPriceAtBit);
 		if (sqrtPrice <= newPrice) {
 			tickValue += 1 << i;
