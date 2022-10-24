@@ -241,6 +241,7 @@ export const collectFeesAndIncentives = async (
 	);
 
 	await tokenMethod.transfer(
+		methodContext,
 		ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL,
 		ownerAddress,
 		TOKEN_ID_REWARDS,
@@ -565,8 +566,9 @@ export const getNewPositionID = (dexGlobalStoreData, poolID: PoolID): Buffer => 
 export const getOwnerAddressOfPosition = async (
 	positionsStore,
 	positionID: PositionID,
+	methodContext: MethodContext
 ): Promise<Buffer> => {
-	const position = await positionsStore.get(positionID);
+	const position = await positionsStore.get(methodContext, positionID);
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 	return position.ownerAddress;
 };
