@@ -25,6 +25,7 @@ import {
 	hexToBytes
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
+<<<<<<< HEAD
 import {
 	PoolID, TokenID
 } from '../../../../src/app/modules/dex/types';
@@ -77,6 +78,9 @@ import { InMemoryPrefixedStateDB } from './inMemoryPrefixedStateDB';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 >>>>>>> d4fb6e5 (added testcases for the transfer functioanlity)
+=======
+import { PoolID, TokenID } from '../../../../src/app/modules/dex/types';
+>>>>>>> 82e1f2e (Fix auxiliary and math functions, improve code)
 
 describe('dex:auxiliaryFunctions', () => {
 	const poolId: PoolID = Buffer.from(hexToBytes('0x000000000000000000000001000000000000c8'));
@@ -154,6 +158,7 @@ describe('dex:auxiliaryFunctions', () => {
 	}
 
 	describe('constructor', () => {
+<<<<<<< HEAD
 		beforeEach(async () => {
 
 			tokenModule.stores.register(PoolsStore, new PoolsStore(DexModule.name));
@@ -200,14 +205,25 @@ describe('dex:auxiliaryFunctions', () => {
 
 		})
 		it('should get Token0Id from poolID', async () => {
+=======
+		const poolId: PoolID = Buffer.from('00000000000000000000000100000000000000c8', 'hex');
+		const token0Id: TokenID = Buffer.from('000000000000000000', 'hex');
+		const token1Id: TokenID = Buffer.from('000000010000000000', 'hex');
+		it('getToken0Id', async () => {
+>>>>>>> 82e1f2e (Fix auxiliary and math functions, improve code)
 			expect(getToken0Id(poolId)).toEqual(token0Id);
 
 		});
 		it('should get Token1Id from poolID', async () => {
 			expect(getToken1Id(poolId)).toEqual(token1Id);
 		});
+<<<<<<< HEAD
 		it('should return the feeTier from the poolID', async () => {
 			expect(getFeeTier(poolId)).toEqual(feeTier);
+=======
+		it('getFeeTier', async () => {
+			expect(getFeeTier(poolId)).toEqual(Buffer.from('000000c8', 'hex').readUInt32BE(0));
+>>>>>>> 82e1f2e (Fix auxiliary and math functions, improve code)
 		});
 
 		it('should transfer and lock using the tokenMethod', async () => {
