@@ -171,19 +171,33 @@ export const checkPositionExistenceAndOwnership = async (
 ): Promise<void> => {
 	const positionsStore = stores.get(PositionsStore);
 	if (!(await positionsStore.hasKey(methodContext, [senderAddress, positionID]))) {
-		events.get(PositionUpdateFailedEvent).log(methodContext, {
-			senderAddress,
-			positionID,
-			result: POSITION_UPDATE_FAILED_NOT_EXISTS,
-		});
+		events.get(PositionUpdateFailedEvent).add(
+			methodContext,
+			{
+				senderAddress,
+				positionID,
+				result: POSITION_UPDATE_FAILED_NOT_EXISTS,
+			},
+			[senderAddress],
+			true,
+		);
 		throw new Error();
 	}
-	if (senderAddress !== (await getOwnerAddressOfPosition(positionsStore, positionID))) {
-		events.get(PositionUpdateFailedEvent).log(methodContext, {
-			senderAddress,
-			positionID,
-			result: POSITION_UPDATE_FAILED_NOT_OWNER,
-		});
+	if (
+		!senderAddress.equals(
+			await getOwnerAddressOfPosition(methodContext, positionsStore, positionID),
+		)
+	) {
+		events.get(PositionUpdateFailedEvent).add(
+			methodContext,
+			{
+				senderAddress,
+				positionID,
+				result: POSITION_UPDATE_FAILED_NOT_OWNER,
+			},
+			[senderAddress],
+			true,
+		);
 		throw new Error();
 	}
 };
@@ -199,7 +213,7 @@ export const collectFeesAndIncentives = async (
 	const positionsStore = stores.get(PositionsStore);
 	const dexGlobalStore = stores.get(DexGlobalStore);
 	const positionInfo = await positionsStore.get(methodContext, positionID);
-	const ownerAddress = await getOwnerAddressOfPosition(positionsStore, positionID);
+	const ownerAddress = await getOwnerAddressOfPosition(methodContext, positionsStore, positionID);
 	const [
 		collectedFees0,
 		collectedFees1,
@@ -246,9 +260,9 @@ export const collectFeesAndIncentives = async (
 		TOKEN_ID_REWARDS,
 		incentivesForPosition,
 	);
-	const dexGlobalStoreData = await dexGlobalStore.get(tokenMethod, Buffer.from([]));
+	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
 	dexGlobalStoreData.collectableLSKFees -= collectableFeesLSK;
-	await dexGlobalStore.set(tokenMethod, Buffer.from([]), dexGlobalStoreData);
+	await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData);
 
 	events.get(FeesIncentivesCollectedEvent).log(methodContext, {
 		senderAddress: ownerAddress,
@@ -418,8 +432,8 @@ export const createPosition = async (
 	const positionID = getNewPositionID(dexGlobalStoreData, poolID);
 
 	const positionValue = {
-		tickLower: tickLower,
-		tickUpper: tickUpper,
+		tickLower,
+		tickUpper,
 		liquidity: BigInt(0),
 		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(0))),
@@ -563,10 +577,11 @@ export const getNewPositionID = (dexGlobalStoreData, poolID: PoolID): Buffer => 
 };
 
 export const getOwnerAddressOfPosition = async (
+	methodContext: MethodContext,
 	positionsStore,
 	positionID: PositionID,
 ): Promise<Buffer> => {
-	const position = await positionsStore.get(positionID);
+	const position = await positionsStore.get(methodContext, positionID);
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 	return position.ownerAddress;
 };
@@ -589,13 +604,22 @@ export const updatePosition = async (
 	let amount0: bigint;
 	let amount1: bigint;
 	if (-liquidityDelta > positionInfo.liquidity) {
-		const senderAddress = await getOwnerAddressOfPosition(positionsStore, positionID);
-
-		events.get(PositionUpdateFailedEvent).add(methodContext, {
-			senderAddress,
+		const senderAddress = await getOwnerAddressOfPosition(
+			methodContext,
+			positionsStore,
 			positionID,
-			result: POSITION_UPDATE_FAILED_INSUFFICIENT_LIQUIDITY,
-		});
+		);
+
+		events.get(PositionUpdateFailedEvent).add(
+			methodContext,
+			{
+				senderAddress,
+				positionID,
+				result: POSITION_UPDATE_FAILED_INSUFFICIENT_LIQUIDITY,
+			},
+			[senderAddress, positionID],
+			true,
+		);
 		throw new Error();
 	}
 
@@ -634,7 +658,7 @@ export const updatePosition = async (
 		amount1 = getAmount1Delta(sqrtPriceLow, sqrtPriceUp, abs(liquidityDelta), roundUp);
 	}
 
-	const ownerAddress = await getOwnerAddressOfPosition(positionsStore, positionID);
+	const ownerAddress = await getOwnerAddressOfPosition(methodContext, positionsStore, positionID);
 	if (liquidityDelta > 0) {
 		await transferToPool(
 			tokenMethod,

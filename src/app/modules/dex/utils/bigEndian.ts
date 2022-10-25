@@ -21,6 +21,5 @@ export const uint32be = (x: number) => {
 
 export const uint32beInv = (bufferX: string): number => {
 	const buf = Buffer.from(bufferX, 'hex');
-
 	return buf.readUInt32BE(0);
 };

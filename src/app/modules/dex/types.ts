@@ -13,6 +13,7 @@
  */
 
 import { JSONObject } from 'lisk-sdk';
+
 export interface FeeTiers {
 	[id: number]: number;
 }
