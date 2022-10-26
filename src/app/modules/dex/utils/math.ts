@@ -1,4 +1,3 @@
-/* eslint-disable no-param-reassign */
 /* eslint-disable no-bitwise */
 /*
  * Copyright © 2022 Lisk Foundation
@@ -41,11 +40,13 @@ import {
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const range = (from: number, to: number, step: number): number[] =>
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 	[...Array(Math.floor((to - from) / step) + 1)].map((_, i) => from + i * step);
 
 export const computeSqrtPrice = (a: Q96): Buffer => {
 	const sqrtA = sqrt(a);
 	const sqrtAHex: string = sqrtA.toString(16);
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
 	return toBufferBE(BigInt(sqrtAHex), MAX_NUM_BYTES_Q96);
 };
 
@@ -75,15 +76,16 @@ export const priceToTick = (sqrtPrice: Q96): number => {
 		divQ96(numberToQ96(BigInt(10001)), numberToQ96(BigInt(10000))) * BigInt(2) ** BigInt(96),
 	);
 	if (sqrtPrice >= PRICE_VALUE_FOR_TICK_1) {
+		// eslint-disable-next-line no-param-reassign
 		sqrtPrice = invQ96(sqrtPrice);
 		invertedPrice = true;
 	}
 
 	let tickValue = 0;
 	let tempPrice = numberToQ96(BigInt(1));
-	range(LOG_MAX_TICK, -1, -1).forEach(i => {
-		const sqrtPriceAtBit = PRICE_VALUE_FOR_BIT_POSITION_IN_Q96[0];
-		const newPrice = mulQ96(tempPrice, sqrtPriceAtBit);
+	range(LOG_MAX_TICK-1, 0, -1).forEach(i => {
+		const sqrtPriceAtBit:bigint = PRICE_VALUE_FOR_BIT_POSITION_IN_Q96[i];       
+        const newPrice = mulQ96(tempPrice, sqrtPriceAtBit);
 		if (sqrtPrice <= newPrice) {
 			tickValue += 1 << i;
 			tempPrice = newPrice;
@@ -111,6 +113,7 @@ export const getAmount0Delta = (
 	}
 
 	if (sqrtPrice1 > sqrtPrice2) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, no-param-reassign
 		[sqrtPrice1, sqrtPrice2] = [sqrtPrice2, sqrtPrice1];
 	}
 
@@ -138,6 +141,7 @@ export const getAmount1Delta = (
 	}
 
 	if (sqrtPrice1 > sqrtPrice2) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, no-param-reassign
 		[sqrtPrice1, sqrtPrice2] = [sqrtPrice2, sqrtPrice1];
 	}
 

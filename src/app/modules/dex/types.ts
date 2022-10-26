@@ -16,6 +16,7 @@ import { CCMsg } from 'lisk-framework/dist-node/modules/interoperability/types';
 import { ImmutableMethodContext } from 'lisk-framework/dist-node/state_machine';
 import { MethodContext } from 'lisk-framework/dist-node/state_machine/method_context';
 import { JSONObject } from 'lisk-sdk';
+
 export interface FeeTiers {
 	[id: number]: number;
 }

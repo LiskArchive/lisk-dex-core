@@ -38,7 +38,6 @@ import {
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
-import { hexToBytes } from '../../../../src/app/modules/dex/constants';
 import { TokenMethod, TokenModule } from 'lisk-framework';
 import { createMethodContext, MethodContext } from 'lisk-framework/dist-node/state_machine/method_context';
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
@@ -54,6 +53,7 @@ import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/posit
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedStateDB';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
+import { hexToBytes } from '../../../../src/app/modules/dexRewards/constants';
 
 describe('dex:auxiliaryFunctions', () => {
 	const poolId: PoolID = Buffer.from(hexToBytes('0x000000000000000000000001000000000000c8'));
@@ -88,7 +88,7 @@ describe('dex:auxiliaryFunctions', () => {
 	const settings = {
 		poolCreationSettings: [
 			{
-				feeTier: 1
+				feeTier: 100
 			}
 		]
 	}
@@ -112,9 +112,9 @@ describe('dex:auxiliaryFunctions', () => {
 		collectableLSKFees: BigInt(10),
 	}
 	const positionsStoreData: PositionsStoreData = {
-		tickLower: -3,
-		tickUpper: -2,
-		liquidity: BigInt(5),
+		tickLower: -887272,
+		tickUpper: -887272,
+		liquidity: BigInt(10),
 		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(0))),
 		ownerAddress: senderAddress
@@ -280,10 +280,10 @@ describe('dex:auxiliaryFunctions', () => {
 		// 	})
 		// });
 
-		it('should not return [0,0] in result', async () => {
-			expect(await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(1)).then(res=>{
-				expect(res[0]).not.toBe(BigInt(0));
-				expect(res[1]).not.toBe(BigInt(0));
+		it('should return [0,0] in result', async () => {
+			expect(await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(2)).then(res=>{
+				expect(res[0]).toBe(BigInt(0));
+				expect(res[1]).toBe(BigInt(0));
 				
 			}));
 		});
