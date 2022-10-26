@@ -14,19 +14,29 @@
 
 import { BaseCommand, CommandVerifyContext, VerificationResult, CommandExecuteContext, TokenMethod, VerifyStatus } from "lisk-sdk";
 import { validator } from '@liskhq/lisk-validator';
-import { collectFeesSchema, removeLiquiditySchema } from "../schemas";
+import { collectFeesSchema } from "../schemas";
 import { checkPositionExistenceAndOwnership, collectFeesAndIncentives } from "../utils/auxiliaryFunctions";
 import { COMMAND_ID_COLLECT_FEES, MAX_NUM_POSITIONS_FEE_COLLECTION } from "../constants";
 import { CollectFeesParamData } from '../types';
 
 export class CollectFeesCommand extends BaseCommand {
     public id = COMMAND_ID_COLLECT_FEES;
-    public schema = removeLiquiditySchema;
+    public schema = collectFeesSchema;
     private _tokenMethod!: TokenMethod;
+    private _stores;
+    private _events;
+    private _senderAddress;
+    private _methodContext;
 
     public init({
-        tokenMethod }): void {
+        tokenMethod,stores,events, senderAddress,methodContext }): void {
         this._tokenMethod = tokenMethod;
+        this._stores = stores;
+        this._events = events;
+        this._senderAddress = senderAddress;
+        this._methodContext = methodContext;
+        
+
     }
 
     public async verify(ctx: CommandVerifyContext<CollectFeesParamData>): Promise<VerificationResult> {
@@ -58,19 +68,16 @@ export class CollectFeesCommand extends BaseCommand {
     }
 
     public async execute(ctx: CommandExecuteContext<CollectFeesParamData>): Promise<void> {
-        const {
-            senderAddress
-        } = ctx.transaction;
 
         const {
             positions
         } = ctx.params;
 
-        const methodContext = ctx.getMethodContext();
-
+      
         for (var positionID of positions) {
-            await checkPositionExistenceAndOwnership(this.stores, this.events, methodContext, senderAddress, positionID);
-            await collectFeesAndIncentives(this.events, this.stores, this._tokenMethod, methodContext, positionID);
+            await checkPositionExistenceAndOwnership(this._stores, this._events, this._methodContext, this._senderAddress, positionID);
+            console.log("working");
+            await collectFeesAndIncentives(this.events, this.stores, this._tokenMethod, this._methodContext, positionID);
         }
     }
 }
