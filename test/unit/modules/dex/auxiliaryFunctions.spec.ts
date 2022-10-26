@@ -138,8 +138,8 @@ describe('dex:auxiliaryFunctions', () => {
 			tokenModule.stores.register(DexGlobalStore, new DexGlobalStore(DexModule.name));
 			tokenModule.stores.register(PriceTicksStore, new PriceTicksStore(DexModule.name));
 			tokenModule.stores.register(SettingsStore, new SettingsStore(DexModule.name));
-			
-			
+
+
 			tokenModule.events.register(PositionUpdateFailedEvent, new PositionUpdateFailedEvent(DexModule.name));
 			tokenModule.events.register(PositionCreatedEvent, new PositionCreatedEvent(DexModule.name));
 			tokenModule.events.register(PoolCreatedEvent, new PoolCreatedEvent(DexModule.name));
@@ -154,20 +154,20 @@ describe('dex:auxiliaryFunctions', () => {
 			settingsStore = tokenModule.stores.get(SettingsStore);
 
 			await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData)
-			
+
 			await settingsStore.set(methodContext, Buffer.from([]), settingStoreData)
-			
+
 			await poolsStore.setKey(methodContext, [senderAddress, getPoolIDFromPositionID(positionId)], poolsStoreData);
 			await poolsStore.set(methodContext, getPoolIDFromPositionID(positionId), poolsStoreData);
-			
+
 			await priceTicksStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), tickToBytes(positionsStoreData.tickLower)], priceTicksStoreData)
 			await priceTicksStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), tickToBytes(positionsStoreData.tickUpper)], priceTicksStoreData)
 			await priceTicksStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), q96ToBytes(tickToPrice(positionsStoreData.tickLower))], priceTicksStoreData)
 			await priceTicksStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), q96ToBytes(tickToPrice(positionsStoreData.tickUpper))], priceTicksStoreData)
-			
+
 			await positionsStore.set(methodContext, positionId, positionsStoreData);
 			await positionsStore.setKey(methodContext, [senderAddress, positionId], positionsStoreData);
-			
+
 
 			tokenMethod.transfer = transferMock;
 			tokenMethod.lock = lockMock;
@@ -178,7 +178,7 @@ describe('dex:auxiliaryFunctions', () => {
 		})
 		it('should get Token0Id from poolID', async () => {
 			expect(getToken0Id(poolId)).toEqual(token0Id);
-	
+
 		});
 		it('should get Token1Id from poolID', async () => {
 			expect(getToken1Id(poolId)).toEqual(token1Id);
@@ -186,28 +186,28 @@ describe('dex:auxiliaryFunctions', () => {
 		it('should return the feeTier from the poolID', async () => {
 			expect(getFeeTier(poolId)).toEqual(feeTier);
 		});
-		
+
 		it('should transfer and lock using the tokenMethod', async () => {
 
-			await transferToPool(tokenMethod,methodContext,senderAddress,poolId,token1Id,BigInt(1));
-			expect(tokenMethod.transfer).toBeCalled();
-			expect(tokenMethod.lock).toBeCalled();			
-		});
-		
-
-		it('should transfer, lock and unlock for transferPoolToPool', async () => {
-			await transferPoolToPool(tokenMethod,methodContext,senderAddress,poolId,token1Id,BigInt(1));
+			await transferToPool(tokenMethod, methodContext, senderAddress, poolId, token1Id, BigInt(1));
 			expect(tokenMethod.transfer).toBeCalled();
 			expect(tokenMethod.lock).toBeCalled();
-			expect(tokenMethod.unlock).toBeCalled();	
+		});
+
+
+		it('should transfer, lock and unlock for transferPoolToPool', async () => {
+			await transferPoolToPool(tokenMethod, methodContext, senderAddress, poolId, token1Id, BigInt(1));
+			expect(tokenMethod.transfer).toBeCalled();
+			expect(tokenMethod.lock).toBeCalled();
+			expect(tokenMethod.unlock).toBeCalled();
 
 		});
 
 		it('should transfer for transferToProtocolFeeAccount', async () => {
-			await transferToProtocolFeeAccount(tokenMethod,methodContext,settingsStore,poolId,token1Id,BigInt(1));
+			await transferToProtocolFeeAccount(tokenMethod, methodContext, settingsStore, poolId, token1Id, BigInt(1));
 			expect(tokenMethod.transfer).toBeCalled();
 		});
-		
+
 
 		// it('getPositionIndex', async () => {
 		// 	expect(getPositionIndex(positionId)).toEqual(Number('0x1000000'));			
@@ -281,10 +281,10 @@ describe('dex:auxiliaryFunctions', () => {
 		// });
 
 		it('should return [0,0] in result', async () => {
-			expect(await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(2)).then(res=>{
+			expect(await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(2)).then(res => {
 				expect(res[0]).toBe(BigInt(0));
 				expect(res[1]).toBe(BigInt(0));
-				
+
 			}));
 		});
 
@@ -294,10 +294,10 @@ describe('dex:auxiliaryFunctions', () => {
 
 
 		it('should return [0,0] liquidityDelta is 0', async () => {
-			expect(await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(0)).then(res=>{
+			expect(await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(0)).then(res => {
 				expect(res[0]).toBe(BigInt(0));
 				expect(res[1]).toBe(BigInt(0));
-				
+
 			}));
 		});
 
