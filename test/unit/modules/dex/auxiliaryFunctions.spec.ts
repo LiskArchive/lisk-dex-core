@@ -20,17 +20,9 @@ import {
 	getToken0Id,
 	getToken1Id,
 	getFeeTier,
-<<<<<<< HEAD
-<<<<<<< HEAD
-	hexToBytes
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
-<<<<<<< HEAD
 import {
-	PoolID, TokenID
-} from '../../../../src/app/modules/dex/types';
-=======
-=======
 	getPoolIDFromPositionID,
 	createPool,
 	computePoolID,
@@ -40,25 +32,11 @@ import {
 	getLiquidityForAmounts,
 	checkPositionExistenceAndOwnership,
 	computeCollectableFees,
-<<<<<<< HEAD
 	computeCollectableIncentives
-	
->>>>>>> fce1422 (added the unit test for auxiliary functions)
-=======
-	computeCollectableIncentives,
-	transferToPool,
-	transferPoolToPool,
-	transferToProtocolFeeAccount,
-	updatePosition
-
->>>>>>> f65f23d (updated the testcases)
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
 import { hexToBytes } from '../../../../src/app/modules/dex/constants';
-<<<<<<< HEAD
->>>>>>> b3502bb (Remove dependencies, fix formatting)
-=======
 import { TokenMethod, TokenModule } from 'lisk-framework';
 import { createMethodContext, MethodContext } from 'lisk-framework/dist-node/state_machine/method_context';
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
@@ -72,15 +50,8 @@ import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedStateDB';
-<<<<<<< HEAD
->>>>>>> fce1422 (added the unit test for auxiliary functions)
-=======
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
->>>>>>> d4fb6e5 (added testcases for the transfer functioanlity)
-=======
-import { PoolID, TokenID } from '../../../../src/app/modules/dex/types';
->>>>>>> 82e1f2e (Fix auxiliary and math functions, improve code)
 
 describe('dex:auxiliaryFunctions', () => {
 	const poolId: PoolID = Buffer.from(hexToBytes('0x000000000000000000000001000000000000c8'));
@@ -158,7 +129,6 @@ describe('dex:auxiliaryFunctions', () => {
 	}
 
 	describe('constructor', () => {
-<<<<<<< HEAD
 		beforeEach(async () => {
 
 			tokenModule.stores.register(PoolsStore, new PoolsStore(DexModule.name));
@@ -205,25 +175,16 @@ describe('dex:auxiliaryFunctions', () => {
 
 		})
 		it('should get Token0Id from poolID', async () => {
-=======
-		const poolId: PoolID = Buffer.from('00000000000000000000000100000000000000c8', 'hex');
-		const token0Id: TokenID = Buffer.from('000000000000000000', 'hex');
-		const token1Id: TokenID = Buffer.from('000000010000000000', 'hex');
-		it('getToken0Id', async () => {
->>>>>>> 82e1f2e (Fix auxiliary and math functions, improve code)
 			expect(getToken0Id(poolId)).toEqual(token0Id);
 
 		});
 		it('should get Token1Id from poolID', async () => {
 			expect(getToken1Id(poolId)).toEqual(token1Id);
 		});
-<<<<<<< HEAD
 		it('should return the feeTier from the poolID', async () => {
 			expect(getFeeTier(poolId)).toEqual(feeTier);
-=======
 		it('getFeeTier', async () => {
 			expect(getFeeTier(poolId)).toEqual(Buffer.from('000000c8', 'hex').readUInt32BE(0));
->>>>>>> 82e1f2e (Fix auxiliary and math functions, improve code)
 		});
 
 		it('should transfer and lock using the tokenMethod', async () => {
@@ -323,7 +284,12 @@ describe('dex:auxiliaryFunctions', () => {
 			expect(await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(1)).then(res => {
 				expect(res[0]).not.toBe(BigInt(0));
 				expect(res[1]).not.toBe(BigInt(0));
-
+			});
+		});
+		it('should return [0,0] in result', async () => {
+			expect(await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(2)).then(res => {
+				expect(res[0]).toBe(BigInt(0));
+				expect(res[1]).toBe(BigInt(0));
 			}));
 		});
 
