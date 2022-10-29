@@ -301,39 +301,39 @@ describe('dex:command:removeLiquidity', () => {
 		it('should throw Error as amount1Min > amount1', async () => {
 			await expect(
 				command.execute({
-				chainID: utils.getRandomBytes(32),
-				params: {
-					positionID: positionId,
-					liquidityToRemove: liquidityToRemove,
-					amount0Min: BigInt(0),
-					amount1Min: BigInt(1000),
-					maxTimestampValid: BigInt(1000)
-				},
-				logger: loggerMock,
-				eventQueue: new EventQueue(0),
-				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-				getMethodContext: () => methodContext,
-				assets: { getAsset: jest.fn() },
-				currentValidators: [],
-				impliesMaxPrevote: false,
-				maxHeightCertified: Number(10),
-				certificateThreshold: BigInt(2),
-				transaction: new Transaction({
-					module: 'dex',
-					command: 'removeLiquidty',
-					fee: BigInt(5000000),
-					nonce: BigInt(0),
-					senderPublicKey: utils.getRandomBytes(32),
-					params: codec.encode(removeLiquiditySchema, {
+					chainID: utils.getRandomBytes(32),
+					params: {
 						positionID: positionId,
 						liquidityToRemove: liquidityToRemove,
-						amount0Min: BigInt(1000),
+						amount0Min: BigInt(0),
 						amount1Min: BigInt(1000),
 						maxTimestampValid: BigInt(1000)
+					},
+					logger: loggerMock,
+					eventQueue: new EventQueue(0),
+					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+					getMethodContext: () => methodContext,
+					assets: { getAsset: jest.fn() },
+					currentValidators: [],
+					impliesMaxPrevote: false,
+					maxHeightCertified: Number(10),
+					certificateThreshold: BigInt(2),
+					transaction: new Transaction({
+						module: 'dex',
+						command: 'removeLiquidty',
+						fee: BigInt(5000000),
+						nonce: BigInt(0),
+						senderPublicKey: utils.getRandomBytes(32),
+						params: codec.encode(removeLiquiditySchema, {
+							positionID: positionId,
+							liquidityToRemove: liquidityToRemove,
+							amount0Min: BigInt(1000),
+							amount1Min: BigInt(1000),
+							maxTimestampValid: BigInt(1000)
+						}),
+						signatures: [utils.getRandomBytes(64)],
 					}),
-					signatures: [utils.getRandomBytes(64)],
 				}),
-			}),
 			).rejects.toThrowError('Update position amounts are more then minimum amounts');
 		});
 	})

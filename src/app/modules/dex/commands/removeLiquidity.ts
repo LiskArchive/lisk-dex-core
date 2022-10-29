@@ -29,17 +29,15 @@ export class RemoveLiquidityCommand extends BaseCommand {
     private _events;
     private _senderAddress;
     private _methodContext;
-    
+
 
     public init({
-        tokenMethod,stores,events, senderAddress,methodContext }): void {
+        tokenMethod, stores, events, senderAddress, methodContext }): void {
         this._tokenMethod = tokenMethod;
         this._stores = stores;
         this._events = events;
         this._senderAddress = senderAddress;
         this._methodContext = methodContext;
-        
-
     }
 
     public async verify(ctx: CommandVerifyContext<RemoveLiquidityParamsData>): Promise<VerificationResult> {
@@ -62,12 +60,10 @@ export class RemoveLiquidityCommand extends BaseCommand {
     }
 
     public async execute(ctx: CommandExecuteContext<RemoveLiquidityParamsData>): Promise<void> {
-        
-        
 
-        const 
+        const
             senderAddress
-        = this._senderAddress
+                = this._senderAddress
 
         const {
             positionID,
@@ -75,17 +71,13 @@ export class RemoveLiquidityCommand extends BaseCommand {
             amount0Min,
             amount1Min,
         } = ctx.params;
-        
+
         const methodContext = ctx.getMethodContext();
         await checkPositionExistenceAndOwnership(this._stores, this._events, this._methodContext, this._senderAddress, positionID);
-        
-        const [amount0, amount1] = await updatePosition(methodContext,this._events, this._stores, this._tokenMethod, positionID, liquidityToRemove)
-
+        const [amount0, amount1] = await updatePosition(methodContext, this._events, this._stores, this._tokenMethod, positionID, liquidityToRemove)
         const poolID = getPoolIDFromPositionID(positionID);
         const tokenID0 = getToken0Id(poolID);
         const tokenID1 = getToken1Id(poolID);
-       
-        
 
         if (amount0 < amount0Min || amount1 < amount1Min) {
             this.events.get(RemoveLiquidityFailedEvent).add(methodContext, {
@@ -98,7 +90,7 @@ export class RemoveLiquidityCommand extends BaseCommand {
                 amount1Min
             }, [senderAddress], true);
             throw new Error('Update position amounts are more then minimum amounts');
-        } 
+        }
         this.events.get(RemoveLiquidityEvent).add(methodContext, {
             senderAddress,
             positionID,
@@ -106,6 +98,6 @@ export class RemoveLiquidityCommand extends BaseCommand {
             amount1,
             tokenID0,
             tokenID1,
-        }, [senderAddress, positionID], true); 
+        }, [senderAddress, positionID], true);
     }
 }
