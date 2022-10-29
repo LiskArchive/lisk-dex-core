@@ -11,47 +11,44 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import {
-    BaseEvent,
-    EventQueuer
-} from 'lisk-sdk';
+import { BaseEvent, EventQueuer } from 'lisk-sdk';
 
 export const enum PositionUpdateFailedEventResult {
-    POSITION_UPDATE_FAILED_NOT_EXISTS = 1,
-    POSITION_UPDATE_FAILED_NOT_OWNER = 2,
-    POSITION_UPDATE_FAILED_INSUFFICIENT_LIQUIDITY = 3
+	POSITION_UPDATE_FAILED_NOT_EXISTS = 1,
+	POSITION_UPDATE_FAILED_NOT_OWNER = 2,
+	POSITION_UPDATE_FAILED_INSUFFICIENT_LIQUIDITY = 3,
 }
 
 export interface PositionUpdateFailedEventData {
-    senderAddress: Buffer;
-    positionID: Buffer;
-    result: PositionUpdateFailedEventResult;
+	senderAddress: Buffer;
+	positionID: Buffer;
+	result: PositionUpdateFailedEventResult;
 }
 
 export const PositionUpdateFailedEventSchema = {
-    $id: '/dex/events/positionUpdateFailed',
-    "type": "object",
-    "required": ["senderAddress", "positionID", "result"],
-    "properties": {
-        "senderAddress": {
-            "dataType": "bytes",
-            "fieldNumber": 1
-        },
-        "positionID": {
-            "dataType": "bytes",
-            "fieldNumber": 2
-        },
-        "result": {
-            "dataType": "uint32",
-            "fieldNumber": 3
-        }
-    }
+	$id: '/dex/events/positionUpdateFailed',
+	type: 'object',
+	required: ['senderAddress', 'positionID', 'result'],
+	properties: {
+		senderAddress: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+		positionID: {
+			dataType: 'bytes',
+			fieldNumber: 2,
+		},
+		result: {
+			dataType: 'uint32',
+			fieldNumber: 3,
+		},
+	},
 };
 
-export class PositionUpdateFailedEvent extends BaseEvent < PositionUpdateFailedEventData > {
-    public schema = PositionUpdateFailedEventSchema;
+export class PositionUpdateFailedEvent extends BaseEvent<PositionUpdateFailedEventData> {
+	public schema = PositionUpdateFailedEventSchema;
 
-    public log(ctx: EventQueuer, data: PositionUpdateFailedEventData): void {
-        this.add(ctx, data, [data.senderAddress, data.positionID]);
-    }
+	public log(ctx: EventQueuer, data: PositionUpdateFailedEventData): void {
+		this.add(ctx, data, [data.senderAddress, data.positionID]);
+	}
 }

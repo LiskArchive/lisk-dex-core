@@ -63,6 +63,8 @@ export class RemoveLiquidityCommand extends BaseCommand {
 
     public async execute(ctx: CommandExecuteContext<RemoveLiquidityParamsData>): Promise<void> {
         
+        
+
         const 
             senderAddress
         = this._senderAddress
@@ -82,6 +84,8 @@ export class RemoveLiquidityCommand extends BaseCommand {
         const poolID = getPoolIDFromPositionID(positionID);
         const tokenID0 = getToken0Id(poolID);
         const tokenID1 = getToken1Id(poolID);
+       
+        
 
         if (amount0 < amount0Min || amount1 < amount1Min) {
             this.events.get(RemoveLiquidityFailedEvent).add(methodContext, {
@@ -93,7 +97,7 @@ export class RemoveLiquidityCommand extends BaseCommand {
                 tokenID1,
                 amount1Min
             }, [senderAddress], true);
-            throw new Error()
+            throw new Error('Update position amounts are more then minimum amounts');
         } 
         this.events.get(RemoveLiquidityEvent).add(methodContext, {
             senderAddress,
