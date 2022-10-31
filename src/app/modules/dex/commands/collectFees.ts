@@ -76,8 +76,8 @@ export class CollectFeesCommand extends BaseCommand {
       
         for (var positionID of positions) {
             await checkPositionExistenceAndOwnership(this._stores, this._events, this._methodContext, this._senderAddress, positionID);
-            console.log("working");
-            await collectFeesAndIncentives(this.events, this.stores, this._tokenMethod, this._methodContext, positionID);
+    
+            await collectFeesAndIncentives(this._events, this._stores, this._tokenMethod, this._methodContext, positionID);
         }
     }
 }

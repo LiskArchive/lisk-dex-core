@@ -11,51 +11,48 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import {
-    BaseEvent,
-    EventQueuer
-} from 'lisk-sdk';
+import { BaseEvent, EventQueuer } from 'lisk-sdk';
 
 export interface PositionCreationFailedEventData {
-    senderAddress: Buffer;
-    poolID: Buffer;
-    tickLower: number;
-    tickUpper: number;
-    result: number;
+	senderAddress: Buffer;
+	poolID: Buffer;
+	tickLower: number;
+	tickUpper: number;
+	result: number;
 }
 
 export const PositionCreationFailedEventSchema = {
-    $id: '/dex/events/positionCreationFailed',
-    "type": "object",
-    "required": ["senderAddress", "poolID", "tickLower", "tickUpper", "result"],
-    "properties": {
-        "senderAddress": {
-            "dataType": "bytes",
-            "fieldNumber": 1
-        },
-        "poolID": {
-            "dataType": "bytes",
-            "fieldNumber": 2
-        },
-        "tickLower": {
-            "dataType": "sint32",
-            "fieldNumber": 3
-        },
-        "tickUpper": {
-            "dataType": "sint32",
-            "fieldNumber": 4
-        },
-        "result": {
-            "dataType": "uint32",
-            "fieldNumber": 5
-        }
-    }
+	$id: '/dex/events/positionCreationFailed',
+	type: 'object',
+	required: ['senderAddress', 'poolID', 'tickLower', 'tickUpper', 'result'],
+	properties: {
+		senderAddress: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+		poolID: {
+			dataType: 'bytes',
+			fieldNumber: 2,
+		},
+		tickLower: {
+			dataType: 'sint32',
+			fieldNumber: 3,
+		},
+		tickUpper: {
+			dataType: 'sint32',
+			fieldNumber: 4,
+		},
+		result: {
+			dataType: 'uint32',
+			fieldNumber: 5,
+		},
+	},
 };
 
-export class PositionCreationFailedEvent extends BaseEvent < PositionCreationFailedEventData > {
-    public schema = PositionCreationFailedEventSchema;
+export class PositionCreationFailedEvent extends BaseEvent<PositionCreationFailedEventData> {
+	public schema = PositionCreationFailedEventSchema;
 
-    public log(ctx: EventQueuer, data: PositionCreationFailedEventData): void {
-        this.add(ctx, data, [data.senderAddress]);
-    }
+	public log(ctx: EventQueuer, data: PositionCreationFailedEventData): void {
+		this.add(ctx, data, [data.senderAddress]);
+	}
 }

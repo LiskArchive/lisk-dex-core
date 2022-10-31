@@ -12,6 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseMethod } from 'lisk-sdk';
+import { BaseEndpoint } from 'lisk-sdk';
 
-export class DexMethod extends BaseMethod {}
+export class DexRewardsEndpoint extends BaseEndpoint {}

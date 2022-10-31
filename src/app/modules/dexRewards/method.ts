@@ -14,4 +14,4 @@
 
 import { BaseMethod } from 'lisk-sdk';
 
-export class DexMethod extends BaseMethod {}
+export class DexRewardsMethod extends BaseMethod {}

@@ -34,7 +34,6 @@ import {
     POOL_CREATION_FEE,
     POOL_CREATION_SUCCESS,
     POSITION_CREATION_SUCCESS,
-    STORE_PREFIX_POOL,
     TOKEN_ID_FEE_DEX,
 } from '../constants';
 import {
@@ -50,7 +49,7 @@ import {
 } from '../events/positionCreationFailed';
 
 import {
-    createPoolParamsSchema
+    createPoolSchema
 } from '../schemas';
 import {
     PoolsStore,
@@ -58,7 +57,6 @@ import {
 } from '../stores';
 import {
     CreatePoolParamsData,
-    ModuleConfig,
     PoolID,
     TokenID
 } from '../types';
@@ -78,24 +76,37 @@ const computePoolID = (tokenID0: TokenID, tokenID1: TokenID, feeTier: Buffer): P
 
 export class CreatePoolCommand extends BaseCommand {
     public id = COMMAND_ID_CREATE_POOL;
-    public schema = createPoolParamsSchema;
-    private _moduleConfig!: ModuleConfig;
-    private _moduleId!: Buffer;
+    public schema = createPoolSchema;
+    // private _moduleConfig!: ModuleConfig;
     private _tokenMethod!: TokenMethod;
+    private _stores;
+    private _events;
+    private _senderAddress;
+    private _methodContext;
+    private _settings;
+
 
     public init({
-        moduleConfig,
-        moduleId,
-        tokenMethod
+        tokenMethod,
+        stores,
+        events,
+        senderAddress,
+        methodContext,
+        settings
     }): void {
-        this._moduleConfig = moduleConfig;
-        this._moduleId = moduleId;
+        // this._moduleConfig = moduleConfig;
         this._tokenMethod = tokenMethod;
+        this._stores = stores;
+        this._events = events;
+        this._senderAddress = senderAddress;
+        this._methodContext = methodContext;
+        this._settings = settings;
+
     }
 
-    public async verify(ctx: CommandVerifyContext < CreatePoolParamsData > ): Promise < VerificationResult > {
+    public async verify(ctx: CommandVerifyContext<CreatePoolParamsData>): Promise<VerificationResult> {
         try {
-            validator.validate(createPoolParamsSchema, ctx.params);
+            validator.validate(createPoolSchema, ctx.params);
         } catch (err) {
             return {
                 status: VerifyStatus.FAIL,
@@ -150,10 +161,10 @@ export class CreatePoolCommand extends BaseCommand {
 
 
         const poolId = computePoolID(tokenID0, tokenID1, Buffer.from([feeTier]));
-        const poolStore = ctx.getStore(this._moduleId, STORE_PREFIX_POOL);
-        const doesPoolAlreadyExist = await poolStore.has(poolId);
+        const poolStore = this.stores.get(PoolsStore);
+        const doesPoolAlreadyExist = await poolStore.has(ctx.getMethodContext(), poolId);
 
-        if (!doesPoolAlreadyExist) {
+        if (doesPoolAlreadyExist) {
             return {
                 status: VerifyStatus.FAIL,
                 error: new Error(
@@ -167,20 +178,21 @@ export class CreatePoolCommand extends BaseCommand {
         };
     }
 
-    public async execute(ctx: CommandExecuteContext < CreatePoolParamsData > ): Promise < void > {
-        const {
+    public async execute(ctx: CommandExecuteContext<CreatePoolParamsData>): Promise<void> {
+        const
             senderAddress
-        } = ctx.transaction;
+                = this._senderAddress;
         const {
             tokenID0,
             tokenID1,
             feeTier,
             initialPosition
         } = ctx.params;
-        const methodContext = ctx.getMethodContext();
+        const methodContext = this._methodContext;
         const initialSqrtPrice = tickToPrice(ctx.params.tickInitialPrice);
-        const result = await createPool(this._moduleConfig, methodContext, this.stores.get(PoolsStore), tokenID0, tokenID1, feeTier, initialSqrtPrice)
 
+        const poolsStore = this._stores.get(PoolsStore);
+        const result = await createPool(this._settings, methodContext, poolsStore, tokenID0, tokenID1, feeTier, initialSqrtPrice)
         if (result !== POOL_CREATION_SUCCESS) {
             this.events.get(PoolCreationFailedEvent).add(methodContext, {
                 senderAddress,
@@ -204,8 +216,9 @@ export class CreatePoolCommand extends BaseCommand {
 
 
         const [positionCreationResult, positionID] = await createPosition(
-            methodContext, this.stores,
+            methodContext, this._stores,
             senderAddress, poolID, initialPosition.tickLower, initialPosition.tickUpper)
+
         if (positionCreationResult !== POSITION_CREATION_SUCCESS) {
             this.events.get(PositionCreationFailedEvent).add(methodContext, {
                 senderAddress,
@@ -220,14 +233,20 @@ export class CreatePoolCommand extends BaseCommand {
         }
 
 
+
+
         const tickLowerSqrtPrice = tickToPrice(initialPosition.tickLower);
         const tickUpperSqrtPrice = tickToPrice(initialPosition.tickUpper);
+
+
+
         const liquidity = getLiquidityForAmounts(initialSqrtPrice,
             tickLowerSqrtPrice,
             tickUpperSqrtPrice,
             initialPosition.amount0Desired,
             initialPosition.amount1Desired);
-        const [amount0, amount1] = await updatePosition(methodContext, this.events, this.stores, this._tokenMethod, positionID, liquidity);
+
+        const [amount0, amount1] = await updatePosition(methodContext, this._events, this._stores, this._tokenMethod, positionID, liquidity);
 
 
         if (amount0 === BigInt(0) || amount1 === BigInt(0)) {
@@ -242,6 +261,8 @@ export class CreatePoolCommand extends BaseCommand {
             }, [senderAddress], true);
             throw new Error();
         }
+
+
 
 
         if (amount0 > initialPosition.amount0Desired || amount1 > initialPosition.amount1Desired) {

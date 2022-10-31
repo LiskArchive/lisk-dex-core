@@ -11,34 +11,29 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import {
-    BaseStore
-} from 'lisk-sdk';
+import { BaseStore } from 'lisk-sdk';
 
 export interface DexGlobalStoreData {
-    positionCounter: bigint;
-    collectableLSKFees: bigint;
+	positionCounter: bigint;
+	collectableLSKFees: bigint;
 }
 
 export const dexGlobalStoreSchema = {
-    "$id": "",
-    "type": "object",
-    "required": [
-        "positionCounter",
-        "collectableLSKFees"
-    ],
-    "properties": {
-        "positionCounter": {
-            "dataType": "uint64",
-            "fieldNumber": 1
-        },
-        "collectableLSKFees": {
-            "dataType": "uint64",
-            "fieldNumber": 2
-        }
-    }
+	$id: '/dex/store/global',
+	type: 'object',
+	required: ['positionCounter', 'collectableLSKFees'],
+	properties: {
+		positionCounter: {
+			dataType: 'uint64',
+			fieldNumber: 1,
+		},
+		collectableLSKFees: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+	},
 };
 
-export class DexGlobalStore extends BaseStore < DexGlobalStoreData > {
-    public schema = dexGlobalStoreSchema;
+export class DexGlobalStore extends BaseStore<DexGlobalStoreData> {
+	public schema = dexGlobalStoreSchema;
 }
