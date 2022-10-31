@@ -53,14 +53,13 @@ import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/posit
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedStateDB';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
-import { hexToBytes } from '../../../../src/app/modules/dexRewards/constants';
 
 describe('dex:auxiliaryFunctions', () => {
-	const poolId: PoolID = Buffer.from(hexToBytes('0x000000000000000000000001000000000000c8'));
-	const token0Id: TokenID = Buffer.from(hexToBytes('0x0000000000000000'));
-	const token1Id: TokenID = Buffer.from(hexToBytes('0x0000000100000000'));
-	const senderAddress: Address = Buffer.from(hexToBytes('0x0000000000000000'));
-	const positionId: PositionID = Buffer.from(hexToBytes('0x000000000000000000000001000000000000c8'));
+	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8','hex');
+	const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
+	const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
+	const senderAddress: Address = Buffer.from('0000000000000000','hex');
+	const positionId: PositionID = Buffer.from('00000001000000000101643130','hex');
 	const feeTier: Number = Number('0x00000c8');
 	let sqrtPrice: bigint = numberToQ96(BigInt(1));
 
@@ -79,7 +78,7 @@ describe('dex:auxiliaryFunctions', () => {
 	const transferMock = jest.fn();
 	const lockMock = jest.fn();
 	const unlockMock = jest.fn();
-	const getAvailableBalanceMock = jest.fn().mockReturnValue(5);
+	const getAvailableBalanceMock = jest.fn().mockReturnValue(250);
 
 	methodContext = createMethodContext({
 		stateStore,
@@ -96,15 +95,23 @@ describe('dex:auxiliaryFunctions', () => {
 	const poolsStoreData: PoolsStoreData = {
 		liquidity: BigInt(5),
 		sqrtPrice: q96ToBytes(BigInt(1)),
-		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(1))),
-		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(1))),
+		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
+		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(6))),
 		tickSpacing: 1
 	}
-	const priceTicksStoreData: PriceTicksStoreData = {
-		liquidityNet: BigInt(1),
+	
+	const priceTicksStoreDataTickLower: PriceTicksStoreData = {
+		liquidityNet: BigInt(5),
 		liquidityGross: BigInt(5),
-		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(1))),
-		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(1))),
+		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(8))),
+		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(5))),
+	}
+	
+	const priceTicksStoreDataTickUpper: PriceTicksStoreData = {
+		liquidityNet: BigInt(5),
+		liquidityGross: BigInt(5),
+		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(4))),
+		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(3))),
 	}
 
 	const dexGlobalStoreData: DexGlobalStoreData = {
@@ -112,16 +119,16 @@ describe('dex:auxiliaryFunctions', () => {
 		collectableLSKFees: BigInt(10),
 	}
 	const positionsStoreData: PositionsStoreData = {
-		tickLower: -887272,
-		tickUpper: -887272,
+		tickLower: -8,
+		tickUpper: -5,
 		liquidity: BigInt(10),
-		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(0))),
-		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(0))),
+		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(3))),
+		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(1))),
 		ownerAddress: senderAddress
 	}
 
 	const settingStoreData: SettingsStoreData = {
-		protocolFeeAddress: Buffer.from(hexToBytes('0x0000000000000000')),
+		protocolFeeAddress: Buffer.from('0000000000000000'),
 		protocolFeePart: 10,
 		validatorsLSKRewardsPart: 5,
 		poolCreationSettings: {
@@ -160,10 +167,11 @@ describe('dex:auxiliaryFunctions', () => {
 			await poolsStore.setKey(methodContext, [senderAddress, getPoolIDFromPositionID(positionId)], poolsStoreData);
 			await poolsStore.set(methodContext, getPoolIDFromPositionID(positionId), poolsStoreData);
 
-			await priceTicksStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), tickToBytes(positionsStoreData.tickLower)], priceTicksStoreData)
-			await priceTicksStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), tickToBytes(positionsStoreData.tickUpper)], priceTicksStoreData)
-			await priceTicksStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), q96ToBytes(tickToPrice(positionsStoreData.tickLower))], priceTicksStoreData)
-			await priceTicksStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), q96ToBytes(tickToPrice(positionsStoreData.tickUpper))], priceTicksStoreData)
+			await priceTicksStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), tickToBytes(positionsStoreData.tickLower)], priceTicksStoreDataTickLower)
+			await priceTicksStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), tickToBytes(positionsStoreData.tickUpper)], priceTicksStoreDataTickUpper)
+			await priceTicksStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), q96ToBytes(tickToPrice(positionsStoreData.tickLower))], priceTicksStoreDataTickLower)
+			await priceTicksStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), q96ToBytes(tickToPrice(positionsStoreData.tickUpper))], priceTicksStoreDataTickUpper)
+
 
 			await positionsStore.set(methodContext, positionId, positionsStoreData);
 			await positionsStore.setKey(methodContext, [senderAddress, positionId], positionsStoreData);
@@ -214,15 +222,15 @@ describe('dex:auxiliaryFunctions', () => {
 		// });
 
 		it('should return the poolId from the positionId', async () => {
-			expect(getPoolIDFromPositionID(positionId).toString('hex')).toBe('000000000000000001000000000000c8');
+			expect(getPoolIDFromPositionID(positionId).toString('hex')).toBe('00000001000000000101643130');
 		});
 
 		it('should return 0 as POOL_CREATION_SUCCESS', async () => {
-			expect(await createPool(settings, methodContext, poolsStore, token0Id, token1Id, 1, sqrtPrice)).toBe(0);
+			expect(await createPool(settings, methodContext, poolsStore, token0Id, token1Id, 100, sqrtPrice)).toBe(0);
 		});
 
 		it('should return concatenated (tokenID0, tokenID1, feeTier) after computing poolID', async () => {
-			expect(await computePoolID(token0Id, token1Id, Number(0x0064).valueOf()).toString('hex')).toBe('00000000000000000000000000010000000064000000');
+			expect(await computePoolID(token0Id, token1Id, Number(0x0064).valueOf()).toString('hex')).toBe('0000000000000000000001000000000064000000');
 		});
 
 		it('should return 0 for POSITION_CREATION_SUCCESS and positionID in result', async () => {
@@ -232,13 +240,13 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('should return concatenated poolID with dexGlobalStoreData.positionCounter in result', async () => {
-			expect(await getNewPositionID(dexGlobalStoreData, getPoolIDFromPositionID(positionId)).toString('hex')).toBe("000000000000000001000000000000c83130");
+			expect(await getNewPositionID(dexGlobalStoreData, getPoolIDFromPositionID(positionId)).toString('hex')).toBe("000000010000000001016431303130");
 		});
 
-		it('should return [0,0] as feeGrowthInside0, feeGrowthInside1 in result', async () => {
+		it('should return [316912650057057350374175801344,158456325028528675187087900672] as feeGrowthInside0, feeGrowthInside1 in result', async () => {
 			await getFeeGrowthInside(tokenModule.stores, methodContext, positionId).then(res => {
-				expect(res[0]).toBe(BigInt(0));
-				expect(res[1]).toBe(BigInt(0));
+				expect(res[0]).toBe(BigInt(316912650057057350374175801344));
+				expect(res[1]).toBe(BigInt(158456325028528675187087900672));
 			});
 		});
 
@@ -260,8 +268,8 @@ describe('dex:auxiliaryFunctions', () => {
 			await computeCollectableFees(tokenModule.stores, methodContext, positionId).then(res => {
 				expect(res[0]).toBe(BigInt(0));
 				expect(res[1]).toBe(BigInt(0));
-				expect(res[2]).toBe(BigInt(0));
-				expect(res[3]).toBe(BigInt(0));
+				expect(res[2]).toBe(BigInt(316912650057057350374175801344));
+				expect(res[3]).toBe(BigInt(158456325028528675187087900672));
 			});
 		});
 
@@ -281,22 +289,22 @@ describe('dex:auxiliaryFunctions', () => {
 		// });
 
 		it('should return [0,0] in result', async () => {
-			expect(await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(2)).then(res => {
-				expect(res[0]).toBe(BigInt(0));
-				expect(res[1]).toBe(BigInt(0));
+			await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(1)).then(res => {
+				expect(res[0].toString()).toBe('79228162514264337593543950335');
+				expect(res[1].toString()).toBe('1');
 
-			}));
+			});
 		});
 
 		it('should fail position update as due to insufficeint liquidity', async () => {
-			expect(await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(-10))).toThrowError();
+			await expect(updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(-100))).rejects.toThrowError();
 		});
 
 
 		it('should return [0,0] liquidityDelta is 0', async () => {
 			expect(await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(0)).then(res => {
-				expect(res[0]).toBe(BigInt(0));
-				expect(res[1]).toBe(BigInt(0));
+				expect(res[0].toString()).toBe('0');
+				expect(res[1].toString()).toBe('0');
 
 			}));
 		});
