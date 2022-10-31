@@ -46,8 +46,8 @@ describe('dex:command:removeLiquidity', () => {
 	let methodContext: MethodContext;
 
 	const tokenModule = new TokenModule();
-	const senderAddress: Address = Buffer.from('0000000000000000');
-	const positionId: PositionID = Buffer.from('00000001000000000101643130');
+	const senderAddress: Address = Buffer.from('0000000000000000','hex');
+	const positionId: PositionID = Buffer.from('00000001000000000101643130','hex');
 	const liquidityToRemove: bigint = BigInt(-2);
 
 	const transferMock = jest.fn();
@@ -69,16 +69,25 @@ describe('dex:command:removeLiquidity', () => {
 	const poolsStoreData: PoolsStoreData = {
 		liquidity: BigInt(5),
 		sqrtPrice: q96ToBytes(BigInt(1)),
-		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(1))),
-		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(1))),
+		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
+		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(6))),
 		tickSpacing: 1
 	}
-	const priceTicksStoreData: PriceTicksStoreData = {
+	
+	const priceTicksStoreDataTickLower: PriceTicksStoreData = {
 		liquidityNet: BigInt(5),
 		liquidityGross: BigInt(5),
-		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(1))),
-		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(1))),
+		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(8))),
+		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(5))),
 	}
+	
+	const priceTicksStoreDataTickUpper: PriceTicksStoreData = {
+		liquidityNet: BigInt(5),
+		liquidityGross: BigInt(5),
+		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(4))),
+		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(3))),
+	}
+
 
 	const dexGlobalStoreData: DexGlobalStoreData = {
 		positionCounter: BigInt(10),
@@ -88,8 +97,8 @@ describe('dex:command:removeLiquidity', () => {
 		tickLower: -8,
 		tickUpper: -5,
 		liquidity: BigInt(5),
-		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(0))),
-		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(0))),
+		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(3))),
+		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(1))),
 		ownerAddress: senderAddress
 	}
 
@@ -121,10 +130,10 @@ describe('dex:command:removeLiquidity', () => {
 		await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData)
 		await poolsStore.setKey(methodContext, [senderAddress, getPoolIDFromPositionID(positionId)], poolsStoreData);
 		await poolsStore.set(methodContext, getPoolIDFromPositionID(positionId), poolsStoreData);
-		await priceTicksStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), tickToBytes(positionsStoreData.tickLower)], priceTicksStoreData)
-		await priceTicksStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), tickToBytes(positionsStoreData.tickUpper)], priceTicksStoreData)
-		await priceTicksStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), q96ToBytes(tickToPrice(positionsStoreData.tickLower))], priceTicksStoreData)
-		await priceTicksStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), q96ToBytes(tickToPrice(positionsStoreData.tickUpper))], priceTicksStoreData)
+		await priceTicksStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), tickToBytes(positionsStoreData.tickLower)], priceTicksStoreDataTickLower)
+		await priceTicksStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), tickToBytes(positionsStoreData.tickUpper)], priceTicksStoreDataTickUpper)
+		await priceTicksStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), q96ToBytes(tickToPrice(positionsStoreData.tickLower))], priceTicksStoreDataTickLower)
+		await priceTicksStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), q96ToBytes(tickToPrice(positionsStoreData.tickUpper))], priceTicksStoreDataTickUpper)
 
 		await positionsStore.set(methodContext, positionId, positionsStoreData);
 		await positionsStore.setKey(methodContext, [senderAddress, positionId], positionsStoreData);
