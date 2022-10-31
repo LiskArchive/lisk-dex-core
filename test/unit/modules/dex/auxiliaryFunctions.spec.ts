@@ -32,7 +32,8 @@ import {
 	getLiquidityForAmounts,
 	checkPositionExistenceAndOwnership,
 	computeCollectableFees,
-	computeCollectableIncentives
+	computeCollectableIncentives,
+	updatePosition
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
@@ -183,129 +184,129 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 		it('should return the feeTier from the poolID', async () => {
 			expect(getFeeTier(poolId)).toEqual(feeTier);
-		it('getFeeTier', async () => {
-			expect(getFeeTier(poolId)).toEqual(Buffer.from('000000c8', 'hex').readUInt32BE(0));
-		});
-
-		it('should transfer and lock using the tokenMethod', async () => {
-
-			await transferToPool(tokenMethod, methodContext, senderAddress, poolId, token1Id, BigInt(1));
-			expect(tokenMethod.transfer).toBeCalled();
-			expect(tokenMethod.lock).toBeCalled();
-		});
-
-
-		it('should transfer, lock and unlock for transferPoolToPool', async () => {
-			await transferPoolToPool(tokenMethod, methodContext, senderAddress, poolId, token1Id, BigInt(1));
-			expect(tokenMethod.transfer).toBeCalled();
-			expect(tokenMethod.lock).toBeCalled();
-			expect(tokenMethod.unlock).toBeCalled();
-
-		});
-
-		it('should transfer for transferToProtocolFeeAccount', async () => {
-			await transferToProtocolFeeAccount(tokenMethod, methodContext, settingsStore, poolId, token1Id, BigInt(1));
-			expect(tokenMethod.transfer).toBeCalled();
-		});
-
-
-		// it('getPositionIndex', async () => {
-		// 	expect(getPositionIndex(positionId)).toEqual(Number('0x1000000'));			
-		// });
-
-		it('should return the poolId from the positionId', async () => {
-			expect(getPoolIDFromPositionID(positionId).toString('hex')).toBe('000000000000000001000000000000c8');
-		});
-
-		it('should return 0 as POOL_CREATION_SUCCESS', async () => {
-			expect(await createPool(settings, methodContext, poolsStore, token0Id, token1Id, 1, sqrtPrice)).toBe(0);
-		});
-
-		it('should return concatenated (tokenID0, tokenID1, feeTier) after computing poolID', async () => {
-			expect(await computePoolID(token0Id, token1Id, Number(0x0064).valueOf()).toString('hex')).toBe('00000000000000000000000000010000000064000000');
-		});
-
-		it('should return 0 for POSITION_CREATION_SUCCESS and positionID in result', async () => {
-			await createPosition(methodContext, tokenModule.stores, senderAddress, getPoolIDFromPositionID(positionId), positionsStoreData.tickLower, positionsStoreData.tickUpper).then(res => {
-				expect(res[0]).toBe(0);
+			it('getFeeTier', async () => {
+				expect(getFeeTier(poolId)).toEqual(Buffer.from('000000c8', 'hex').readUInt32BE(0));
 			});
-		});
 
-		it('should return concatenated poolID with dexGlobalStoreData.positionCounter in result', async () => {
-			expect(await getNewPositionID(dexGlobalStoreData, getPoolIDFromPositionID(positionId)).toString('hex')).toBe("000000000000000001000000000000c83130");
-		});
+			it('should transfer and lock using the tokenMethod', async () => {
 
-		it('should return [0,0] as feeGrowthInside0, feeGrowthInside1 in result', async () => {
-			await getFeeGrowthInside(tokenModule.stores, methodContext, positionId).then(res => {
-				expect(res[0]).toBe(BigInt(0));
-				expect(res[1]).toBe(BigInt(0));
+				await transferToPool(tokenMethod, methodContext, senderAddress, poolId, token1Id, BigInt(1));
+				expect(tokenMethod.transfer).toBeCalled();
+				expect(tokenMethod.lock).toBeCalled();
 			});
-		});
 
 
-		it('should return BigInt(1) in result', async () => {
-			expect(await getLiquidityForAmounts(numberToQ96(BigInt(3)),
-				numberToQ96(BigInt(1)),
-				numberToQ96(BigInt(5)),
-				BigInt(1),
-				BigInt(3)
-			)).toBe(BigInt(1));
-		});
+			it('should transfer, lock and unlock for transferPoolToPool', async () => {
+				await transferPoolToPool(tokenMethod, methodContext, senderAddress, poolId, token1Id, BigInt(1));
+				expect(tokenMethod.transfer).toBeCalled();
+				expect(tokenMethod.lock).toBeCalled();
+				expect(tokenMethod.unlock).toBeCalled();
 
-		it('should not throw any error in result', async () => {
-			await checkPositionExistenceAndOwnership(tokenModule.stores, tokenModule.events, methodContext, senderAddress, positionId);
-		});
-
-		it('should return [0n, 0n, 0n, 0n] as feeGrowthInside0, feeGrowthInside1 in result', async () => {
-			await computeCollectableFees(tokenModule.stores, methodContext, positionId).then(res => {
-				expect(res[0]).toBe(BigInt(0));
-				expect(res[1]).toBe(BigInt(0));
-				expect(res[2]).toBe(BigInt(0));
-				expect(res[3]).toBe(BigInt(0));
 			});
-		});
 
-		it('should return [0,0] as Token0Id or Token1Id is not !== TOKEN_ID_LSK', async () => {
-			await computeCollectableIncentives(dexGlobalStoreData, tokenMethod, positionId, BigInt(1), BigInt(2)).then(res => {
-				expect(res[0]).toBe(BigInt(0));
-				expect(res[1]).toBe(BigInt(0));
-			})
-		});
-
-		// it('should return [1n,0] as collectableFees0=BigInt(0)', async () => {
-		// 	const newTestpositionId: PositionID = Buffer.from(hexToBytes('0x00000000000100000000000000000000c8'));
-		// 	await computeCollectableIncentives(dexGlobalStoreData, tokenMethod, newTestpositionId, BigInt(1), BigInt(2)).then(res => {
-		// 		expect(res[0]).toBe(BigInt(0));
-		// 		expect(res[1]).toBe(BigInt(0));
-		// 	})
-		// });
-
-		it('should not return [0,0] in result', async () => {
-			expect(await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(1)).then(res => {
-				expect(res[0]).not.toBe(BigInt(0));
-				expect(res[1]).not.toBe(BigInt(0));
+			it('should transfer for transferToProtocolFeeAccount', async () => {
+				await transferToProtocolFeeAccount(tokenMethod, methodContext, settingsStore, poolId, token1Id, BigInt(1));
+				expect(tokenMethod.transfer).toBeCalled();
 			});
-		});
-		it('should return [0,0] in result', async () => {
-			expect(await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(2)).then(res => {
-				expect(res[0]).toBe(BigInt(0));
-				expect(res[1]).toBe(BigInt(0));
-			}));
-		});
-
-		it('should fail position update as due to insufficeint liquidity', async () => {
-			expect(await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(-10))).toThrowError();
-		});
 
 
-		it('should return [0,0] liquidityDelta is 0', async () => {
-			expect(await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(0)).then(res => {
-				expect(res[0]).toBe(BigInt(0));
-				expect(res[1]).toBe(BigInt(0));
+			// it('getPositionIndex', async () => {
+			// 	expect(getPositionIndex(positionId)).toEqual(Number('0x1000000'));			
+			// });
 
-			}));
+			it('should return the poolId from the positionId', async () => {
+				expect(getPoolIDFromPositionID(positionId).toString('hex')).toBe('000000000000000001000000000000c8');
+			});
+
+			it('should return 0 as POOL_CREATION_SUCCESS', async () => {
+				expect(await createPool(settings, methodContext, poolsStore, token0Id, token1Id, 1, sqrtPrice)).toBe(0);
+			});
+
+			it('should return concatenated (tokenID0, tokenID1, feeTier) after computing poolID', async () => {
+				expect(await computePoolID(token0Id, token1Id, Number(0x0064).valueOf()).toString('hex')).toBe('00000000000000000000000000010000000064000000');
+			});
+
+			it('should return 0 for POSITION_CREATION_SUCCESS and positionID in result', async () => {
+				await createPosition(methodContext, tokenModule.stores, senderAddress, getPoolIDFromPositionID(positionId), positionsStoreData.tickLower, positionsStoreData.tickUpper).then(res => {
+					expect(res[0]).toBe(0);
+				});
+			});
+
+			it('should return concatenated poolID with dexGlobalStoreData.positionCounter in result', async () => {
+				expect(await getNewPositionID(dexGlobalStoreData, getPoolIDFromPositionID(positionId)).toString('hex')).toBe("000000000000000001000000000000c83130");
+			});
+
+			it('should return [0,0] as feeGrowthInside0, feeGrowthInside1 in result', async () => {
+				await getFeeGrowthInside(tokenModule.stores, methodContext, positionId).then(res => {
+					expect(res[0]).toBe(BigInt(0));
+					expect(res[1]).toBe(BigInt(0));
+				});
+			});
+
+
+			it('should return BigInt(1) in result', async () => {
+				expect(await getLiquidityForAmounts(numberToQ96(BigInt(3)),
+					numberToQ96(BigInt(1)),
+					numberToQ96(BigInt(5)),
+					BigInt(1),
+					BigInt(3)
+				)).toBe(BigInt(1));
+			});
+
+			it('should not throw any error in result', async () => {
+				await checkPositionExistenceAndOwnership(tokenModule.stores, tokenModule.events, methodContext, senderAddress, positionId);
+			});
+
+			it('should return [0n, 0n, 0n, 0n] as feeGrowthInside0, feeGrowthInside1 in result', async () => {
+				await computeCollectableFees(tokenModule.stores, methodContext, positionId).then(res => {
+					expect(res[0]).toBe(BigInt(0));
+					expect(res[1]).toBe(BigInt(0));
+					expect(res[2]).toBe(BigInt(0));
+					expect(res[3]).toBe(BigInt(0));
+				});
+			});
+
+			it('should return [0,0] as Token0Id or Token1Id is not !== TOKEN_ID_LSK', async () => {
+				await computeCollectableIncentives(dexGlobalStoreData, tokenMethod, positionId, 1, 2).then(res => {
+					expect(res[0]).toBe(BigInt(0));
+					expect(res[1]).toBe(BigInt(0));
+				})
+			});
+
+			// it('should return [1n,0] as collectableFees0=BigInt(0)', async () => {
+			// 	const newTestpositionId: PositionID = Buffer.from(hexToBytes('0x00000000000100000000000000000000c8'));
+			// 	await computeCollectableIncentives(dexGlobalStoreData, tokenMethod, newTestpositionId, BigInt(1), BigInt(2)).then(res => {
+			// 		expect(res[0]).toBe(BigInt(0));
+			// 		expect(res[1]).toBe(BigInt(0));
+			// 	})
+			// });
+
+			it('should not return [0,0] in result', async () => {
+				expect(await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(1)).then(res => {
+					expect(res[0]).not.toBe(BigInt(0));
+					expect(res[1]).not.toBe(BigInt(0));
+				});
+			});
+			it('should return [0,0] in result', async () => {
+				expect(await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(2)).then(res => {
+					expect(res[0]).toBe(BigInt(0));
+					expect(res[1]).toBe(BigInt(0));
+				}));
+			});
+
+			it('should fail position update as due to insufficeint liquidity', async () => {
+				expect(await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(-10))).toThrowError();
+			});
+
+
+			it('should return [0,0] liquidityDelta is 0', async () => {
+				expect(await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(0)).then(res => {
+					expect(res[0]).toBe(BigInt(0));
+					expect(res[1]).toBe(BigInt(0));
+
+				}));
+			});
+
 		});
 
 	});
-
-});
