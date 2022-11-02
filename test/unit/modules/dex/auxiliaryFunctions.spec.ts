@@ -78,7 +78,7 @@ describe('dex:auxiliaryFunctions', () => {
 	const transferMock = jest.fn();
 	const lockMock = jest.fn();
 	const unlockMock = jest.fn();
-	const getAvailableBalanceMock = jest.fn().mockReturnValue(250);
+	const getAvailableBalanceMock = jest.fn().mockReturnValue(BigInt(10));
 
 	methodContext = createMethodContext({
 		stateStore,
@@ -128,11 +128,11 @@ describe('dex:auxiliaryFunctions', () => {
 	}
 
 	const settingStoreData: SettingsStoreData = {
-		protocolFeeAddress: Buffer.from('0000000000000000'),
+		protocolFeeAddress: Buffer.from('0000000000000000','hex'),
 		protocolFeePart: 10,
 		validatorsLSKRewardsPart: 5,
 		poolCreationSettings: {
-			feeTier: 1,
+			feeTier: 100,
 			tickSpacing: 1
 		}
 	}
@@ -160,9 +160,9 @@ describe('dex:auxiliaryFunctions', () => {
 			positionsStore = tokenModule.stores.get(PositionsStore);
 			settingsStore = tokenModule.stores.get(SettingsStore);
 
-			await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData)
+			await dexGlobalStore.set(methodContext, senderAddress, dexGlobalStoreData)
 
-			await settingsStore.set(methodContext, Buffer.from([]), settingStoreData)
+			await settingsStore.set(methodContext, senderAddress, settingStoreData)
 
 			await poolsStore.setKey(methodContext, [senderAddress, getPoolIDFromPositionID(positionId)], poolsStoreData);
 			await poolsStore.set(methodContext, getPoolIDFromPositionID(positionId), poolsStoreData);
@@ -180,7 +180,7 @@ describe('dex:auxiliaryFunctions', () => {
 			tokenMethod.transfer = transferMock;
 			tokenMethod.lock = lockMock;
 			tokenMethod.unlock = unlockMock;
-			tokenMethod.getAvailableBalance = getAvailableBalanceMock;
+			tokenMethod.getAvailableBalance = getAvailableBalanceMock.mockReturnValue(BigInt(10));
 
 
 		})
@@ -204,7 +204,7 @@ describe('dex:auxiliaryFunctions', () => {
 
 
 		it('should transfer, lock and unlock for transferPoolToPool', async () => {
-			await transferPoolToPool(tokenMethod, methodContext, senderAddress, poolId, token1Id, BigInt(1));
+			await transferPoolToPool(tokenMethod, methodContext, senderAddress, senderAddress, token1Id, BigInt(1));
 			expect(tokenMethod.transfer).toBeCalled();
 			expect(tokenMethod.lock).toBeCalled();
 			expect(tokenMethod.unlock).toBeCalled();
@@ -212,7 +212,7 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('should transfer for transferToProtocolFeeAccount', async () => {
-			await transferToProtocolFeeAccount(tokenMethod, methodContext, settingsStore, poolId, token1Id, BigInt(1));
+			await transferToProtocolFeeAccount(tokenMethod, methodContext, settingsStore, senderAddress, token1Id, BigInt(1));
 			expect(tokenMethod.transfer).toBeCalled();
 		});
 
@@ -252,7 +252,7 @@ describe('dex:auxiliaryFunctions', () => {
 
 
 		it('should return BigInt(1) in result', async () => {
-			expect(await getLiquidityForAmounts(numberToQ96(BigInt(3)),
+			await expect( getLiquidityForAmounts(numberToQ96(BigInt(0)),
 				numberToQ96(BigInt(1)),
 				numberToQ96(BigInt(5)),
 				BigInt(1),
@@ -274,9 +274,9 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('should return [0,0] as Token0Id or Token1Id is not !== TOKEN_ID_LSK', async () => {
-			await computeCollectableIncentives(dexGlobalStoreData, tokenMethod, positionId, BigInt(1), BigInt(2)).then(res => {
-				expect(res[0]).toBe(BigInt(0));
-				expect(res[1]).toBe(BigInt(0));
+			await computeCollectableIncentives(dexGlobalStore, tokenMethod, methodContext,senderAddress, positionId, BigInt(1), BigInt(2)).then(res => {
+				expect(res[0]).toBe(BigInt(1));
+				expect(res[1]).toBe(BigInt(1));
 			})
 		});
 
