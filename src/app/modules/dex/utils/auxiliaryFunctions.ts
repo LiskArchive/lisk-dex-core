@@ -74,10 +74,10 @@ export const poolIdToAddress = (poolId: PoolID): Address => {
 	return _address.slice(0, NUM_BYTES_ADDRESS);
 };
 
-export const getToken0Id = (poolId: PoolID): TokenID => poolId.slice(0, NUM_BYTES_TOKEN_ID + 1);
+export const getToken0Id = (poolId: PoolID): TokenID => poolId.slice(0, NUM_BYTES_TOKEN_ID);
 
 export const getToken1Id = (poolId: PoolID): TokenID =>
-	poolId.slice(NUM_BYTES_TOKEN_ID, 2 * NUM_BYTES_TOKEN_ID + 1);
+	poolId.slice(NUM_BYTES_TOKEN_ID, 2 * NUM_BYTES_TOKEN_ID);
 
 export const getFeeTier = (poolId: PoolID): number => {
 	const _buffer: Buffer = poolId.slice(-4);
@@ -315,6 +315,7 @@ export const computeCollectableFees = async (positionStore, positionID: Position
 	return [collectableFees0, collectableFees1, feeGrowthInside0, feeGrowthInside1];
 };
 
+<<<<<<< HEAD
 
 export const computeCollectableIncentives = async (dexGlobalState, tokenAPI, positionID: PositionID, collectableFees0: number, collectableFees1: number): Promise<[number, number]> => {
 	const poolID = getPoolIDFromPositionID(positionID)
@@ -323,6 +324,21 @@ export const computeCollectableIncentives = async (dexGlobalState, tokenAPI, pos
 		collectableFeesLSK = collectableFees0
 	} else if (getToken1Id(poolID) == TOKEN_ID_LSK) {
 		collectableFeesLSK = collectableFees1
+=======
+export const computeCollectableIncentives = async (
+	dexGlobalStore,
+	tokenMethod,
+	positionID: PositionID,
+	collectableFees0: bigint,
+	collectableFees1: bigint,
+): Promise<[bigint, bigint]> => {
+	const poolID = getPoolIDFromPositionID(positionID);
+	let collectableFeesLSK = BigInt(0);
+	if (getToken0Id(poolID).equals(TOKEN_ID_LSK)) {
+		collectableFeesLSK = collectableFees0;
+	} else if (getToken1Id(poolID).equals(TOKEN_ID_LSK)) {
+		collectableFeesLSK = collectableFees1;
+>>>>>>> ce6e365 (Fix auxiliary, q96 and stores)
 	}
 
 	if (collectableFeesLSK == 0) {

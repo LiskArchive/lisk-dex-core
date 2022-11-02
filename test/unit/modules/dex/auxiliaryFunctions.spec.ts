@@ -33,7 +33,10 @@ import {
 	checkPositionExistenceAndOwnership,
 	computeCollectableFees,
 	computeCollectableIncentives,
-	updatePosition
+	updatePosition,
+	transferToPool,
+	transferPoolToPool,
+	transferToProtocolFeeAccount,
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
@@ -258,7 +261,7 @@ describe('dex:auxiliaryFunctions', () => {
 			});
 
 			it('should return [0n, 0n, 0n, 0n] as feeGrowthInside0, feeGrowthInside1 in result', async () => {
-				await computeCollectableFees(tokenModule.stores, methodContext, positionId).then(res => {
+				await computeCollectableFees(positionsStore, positionId).then(res => {
 					expect(res[0]).toBe(BigInt(0));
 					expect(res[1]).toBe(BigInt(0));
 					expect(res[2]).toBe(BigInt(0));
