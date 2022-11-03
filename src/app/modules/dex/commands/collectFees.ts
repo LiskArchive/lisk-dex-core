@@ -29,13 +29,13 @@ export class CollectFeesCommand extends BaseCommand {
     private _methodContext;
 
     public init({
-        tokenMethod,stores,events, senderAddress,methodContext }): void {
+        tokenMethod, stores, events, senderAddress, methodContext }): void {
         this._tokenMethod = tokenMethod;
         this._stores = stores;
         this._events = events;
         this._senderAddress = senderAddress;
         this._methodContext = methodContext;
-        
+
 
     }
 
@@ -73,11 +73,10 @@ export class CollectFeesCommand extends BaseCommand {
             positions
         } = ctx.params;
 
-      
+
         for (var positionID of positions) {
             await checkPositionExistenceAndOwnership(this._stores, this._events, this._methodContext, this._senderAddress, positionID);
-            console.log("working");
-            await collectFeesAndIncentives(this.events, this.stores, this._tokenMethod, this._methodContext, positionID);
+            await collectFeesAndIncentives(this._events, this._stores, this._tokenMethod, this._methodContext, positionID);
         }
     }
 }
