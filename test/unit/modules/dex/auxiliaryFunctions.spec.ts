@@ -78,7 +78,7 @@ describe('dex:auxiliaryFunctions', () => {
 	const transferMock = jest.fn();
 	const lockMock = jest.fn();
 	const unlockMock = jest.fn();
-	const getAvailableBalanceMock = jest.fn().mockReturnValue(BigInt(10));
+	const getAvailableBalanceMock = jest.fn().mockReturnValue(BigInt(250));
 
 	methodContext = createMethodContext({
 		stateStore,
@@ -180,7 +180,7 @@ describe('dex:auxiliaryFunctions', () => {
 			tokenMethod.transfer = transferMock;
 			tokenMethod.lock = lockMock;
 			tokenMethod.unlock = unlockMock;
-			tokenMethod.getAvailableBalance = getAvailableBalanceMock.mockReturnValue(BigInt(10));
+			tokenMethod.getAvailableBalance = getAvailableBalanceMock.mockReturnValue(BigInt(250));
 
 
 		})
@@ -216,11 +216,6 @@ describe('dex:auxiliaryFunctions', () => {
 			expect(tokenMethod.transfer).toBeCalled();
 		});
 
-
-		// it('getPositionIndex', async () => {
-		// 	expect(getPositionIndex(positionId)).toEqual(Number('0x1000000'));			
-		// });
-
 		it('should return the poolId from the positionId', async () => {
 			expect(getPoolIDFromPositionID(positionId).toString('hex')).toBe('00000001000000000101643130');
 		});
@@ -251,20 +246,20 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 
-		it('should return BigInt(1) in result', async () => {
-			await expect( getLiquidityForAmounts(numberToQ96(BigInt(0)),
+		it('should return BigInt(3) in result', async () => {
+			await expect( getLiquidityForAmounts(numberToQ96(BigInt(2)),
 				numberToQ96(BigInt(1)),
 				numberToQ96(BigInt(5)),
 				BigInt(1),
 				BigInt(3)
-			)).toBe(BigInt(1));
+			)).toBe(BigInt(3));
 		});
 
 		it('should not throw any error in result', async () => {
 			await checkPositionExistenceAndOwnership(tokenModule.stores, tokenModule.events, methodContext, senderAddress, positionId);
 		});
 
-		it('should return [0n, 0n, 0n, 0n] as feeGrowthInside0, feeGrowthInside1 in result', async () => {
+		it('should return [0n, 0n, 316912650057057350374175801344, 158456325028528675187087900672] as collectableFees0, collectableFees1, feeGrowthInside0, feeGrowthInside1 in result', async () => {
 			await computeCollectableFees(tokenModule.stores, methodContext, positionId).then(res => {
 				expect(res[0]).toBe(BigInt(0));
 				expect(res[1]).toBe(BigInt(0));
@@ -273,22 +268,22 @@ describe('dex:auxiliaryFunctions', () => {
 			});
 		});
 
-		// it('should return [0,0] as Token0Id or Token1Id is not !== TOKEN_ID_LSK', async () => {
-		// 	await computeCollectableIncentives(dexGlobalStore, tokenMethod, methodContext,senderAddress, positionId, BigInt(1), BigInt(2)).then(res => {
-		// 		expect(res[0]).toBe(BigInt(1));
-		// 		expect(res[1]).toBe(BigInt(1));
-		// 	})
-		// });
+		it('should return [1,25] in result', async () => {
+			await computeCollectableIncentives(dexGlobalStore, tokenMethod, methodContext,senderAddress, positionId, BigInt(1), BigInt(2)).then(res => {
+				expect(res[0]).toBe(BigInt(1));
+				expect(res[1]).toBe(BigInt(25));
+			})
+		});
 
-		it('should return [1n,0] as collectableFees0=BigInt(0)', async () => {
+		it('should return [0,0] as newTestpositionId!=positionId', async () => {
 			const newTestpositionId: PositionID = Buffer.from('0x00000000000100000000000000000000c8','hex');
-			await computeCollectableIncentives(dexGlobalStoreData, tokenMethod, newTestpositionId, BigInt(1), BigInt(2)).then(res => {
+			await computeCollectableIncentives(dexGlobalStore, tokenMethod, methodContext, senderAddress, newTestpositionId, BigInt(1), BigInt(2)).then(res => {
 				expect(res[0]).toBe(BigInt(0));
 				expect(res[1]).toBe(BigInt(0));
 			})
 		});
 
-		it('should return [0,0] in result', async () => {
+		it('should return [79228162514264337593543950335,0] in result', async () => {
 			await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(1)).then(res => {
 				expect(res[0].toString()).toBe('79228162514264337593543950335');
 				expect(res[1].toString()).toBe('1');
