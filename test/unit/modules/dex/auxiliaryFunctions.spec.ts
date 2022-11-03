@@ -273,20 +273,20 @@ describe('dex:auxiliaryFunctions', () => {
 			});
 		});
 
-		it('should return [0,0] as Token0Id or Token1Id is not !== TOKEN_ID_LSK', async () => {
-			await computeCollectableIncentives(dexGlobalStore, tokenMethod, methodContext,senderAddress, positionId, BigInt(1), BigInt(2)).then(res => {
-				expect(res[0]).toBe(BigInt(1));
-				expect(res[1]).toBe(BigInt(1));
-			})
-		});
-
-		// it('should return [1n,0] as collectableFees0=BigInt(0)', async () => {
-		// 	const newTestpositionId: PositionID = Buffer.from(hexToBytes('0x00000000000100000000000000000000c8'));
-		// 	await computeCollectableIncentives(dexGlobalStoreData, tokenMethod, newTestpositionId, BigInt(1), BigInt(2)).then(res => {
-		// 		expect(res[0]).toBe(BigInt(0));
-		// 		expect(res[1]).toBe(BigInt(0));
+		// it('should return [0,0] as Token0Id or Token1Id is not !== TOKEN_ID_LSK', async () => {
+		// 	await computeCollectableIncentives(dexGlobalStore, tokenMethod, methodContext,senderAddress, positionId, BigInt(1), BigInt(2)).then(res => {
+		// 		expect(res[0]).toBe(BigInt(1));
+		// 		expect(res[1]).toBe(BigInt(1));
 		// 	})
 		// });
+
+		it('should return [1n,0] as collectableFees0=BigInt(0)', async () => {
+			const newTestpositionId: PositionID = Buffer.from('0x00000000000100000000000000000000c8','hex');
+			await computeCollectableIncentives(dexGlobalStoreData, tokenMethod, newTestpositionId, BigInt(1), BigInt(2)).then(res => {
+				expect(res[0]).toBe(BigInt(0));
+				expect(res[1]).toBe(BigInt(0));
+			})
+		});
 
 		it('should return [0,0] in result', async () => {
 			await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(1)).then(res => {
