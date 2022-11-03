@@ -19,7 +19,7 @@ import { TokenMethod, TokenModule, VerifyStatus } from 'lisk-framework';
 import { EventQueue } from 'lisk-framework/dist-node/state_machine';
 import { createMethodContext, MethodContext } from 'lisk-framework/dist-node/state_machine/method_context';
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
-import { createTransactionContext } from 'lisk-framework/dist-node/testing';
+import { createBlockContext, createBlockHeaderWithDefaults, createTransactionContext } from 'lisk-framework/dist-node/testing';
 import { DexModule } from '../../../../src/app/modules';
 import { CollectFeesCommand } from '../../../../src/app/modules/dex/commands/collectFees';
 import { FeesIncentivesCollectedEvent, PositionCreatedEvent, PositionUpdateFailedEvent } from '../../../../src/app/modules/dex/events';
@@ -45,13 +45,13 @@ describe('dex:command:collectFees', () => {
 		let methodContext: MethodContext;
 
 		const tokenModule = new TokenModule();
-		const senderAddress: Address = Buffer.from('00000000000000000','hex');
-		const positionId: PositionID = Buffer.from('00000001000000000101643130','hex');
+		const senderAddress: Address = Buffer.from('00000000000000000', 'hex');
+		const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
 
 		const transferMock = jest.fn();
 		const unLockMock = jest.fn();
 		const getAvailableBalanceMock = jest.fn();
-		
+
 
 		const tokenMethod = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
 		let poolsStore: PoolsStore;
@@ -72,14 +72,14 @@ describe('dex:command:collectFees', () => {
 			feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(6))),
 			tickSpacing: 1
 		}
-		
+
 		const priceTicksStoreDataTickLower: PriceTicksStoreData = {
 			liquidityNet: BigInt(5),
 			liquidityGross: BigInt(5),
 			feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(8))),
 			feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(5))),
 		}
-		
+
 		const priceTicksStoreDataTickUpper: PriceTicksStoreData = {
 			liquidityNet: BigInt(5),
 			liquidityGross: BigInt(5),
@@ -133,7 +133,7 @@ describe('dex:command:collectFees', () => {
 			await positionsStore.setKey(methodContext, [senderAddress, positionId], positionsStoreData);
 
 			tokenMethod.transfer = transferMock;
-			tokenMethod.unlock =unLockMock;
+			tokenMethod.unlock = unLockMock;
 			tokenMethod.getAvailableBalance = getAvailableBalanceMock.mockReturnValue(BigInt(250));
 
 			command.init({
@@ -193,7 +193,15 @@ describe('dex:command:collectFees', () => {
 
 
 		describe('execute', () => {
-			it('should collect Fees ', async () => {			
+			const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
+			const blockAfterExecuteContext = createBlockContext({
+				header: blockHeader,
+			}).getBlockAfterExecuteContext();
+			methodContext = createMethodContext({
+				stateStore,
+				eventQueue: blockAfterExecuteContext.eventQueue,
+			});
+			it('should collect Fees ', async () => {
 				await expect(
 					command.execute({
 						chainID: utils.getRandomBytes(32),
@@ -201,7 +209,8 @@ describe('dex:command:collectFees', () => {
 							positions: [positionId],
 						},
 						logger: loggerMock,
-						eventQueue: new EventQueue(0),
+						header: blockHeader,
+						eventQueue: blockAfterExecuteContext.eventQueue,
 						getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 						getMethodContext: () => methodContext,
 						assets: { getAsset: jest.fn() },
@@ -225,9 +234,13 @@ describe('dex:command:collectFees', () => {
 				expect(transferMock).toBeCalledTimes(3);
 				expect(unLockMock).toBeCalledTimes(2);
 				expect(getAvailableBalanceMock).toBeCalledTimes(1);
+				const events = blockAfterExecuteContext.eventQueue.getEvents();
+				const validatorFeesIncentivesCollectedEvent = events.filter(
+					e => e.toObject().name === 'feesIncentivesCollected'
+				);
+				expect(validatorFeesIncentivesCollectedEvent).toHaveLength(1);
 			});
-			
-		})
 
+		})
 	})
 });
