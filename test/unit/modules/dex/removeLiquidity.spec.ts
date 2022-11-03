@@ -37,7 +37,14 @@ import { InMemoryPrefixedStateDB } from './inMemoryPrefixedStateDB';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { RemoveLiquidityFailedEvent } from '../../../../src/app/modules/dex/events/removeLiquidityFailed';
 import { RemoveLiquidityEvent } from '../../../../src/app/modules/dex/events/removeLiquidity';
-import { createTransactionContext } from 'lisk-framework/dist-node/testing';
+import { createBlockContext, createBlockHeaderWithDefaults, createFakeBlockHeader, createTransactionContext } from 'lisk-framework/dist-node/testing';
+
+
+// import {
+// 	createBlockHeaderWithDefaults,
+// 	createBlockContext,
+// } from '../../../../node_modules/lisk-framework/dist-node/testing';
+
 
 describe('dex:command:removeLiquidity', () => {
 	//const dexModule = new DexModule();
@@ -49,7 +56,6 @@ describe('dex:command:removeLiquidity', () => {
 	const senderAddress: Address = Buffer.from('0000000000000000','hex');
 	const positionId: PositionID = Buffer.from('00000001000000000101643130','hex');
 	const liquidityToRemove: bigint = BigInt(-2);
-
 	const transferMock = jest.fn();
 	const lockMock = jest.fn();
 	const unlockMock = jest.fn();
@@ -143,11 +149,8 @@ describe('dex:command:removeLiquidity', () => {
 		tokenMethod.unlock = unlockMock;
 
 		command.init({
+			tokenModule,
 			tokenMethod,
-			stores: tokenModule.stores,
-			events: tokenModule.events,
-			senderAddress,
-			methodContext
 		});
 
 
@@ -161,7 +164,7 @@ describe('dex:command:removeLiquidity', () => {
 					command: 'removeLiquidty',
 					fee: BigInt(5000000),
 					nonce: BigInt(0),
-					senderPublicKey: utils.getRandomBytes(32),
+					senderPublicKey: senderAddress,
 					params: codec.encode(removeLiquiditySchema, {
 						positionID: Buffer.from('0000000100', 'hex'),
 						liquidityToRemove: BigInt(250),
@@ -180,6 +183,11 @@ describe('dex:command:removeLiquidity', () => {
 	});
 
 	describe('execute', () => {
+		// const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
+		// const blockAfterExecuteContext = createBlockContext({
+		// 	header: blockHeader,
+		// }).getBlockAfterExecuteContext();
+
 		it('should terminate and throw error if the positionID is not same as positionsStore doesnt have position with the specified positionID', async () => {
 			await expect(
 				command.execute({
@@ -192,6 +200,7 @@ describe('dex:command:removeLiquidity', () => {
 						maxTimestampValid: BigInt(1000)
 					},
 					logger: loggerMock,
+					header: createFakeBlockHeader(),
 					eventQueue: new EventQueue(0),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					getMethodContext: () => methodContext,
@@ -205,15 +214,17 @@ describe('dex:command:removeLiquidity', () => {
 						command: 'removeLiquidty',
 						fee: BigInt(5000000),
 						nonce: BigInt(0),
-						senderPublicKey: utils.getRandomBytes(32),
+						senderPublicKey: senderAddress,
 						params: codec.encode(removeLiquiditySchema, {
 							positionID: Buffer.from('0000000100', 'hex'),
 							liquidityToRemove: liquidityToRemove,
 							amount0Min: BigInt(1000),
 							amount1Min: BigInt(1000),
-							maxTimestampValid: BigInt(1000)
+							maxTimestampValid: BigInt(1000),	
+												
 						}),
 						signatures: [utils.getRandomBytes(64)],
+						
 					}),
 				}),
 			).rejects.toThrowError();
@@ -233,6 +244,7 @@ describe('dex:command:removeLiquidity', () => {
 						maxTimestampValid: BigInt(1000)
 					},
 					logger: loggerMock,
+					header: createFakeBlockHeader(),
 					eventQueue: new EventQueue(0),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					getMethodContext: () => methodContext,
@@ -246,7 +258,7 @@ describe('dex:command:removeLiquidity', () => {
 						command: 'removeLiquidty',
 						fee: BigInt(5000000),
 						nonce: BigInt(0),
-						senderPublicKey: utils.getRandomBytes(32),
+						senderPublicKey: senderAddress,
 						params: codec.encode(removeLiquiditySchema, {
 							positionID: positionId,
 							liquidityToRemove: BigInt(-10),
@@ -262,6 +274,15 @@ describe('dex:command:removeLiquidity', () => {
 	})
 
 	describe('execute', () => {
+		const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
+		const blockAfterExecuteContext = createBlockContext({
+			header: blockHeader,
+		}).getBlockAfterExecuteContext();
+		methodContext = createMethodContext({
+			stateStore,
+			eventQueue: blockAfterExecuteContext.eventQueue,
+		});
+
 
 		it('should remove liquidity from an existing position', async () => {
 			await expect(
@@ -275,7 +296,8 @@ describe('dex:command:removeLiquidity', () => {
 						maxTimestampValid: BigInt(1000)
 					},
 					logger: loggerMock,
-					eventQueue: new EventQueue(0),
+					header: blockHeader,
+					eventQueue: blockAfterExecuteContext.eventQueue,
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					getMethodContext: () => methodContext,
 					assets: { getAsset: jest.fn() },
@@ -288,7 +310,7 @@ describe('dex:command:removeLiquidity', () => {
 						command: 'removeLiquidty',
 						fee: BigInt(5000000),
 						nonce: BigInt(0),
-						senderPublicKey: utils.getRandomBytes(32),
+						senderPublicKey: senderAddress,
 						params: codec.encode(removeLiquiditySchema, {
 							positionID: positionId,
 							liquidityToRemove: liquidityToRemove,
@@ -303,6 +325,13 @@ describe('dex:command:removeLiquidity', () => {
 			expect(tokenMethod.transfer).toBeCalledTimes(3);
 			expect(tokenMethod.unlock).toBeCalledTimes(2);
 			expect((await tokenModule.stores.get(PositionsStore).get(methodContext, positionId)).liquidity).toBe(positionsStoreData.liquidity + liquidityToRemove);
+			const events = blockAfterExecuteContext.eventQueue.getEvents();
+			const validatorRemoveLiquidityEvents = events.filter(
+				e => e.toObject().name === 'removeLiquidity'
+			);
+			expect(validatorRemoveLiquidityEvents).toHaveLength(1);
+			
+
 		});
 	})
 
@@ -319,6 +348,7 @@ describe('dex:command:removeLiquidity', () => {
 						maxTimestampValid: BigInt(1000)
 					},
 					logger: loggerMock,
+					header: createFakeBlockHeader(),
 					eventQueue: new EventQueue(0),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					getMethodContext: () => methodContext,
@@ -332,7 +362,7 @@ describe('dex:command:removeLiquidity', () => {
 						command: 'removeLiquidty',
 						fee: BigInt(5000000),
 						nonce: BigInt(0),
-						senderPublicKey: utils.getRandomBytes(32),
+						senderPublicKey: senderAddress,
 						params: codec.encode(removeLiquiditySchema, {
 							positionID: positionId,
 							liquidityToRemove: liquidityToRemove,
@@ -360,6 +390,7 @@ describe('dex:command:removeLiquidity', () => {
 						maxTimestampValid: BigInt(1000)
 					},
 					logger: loggerMock,
+					header: createFakeBlockHeader(),
 					eventQueue: new EventQueue(0),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					getMethodContext: () => methodContext,
@@ -373,7 +404,7 @@ describe('dex:command:removeLiquidity', () => {
 						command: 'removeLiquidty',
 						fee: BigInt(5000000),
 						nonce: BigInt(0),
-						senderPublicKey: utils.getRandomBytes(32),
+						senderPublicKey: senderAddress,
 						params: codec.encode(removeLiquiditySchema, {
 							positionID: positionId,
 							liquidityToRemove: liquidityToRemove,

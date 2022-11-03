@@ -26,7 +26,7 @@ export interface RemoveLiquidityEventData {
 }
 
 export const RemoveLiquidityEventSchema = {
-    $id: '/dex/events/removeLiquidityFailedEvent',
+    $id: '/dex/events/removeLiquidityEvent',
     "type": "object",
     "required": ["senderAddress", "amount0", "amount1", "tokenID0", "tokenID1"],
     "properties": {

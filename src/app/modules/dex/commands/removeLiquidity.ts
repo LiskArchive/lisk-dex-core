@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseCommand, CommandVerifyContext, VerificationResult, CommandExecuteContext, TokenMethod, VerifyStatus } from "lisk-sdk";
+import { BaseCommand, CommandVerifyContext, VerificationResult, CommandExecuteContext, TokenMethod, VerifyStatus} from "lisk-sdk";
 import { validator } from '@liskhq/lisk-validator';
 import { removeLiquiditySchema } from "../schemas";
 import { checkPositionExistenceAndOwnership, getPoolIDFromPositionID, getToken0Id, getToken1Id, updatePosition } from "../utils/auxiliaryFunctions";
@@ -27,17 +27,12 @@ export class RemoveLiquidityCommand extends BaseCommand {
     private _tokenMethod!: TokenMethod;
     private _stores;
     private _events;
-    private _senderAddress;
-    private _methodContext;
-
-
+    
     public init({
-        tokenMethod, stores, events, senderAddress, methodContext }): void {
+        tokenModule, tokenMethod}): void {
         this._tokenMethod = tokenMethod;
-        this._stores = stores;
-        this._events = events;
-        this._senderAddress = senderAddress;
-        this._methodContext = methodContext;
+        this._stores = tokenModule.stores;
+        this._events = tokenModule.events;
     }
 
     public async verify(ctx: CommandVerifyContext<RemoveLiquidityParamsData>): Promise<VerificationResult> {
@@ -63,7 +58,7 @@ export class RemoveLiquidityCommand extends BaseCommand {
 
         const
             senderAddress
-                = this._senderAddress
+                = ctx.transaction.senderPublicKey;
 
         const {
             positionID,
@@ -73,7 +68,7 @@ export class RemoveLiquidityCommand extends BaseCommand {
         } = ctx.params;
 
         const methodContext = ctx.getMethodContext();
-        await checkPositionExistenceAndOwnership(this._stores, this._events, this._methodContext, this._senderAddress, positionID);
+        await checkPositionExistenceAndOwnership(this._stores, this._events, methodContext, senderAddress, positionID);
         const [amount0, amount1] = await updatePosition(methodContext, this._events, this._stores, this._tokenMethod, positionID, liquidityToRemove)
         const poolID = getPoolIDFromPositionID(positionID);
         const tokenID0 = getToken0Id(poolID);
