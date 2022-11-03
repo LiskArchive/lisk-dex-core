@@ -49,9 +49,6 @@ describe('dex:command:collectFees', () => {
 		const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
 
 		const transferMock = jest.fn();
-		const unLockMock = jest.fn();
-		const getAvailableBalanceMock = jest.fn();
-
 
 		const tokenMethod = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
 		let poolsStore: PoolsStore;
@@ -133,8 +130,6 @@ describe('dex:command:collectFees', () => {
 			await positionsStore.setKey(methodContext, [senderAddress, positionId], positionsStoreData);
 
 			tokenMethod.transfer = transferMock;
-			tokenMethod.unlock = unLockMock;
-			tokenMethod.getAvailableBalance = getAvailableBalanceMock.mockReturnValue(BigInt(250));
 
 			command.init({
 				tokenMethod,
@@ -231,9 +226,7 @@ describe('dex:command:collectFees', () => {
 						}),
 					})
 				).resolves.toBeUndefined();
-				expect(transferMock).toBeCalledTimes(3);
-				expect(unLockMock).toBeCalledTimes(2);
-				expect(getAvailableBalanceMock).toBeCalledTimes(1);
+				expect(transferMock).toBeCalledTimes(1);
 				const events = blockAfterExecuteContext.eventQueue.getEvents();
 				const validatorFeesIncentivesCollectedEvent = events.filter(
 					e => e.toObject().name === 'feesIncentivesCollected'
