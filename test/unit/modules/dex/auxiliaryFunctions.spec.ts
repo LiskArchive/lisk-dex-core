@@ -199,55 +199,11 @@ describe('dex:auxiliaryFunctions', () => {
 			});
 
 
-<<<<<<< HEAD
 			it('should transfer, lock and unlock for transferPoolToPool', async () => {
 				await transferPoolToPool(tokenMethod, methodContext, senderAddress, poolId, token1Id, BigInt(1));
 				expect(tokenMethod.transfer).toBeCalled();
 				expect(tokenMethod.lock).toBeCalled();
 				expect(tokenMethod.unlock).toBeCalled();
-=======
-		it('should return BigInt(1) in result', async () => {
-			await expect( getLiquidityForAmounts(numberToQ96(BigInt(0)),
-				numberToQ96(BigInt(1)),
-				numberToQ96(BigInt(5)),
-				BigInt(1),
-				BigInt(3)
-			)).toBe(BigInt(1));
-		});
-
-		it('should not throw any error in result', async () => {
-			await checkPositionExistenceAndOwnership(tokenModule.stores, tokenModule.events, methodContext, senderAddress, positionId);
-		});
-
-		it('should return [0n, 0n, 0n, 0n] as feeGrowthInside0, feeGrowthInside1 in result', async () => {
-			await computeCollectableFees(tokenModule.stores, methodContext, positionId).then(res => {
-				expect(res[0]).toBe(BigInt(0));
-				expect(res[1]).toBe(BigInt(0));
-				expect(res[2]).toBe(BigInt(316912650057057350374175801344));
-				expect(res[3]).toBe(BigInt(158456325028528675187087900672));
-			});
-		});
-
-		// it('should return [0,0] as Token0Id or Token1Id is not !== TOKEN_ID_LSK', async () => {
-		// 	await computeCollectableIncentives(dexGlobalStore, tokenMethod, methodContext,senderAddress, positionId, BigInt(1), BigInt(2)).then(res => {
-		// 		expect(res[0]).toBe(BigInt(1));
-		// 		expect(res[1]).toBe(BigInt(1));
-		// 	})
-		// });
-
-		it('should return [1n,0] as collectableFees0=BigInt(0)', async () => {
-			const newTestpositionId: PositionID = Buffer.from('0x00000000000100000000000000000000c8','hex');
-			await computeCollectableIncentives(dexGlobalStoreData, tokenMethod, newTestpositionId, BigInt(1), BigInt(2)).then(res => {
-				expect(res[0]).toBe(BigInt(0));
-				expect(res[1]).toBe(BigInt(0));
-			})
-		});
-
-		it('should return [0,0] in result', async () => {
-			await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(1)).then(res => {
-				expect(res[0].toString()).toBe('79228162514264337593543950335');
-				expect(res[1].toString()).toBe('1');
->>>>>>> ef6de58 (updated test cases)
 
 			});
 
@@ -355,5 +311,4 @@ describe('dex:auxiliaryFunctions', () => {
 			});
 
 		});
-
 	});

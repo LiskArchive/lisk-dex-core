@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MethodContext, TokenMethod } from 'lisk-sdk';
+import { MethodContext, TokenMethod, codec } from 'lisk-sdk';
 
 import { utils } from '@liskhq/lisk-cryptography';
 
@@ -74,10 +74,10 @@ export const poolIdToAddress = (poolId: PoolID): Address => {
 	return _address.slice(0, NUM_BYTES_ADDRESS);
 };
 
-export const getToken0Id = (poolId: PoolID): TokenID => poolId.slice(0, NUM_BYTES_TOKEN_ID);
+export const getToken0Id = (poolId: PoolID): TokenID => poolId.slice(0, NUM_BYTES_TOKEN_ID + 1);
 
 export const getToken1Id = (poolId: PoolID): TokenID =>
-	poolId.slice(NUM_BYTES_TOKEN_ID, 2 * NUM_BYTES_TOKEN_ID);
+	poolId.slice(NUM_BYTES_TOKEN_ID, 2 * NUM_BYTES_TOKEN_ID + 1);
 
 export const getFeeTier = (poolId: PoolID): number => {
 	const _buffer: Buffer = poolId.slice(-4);
@@ -102,7 +102,6 @@ export const transferToPool = async (
 	amount: bigint,
 ): Promise<void> => {
 	const poolAddress = poolIdToAddress(poolId);
-	
 	await tokenMethod.transfer(methodContext, senderAddress, poolAddress, tokenId, amount);
 	await tokenMethod.lock(methodContext, poolAddress, MODULE_ID_DEX.toString(), tokenId, amount);
 };
@@ -168,42 +167,19 @@ export const checkPositionExistenceAndOwnership = async (
 ): Promise<void> => {
 	const positionsStore = stores.get(PositionsStore);
 	if (!(await positionsStore.hasKey(methodContext, [senderAddress, positionID]))) {
-		events.get(PositionUpdateFailedEvent).add(
-			methodContext,
-			{
-				senderAddress,
-				positionID,
-				result: POSITION_UPDATE_FAILED_NOT_EXISTS,
-			},
-			[senderAddress],
-			true,
-		);
+		events.get(PositionUpdateFailedEvent).log(methodContext, {
+			senderAddress,
+			positionID,
+			result: POSITION_UPDATE_FAILED_NOT_EXISTS,
+		});
 		throw new Error();
 	}
-<<<<<<< HEAD
-	if (!senderAddress.equals(await getOwnerAddressOfPositionWithMethodContext(positionsStore, positionID,methodContext))) {
+	if (!senderAddress.equals(await getOwnerAddressOfPositionWithMethodContext(positionsStore, positionID, methodContext))) {
 		events.get(PositionUpdateFailedEvent).log(methodContext, {
 			senderAddress,
 			positionID,
 			result: POSITION_UPDATE_FAILED_NOT_OWNER,
 		});
-=======
-	if (
-		!senderAddress.equals(
-			await getOwnerAddressOfPosition(methodContext, positionsStore, positionID),
-		)
-	) {
-		events.get(PositionUpdateFailedEvent).add(
-			methodContext,
-			{
-				senderAddress,
-				positionID,
-				result: POSITION_UPDATE_FAILED_NOT_OWNER,
-			},
-			[senderAddress],
-			true,
-		);
->>>>>>> 82e1f2e (Fix auxiliary and math functions, improve code)
 		throw new Error();
 	}
 };
@@ -219,17 +195,13 @@ export const collectFeesAndIncentives = async (
 	const positionsStore = stores.get(PositionsStore);
 	const dexGlobalStore = stores.get(DexGlobalStore);
 	const positionInfo = await positionsStore.get(methodContext, positionID);
-<<<<<<< HEAD
-	const ownerAddress = await getOwnerAddressOfPositionWithMethodContext(positionsStore, positionID,methodContext);
-=======
-	const ownerAddress = await getOwnerAddressOfPosition(methodContext, positionsStore, positionID);
->>>>>>> 82e1f2e (Fix auxiliary and math functions, improve code)
+	const ownerAddress = await getOwnerAddressOfPositionWithMethodContext(positionsStore, positionID, methodContext);
 	const [
 		collectedFees0,
 		collectedFees1,
 		feeGrowthInside0,
 		feeGrowthInside1,
-	] = await computeCollectableFees(stores, methodContext, positionID);
+	] = await computeCollectableFees(await stores.get(PositionsStore), positionID);
 
 	if (collectedFees0 > 0) {
 		await transferFromPool(
@@ -265,20 +237,15 @@ export const collectFeesAndIncentives = async (
 	);
 
 	await tokenMethod.transfer(
-		methodContext,
 		ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL,
 		ownerAddress,
 		TOKEN_ID_REWARDS,
 		incentivesForPosition,
 	);
-<<<<<<< HEAD
 
 	const dexGlobalStoreData = await dexGlobalStore.get(tokenMethod, Buffer.from([]));
-=======
-	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
->>>>>>> 82e1f2e (Fix auxiliary and math functions, improve code)
 	dexGlobalStoreData.collectableLSKFees -= collectableFeesLSK;
-	await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData);
+	await dexGlobalStore.set(tokenMethod, Buffer.from([]), dexGlobalStoreData);
 
 	events.get(FeesIncentivesCollectedEvent).log(methodContext, {
 		senderAddress: ownerAddress,
@@ -292,19 +259,6 @@ export const collectFeesAndIncentives = async (
 	});
 };
 
-const collectableFees0 = roundDownQ96(
-	mulQ96(
-		subQ96(feeGrowthInside0, bytesToQ96(positionInfo.feeGrowthInsideLast0)),
-		positionInfo.liquidity,
-	),
-);
-const collectableFees1 = roundDownQ96(
-	mulQ96(
-		subQ96(feeGrowthInside1, bytesToQ96(positionInfo.feeGrowthInsideLast1)),
-		positionInfo.liquidity,
-	),
-);
-
 export const computeCollectableFees = async (positionStore, positionID: PositionID): Promise<[bigint, bigint, Q96, Q96]> => {
 	const positionInfo = positionStore(positionID)
 	const poolID = getPoolIDFromPositionID(positionID)
@@ -315,7 +269,6 @@ export const computeCollectableFees = async (positionStore, positionID: Position
 	return [collectableFees0, collectableFees1, feeGrowthInside0, feeGrowthInside1];
 };
 
-<<<<<<< HEAD
 
 export const computeCollectableIncentives = async (dexGlobalState, tokenAPI, positionID: PositionID, collectableFees0: number, collectableFees1: number): Promise<[number, number]> => {
 	const poolID = getPoolIDFromPositionID(positionID)
@@ -324,45 +277,17 @@ export const computeCollectableIncentives = async (dexGlobalState, tokenAPI, pos
 		collectableFeesLSK = collectableFees0
 	} else if (getToken1Id(poolID) == TOKEN_ID_LSK) {
 		collectableFeesLSK = collectableFees1
-=======
-export const computeCollectableIncentives = async (
-	dexGlobalStore,
-	tokenMethod,
-	positionID: PositionID,
-	collectableFees0: bigint,
-	collectableFees1: bigint,
-): Promise<[bigint, bigint]> => {
-	const poolID = getPoolIDFromPositionID(positionID);
-	let collectableFeesLSK = BigInt(0);
-	if (getToken0Id(poolID).equals(TOKEN_ID_LSK)) {
-		collectableFeesLSK = collectableFees0;
-	} else if (getToken1Id(poolID).equals(TOKEN_ID_LSK)) {
-		collectableFeesLSK = collectableFees1;
->>>>>>> ce6e365 (Fix auxiliary, q96 and stores)
 	}
 
 	if (collectableFeesLSK == 0) {
 		return [0, 0]
 	}
 
-<<<<<<< HEAD
 	const totalCollectableLSKFees = dexGlobalState.collectableLSKFees
 	const availableLPIncentives = tokenAPI.getAvailableBalance(ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL, TOKEN_ID_REWARDS)
 	const incentivesForPosition = (availableLPIncentives * collectableFeesLSK) / totalCollectableLSKFees
 	return [collectableFeesLSK, incentivesForPosition]
 }
-=======
-	const totalCollectableLSKFees = dexGlobalStore.collectableLSKFees;
-	const availableLPIncentives = await tokenMethod.getAvailableBalance(
-		ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL,
-		TOKEN_ID_REWARDS,
-	);
-	await console.log(availableLPIncentives);
-	const incentivesForPosition =
-		(availableLPIncentives * collectableFeesLSK) / totalCollectableLSKFees;
-	return [collectableFeesLSK, incentivesForPosition];
-};
->>>>>>> fce1422 (added the unit test for auxiliary functions)
 
 export const computePoolID = async (tokenID0: TokenID, tokenID1: TokenID, feeTier: number): Promise<Buffer> => {
 	const feeTierBuffer = Buffer.alloc(4);
@@ -395,7 +320,7 @@ export const createPool = async (settings, apiContext, poolsStore, tokenID0: Tok
 	return POOL_CREATION_SUCCESS
 }
 
-export const createPosition(apiContext, poolsStore, priceTicksStore, priceTickSchema, positionsStore, positionSchema, senderAddress: Address, poolID: PoolID, tickLower: number, tickUpper: number): [number, PositionID] => {
+export const createPosition = (apiContext, poolsStore, priceTicksStore, priceTickSchema, positionsStore, positionSchema, senderAddress: Address, poolID: PoolID, tickLower: number, tickUpper: number): [number, PositionID] => {
 	if (!poolsStore.getKey(senderAddress, poolID)) {
 		return [POSITION_CREATION_FAILED_NO_POOL, Buffer.from([])]
 	}
@@ -439,15 +364,11 @@ export const createPosition(apiContext, poolsStore, priceTicksStore, priceTickSc
 		priceTicksStore.set(poolID, tickUpper, codec.encode(priceTickSchema, tickStoreValue));
 	}
 
-<<<<<<< HEAD
-	const positionID = await getNewPositionID(poolID, senderAddress)
-=======
 	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
->>>>>>> fce1422 (added the unit test for auxiliary functions)
 
 	const positionID = getNewPositionID(dexGlobalStoreData, poolID);
+	await console.log(positionID);
 	const positionValue = {
-<<<<<<< HEAD
 		"tickLower": tickLower,
 		"tickUpper": tickUpper,
 		"liquidity": 0,
@@ -458,18 +379,6 @@ export const createPosition(apiContext, poolsStore, priceTicksStore, priceTickSc
 	positionsStore.set(positionID, codec.encode(positionSchema, positionValue))
 	return [POSITION_CREATION_SUCCESS, positionID]
 }
-=======
-		tickLower,
-		tickUpper,
-		liquidity: BigInt(0),
-		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(0))),
-		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(0))),
-		ownerAddress: senderAddress,
-	};
-	await positionsStore.set(methodContext, positionID, positionValue);
-	return [POSITION_CREATION_SUCCESS, positionID];
-};
->>>>>>> 82e1f2e (Fix auxiliary and math functions, improve code)
 
 export const getFeeGrowthInside = async (
 	stores: NamedRegistry,
@@ -484,6 +393,7 @@ export const getFeeGrowthInside = async (
 	const poolInfo = await poolsStore.get(methodContext, poolID);
 
 	const { tickLower, tickUpper } = positionInfo;
+	await console.log(poolInfo.sqrtPrice);
 	const tickCurrent = priceToTick(bytesToQ96(poolInfo.sqrtPrice));
 	const lowerTickInfo = await priceTicksStore.getKey(methodContext, [
 		poolID,
@@ -597,28 +507,18 @@ export const getLiquidityForAmount1 = (
 	return roundDownQ96(result);
 };
 
-<<<<<<< HEAD
 export const getNewPositionID = async (dexGlobalState, poolID: PoolID, ownerAddress: Address): Promise<Buffer> => {
 	const positionIndex = dexGlobalState.positionCounter
 	dexGlobalState.positionCounter = dexGlobalState.positionCounter + 1
 
 	return Buffer.concat([poolID, Buffer.from(positionIndex)])
 }
-=======
-export const getNewPositionID = (dexGlobalStoreData, poolID: PoolID): Buffer => {
-	const positionIndex:BigInt = dexGlobalStoreData.positionCounter;
-	// eslint-disable-next-line no-param-reassign
-	dexGlobalStoreData.positionCounter++;
-	return Buffer.concat([poolID, Buffer.from(positionIndex.toString())]);
-};
->>>>>>> fce1422 (added the unit test for auxiliary functions)
 
 export const getOwnerAddressOfPosition = async (
-	methodContext: MethodContext,
 	positionsStore,
 	positionID: PositionID,
 ): Promise<Buffer> => {
-	const position = await positionsStore.get(methodContext, positionID);
+	const position = await positionsStore.get(positionID);
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 	return position.ownerAddress;
 };
@@ -626,9 +526,9 @@ export const getOwnerAddressOfPosition = async (
 export const getOwnerAddressOfPositionWithMethodContext = async (
 	positionsStore,
 	positionID: PositionID,
-	methodContext:MethodContext
+	methodContext: MethodContext
 ): Promise<Buffer> => {
-	const position = await positionsStore.get(methodContext,positionID);
+	const position = await positionsStore.get(methodContext, positionID);
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 	return position.ownerAddress;
 };
@@ -652,22 +552,13 @@ export const updatePosition = async (
 	let amount0: bigint;
 	let amount1: bigint;
 	if (-liquidityDelta > positionInfo.liquidity) {
-		const senderAddress = await getOwnerAddressOfPosition(
-			methodContext,
-			positionsStore,
-			positionID,
-		);
+		const senderAddress = await getOwnerAddressOfPosition(positionsStore, positionID);
 
-		events.get(PositionUpdateFailedEvent).add(
-			methodContext,
-			{
-				senderAddress,
-				positionID,
-				result: POSITION_UPDATE_FAILED_INSUFFICIENT_LIQUIDITY,
-			},
-			[senderAddress, positionID],
-			true,
-		);
+		events.get(PositionUpdateFailedEvent).add(methodContext, {
+			senderAddress,
+			positionID,
+			result: POSITION_UPDATE_FAILED_INSUFFICIENT_LIQUIDITY,
+		});
 		throw new Error();
 	}
 
@@ -706,7 +597,7 @@ export const updatePosition = async (
 		amount1 = getAmount1Delta(sqrtPriceLow, sqrtPriceUp, abs(liquidityDelta), roundUp);
 	}
 
-	const ownerAddress = await getOwnerAddressOfPosition(methodContext, positionsStore, positionID);
+	const ownerAddress = await getOwnerAddressOfPosition(positionsStore, positionID);
 	if (liquidityDelta > 0) {
 		await transferToPool(
 			tokenMethod,

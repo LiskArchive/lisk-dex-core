@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-<<<<<<< HEAD
 import {
 	BaseModule,
 	ModuleMetadata,
@@ -38,31 +37,6 @@ import {
 	ModuleInitArgs
 } from './types';
 
-<<<<<<< HEAD
-=======
-import {
-	AmountBelowMinEvent,
-	PoolCreatedEvent,
-	PoolCreationFailedEvent
-} from './events';
-=======
-import { BaseModule, ModuleMetadata, utils, TokenMethod, ValidatorsMethod } from 'lisk-sdk';
-
-import { MODULE_ID_DEX, defaultConfig } from './constants';
-
-import { DexEndpoint } from './endpoint';
-import { ModuleConfig, ModuleInitArgs } from './types';
-
-import { AmountBelowMinEvent, PoolCreatedEvent, PoolCreationFailedEvent } from './events';
->>>>>>> b3502bb (Remove dependencies, fix formatting)
-
-import { CreatePoolCommand } from './commands/createPool';
-import { PoolsStore, PositionsStore, PriceTicksStore, SettingsStore } from './stores';
-import { DexMethod } from './method';
-import { DexGlobalStore } from './stores/dexGlobalStore';
-import { AddLiquidityCommand } from './commands/addLiquidity';
-
->>>>>>> 3f95c9f (Add liquidity)
 export class DexModule extends BaseModule {
 	public name = MODULE_NAME_DEX;
 	public id = MODULE_ID_DEX;
@@ -72,20 +46,12 @@ export class DexModule extends BaseModule {
 	public _validatorsAPI!: ValidatorsAPI;
 	public _moduleConfig!: ModuleConfig;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 	// eslint-disable-next-line @typescript-eslint/member-ordering
-	public commands = [];
-=======
 	private readonly _createPoolCommand = new CreatePoolCommand(this.stores, this.events)
 	private readonly _addLiquidityCommand = new AddLiquidityCommand(this.stores, this.events)
-=======
-	private readonly _createPoolCommand = new CreatePoolCommand(this.stores, this.events);
->>>>>>> b3502bb (Remove dependencies, fix formatting)
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public commands = [this._createPoolCommand, this._addLiquidityCommand];
->>>>>>> 3f95c9f (Add liquidity)
 
 	public addDependencies(tokenAPI: TokenAPI, validatorsAPI: ValidatorsAPI) {
 		this._tokenAPI = tokenAPI;
@@ -105,27 +71,17 @@ export class DexModule extends BaseModule {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs) {
-		const { moduleConfig } = args;
+		const {
+			moduleConfig
+		} = args;
 		this._moduleConfig = utils.objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfig;
-<<<<<<< HEAD
-=======
 
 		this._createPoolCommand.init({
 			moduleConfig: this._moduleConfig,
-<<<<<<< HEAD
 			tokenMethod: this._tokenMethod
-=======
-			tokenMethod: this._tokenMethod,
->>>>>>> b3502bb (Remove dependencies, fix formatting)
 		});
 		this._addLiquidityCommand.init({
 			tokenMethod: this._tokenMethod
 		});
->>>>>>> 3f95c9f (Add liquidity)
-	}
-
-	public addDependencies(tokenMethod: TokenMethod, validatorsMethod: ValidatorsMethod) {
-		this._tokenMethod = tokenMethod;
-		this._validatorsMethod = validatorsMethod;
 	}
 }
