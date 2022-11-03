@@ -81,7 +81,7 @@ export const poolIdToAddress = (poolId: PoolID): Address => {
 export const getToken0Id = (poolId: PoolID): TokenID => poolId.slice(0, NUM_BYTES_TOKEN_ID);
 
 export const getToken1Id = (poolId: PoolID): TokenID =>
-	poolId.slice(NUM_BYTES_TOKEN_ID, 2 * NUM_BYTES_TOKEN_ID + 1);
+	poolId.slice(NUM_BYTES_TOKEN_ID, 2 * NUM_BYTES_TOKEN_ID);
 
 export const getFeeTier = (poolId: PoolID): number => {
 	const _buffer: Buffer = poolId.slice(-4);

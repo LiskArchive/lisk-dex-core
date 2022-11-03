@@ -36,7 +36,7 @@ export const settingsStoreSchema = {
 	properties: {
 		protocolFeeAddress: {
 			dataType: 'bytes',
-			length: NUM_BYTES_ADDRESS,
+			maxLength: NUM_BYTES_ADDRESS,
 			fieldNumber: 1,
 		},
 		protocolFeePart: {

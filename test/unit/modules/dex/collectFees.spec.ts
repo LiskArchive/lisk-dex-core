@@ -49,6 +49,8 @@ describe('dex:command:collectFees', () => {
 		const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
 
 		const transferMock = jest.fn();
+		const unLockMock = jest.fn();
+		const getAvailableBalance = jest.fn().mockReturnValue(BigInt(250));
 
 		const tokenMethod = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
 		let poolsStore: PoolsStore;
@@ -130,6 +132,8 @@ describe('dex:command:collectFees', () => {
 			await positionsStore.setKey(methodContext, [senderAddress, positionId], positionsStoreData);
 
 			tokenMethod.transfer = transferMock;
+			tokenMethod.unlock = unLockMock;
+			tokenMethod.getAvailableBalance = getAvailableBalance.mockReturnValue(BigInt(250));
 
 			command.init({
 				tokenMethod,
