@@ -44,6 +44,9 @@ import { DexMethod } from './method';
 import { DexGlobalStore } from './stores/dexGlobalStore';
 import { CollectFeesCommand } from './commands/collectFees';
 
+import { RemoveLiquidityFailedEvent } from './events/removeLiquidityFailed';
+import { RemoveLiquidityEvent } from './events/removeLiquidity';
+import { RemoveLiquidityCommand } from './commands/removeLiquidity';
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
@@ -56,10 +59,10 @@ export class DexModule extends BaseModule {
 	public _methodContext: MethodContext | undefined;
 
 	private readonly _createPoolCommand = new CreatePoolCommand(this.stores, this.events);
-	private readonly _collectFeeCommand = new CollectFeesCommand(this.stores, this.events);
+	private readonly _removeLiquidityCommand = new RemoveLiquidityCommand(this.stores, this.events);
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
-	public commands = [this._createPoolCommand, this._collectFeeCommand];
+	public commands = [this._createPoolCommand, this._removeLiquidityCommand];
 
 	public constructor() {
 		super();
@@ -74,9 +77,13 @@ export class DexModule extends BaseModule {
 		this.events.register(PositionCreationFailedEvent, new PositionCreationFailedEvent(this.name));
 		this.events.register(AmountBelowMinEvent, new AmountBelowMinEvent(this.name));
 
-		this.events.register(PositionUpdateFailedEvent, new PositionUpdateFailedEvent(DexModule.name));
+
 		this.events.register(PositionCreatedEvent, new PositionCreatedEvent(DexModule.name));
+		this.events.register(PoolCreatedEvent, new PoolCreatedEvent(DexModule.name));
 		this.events.register(FeesIncentivesCollectedEvent, new FeesIncentivesCollectedEvent(DexModule.name));
+		this.events.register(RemoveLiquidityFailedEvent, new RemoveLiquidityFailedEvent(DexModule.name));
+		this.events.register(RemoveLiquidityEvent, new RemoveLiquidityEvent(DexModule.name));
+
 
 	}
 
@@ -112,9 +119,10 @@ export class DexModule extends BaseModule {
 		this._addLiquidityCommand.init({
 			tokenMethod: this._tokenMethod,
 		});
-		this._collectFeeCommand.init({
-			tokenMethod: this._tokenMethod,
-		});
+
+		this._removeLiquidityCommand.init({
+			tokenMethod: this._tokenMethod
+		})
 
 	}
 }
