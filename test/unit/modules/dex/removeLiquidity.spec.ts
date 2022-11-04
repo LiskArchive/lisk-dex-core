@@ -157,7 +157,6 @@ describe('dex:command:removeLiquidity', () => {
 				}),
 			});
 			const result = await command.verify(context.createCommandVerifyContext(removeLiquiditySchema));
-
 			expect(result.error?.message).not.toBeDefined();
 			expect(result.status).toEqual(VerifyStatus.OK);
 		});
@@ -301,7 +300,7 @@ describe('dex:command:removeLiquidity', () => {
 			expect((await dexModule.stores.get(PositionsStore).get(methodContext, positionId)).liquidity).toBe(positionsStoreData.liquidity + liquidityToRemove);
 			const events = blockAfterExecuteContext.eventQueue.getEvents();
 			const validatorRemoveLiquidityEvents = events.filter(
-				e => e.toObject().name === 'removeLiquidity'
+				e => e.toObject().name === 'removeLiquidityEvent'
 			);
 			expect(validatorRemoveLiquidityEvents).toHaveLength(1);
 		});
