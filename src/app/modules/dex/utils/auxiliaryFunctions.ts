@@ -248,7 +248,8 @@ export const collectFeesAndIncentives = async (
 
 	const [collectableFeesLSK, incentivesForPosition] = await computeCollectableIncentives(
 		dexGlobalStore,
-		TokenMethod,
+		tokenMethod,
+		methodContext,
 		positionID,
 		collectedFees0,
 		collectedFees1,
@@ -309,6 +310,7 @@ export const computeCollectableFees = async (
 export const computeCollectableIncentives = async (
 	dexGlobalStore,
 	tokenMethod,
+	methodContext,
 	positionID: PositionID,
 	collectableFees0: bigint,
 	collectableFees1: bigint,
@@ -324,9 +326,10 @@ export const computeCollectableIncentives = async (
 	if (collectableFeesLSK === BigInt(0)) {
 		return [BigInt(0), BigInt(0)];
 	}
-
-	const totalCollectableLSKFees = dexGlobalStore.collectableLSKFees;
+	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
+	const totalCollectableLSKFees = dexGlobalStoreData.collectableLSKFees;
 	const availableLPIncentives = await tokenMethod.getAvailableBalance(
+		methodContext,
 		ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL,
 		TOKEN_ID_REWARDS,
 	);
@@ -350,7 +353,7 @@ export const createPool = async (
 	feeTier: number,
 	initialSqrtPrice: Q96,
 ): Promise<number> => {
-	const poolSetting = settings.poolCreationSettings.find(s => s.feeTier === feeTier);
+	const poolSetting = settings.feeTiers[feeTier];
 
 	if (!poolSetting) {
 		return POOL_CREATION_FAILED_INVALID_FEE_TIER;
