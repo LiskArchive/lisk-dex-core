@@ -25,14 +25,11 @@ export class RemoveLiquidityCommand extends BaseCommand {
     public id = COMMAND_ID_REMOVE_LIQUIDITY;
     public schema = removeLiquiditySchema;
     private _tokenMethod!: TokenMethod;
-    private _stores;
-    private _events;
+
     
     public init({
-        tokenModule, tokenMethod}): void {
+        tokenMethod}): void {
         this._tokenMethod = tokenMethod;
-        this._stores = tokenModule.stores;
-        this._events = tokenModule.events;
     }
 
     public async verify(ctx: CommandVerifyContext<RemoveLiquidityParamsData>): Promise<VerificationResult> {
@@ -68,8 +65,8 @@ export class RemoveLiquidityCommand extends BaseCommand {
         } = ctx.params;
 
         const methodContext = ctx.getMethodContext();
-        await checkPositionExistenceAndOwnership(this._stores, this._events, methodContext, senderAddress, positionID);
-        const [amount0, amount1] = await updatePosition(methodContext, this._events, this._stores, this._tokenMethod, positionID, liquidityToRemove)
+        await checkPositionExistenceAndOwnership(this.stores, this.events, methodContext, senderAddress, positionID);
+        const [amount0, amount1] = await updatePosition(methodContext, this.events, this.stores, this._tokenMethod, positionID, liquidityToRemove)
         const poolID = getPoolIDFromPositionID(positionID);
         const tokenID0 = getToken0Id(poolID);
         const tokenID1 = getToken1Id(poolID);

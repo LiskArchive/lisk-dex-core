@@ -15,7 +15,7 @@
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { TokenMethod, TokenModule } from 'lisk-framework';
+import { TokenMethod } from 'lisk-framework';
 import { createMethodContext, EventQueue, MethodContext, VerifyStatus } from 'lisk-framework/dist-node/state_machine';
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { DexModule } from '../../../../src/app/modules';
@@ -24,7 +24,6 @@ import { removeLiquiditySchema } from '../../../../src/app/modules/dex/schemas';
 
 
 import { loggerMock } from 'lisk-framework/dist-node/testing/mocks';
-import { FeesIncentivesCollectedEvent, PoolCreatedEvent, PositionCreatedEvent, PositionUpdateFailedEvent } from '../../../../src/app/modules/dex/events';
 import { PoolsStore, PositionsStore } from '../../../../src/app/modules/dex/stores';
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
@@ -35,8 +34,6 @@ import { DexGlobalStore, DexGlobalStoreData } from '../../../../src/app/modules/
 import { PriceTicksStore, PriceTicksStoreData, tickToBytes } from '../../../../src/app/modules/dex/stores/priceTicksStore';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedStateDB';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
-import { RemoveLiquidityFailedEvent } from '../../../../src/app/modules/dex/events/removeLiquidityFailed';
-import { RemoveLiquidityEvent } from '../../../../src/app/modules/dex/events/removeLiquidity';
 import { createBlockContext, createBlockHeaderWithDefaults, createFakeBlockHeader, createTransactionContext } from 'lisk-framework/dist-node/testing';
 
 
@@ -47,20 +44,22 @@ import { createBlockContext, createBlockHeaderWithDefaults, createFakeBlockHeade
 
 
 describe('dex:command:removeLiquidity', () => {
-	//const dexModule = new DexModule();
 	let command: RemoveLiquidityCommand;
 	let stateStore: PrefixedStateReadWriter;
 	let methodContext: MethodContext;
 
-	const tokenModule = new TokenModule();
+
+	const dexModule = new DexModule();
+	
 	const senderAddress: Address = Buffer.from('0000000000000000','hex');
 	const positionId: PositionID = Buffer.from('00000001000000000101643130','hex');
 	const liquidityToRemove: bigint = BigInt(-2);
+	
 	const transferMock = jest.fn();
 	const lockMock = jest.fn();
 	const unlockMock = jest.fn();
 
-	const tokenMethod = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
+	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
 	let poolsStore: PoolsStore;
 	let priceTicksStore: PriceTicksStore;
 	let dexGlobalStore: DexGlobalStore;
@@ -108,30 +107,13 @@ describe('dex:command:removeLiquidity', () => {
 		ownerAddress: senderAddress
 	}
 
-
-
 	beforeEach(async () => {
-		command = new RemoveLiquidityCommand(tokenModule.stores, tokenModule.events);
+		command = new RemoveLiquidityCommand(dexModule.stores, dexModule.events);
 
-
-
-		tokenModule.stores.register(PoolsStore, new PoolsStore(DexModule.name));
-		tokenModule.stores.register(PositionsStore, new PositionsStore(DexModule.name));
-		tokenModule.stores.register(DexGlobalStore, new DexGlobalStore(DexModule.name));
-		tokenModule.stores.register(PriceTicksStore, new PriceTicksStore(DexModule.name));
-		tokenModule.events.register(PositionUpdateFailedEvent, new PositionUpdateFailedEvent(DexModule.name));
-		tokenModule.events.register(PositionCreatedEvent, new PositionCreatedEvent(DexModule.name));
-		tokenModule.events.register(PoolCreatedEvent, new PoolCreatedEvent(DexModule.name));
-		tokenModule.events.register(FeesIncentivesCollectedEvent, new FeesIncentivesCollectedEvent(DexModule.name));
-		tokenModule.events.register(RemoveLiquidityFailedEvent, new RemoveLiquidityFailedEvent(DexModule.name));
-		tokenModule.events.register(RemoveLiquidityEvent, new RemoveLiquidityEvent(DexModule.name));
-
-
-
-		poolsStore = tokenModule.stores.get(PoolsStore);
-		priceTicksStore = tokenModule.stores.get(PriceTicksStore);
-		dexGlobalStore = tokenModule.stores.get(DexGlobalStore);
-		positionsStore = tokenModule.stores.get(PositionsStore);
+		poolsStore = dexModule.stores.get(PoolsStore);
+		priceTicksStore = dexModule.stores.get(PriceTicksStore);
+		dexGlobalStore = dexModule.stores.get(DexGlobalStore);
+		positionsStore = dexModule.stores.get(PositionsStore);
 
 		await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData)
 		await poolsStore.setKey(methodContext, [senderAddress, getPoolIDFromPositionID(positionId)], poolsStoreData);
@@ -149,7 +131,6 @@ describe('dex:command:removeLiquidity', () => {
 		tokenMethod.unlock = unlockMock;
 
 		command.init({
-			tokenModule,
 			tokenMethod,
 		});
 
@@ -183,11 +164,6 @@ describe('dex:command:removeLiquidity', () => {
 	});
 
 	describe('execute', () => {
-		// const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
-		// const blockAfterExecuteContext = createBlockContext({
-		// 	header: blockHeader,
-		// }).getBlockAfterExecuteContext();
-
 		it('should terminate and throw error if the positionID is not same as positionsStore doesnt have position with the specified positionID', async () => {
 			await expect(
 				command.execute({
@@ -282,8 +258,6 @@ describe('dex:command:removeLiquidity', () => {
 			stateStore,
 			eventQueue: blockAfterExecuteContext.eventQueue,
 		});
-
-
 		it('should remove liquidity from an existing position', async () => {
 			await expect(
 				command.execute({
@@ -324,14 +298,12 @@ describe('dex:command:removeLiquidity', () => {
 			).resolves.toBeUndefined();
 			expect(tokenMethod.transfer).toBeCalledTimes(3);
 			expect(tokenMethod.unlock).toBeCalledTimes(2);
-			expect((await tokenModule.stores.get(PositionsStore).get(methodContext, positionId)).liquidity).toBe(positionsStoreData.liquidity + liquidityToRemove);
+			expect((await dexModule.stores.get(PositionsStore).get(methodContext, positionId)).liquidity).toBe(positionsStoreData.liquidity + liquidityToRemove);
 			const events = blockAfterExecuteContext.eventQueue.getEvents();
 			const validatorRemoveLiquidityEvents = events.filter(
 				e => e.toObject().name === 'removeLiquidity'
 			);
 			expect(validatorRemoveLiquidityEvents).toHaveLength(1);
-			
-
 		});
 	})
 
