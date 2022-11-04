@@ -15,19 +15,21 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseModule, ModuleMetadata, utils, TokenMethod, ValidatorsMethod } from 'lisk-sdk';
+import { BaseModule, ModuleMetadata, utils, TokenMethod, ValidatorsMethod, MethodContext } from 'lisk-sdk';
 
 import { MODULE_ID_DEX, defaultConfig } from './constants';
 
 import { DexEndpoint } from './endpoint';
 import { ModuleConfig, ModuleInitArgs } from './types';
 
-import { AmountBelowMinEvent, PoolCreatedEvent, PoolCreationFailedEvent } from './events';
+import { AmountBelowMinEvent, FeesIncentivesCollectedEvent, PoolCreatedEvent, PoolCreationFailedEvent, PositionCreatedEvent, PositionUpdateFailedEvent } from './events';
 
 import { CreatePoolCommand } from './commands/createPool';
 import { PoolsStore, PositionsStore, PriceTicksStore, SettingsStore } from './stores';
 import { DexMethod } from './method';
 import { DexGlobalStore } from './stores/dexGlobalStore';
+import { CollectFeesCommand } from './commands/collectFees';
+
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
@@ -37,10 +39,13 @@ export class DexModule extends BaseModule {
 	public _validatorsMethod = new ValidatorsMethod(this.stores, this.events);
 	public _moduleConfig!: ModuleConfig;
 
+	public _methodContext:MethodContext | undefined;
+	
 	private readonly _createPoolCommand = new CreatePoolCommand(this.stores, this.events);
+	private readonly _collectFeeCommand = new CollectFeesCommand(this.stores, this.events);
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
-	public commands = [this._createPoolCommand];
+	public commands = [this._createPoolCommand, this._collectFeeCommand];
 
 	public constructor() {
 		super();
@@ -52,7 +57,15 @@ export class DexModule extends BaseModule {
 		this.events.register(PoolCreatedEvent, new PoolCreatedEvent(this.name));
 		this.events.register(PoolCreationFailedEvent, new PoolCreationFailedEvent(this.name));
 		this.events.register(AmountBelowMinEvent, new AmountBelowMinEvent(this.name));
+
+		this.events.register(PositionUpdateFailedEvent, new PositionUpdateFailedEvent(DexModule.name));
+		this.events.register(PositionCreatedEvent, new PositionCreatedEvent(DexModule.name));
+		this.events.register(FeesIncentivesCollectedEvent, new FeesIncentivesCollectedEvent(DexModule.name));
+
 	}
+
+
+
 
 	public metadata(): ModuleMetadata {
 		return {
@@ -79,5 +92,10 @@ export class DexModule extends BaseModule {
 			moduleConfig: this._moduleConfig,
 			tokenMethod: this._tokenMethod,
 		});
+		this._collectFeeCommand.init({
+			tokenMethod: this._tokenMethod,
+			methodContext:this._methodContext,
+		});
+
 	}
 }

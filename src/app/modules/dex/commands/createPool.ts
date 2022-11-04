@@ -15,275 +15,250 @@
  */
 
 import {
-    BaseCommand,
-    CommandExecuteContext,
-    CommandVerifyContext,
-    VerificationResult,
-    VerifyStatus,
-    TokenMethod,
+	BaseCommand,
+	CommandExecuteContext,
+	CommandVerifyContext,
+	VerificationResult,
+	VerifyStatus,
+	TokenMethod,
 } from 'lisk-sdk';
-import {
-    validator
-} from '@liskhq/lisk-validator';
-
+import { validator } from '@liskhq/lisk-validator';
 
 import {
-    COMMAND_ID_CREATE_POOL,
-    MAX_TICK,
-    MIN_TICK,
-    POOL_CREATION_FEE,
-    POOL_CREATION_SUCCESS,
-    POSITION_CREATION_SUCCESS,
-    TOKEN_ID_FEE_DEX,
+	MAX_TICK,
+	MIN_TICK,
+	POOL_CREATION_FEE,
+	POOL_CREATION_SUCCESS,
+	POSITION_CREATION_SUCCESS,
+	TOKEN_ID_FEE_DEX,
 } from '../constants';
-import {
-    AmountBelowMinEvent,
-    PoolCreatedEvent,
-    PoolCreationFailedEvent
-} from '../events';
-import {
-    PositionCreatedEvent
-} from '../events/positionCreated';
-import {
-    PositionCreationFailedEvent
-} from '../events/positionCreationFailed';
+import { AmountBelowMinEvent, PoolCreatedEvent, PoolCreationFailedEvent } from '../events';
+import { PositionCreatedEvent } from '../events/positionCreated';
+import { PositionCreationFailedEvent } from '../events/positionCreationFailed';
 
+import { createPoolSchema } from '../schemas';
+import { PoolsStore, SettingsStore } from '../stores';
+import { CreatePoolParamsData, ModuleConfig, PoolID, TokenID } from '../types';
 import {
-    createPoolSchema
-} from '../schemas';
-import {
-    PoolsStore,
-    SettingsStore
-} from '../stores';
-import {
-    CreatePoolParamsData,
-    PoolID,
-    TokenID
-} from '../types';
-import {
-    createPool,
-    createPosition,
-    getLiquidityForAmounts,
-    transferToProtocolFeeAccount,
-    updatePosition
+	createPool,
+	createPosition,
+	getLiquidityForAmounts,
+	transferToProtocolFeeAccount,
+	updatePosition,
 } from '../utils/auxiliaryFunctions';
-import {
-    tickToPrice
-} from '../utils/math';
+import { tickToPrice } from '../utils/math';
 
 const computePoolID = (tokenID0: TokenID, tokenID1: TokenID, feeTier: Buffer): PoolID =>
-    Buffer.concat([tokenID0, tokenID1, feeTier])
+	Buffer.concat([tokenID0, tokenID1, feeTier]);
 
 export class CreatePoolCommand extends BaseCommand {
-    public id = COMMAND_ID_CREATE_POOL;
-    public schema = createPoolSchema;
-    // private _moduleConfig!: ModuleConfig;
-    private _tokenMethod!: TokenMethod;
-    private _stores;
-    private _events;
-    private _senderAddress;
-    private _methodContext;
-    private _settings;
+	public schema = createPoolSchema;
+	private _moduleConfig!: ModuleConfig;
+	private _tokenMethod!: TokenMethod;
 
+	public init({ moduleConfig, tokenMethod }): void {
+		this._moduleConfig = moduleConfig;
+		this._tokenMethod = tokenMethod;
+	}
 
-    public init({
-        tokenMethod,
-        stores,
-        events,
-        senderAddress,
-        methodContext,
-        settings
-    }): void {
-        // this._moduleConfig = moduleConfig;
-        this._tokenMethod = tokenMethod;
-        this._stores = stores;
-        this._events = events;
-        this._senderAddress = senderAddress;
-        this._methodContext = methodContext;
-        this._settings = settings;
+	public async verify(
+		ctx: CommandVerifyContext<CreatePoolParamsData>,
+	): Promise<VerificationResult> {
+		try {
+			validator.validate(createPoolSchema, ctx.params);
+		} catch (err) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: err as Error,
+			};
+		}
 
-    }
+		const { tokenID0, tokenID1, feeTier, tickInitialPrice, initialPosition } = ctx.params;
 
-    public async verify(ctx: CommandVerifyContext<CreatePoolParamsData>): Promise<VerificationResult> {
-        try {
-            validator.validate(createPoolSchema, ctx.params);
-        } catch (err) {
-            return {
-                status: VerifyStatus.FAIL,
-                error: err as Error,
-            };
-        }
+		if (tokenID0 >= tokenID1) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Please sort tokenID0 and tokenID1 lexicographically.'),
+			};
+		}
 
-        const {
-            tokenID0,
-            tokenID1,
-            feeTier,
-            tickInitialPrice,
-            initialPosition
-        } = ctx.params;
+		if (
+			initialPosition.amount0Desired === BigInt(0) ||
+			initialPosition.amount1Desired === BigInt(0)
+		) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Please specify amount0Desired or amount1Desired.'),
+			};
+		}
 
-        if (tokenID0 >= tokenID1) {
-            return {
-                status: VerifyStatus.FAIL,
-                error: new Error(
-                    'Please sort tokenID0 and tokenID1 lexicographically',
-                ),
-            };
-        }
+		if (
+			MIN_TICK > initialPosition.tickLower ||
+			initialPosition.tickLower > tickInitialPrice ||
+			tickInitialPrice > initialPosition.tickUpper ||
+			initialPosition.tickLower >= initialPosition.tickUpper ||
+			initialPosition.tickUpper > MAX_TICK
+		) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Please specify valid tick values.'),
+			};
+		}
 
-        if (initialPosition.amount0Desired === BigInt(0) || initialPosition.amount1Desired === BigInt(0)) {
-            return {
-                status: VerifyStatus.FAIL,
-                error: new Error(
-                    'Please specify amount0Desired or amount1Desired',
-                ),
-            };
-        }
-
-        if (MIN_TICK > initialPosition.tickLower ||
-            initialPosition.tickLower > tickInitialPrice ||
-            tickInitialPrice > initialPosition.tickUpper ||
-            initialPosition.tickLower >= initialPosition.tickUpper ||
-            initialPosition.tickUpper > MAX_TICK) {
-            return {
-                status: VerifyStatus.FAIL,
-                error: new Error(
-                    'Please specify valid tick values',
-                ),
-            };
-        }
-
-        /*
+		/*
         TODO: Not yet implemented on SDK
         if lastBlockheader.timestamp > ctx.params.maxTimestampValid:
             raise Exception()        
         */
 
+		const poolId = computePoolID(tokenID0, tokenID1, Buffer.from([feeTier]));
+		const poolStore = this.stores.get(PoolsStore);
+		const doesPoolAlreadyExist = await poolStore.has(ctx.getMethodContext(), poolId);
 
-        const poolId = computePoolID(tokenID0, tokenID1, Buffer.from([feeTier]));
-        const poolStore = this.stores.get(PoolsStore);
-        const doesPoolAlreadyExist = await poolStore.has(ctx.getMethodContext(), poolId);
+		if (doesPoolAlreadyExist) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error(`Pool ${poolId.readInt32LE(0)} already exists.`),
+			};
+		}
 
-        if (doesPoolAlreadyExist) {
-            return {
-                status: VerifyStatus.FAIL,
-                error: new Error(
-                    `Pool ${poolId.readInt32LE(0)} already exists`,
-                ),
-            };
-        }
+		return {
+			status: VerifyStatus.OK,
+		};
+	}
 
-        return {
-            status: VerifyStatus.OK
-        };
-    }
+	public async execute(ctx: CommandExecuteContext<CreatePoolParamsData>): Promise<void> {
+		const { senderAddress } = ctx.transaction;
+		const { tokenID0, tokenID1, feeTier, initialPosition } = ctx.params;
+		const methodContext = ctx.getMethodContext();
+		const initialSqrtPrice = tickToPrice(ctx.params.tickInitialPrice);
+		const result = await createPool(
+			this._moduleConfig,
+			methodContext,
+			this.stores.get(PoolsStore),
+			tokenID0,
+			tokenID1,
+			feeTier,
+			initialSqrtPrice,
+		);
 
-    public async execute(ctx: CommandExecuteContext<CreatePoolParamsData>): Promise<void> {
-        const
-            senderAddress
-                = this._senderAddress;
-        const {
-            tokenID0,
-            tokenID1,
-            feeTier,
-            initialPosition
-        } = ctx.params;
-        const methodContext = this._methodContext;
-        const initialSqrtPrice = tickToPrice(ctx.params.tickInitialPrice);
+		if (result !== POOL_CREATION_SUCCESS) {
+			this.events.get(PoolCreationFailedEvent).add(
+				methodContext,
+				{
+					senderAddress,
+					tokenID0,
+					tokenID1,
+					feeTier,
+					result,
+				},
+				[senderAddress],
+				true,
+			);
+			throw new Error(`Pool creation failed with code ${result}.`);
+		}
 
-        const poolsStore = this._stores.get(PoolsStore);
-        const result = await createPool(this._settings, methodContext, poolsStore, tokenID0, tokenID1, feeTier, initialSqrtPrice)
-        if (result !== POOL_CREATION_SUCCESS) {
-            this.events.get(PoolCreationFailedEvent).add(methodContext, {
-                senderAddress,
-                tokenID0,
-                tokenID1,
-                feeTier,
-                result
-            }, [senderAddress], true);
-            throw new Error()
-        }
+		const poolID = computePoolID(tokenID0, tokenID1, Buffer.from([feeTier]));
 
-        const poolID = computePoolID(tokenID0, tokenID1, Buffer.from([feeTier]))
+		this.events.get(PoolCreatedEvent).add(
+			methodContext,
+			{
+				senderAddress,
+				poolID,
+				tokenID0,
+				tokenID1,
+				feeTier,
+			},
+			[senderAddress, poolID],
+		);
 
-        this.events.get(PoolCreatedEvent).add(methodContext, {
-            senderAddress,
-            poolID,
-            tokenID0,
-            tokenID1,
-            feeTier
-        }, [senderAddress, poolID], true);
+		const [positionCreationResult, positionID] = await createPosition(
+			methodContext,
+			this.stores,
+			senderAddress,
+			poolID,
+			initialPosition.tickLower,
+			initialPosition.tickUpper,
+		);
+		if (positionCreationResult !== POSITION_CREATION_SUCCESS) {
+			this.events.get(PositionCreationFailedEvent).add(
+				methodContext,
+				{
+					senderAddress,
+					poolID,
+					tickLower: initialPosition.tickLower,
+					tickUpper: initialPosition.tickUpper,
+					result,
+				},
+				[senderAddress],
+				true,
+			);
 
+			throw new Error(`Position creation failed with code ${positionCreationResult}.`);
+		}
 
-        const [positionCreationResult, positionID] = await createPosition(
-            methodContext, this._stores,
-            senderAddress, poolID, initialPosition.tickLower, initialPosition.tickUpper)
+		const tickLowerSqrtPrice = tickToPrice(initialPosition.tickLower);
+		const tickUpperSqrtPrice = tickToPrice(initialPosition.tickUpper);
+		const liquidity = getLiquidityForAmounts(
+			initialSqrtPrice,
+			tickLowerSqrtPrice,
+			tickUpperSqrtPrice,
+			initialPosition.amount0Desired,
+			initialPosition.amount1Desired,
+		);
+		const [amount0, amount1] = await updatePosition(
+			methodContext,
+			this.events,
+			this.stores,
+			this._tokenMethod,
+			positionID,
+			liquidity,
+		);
 
-        if (positionCreationResult !== POSITION_CREATION_SUCCESS) {
-            this.events.get(PositionCreationFailedEvent).add(methodContext, {
-                senderAddress,
-                poolID,
-                "tickLower": initialPosition.tickLower,
-                "tickUpper": initialPosition.tickUpper,
-                "result": result
-            }, [senderAddress], true);
+		if (amount0 === BigInt(0) || amount1 === BigInt(0)) {
+			this.events.get(AmountBelowMinEvent).add(
+				methodContext,
+				{
+					senderAddress,
+					amount0,
+					amount0Min: BigInt(1),
+					tokenID0,
+					amount1,
+					amount1Min: BigInt(1),
+					tokenID1,
+				},
+				[senderAddress],
+				true,
+			);
+			throw new Error('Please specify a valid value for amount0 and amount1.');
+		}
 
+		if (amount0 > initialPosition.amount0Desired || amount1 > initialPosition.amount1Desired) {
+			throw new Error('Parameter amountX cannot be larger than amountXDesired.');
+		}
 
-            throw new Error()
-        }
+		await transferToProtocolFeeAccount(
+			this._tokenMethod,
+			methodContext,
+			this.stores.get(SettingsStore),
+			senderAddress,
+			TOKEN_ID_FEE_DEX,
+			POOL_CREATION_FEE,
+		);
 
-
-
-
-        const tickLowerSqrtPrice = tickToPrice(initialPosition.tickLower);
-        const tickUpperSqrtPrice = tickToPrice(initialPosition.tickUpper);
-
-
-
-        const liquidity = getLiquidityForAmounts(initialSqrtPrice,
-            tickLowerSqrtPrice,
-            tickUpperSqrtPrice,
-            initialPosition.amount0Desired,
-            initialPosition.amount1Desired);
-
-        const [amount0, amount1] = await updatePosition(methodContext, this._events, this._stores, this._tokenMethod, positionID, liquidity);
-
-
-        if (amount0 === BigInt(0) || amount1 === BigInt(0)) {
-            this.events.get(AmountBelowMinEvent).add(methodContext, {
-                senderAddress,
-                amount0,
-                amount0Min: BigInt(1),
-                tokenID0,
-                amount1,
-                amount1Min: BigInt(1),
-                tokenID1
-            }, [senderAddress], true);
-            throw new Error();
-        }
-
-
-
-
-        if (amount0 > initialPosition.amount0Desired || amount1 > initialPosition.amount1Desired) {
-            throw new Error();
-        }
-
-        await transferToProtocolFeeAccount(this._tokenMethod, methodContext, this.stores.get(SettingsStore), senderAddress, TOKEN_ID_FEE_DEX, POOL_CREATION_FEE)
-
-        this.events.get(PositionCreatedEvent).add(methodContext, {
-            senderAddress,
-            positionID,
-            tickLower: initialPosition.tickLower,
-            tickUpper: initialPosition.tickUpper,
-            amount0,
-            tokenID0,
-            amount1,
-            tokenID1,
-        }, [
-            senderAddress,
-            poolID,
-            positionID
-        ])
-    }
+		this.events.get(PositionCreatedEvent).add(
+			methodContext,
+			{
+				senderAddress,
+				positionID,
+				tickLower: initialPosition.tickLower,
+				tickUpper: initialPosition.tickUpper,
+				amount0,
+				tokenID0,
+				amount1,
+				tokenID1,
+			},
+			[senderAddress, poolID, positionID],
+		);
+	}
 }
