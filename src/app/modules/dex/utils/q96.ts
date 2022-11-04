@@ -26,7 +26,7 @@ export const numberToQ96 = (r: bigint): Q96 => {
 	return num;
 };
 
-export const roundDownQ96 = (a: Q96): bigint => a >> BigInt(0);
+export const roundDownQ96 = (a: Q96): bigint => a >> N_96;
 
 export const roundUpQ96 = (a: Q96): bigint => {
 	const _x = ONE << N_96;

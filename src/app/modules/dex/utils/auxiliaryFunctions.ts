@@ -66,6 +66,7 @@ import {
 import { getAmount0Delta, getAmount1Delta, priceToTick, tickToPrice } from './math';
 import { FeesIncentivesCollectedEvent, PositionUpdateFailedEvent } from '../events';
 import { tickToBytes } from '../stores/priceTicksStore';
+import { DexGlobalStoreData } from '../stores/dexGlobalStore';
 
 const abs = (x: bigint) => (x < BigInt(0) ? -x : x);
 
@@ -195,13 +196,14 @@ export const collectFeesAndIncentives = async (
 	const positionsStore = stores.get(PositionsStore);
 	const dexGlobalStore = stores.get(DexGlobalStore);
 	const positionInfo = await positionsStore.get(methodContext, positionID);
-	const ownerAddress = await getOwnerAddressOfPositionWithMethodContext(positionsStore, positionID, methodContext);
+	const ownerAddress = await getOwnerAddressOfPosition(methodContext, positionsStore, positionID);
+
 	const [
 		collectedFees0,
 		collectedFees1,
 		feeGrowthInside0,
 		feeGrowthInside1,
-	] = await computeCollectableFees(await stores.get(PositionsStore), positionID);
+	] = await computeCollectableFees(stores, methodContext, positionID);
 
 	if (collectedFees0 > 0) {
 		await transferFromPool(
@@ -227,25 +229,25 @@ export const collectFeesAndIncentives = async (
 	positionInfo.feeGrowthInsideLast1 = q96ToBytes(feeGrowthInside1);
 
 	await positionsStore.set(methodContext, positionID, positionInfo);
-
 	const [collectableFeesLSK, incentivesForPosition] = await computeCollectableIncentives(
 		dexGlobalStore,
-		TokenMethod,
+		tokenMethod,
+		methodContext,
 		positionID,
 		collectedFees0,
 		collectedFees1,
 	);
 
 	await tokenMethod.transfer(
+		methodContext,
 		ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL,
 		ownerAddress,
 		TOKEN_ID_REWARDS,
 		incentivesForPosition,
 	);
-
-	const dexGlobalStoreData = await dexGlobalStore.get(tokenMethod, Buffer.from([]));
+	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.alloc(0));
 	dexGlobalStoreData.collectableLSKFees -= collectableFeesLSK;
-	await dexGlobalStore.set(tokenMethod, Buffer.from([]), dexGlobalStoreData);
+	await dexGlobalStore.set(methodContext, Buffer.alloc(0), dexGlobalStoreData);
 
 	events.get(FeesIncentivesCollectedEvent).log(methodContext, {
 		senderAddress: ownerAddress,
@@ -259,35 +261,65 @@ export const collectFeesAndIncentives = async (
 	});
 };
 
-export const computeCollectableFees = async (positionStore, positionID: PositionID): Promise<[bigint, bigint, Q96, Q96]> => {
-	const positionInfo = positionStore(positionID)
-	const poolID = getPoolIDFromPositionID(positionID)
-	const [feeGrowthInside0, feeGrowthInside1] = getFeeGrowthInside(positionID)
+export const computeCollectableFees = async (
+	stores: NamedRegistry,
+	methodContext: MethodContext,
+	positionID: PositionID,
+): Promise<[bigint, bigint, Q96, Q96]> => {
+	const positionsStore = stores.get(PositionsStore);
+	const positionInfo = await positionsStore.get(methodContext, positionID);
+	const [feeGrowthInside0, feeGrowthInside1] = await getFeeGrowthInside(
+		stores,
+		methodContext,
+		positionID,
+	);
 
-	const collectableFees0 = roundDownQ96(mulQ96(subQ96(feeGrowthInside0, positionInfo.feeGrowthInsideLast0), positionInfo.liquidity))
-	const collectableFees1 = roundDownQ96(mulQ96(subQ96(feeGrowthInside1, positionInfo.feeGrowthInsideLast1), positionInfo.liquidity))
+	const collectableFees0 = roundDownQ96(
+		mulQ96(
+			subQ96(feeGrowthInside0, bytesToQ96(positionInfo.feeGrowthInsideLast0)),
+			positionInfo.liquidity,
+		),
+	);
+	const collectableFees1 = roundDownQ96(
+		mulQ96(
+			subQ96(feeGrowthInside1, bytesToQ96(positionInfo.feeGrowthInsideLast1)),
+			positionInfo.liquidity,
+		),
+	);
+
 	return [collectableFees0, collectableFees1, feeGrowthInside0, feeGrowthInside1];
 };
 
-
-export const computeCollectableIncentives = async (dexGlobalState, tokenAPI, positionID: PositionID, collectableFees0: number, collectableFees1: number): Promise<[number, number]> => {
-	const poolID = getPoolIDFromPositionID(positionID)
-	let collectableFeesLSK = 0
-	if (getToken0Id(poolID) == TOKEN_ID_LSK) {
-		collectableFeesLSK = collectableFees0
-	} else if (getToken1Id(poolID) == TOKEN_ID_LSK) {
-		collectableFeesLSK = collectableFees1
+export const computeCollectableIncentives = async (
+	dexGlobalStore,
+	tokenMethod,
+	methodContext,
+	positionID: PositionID,
+	collectableFees0: bigint,
+	collectableFees1: bigint,
+): Promise<[bigint, bigint]> => {
+	const poolID = getPoolIDFromPositionID(positionID);
+	let collectableFeesLSK = BigInt(0);
+	if (getToken0Id(poolID).equals(TOKEN_ID_LSK)) {
+		collectableFeesLSK = collectableFees0;
+	} else if (getToken1Id(poolID).equals(TOKEN_ID_LSK)) {
+		collectableFeesLSK = collectableFees1;
 	}
 
-	if (collectableFeesLSK == 0) {
-		return [0, 0]
+	if (collectableFeesLSK === BigInt(0)) {
+		return [BigInt(0), BigInt(0)];
 	}
-
-	const totalCollectableLSKFees = dexGlobalState.collectableLSKFees
-	const availableLPIncentives = tokenAPI.getAvailableBalance(ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL, TOKEN_ID_REWARDS)
-	const incentivesForPosition = (availableLPIncentives * collectableFeesLSK) / totalCollectableLSKFees
-	return [collectableFeesLSK, incentivesForPosition]
-}
+	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
+	const totalCollectableLSKFees = dexGlobalStoreData.collectableLSKFees;
+	const availableLPIncentives = await tokenMethod.getAvailableBalance(
+		methodContext,
+		ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL,
+		TOKEN_ID_REWARDS,
+	);
+	const incentivesForPosition =
+		(availableLPIncentives * collectableFeesLSK) / totalCollectableLSKFees;
+	return [collectableFeesLSK, incentivesForPosition];
+};
 
 export const computePoolID = async (tokenID0: TokenID, tokenID1: TokenID, feeTier: number): Promise<Buffer> => {
 	const feeTierBuffer = Buffer.alloc(4);
@@ -295,90 +327,113 @@ export const computePoolID = async (tokenID0: TokenID, tokenID1: TokenID, feeTie
 	return Buffer.concat([tokenID0, tokenID1, feeTierBuffer]);
 }
 
-export const createPool = async (settings, apiContext, poolsStore, tokenID0: TokenID, tokenID1: TokenID, feeTier: number, initialSqrtPrice: Q96): Promise<number> => {
-	const poolSetting = settings.poolCreationSettings.find(s => s.feeTier == feeTier)
+export const createPool = async (
+	settings,
+	methodContext,
+	poolsStore: PoolsStore,
+	tokenID0: TokenID,
+	tokenID1: TokenID,
+	feeTier: number,
+	initialSqrtPrice: Q96,
+	currentHeight: number,
+): Promise<number> => {
+	const poolSetting = settings.feeTiers[feeTier];
 
 	if (!poolSetting) {
 		return POOL_CREATION_FAILED_INVALID_FEE_TIER;
 	}
 
-	const poolID = computePoolID(tokenID0, tokenID1, feeTier)
-	if (poolsStore.getKey(poolID)) {
-		return POOL_CREATION_FAILED_ALREADY_EXISTS
+	const poolID = computePoolID(tokenID0, tokenID1, feeTier);
+	if (await poolsStore.has(methodContext, poolID)) {
+		return POOL_CREATION_FAILED_ALREADY_EXISTS;
 	}
 
 	const poolStoreValue = {
-		"liquidity": 0,
-		"sqrtPrice": initialSqrtPrice,
-		"feeGrowthGlobal0": numberToQ96(BigInt(0)),
-		"feeGrowthGlobal1": numberToQ96(BigInt(0)),
-		"protocolFees0": numberToQ96(BigInt(0)),
-		"protocolFees1": numberToQ96(BigInt(0)),
-		"tickSpacing": poolSetting.tickSpacing
-	}
-	poolsStore.set(apiContext, poolID, poolStoreValue);
-	return POOL_CREATION_SUCCESS
-}
+		liquidity: BigInt(0),
+		sqrtPrice: q96ToBytes(initialSqrtPrice),
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+		heightIncentivesUpdate: currentHeight,
+		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(0))),
+		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(0))),
+		protocolFees0: numberToQ96(BigInt(0)),
+		protocolFees1: numberToQ96(BigInt(0)),
+		tickSpacing: poolSetting,
+	};
+	await poolsStore.set(methodContext, poolID, poolStoreValue);
+	return POOL_CREATION_SUCCESS;
+};
 
-export const createPosition = (apiContext, poolsStore, priceTicksStore, priceTickSchema, positionsStore, positionSchema, senderAddress: Address, poolID: PoolID, tickLower: number, tickUpper: number): [number, PositionID] => {
-	if (!poolsStore.getKey(senderAddress, poolID)) {
-		return [POSITION_CREATION_FAILED_NO_POOL, Buffer.from([])]
+export const createPosition = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	senderAddress: Address,
+	poolID: PoolID,
+	tickLower: number,
+	tickUpper: number,
+): Promise<[number, PositionID]> => {
+	const dexGlobalStore = stores.get(DexGlobalStore);
+	const poolsStore = stores.get(PoolsStore);
+	const positionsStore = stores.get(PositionsStore);
+	const priceTicksStore = stores.get(PriceTicksStore);
+	if (!(await poolsStore.hasKey(methodContext, [poolID]))) {
+		return [POSITION_CREATION_FAILED_NO_POOL, Buffer.from([])];
 	}
-	const currentPool = poolsStore.getKey(senderAddress, poolID)
+	const currentPool = await poolsStore.get(methodContext, poolID);
 
 	if (MIN_TICK > tickLower || tickLower >= tickUpper || tickUpper > MAX_TICK) {
 		return [POSITION_CREATION_FAILED_INVALID_TICKS, Buffer.from([])];
 	}
 
-	if (tickLower % currentPool.tickSpacing != 0 || tickUpper % currentPool.tickSpacing != 0) {
-		return [POSITION_CREATION_FAILED_INVALID_TICK_SPACING, Buffer.from([])]
+	if (tickLower % currentPool.tickSpacing !== 0 || tickUpper % currentPool.tickSpacing !== 0) {
+		return [POSITION_CREATION_FAILED_INVALID_TICK_SPACING, Buffer.from([])];
 	}
 
-	if (!priceTicksStore.getKey(poolID, tickLower)) {
+	if (!(await priceTicksStore.hasKey(methodContext, [poolID, tickToBytes(tickLower)]))) {
 		const tickStoreValue = {
-			"liquidityNet": 0,
-			"liquidityGross": 0,
-			"feeGrowthOutside0": numberToQ96(BigInt(0)),
-			"feeGrowthOutside1": numberToQ96(BigInt(0))
-		}
-		if (currentPool.sqrtPrice >= tickToPrice(tickLower)) {
-			tickStoreValue.feeGrowthOutside0 = currentPool.feeGrowthGlobal0
-			tickStoreValue.feeGrowthOutside1 = currentPool.feeGrowthGlobal1
+			liquidityNet: BigInt(0),
+			liquidityGross: BigInt(0),
+			feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(0))),
+			feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(0))),
+			incentivesPerLiquidityOutside: q96ToBytes(BigInt(0)),
+		};
+		if (bytesToQ96(currentPool.sqrtPrice) >= tickToPrice(tickLower)) {
+			tickStoreValue.feeGrowthOutside0 = currentPool.feeGrowthGlobal0;
+			tickStoreValue.feeGrowthOutside1 = currentPool.feeGrowthGlobal1;
 		}
 
-		priceTicksStore.set(poolID, tickLower, codec.encode(priceTickSchema, tickStoreValue));
+		await priceTicksStore.setKey(methodContext, [poolID, tickToBytes(tickLower)], tickStoreValue);
 	}
 
-	if (!priceTicksStore.getKey(poolID, tickUpper)) {
+	if (!(await priceTicksStore.hasKey(methodContext, [poolID, tickToBytes(tickUpper)]))) {
 		const tickStoreValue = {
-			"liquidityNet": 0,
-			"liquidityGross": 0,
-			"feeGrowthOutside0": numberToQ96(BigInt(0)),
-			"feeGrowthOutside1": numberToQ96(BigInt(0))
-		}
-		if (currentPool.sqrtPrice >= tickToPrice(tickUpper)) {
-			tickStoreValue.feeGrowthOutside0 = currentPool.feeGrowthGlobal0
-			tickStoreValue.feeGrowthOutside1 = currentPool.feeGrowthGlobal1
+			liquidityNet: BigInt(0),
+			liquidityGross: BigInt(0),
+			feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(0))),
+			feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(0))),
+			incentivesPerLiquidityOutside: q96ToBytes(BigInt(0)),
+		};
+		if (bytesToQ96(currentPool.sqrtPrice) >= tickToPrice(tickUpper)) {
+			tickStoreValue.feeGrowthOutside0 = currentPool.feeGrowthGlobal0;
+			tickStoreValue.feeGrowthOutside1 = currentPool.feeGrowthGlobal1;
 		}
 
-		priceTicksStore.set(poolID, tickUpper, codec.encode(priceTickSchema, tickStoreValue));
+		await priceTicksStore.setKey(methodContext, [poolID, tickToBytes(tickUpper)], tickStoreValue);
 	}
 
 	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
-
 	const positionID = getNewPositionID(dexGlobalStoreData, poolID);
-	await console.log(positionID);
+
 	const positionValue = {
-		"tickLower": tickLower,
-		"tickUpper": tickUpper,
-		"liquidity": 0,
-		"feeGrowthInsideLast0": numberToQ96(BigInt(0)),
-		"feeGrowthInsideLast1": numberToQ96(BigInt(0)),
-		"ownerAddress": senderAddress
-	}
-	positionsStore.set(positionID, codec.encode(positionSchema, positionValue))
-	return [POSITION_CREATION_SUCCESS, positionID]
-}
+		tickLower,
+		tickUpper,
+		liquidity: BigInt(0),
+		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(0))),
+		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(0))),
+		ownerAddress: senderAddress,
+	};
+	await positionsStore.set(methodContext, positionID, positionValue);
+	return [POSITION_CREATION_SUCCESS, positionID];
+};
 
 export const getFeeGrowthInside = async (
 	stores: NamedRegistry,
@@ -507,18 +562,23 @@ export const getLiquidityForAmount1 = (
 	return roundDownQ96(result);
 };
 
-export const getNewPositionID = async (dexGlobalState, poolID: PoolID, ownerAddress: Address): Promise<Buffer> => {
-	const positionIndex = dexGlobalState.positionCounter
-	dexGlobalState.positionCounter = dexGlobalState.positionCounter + 1
+export const getNewPositionID = (
+	dexGlobalStoreData: DexGlobalStoreData,
+	poolID: PoolID,
+): Buffer => {
+	const positionIndex = dexGlobalStoreData.positionCounter;
+	// eslint-disable-next-line no-param-reassign
+	dexGlobalStoreData.positionCounter += BigInt(1);
+	return Buffer.concat([poolID, Buffer.from(positionIndex.valueOf().toLocaleString())]);
+};
 
-	return Buffer.concat([poolID, Buffer.from(positionIndex)])
-}
 
 export const getOwnerAddressOfPosition = async (
+	methodContext: MethodContext,
 	positionsStore,
 	positionID: PositionID,
 ): Promise<Buffer> => {
-	const position = await positionsStore.get(positionID);
+	const position = await positionsStore.get(methodContext, positionID);
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 	return position.ownerAddress;
 };
