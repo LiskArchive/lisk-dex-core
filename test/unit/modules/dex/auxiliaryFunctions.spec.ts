@@ -84,11 +84,10 @@ describe('dex:auxiliaryFunctions', () => {
 		stateStore,
 		eventQueue: new EventQueue(0),
 	})
+
 	const settings = {
-		poolCreationSettings: [
-			{
-				feeTier: 100
-			}
+		feeTiers: [
+			100,
 		]
 	}
 
@@ -160,9 +159,9 @@ describe('dex:auxiliaryFunctions', () => {
 			positionsStore = tokenModule.stores.get(PositionsStore);
 			settingsStore = tokenModule.stores.get(SettingsStore);
 
-			await dexGlobalStore.set(methodContext, senderAddress, dexGlobalStoreData)
+			await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData)
 
-			await settingsStore.set(methodContext, senderAddress, settingStoreData)
+			await settingsStore.set(methodContext, Buffer.from([]), settingStoreData)
 
 			await poolsStore.setKey(methodContext, [senderAddress, getPoolIDFromPositionID(positionId)], poolsStoreData);
 			await poolsStore.set(methodContext, getPoolIDFromPositionID(positionId), poolsStoreData);
@@ -221,7 +220,7 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('should return 0 as POOL_CREATION_SUCCESS', async () => {
-			expect(await createPool(settings, methodContext, poolsStore, token0Id, token1Id, 100, sqrtPrice)).toBe(0);
+			expect(await createPool(settings, methodContext, poolsStore, token0Id, token1Id, 0, sqrtPrice)).toBe(0);
 		});
 
 		it('should return concatenated (tokenID0, tokenID1, feeTier) after computing poolID', async () => {
@@ -269,7 +268,7 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('should return [1,25] in result', async () => {
-			await computeCollectableIncentives(dexGlobalStore, tokenMethod, methodContext,senderAddress, positionId, BigInt(1), BigInt(2)).then(res => {
+			await computeCollectableIncentives(dexGlobalStore, tokenMethod, methodContext,positionId, BigInt(1), BigInt(2)).then(res => {
 				expect(res[0]).toBe(BigInt(1));
 				expect(res[1]).toBe(BigInt(25));
 			})
@@ -277,7 +276,7 @@ describe('dex:auxiliaryFunctions', () => {
 
 		it('should return [0,0] as newTestpositionId!=positionId', async () => {
 			const newTestpositionId: PositionID = Buffer.from('0x00000000000100000000000000000000c8','hex');
-			await computeCollectableIncentives(dexGlobalStore, tokenMethod, methodContext, senderAddress, newTestpositionId, BigInt(1), BigInt(2)).then(res => {
+			await computeCollectableIncentives(dexGlobalStore, tokenMethod, methodContext, newTestpositionId, BigInt(1), BigInt(2)).then(res => {
 				expect(res[0]).toBe(BigInt(0));
 				expect(res[1]).toBe(BigInt(0));
 			})
