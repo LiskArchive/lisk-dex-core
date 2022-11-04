@@ -15,7 +15,7 @@
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { TokenMethod, TokenModule, VerifyStatus } from 'lisk-framework';
+import { TokenMethod, VerifyStatus } from 'lisk-framework';
 import { EventQueue } from 'lisk-framework/dist-node/state_machine';
 import { createMethodContext, MethodContext } from 'lisk-framework/dist-node/state_machine/method_context';
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
@@ -46,13 +46,14 @@ describe('dex:command:collectFees', () => {
 		let stateStore: PrefixedStateReadWriter;
 		let methodContext: MethodContext;
 
-		const tokenModule = new TokenModule();
+
+		const dexModule = new DexModule();
 		const senderAddress: Address = Buffer.from('00000000000000000', 'hex');
 		const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
 
 		const transferMock = jest.fn();
 
-		const tokenMethod = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
+		const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
 		let poolsStore: PoolsStore;
 		let priceTicksStore: PriceTicksStore;
 		let dexGlobalStore: DexGlobalStore;
@@ -102,23 +103,12 @@ describe('dex:command:collectFees', () => {
 
 
 		beforeEach(async () => {
-			command = new CollectFeesCommand(tokenModule.stores, tokenModule.events);
+			command = new CollectFeesCommand(dexModule.stores, dexModule.events);
 
-			tokenModule.stores.register(PoolsStore, new PoolsStore(DexModule.name));
-			tokenModule.stores.register(PositionsStore, new PositionsStore(DexModule.name));
-			tokenModule.stores.register(DexGlobalStore, new DexGlobalStore(DexModule.name));
-			tokenModule.stores.register(PriceTicksStore, new PriceTicksStore(DexModule.name));
-			tokenModule.events.register(PositionUpdateFailedEvent, new PositionUpdateFailedEvent(DexModule.name));
-			tokenModule.events.register(PositionCreatedEvent, new PositionCreatedEvent(DexModule.name));
-
-			tokenModule.events.register(FeesIncentivesCollectedEvent, new FeesIncentivesCollectedEvent(DexModule.name));
-
-
-
-			poolsStore = tokenModule.stores.get(PoolsStore);
-			priceTicksStore = tokenModule.stores.get(PriceTicksStore);
-			dexGlobalStore = tokenModule.stores.get(DexGlobalStore);
-			positionsStore = tokenModule.stores.get(PositionsStore);
+			poolsStore = dexModule.stores.get(PoolsStore);
+			priceTicksStore = dexModule.stores.get(PriceTicksStore);
+			dexGlobalStore = dexModule.stores.get(DexGlobalStore);
+			positionsStore = dexModule.stores.get(PositionsStore);
 
 			await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData)
 			await poolsStore.setKey(methodContext, [senderAddress, getPoolIDFromPositionID(positionId)], poolsStoreData);
@@ -135,9 +125,6 @@ describe('dex:command:collectFees', () => {
 
 			command.init({
 				tokenMethod,
-				stores: tokenModule.stores,
-				events: tokenModule.events,
-				senderAddress,
 				methodContext
 			});
 
@@ -152,7 +139,7 @@ describe('dex:command:collectFees', () => {
 						command: 'collectFees',
 						fee: BigInt(5000000),
 						nonce: BigInt(0),
-						senderPublicKey: utils.getRandomBytes(32),
+						senderPublicKey: senderAddress,
 						params: codec.encode(collectFeesSchema, {
 							positions: new Array(0),
 						}),
@@ -173,13 +160,11 @@ describe('dex:command:collectFees', () => {
 						command: 'collectFees',
 						fee: BigInt(5000000),
 						nonce: BigInt(0),
-						senderPublicKey: utils.getRandomBytes(32),
+						senderPublicKey: senderAddress,
 						params: codec.encode(collectFeesSchema, {
 							positions: new Array(24).fill({ positionID: Buffer.from('0000000100', 'hex') }),
 						}),
 						signatures: [utils.getRandomBytes(64)],
-
-
 					}),
 				});
 				const result = await command.verify(context.createCommandVerifyContext(collectFeesSchema));
@@ -217,7 +202,7 @@ describe('dex:command:collectFees', () => {
 							command: 'collectFees',
 							fee: BigInt(5000000),
 							nonce: BigInt(0),
-							senderPublicKey: utils.getRandomBytes(32),
+							senderPublicKey: senderAddress,
 							params: codec.encode(collectFeesSchema, {
 								positions: new Array(0),
 							}),
@@ -225,7 +210,7 @@ describe('dex:command:collectFees', () => {
 						}),
 					})
 				).resolves.toBeUndefined();
-				expect(transferMock).toBeCalledTimes(1);
+				expect(transferMock).toBeCalledTimes(3);
 				const events = blockAfterExecuteContext.eventQueue.getEvents();
 				const validatorFeesIncentivesCollectedEvent = events.filter(
 					e => e.toObject().name === 'feesIncentivesCollected'

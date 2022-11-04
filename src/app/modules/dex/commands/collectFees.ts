@@ -12,35 +12,38 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseCommand, CommandVerifyContext, VerificationResult, CommandExecuteContext, TokenMethod, VerifyStatus } from "lisk-sdk";
+import {
+    BaseCommand,
+    CommandVerifyContext,
+    VerificationResult,
+    CommandExecuteContext,
+    TokenMethod,
+    VerifyStatus,
+} from 'lisk-sdk';
 import { validator } from '@liskhq/lisk-validator';
-import { collectFeesSchema } from "../schemas";
-import { checkPositionExistenceAndOwnership, collectFeesAndIncentives } from "../utils/auxiliaryFunctions";
-import { COMMAND_ID_COLLECT_FEES, MAX_NUM_POSITIONS_FEE_COLLECTION } from "../constants";
+import { collectFeesSchema } from '../schemas';
+import {
+    checkPositionExistenceAndOwnership,
+    collectFeesAndIncentives,
+} from '../utils/auxiliaryFunctions';
+import { COMMAND_ID_COLLECT_FEES, MAX_NUM_POSITIONS_FEE_COLLECTION } from '../constants';
 import { CollectFeesParamData } from '../types';
 
 export class CollectFeesCommand extends BaseCommand {
     public id = COMMAND_ID_COLLECT_FEES;
     public schema = collectFeesSchema;
+
     private _tokenMethod!: TokenMethod;
-    private _stores;
-    private _events;
-    private _senderAddress;
-    private _methodContext;
 
-    public init({
-        tokenMethod, stores, events, senderAddress, methodContext }): void {
+    public init({ tokenMethod }): void {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         this._tokenMethod = tokenMethod;
-        this._stores = stores;
-        this._events = events;
-        this._senderAddress = senderAddress;
-        this._methodContext = methodContext;
-
-
     }
 
-    public async verify(ctx: CommandVerifyContext<CollectFeesParamData>): Promise<VerificationResult> {
-
+    // eslint-disable-next-line @typescript-eslint/require-await
+    public async verify(
+        ctx: CommandVerifyContext<CollectFeesParamData>,
+    ): Promise<VerificationResult> {
         try {
             validator.validate(collectFeesSchema, ctx.params);
         } catch (err) {
@@ -49,17 +52,13 @@ export class CollectFeesCommand extends BaseCommand {
                 error: err as Error,
             };
         }
-        const {
-            positions
-        } = ctx.params;
+        const { positions } = ctx.params;
 
         if (positions.length > MAX_NUM_POSITIONS_FEE_COLLECTION) {
             return {
                 status: VerifyStatus.FAIL,
-                error: new Error(
-                    'Please enter the correct positions',
-                ),
-            }
+                error: new Error('Please enter the correct positions'),
+            };
         }
 
         return {
@@ -68,15 +67,27 @@ export class CollectFeesCommand extends BaseCommand {
     }
 
     public async execute(ctx: CommandExecuteContext<CollectFeesParamData>): Promise<void> {
+        const senderAddress = ctx.transaction.senderPublicKey;
 
-        const {
-            positions
-        } = ctx.params;
+        const { positions } = ctx.params;
 
+        const methodContext = ctx.getMethodContext();
 
-        for (var positionID of positions) {
-            await checkPositionExistenceAndOwnership(this._stores, this._events, this._methodContext, this._senderAddress, positionID);
-            await collectFeesAndIncentives(this._events, this._stores, this._tokenMethod, this._methodContext, positionID);
+        for (const positionID of positions) {
+            await checkPositionExistenceAndOwnership(
+                this.stores,
+                this.events,
+                methodContext,
+                senderAddress,
+                positionID,
+            );
+            await collectFeesAndIncentives(
+                this.events,
+                this.stores,
+                this._tokenMethod,
+                methodContext,
+                positionID,
+            );
         }
     }
 }
