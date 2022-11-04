@@ -213,7 +213,7 @@ describe('dex:command:collectFees', () => {
 				expect(transferMock).toBeCalledTimes(3);
 				const events = blockAfterExecuteContext.eventQueue.getEvents();
 				const validatorFeesIncentivesCollectedEvent = events.filter(
-					e => e.toObject().name === 'feesIncentivesCollected'
+					e => e.toObject().name === 'feesIncentivesCollectedEvent'
 				);
 				expect(validatorFeesIncentivesCollectedEvent).toHaveLength(1);
 			});
