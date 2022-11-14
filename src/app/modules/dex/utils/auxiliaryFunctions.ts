@@ -371,7 +371,7 @@ export const createPool = async (
 		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(0))),
 		protocolFees0: numberToQ96(BigInt(0)),
 		protocolFees1: numberToQ96(BigInt(0)),
-		tickSpacing: poolSetting.tickSpacing,
+		tickSpacing: poolSetting,
 	};
 	await poolsStore.set(methodContext, poolID, poolStoreValue);
 	return POOL_CREATION_SUCCESS;
@@ -389,10 +389,10 @@ export const createPosition = async (
 	const poolsStore = stores.get(PoolsStore);
 	const positionsStore = stores.get(PositionsStore);
 	const priceTicksStore = stores.get(PriceTicksStore);
-	if (!(await poolsStore.getKey(methodContext, [senderAddress, poolID]))) {
+	if (!(await poolsStore.hasKey(methodContext, [poolID]))) {
 		return [POSITION_CREATION_FAILED_NO_POOL, Buffer.from([])];
 	}
-	const currentPool = await poolsStore.getKey(methodContext, [senderAddress, poolID]);
+	const currentPool = await poolsStore.get(methodContext, poolID);
 
 	if (MIN_TICK > tickLower || tickLower >= tickUpper || tickUpper > MAX_TICK) {
 		return [POSITION_CREATION_FAILED_INVALID_TICKS, Buffer.from([])];
@@ -402,7 +402,7 @@ export const createPosition = async (
 		return [POSITION_CREATION_FAILED_INVALID_TICK_SPACING, Buffer.from([])];
 	}
 
-	if (!(await priceTicksStore.getKey(methodContext, [poolID, tickToBytes(tickLower)]))) {
+	if (!(await priceTicksStore.hasKey(methodContext, [poolID, tickToBytes(tickLower)]))) {
 		const tickStoreValue = {
 			liquidityNet: BigInt(0),
 			liquidityGross: BigInt(0),
@@ -417,7 +417,7 @@ export const createPosition = async (
 		await priceTicksStore.setKey(methodContext, [poolID, tickToBytes(tickLower)], tickStoreValue);
 	}
 
-	if (!(await priceTicksStore.getKey(methodContext, [poolID, tickToBytes(tickUpper)]))) {
+	if (!(await priceTicksStore.hasKey(methodContext, [poolID, tickToBytes(tickUpper)]))) {
 		const tickStoreValue = {
 			liquidityNet: BigInt(0),
 			liquidityGross: BigInt(0),

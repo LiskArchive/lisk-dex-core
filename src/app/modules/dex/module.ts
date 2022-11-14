@@ -22,7 +22,13 @@ import { MODULE_ID_DEX, defaultConfig } from './constants';
 import { DexEndpoint } from './endpoint';
 import { ModuleConfig, ModuleInitArgs } from './types';
 
-import { AmountBelowMinEvent, PoolCreatedEvent, PoolCreationFailedEvent } from './events';
+import {
+	AmountBelowMinEvent,
+	PoolCreatedEvent,
+	PoolCreationFailedEvent,
+	PositionCreatedEvent,
+	PositionCreationFailedEvent,
+} from './events';
 
 import { CreatePoolCommand } from './commands/createPool';
 import { PoolsStore, PositionsStore, PriceTicksStore, SettingsStore } from './stores';
@@ -33,8 +39,8 @@ export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
 	public endpoint = new DexEndpoint(this.stores, this.offchainStores);
 	public method = new DexMethod(this.stores, this.events);
-	public _tokenMethod = new TokenMethod(this.stores, this.events, this.name);
-	public _validatorsMethod = new ValidatorsMethod(this.stores, this.events);
+	public _tokenMethod!: TokenMethod;
+	public _validatorsMethod!: ValidatorsMethod;
 	public _moduleConfig!: ModuleConfig;
 
 	private readonly _createPoolCommand = new CreatePoolCommand(this.stores, this.events);
@@ -51,6 +57,8 @@ export class DexModule extends BaseModule {
 		this.stores.register(SettingsStore, new SettingsStore(this.name));
 		this.events.register(PoolCreatedEvent, new PoolCreatedEvent(this.name));
 		this.events.register(PoolCreationFailedEvent, new PoolCreationFailedEvent(this.name));
+		this.events.register(PositionCreatedEvent, new PositionCreatedEvent(this.name));
+		this.events.register(PositionCreationFailedEvent, new PositionCreationFailedEvent(this.name));
 		this.events.register(AmountBelowMinEvent, new AmountBelowMinEvent(this.name));
 	}
 
@@ -68,6 +76,11 @@ export class DexModule extends BaseModule {
 			})),
 			assets: [],
 		};
+	}
+
+	public addDependencies(tokenMethod: TokenMethod, validatorsMethod: ValidatorsMethod) {
+		this._tokenMethod = tokenMethod;
+		this._validatorsMethod = validatorsMethod;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

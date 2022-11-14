@@ -19,7 +19,7 @@ export const tickToBytes = (tickValue: number): Buffer => {
 		throw new Error();
 	}
 	const result = Buffer.alloc(4);
-	result.writeInt32BE(tickValue + 2 ** 31, 0);
+	result.writeUInt32BE(tickValue + 2 ** 31, 0);
 	return result;
 };
 
@@ -27,7 +27,7 @@ export const bytesToTick = (serializedTick: Buffer): number => {
 	if (serializedTick.length !== 4) {
 		throw new Error();
 	}
-	const tickValue = serializedTick.readInt32BE(0) - 2 ** 31;
+	const tickValue = serializedTick.readUInt32BE(0) - 2 ** 31;
 	if (tickValue > MAX_TICK || tickValue < MIN_TICK) {
 		throw new Error();
 	}

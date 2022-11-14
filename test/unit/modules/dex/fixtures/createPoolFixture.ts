@@ -4,7 +4,7 @@ import { MIN_TICK, MAX_TICK } from '../../../../../src/app/modules/dex/constants
 import { createPoolSchema } from '../../../../../src/app/modules/dex/schemas';
 import { Fixtures } from './types';
 
-const senderPublicKey = utils.getRandomBytes(32);
+const senderPublicKey = Buffer.from('0000000000000000', 'hex');
 const signature = utils.getRandomBytes(64);
 const tokenID0 = Buffer.from('0000000100', 'hex');
 const tokenID1 = Buffer.from('0000000101', 'hex');
