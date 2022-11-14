@@ -12,13 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	BaseModule,
-	ModuleMetadata,
-	TokenAPI,
-	ValidatorsAPI,
-	utils
-} from 'lisk-sdk';
+import { BaseModule, ModuleMetadata, utils, TokenMethod, ValidatorsMethod } from 'lisk-sdk';
 
 import {
 	MODULE_ID_DEX,
@@ -27,9 +21,6 @@ import {
 } from './constants';
 
 import {
-	DexAPI
-} from './api';
-import {
 	DexEndpoint
 } from './endpoint';
 import {
@@ -37,13 +28,26 @@ import {
 	ModuleInitArgs
 } from './types';
 
+import {
+	AmountBelowMinEvent,
+	PoolCreatedEvent,
+	PoolCreationFailedEvent,
+	PositionCreatedEvent,
+	PositionCreationFailedEvent,
+} from './events';
+
+import { CreatePoolCommand } from './commands/createPool';
+import { AddLiquidityCommand } from './commands/addLiquidity';
+import { PoolsStore, PositionsStore, PriceTicksStore, SettingsStore } from './stores';
+import { DexMethod } from './method';
+import { DexGlobalStore } from './stores/dexGlobalStore';
+
 export class DexModule extends BaseModule {
-	public name = MODULE_NAME_DEX;
 	public id = MODULE_ID_DEX;
-	public endpoint = new DexEndpoint(this.id);
-	public api = new DexAPI(this.id);
-	public _tokenAPI!: TokenAPI;
-	public _validatorsAPI!: ValidatorsAPI;
+	public endpoint = new DexEndpoint(this.stores, this.offchainStores);
+	public method = new DexMethod(this.stores, this.events);
+	public _tokenMethod!: TokenMethod;
+	public _validatorsMethod!: ValidatorsMethod;
 	public _moduleConfig!: ModuleConfig;
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
@@ -53,20 +57,33 @@ export class DexModule extends BaseModule {
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public commands = [this._createPoolCommand, this._addLiquidityCommand];
 
-	public addDependencies(tokenAPI: TokenAPI, validatorsAPI: ValidatorsAPI) {
-		this._tokenAPI = tokenAPI;
-		this._validatorsAPI = validatorsAPI;
+	public constructor() {
+		super();
+		this.stores.register(DexGlobalStore, new DexGlobalStore(this.name));
+		this.stores.register(PoolsStore, new PoolsStore(this.name));
+		this.stores.register(PositionsStore, new PositionsStore(this.name));
+		this.stores.register(PriceTicksStore, new PriceTicksStore(this.name));
+		this.stores.register(SettingsStore, new SettingsStore(this.name));
+		this.events.register(PoolCreatedEvent, new PoolCreatedEvent(this.name));
+		this.events.register(PoolCreationFailedEvent, new PoolCreationFailedEvent(this.name));
+		this.events.register(PositionCreatedEvent, new PositionCreatedEvent(this.name));
+		this.events.register(PositionCreationFailedEvent, new PositionCreationFailedEvent(this.name));
+		this.events.register(AmountBelowMinEvent, new AmountBelowMinEvent(this.name));
 	}
 
 	public metadata(): ModuleMetadata {
 		return {
-			id: this.id,
-			name: this.name,
+			stores: [],
 			endpoints: [],
 			commands: [],
 			events: [],
 			assets: [],
 		};
+	}
+
+	public addDependencies(tokenMethod: TokenMethod, validatorsMethod: ValidatorsMethod) {
+		this._tokenMethod = tokenMethod;
+		this._validatorsMethod = validatorsMethod;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

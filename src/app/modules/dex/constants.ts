@@ -12,14 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { Q96 } from './types';
 
 // Convert a hex string to a byte array
 export const hexToBytes = (hex) => {
-  const bytes: number[] = [];
-  for (let c = 0; c < hex.length; c += 2)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    bytes.push(parseInt(hex.substr(c, 2), 16));
-  return bytes;
+	const bytes: number[] = [];
+	for (let c = 0; c < hex.length; c += 2)
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+		bytes.push(parseInt(hex.substr(c, 2), 16));
+	return bytes;
 }
 
 export const MAX_NUM_BYTES_Q96 = 24; // The number of bytes of a fractional number stored in Q96 format (uint32)
@@ -65,13 +66,33 @@ export const COMMAND_ID_REMOVE_LIQUIDITY = Buffer.from('0x0006') // Command ID o
 export const COMMAND_ID_COLLECT_FEES = Buffer.from('0x0007') // Command ID of collect fees command.
 
 // Math Constants
-export const MIN_TICK = -887272 // The minimum possible tick value as a sint32.
-export const MAX_TICK = 887272 // The maximum possible tick value as a sint32.
-export const LOG_MAX_TICK = Math.log(MAX_TICK);
-export const PRICE_VALUE_FOR_TICK_1 = BigInt(1)
-export const MIN_SQRT_RATIO = BigInt(4295128738) // Todo: check with devs	The minimum possible price value in the Q96 representation.
-export const MAX_SQRT_RATIO = BigInt('1461446703529909599612049957420313862569572983184') // Todo: check with devs	The maximum possible price value in the Q96 representation.
-export const PRICE_VALUE_FOR_BIT_POSITION_IN_Q96 = []; // TBA	Array of uint256 values with the pre-computed values of price for certain values of tickValue in the Q96 representation.
+export const MIN_TICK = -887272; // The minimum possible tick value as a sint32.
+export const MAX_TICK = 887272; // The maximum possible tick value as a sint32.
+export const LOG_MAX_TICK = 19;
+export const MIN_SQRT_RATIO = BigInt(4295128738); // Todo: check with devs	The minimum possible price value in the Q96 representation.
+export const MAX_SQRT_RATIO = BigInt('1461446703529909599612049957420313862569572983184'); // Todo: check with devs	The maximum possible price value in the Q96 representation.
+export const PRICE_VALUE_FOR_BIT_POSITION_IN_Q96: Q96[] = [
+	BigInt('79224201403219477170569942573'),
+	BigInt('79220240490215316061937756560'),
+	BigInt('79212319258289487113226433916'),
+	BigInt('79196479170490597288862688490'),
+	BigInt('79164808496886665658930780291'),
+	BigInt('79101505139923049997807806614'),
+	BigInt('78975050245229982702767995059'),
+	BigInt('78722746600537056721934508529'),
+	BigInt('78220554859095770638340573243'),
+	BigInt('77225761753129597550065289036'),
+	BigInt('75273969370139069689486932537'),
+	BigInt('71517125791179246722882903167'),
+	BigInt('64556580881331167221767657719'),
+	BigInt('52601903197458624361810746399'),
+	BigInt('34923947901690145425342545398'),
+	BigInt('15394552875315951095595078917'),
+	BigInt('2991262837734375505310244436'),
+	BigInt('112935262922445818024280873'),
+	BigInt('160982827401375763736068'),
+	BigInt('327099227039063106'),
+]; // Array of uint256 values with the pre-computed values of price for certain values of tickValue in the Q96 representation.
 
 export const POOL_CREATION_SUCCESS = 0 // Return code for successful pool creation.           |     
 export const POOL_CREATION_FAILED_INVALID_FEE_TIER = 1 // Return code for failed pool creation due to an invalid fee tier in the pool creation. |     
@@ -89,10 +110,10 @@ export const TOKEN_ID_REWARDS = Buffer.from(''); // The token ID of the token us
 export const ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL = Buffer.from([])
 
 export const defaultConfig = {
-  feeTiers: {
-    100: 2,
-    500: 10,
-    3000: 60,
-    10000: 200
-  }
+	feeTiers: {
+		100: 2,
+		500: 10,
+		3000: 60,
+		10000: 200
+	}
 };
