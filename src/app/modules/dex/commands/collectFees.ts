@@ -18,19 +18,17 @@ import { collectFeesSchema } from "../schemas";
 import { checkPositionExistenceAndOwnership, collectFeesAndIncentives } from "../utils/auxiliaryFunctions";
 import { COMMAND_ID_COLLECT_FEES, MAX_NUM_POSITIONS_FEE_COLLECTION } from "../constants";
 import { CollectFeesParamData } from '../types';
-import { MethodContext } from "lisk-framework/dist-node/state_machine/method_context";
 
 export class CollectFeesCommand extends BaseCommand {
     public id = COMMAND_ID_COLLECT_FEES;
     public schema = collectFeesSchema;
     
     private _tokenMethod!: TokenMethod;
-    private _methodContext!:MethodContext;
+   
 
     public init({
-        tokenMethod, methodContext }): void {
+        tokenMethod }): void {
         this._tokenMethod = tokenMethod;
-        this._methodContext = methodContext;
     }
 
     public async verify(ctx: CommandVerifyContext<CollectFeesParamData>): Promise<VerificationResult> {
@@ -68,10 +66,11 @@ export class CollectFeesCommand extends BaseCommand {
             positions
         } = ctx.params;
 
+        const methodContext = ctx.getMethodContext();
 
         for (var positionID of positions) {
-            await checkPositionExistenceAndOwnership(this.stores, this.events, this._methodContext, senderAddress, positionID);
-            await collectFeesAndIncentives(this.events, this.stores, this._tokenMethod, this._methodContext, positionID);
+            await checkPositionExistenceAndOwnership(this.stores, this.events, methodContext, senderAddress, positionID);
+            await collectFeesAndIncentives(this.events, this.stores, this._tokenMethod, methodContext, positionID);
         }
     }
 }
