@@ -1,8 +1,24 @@
-import { utils } from '@liskhq/lisk-cryptography';
-import { codec } from 'lisk-sdk';
+/*
+ * Copyright © 2022 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+import { codec, cryptography } from 'lisk-sdk';
+
 import { MIN_TICK, MAX_TICK } from '../../../../../src/app/modules/dex/constants';
 import { createPoolSchema } from '../../../../../src/app/modules/dex/schemas';
 import { Fixtures } from './types';
+
+const { utils } = cryptography;
 
 const senderPublicKey = Buffer.from('0000000000000000', 'hex');
 const signature = utils.getRandomBytes(64);

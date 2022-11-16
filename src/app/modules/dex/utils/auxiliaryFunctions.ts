@@ -16,9 +16,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MethodContext, TokenMethod } from 'lisk-sdk';
-
-import { utils } from '@liskhq/lisk-cryptography';
+import { MethodContext, TokenMethod, cryptography } from 'lisk-sdk';
 
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 
@@ -70,6 +68,8 @@ import {
 import { getAmount0Delta, getAmount1Delta, priceToTick, tickToPrice } from './math';
 import { FeesIncentivesCollectedEvent, PositionUpdateFailedEvent } from '../events';
 import { tickToBytes } from '../stores/priceTicksStore';
+
+const { utils } = cryptography;
 
 const abs = (x: bigint) => (x < BigInt(0) ? -x : x);
 
