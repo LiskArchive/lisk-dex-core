@@ -155,7 +155,7 @@ export const transferToProtocolFeeAccount = async (
 	tokenId: TokenID,
 	amount: bigint,
 ): Promise<void> => {
-	const { protocolFeeAddress } = await settings.get(methodContext, Buffer.from([]));
+	const { protocolFeeAddress } = await settings.get(methodContext, Buffer.alloc(0));
 	await tokenMethod.transfer(methodContext, senderAddress, protocolFeeAddress, tokenId, amount);
 };
 
@@ -595,7 +595,7 @@ export const getOwnerAddressOfPositionWithMethodContext = async (
 
 
 export const getPoolIDFromPositionID = (positionID: PositionID): Buffer =>
-	positionID.slice(-NUM_BYTES_POOL_ID);
+	positionID.slice(-NUM_BYTES_POOL_ID, 14);
 
 export const updatePosition = async (
 	methodContext: MethodContext,
@@ -612,13 +612,22 @@ export const updatePosition = async (
 	let amount0: bigint;
 	let amount1: bigint;
 	if (-liquidityDelta > positionInfo.liquidity) {
-		const senderAddress = await getOwnerAddressOfPosition(positionsStore, positionID);
-
-		events.get(PositionUpdateFailedEvent).add(methodContext, {
-			senderAddress,
+		const senderAddress = await getOwnerAddressOfPosition(
+			methodContext,
+			positionsStore,
 			positionID,
-			result: POSITION_UPDATE_FAILED_INSUFFICIENT_LIQUIDITY,
-		});
+		);
+
+		events.get(PositionUpdateFailedEvent).add(
+			methodContext,
+			{
+				senderAddress,
+				positionID,
+				result: POSITION_UPDATE_FAILED_INSUFFICIENT_LIQUIDITY,
+			},
+			[senderAddress, positionID],
+			true,
+		);
 		throw new Error();
 	}
 
@@ -634,11 +643,11 @@ export const updatePosition = async (
 	const poolInfo = await poolsStore.get(methodContext, poolID);
 	const lowerTickInfo = await priceTicksStore.getKey(methodContext, [
 		poolID,
-		q96ToBytes(tickToPrice(positionInfo.tickLower)),
+		tickToBytes(positionInfo.tickLower),
 	]);
 	const upperTickInfo = await priceTicksStore.getKey(methodContext, [
 		poolID,
-		q96ToBytes(tickToPrice(positionInfo.tickUpper)),
+		tickToBytes(positionInfo.tickUpper),
 	]);
 	const sqrtPriceLow = tickToPrice(positionInfo.tickLower);
 	const sqrtPriceUp = tickToPrice(positionInfo.tickUpper);
@@ -657,7 +666,7 @@ export const updatePosition = async (
 		amount1 = getAmount1Delta(sqrtPriceLow, sqrtPriceUp, abs(liquidityDelta), roundUp);
 	}
 
-	const ownerAddress = await getOwnerAddressOfPosition(positionsStore, positionID);
+	const ownerAddress = await getOwnerAddressOfPosition(methodContext, positionsStore, positionID);
 	if (liquidityDelta > 0) {
 		await transferToPool(
 			tokenMethod,
@@ -711,40 +720,34 @@ export const updatePosition = async (
 	lowerTickInfo.liquidityGross += liquidityDelta;
 	upperTickInfo.liquidityGross += liquidityDelta;
 
-	if (sqrtPriceLow <= poolInfo.sqrtPrice && poolInfo.sqrtPrice < sqrtPriceUp) {
-		poolInfo.liquidity += liquidityDelta
-		poolsStore.set(poolID, poolInfo)
-	}
-
-	positionInfo.liquidity += liquidityDelta
-	if (positionInfo.liquidity == 0) {
-		positionsStore.delete(positionID)
+	if (lowerTickInfo.liquidityGross === BigInt(0)) {
+		await priceTicksStore.delKey(methodContext, [
+			poolID,
+			q96ToBytes(tickToPrice(positionInfo.tickLower)),
+		]);
 	} else {
-		positionsStore.set(positionID, positionInfo)
+		await priceTicksStore.setKey(
+			methodContext,
+			[poolID, q96ToBytes(tickToPrice(positionInfo.tickLower))],
+			lowerTickInfo,
+		);
 	}
 
-	lowerTickInfo.liquidityNet += liquidityDelta
-	upperTickInfo.liquidityNet -= liquidityDelta
-	lowerTickInfo.liquidityGross += liquidityDelta
-	upperTickInfo.liquidityGross += liquidityDelta
-
-	if (lowerTickInfo.liquidityGross == 0) {
-		priceTicksStore.delete(poolID, positionInfo.tickLower)
+	if (upperTickInfo.liquidityGross === BigInt(0)) {
+		await priceTicksStore.delKey(methodContext, [
+			poolID,
+			q96ToBytes(tickToPrice(positionInfo.tickUpper)),
+		]);
 	} else {
-		priceTicksStore.set(poolID, positionInfo.tickLower, lowerTickInfo)
+		await priceTicksStore.setKey(
+			methodContext,
+			[poolID, q96ToBytes(tickToPrice(positionInfo.tickUpper))],
+			upperTickInfo,
+		);
 	}
 
-	if (upperTickInfo.liquidityGross == 0) {
-		priceTicksStore.delete(poolID, positionInfo.tickUpper)
-	} else {
-		priceTicksStore.set(poolID, positionInfo.tickUpper, upperTickInfo)
-	}
-
-	return [amount0, amount1]
-}
-
-
-
+	return [amount0, amount1];
+};
 
 // Convert a hex string to a byte array
 export const hexToBytes = (hex) => {
