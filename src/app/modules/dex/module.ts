@@ -24,6 +24,7 @@ import { ModuleConfig, ModuleInitArgs } from './types';
 
 import {
 	AmountBelowMinEvent,
+	FeesIncentivesCollectedEvent,
 	PoolCreatedEvent,
 	PoolCreationFailedEvent,
 	PositionCreatedEvent,
@@ -60,6 +61,7 @@ export class DexModule extends BaseModule {
 		this.events.register(PositionCreatedEvent, new PositionCreatedEvent(this.name));
 		this.events.register(PositionCreationFailedEvent, new PositionCreationFailedEvent(this.name));
 		this.events.register(AmountBelowMinEvent, new AmountBelowMinEvent(this.name));
+		this.events.register(FeesIncentivesCollectedEvent, new FeesIncentivesCollectedEvent(this.name));
 	}
 
 	public metadata(): ModuleMetadata {

@@ -158,7 +158,7 @@ export const transferToProtocolFeeAccount = async (
 	tokenId: TokenID,
 	amount: bigint,
 ): Promise<void> => {
-	const { protocolFeeAddress } = await settings.get(methodContext, Buffer.from([]));
+	const { protocolFeeAddress } = await settings.get(methodContext, Buffer.alloc(0));
 	await tokenMethod.transfer(methodContext, senderAddress, protocolFeeAddress, tokenId, amount);
 };
 
@@ -262,9 +262,9 @@ export const collectFeesAndIncentives = async (
 		TOKEN_ID_REWARDS,
 		incentivesForPosition,
 	);
-	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
+	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.alloc(0));
 	dexGlobalStoreData.collectableLSKFees -= collectableFeesLSK;
-	await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData);
+	await dexGlobalStore.set(methodContext, Buffer.alloc(0), dexGlobalStoreData);
 
 	events.get(FeesIncentivesCollectedEvent).log(methodContext, {
 		senderAddress: ownerAddress,
@@ -577,7 +577,7 @@ export const getNewPositionID = (dexGlobalStoreData, poolID: PoolID): Buffer => 
 	const positionIndex = dexGlobalStoreData.positionCounter;
 	// eslint-disable-next-line no-param-reassign
 	dexGlobalStoreData.positionCounter += 1;
-	return Buffer.concat([poolID, Buffer.from(positionIndex)]);
+	return Buffer.concat([poolID, Buffer.from([positionIndex])]);
 };
 
 export const getOwnerAddressOfPosition = async (
@@ -591,7 +591,7 @@ export const getOwnerAddressOfPosition = async (
 };
 
 export const getPoolIDFromPositionID = (positionID: PositionID): Buffer =>
-	positionID.slice(-NUM_BYTES_POOL_ID);
+	positionID.slice(-NUM_BYTES_POOL_ID, 14);
 
 export const updatePosition = async (
 	methodContext: MethodContext,
@@ -639,11 +639,11 @@ export const updatePosition = async (
 	const poolInfo = await poolsStore.get(methodContext, poolID);
 	const lowerTickInfo = await priceTicksStore.getKey(methodContext, [
 		poolID,
-		q96ToBytes(tickToPrice(positionInfo.tickLower)),
+		tickToBytes(positionInfo.tickLower),
 	]);
 	const upperTickInfo = await priceTicksStore.getKey(methodContext, [
 		poolID,
-		q96ToBytes(tickToPrice(positionInfo.tickUpper)),
+		tickToBytes(positionInfo.tickUpper),
 	]);
 	const sqrtPriceLow = tickToPrice(positionInfo.tickLower);
 	const sqrtPriceUp = tickToPrice(positionInfo.tickUpper);
