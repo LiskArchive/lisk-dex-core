@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -15,62 +12,38 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	BaseModule,
-	ModuleMetadata,
-	utils,
-	TokenMethod,
-	ValidatorsMethod
-} from 'lisk-sdk';
+import { BaseModule, ModuleMetadata, utils, TokenMethod, ValidatorsMethod } from 'lisk-sdk';
 
-import {
-	MODULE_ID_DEX,
-	defaultConfig
-} from './constants';
+import { MODULE_ID_DEX, defaultConfig } from './constants';
 
-import {
-	DexEndpoint
-} from './endpoint';
-import {
-	ModuleConfig,
-	ModuleInitArgs
-} from './types';
+import { DexEndpoint } from './endpoint';
+import { ModuleConfig, ModuleInitArgs } from './types';
 
 import {
 	AmountBelowMinEvent,
+	FeesIncentivesCollectedEvent,
 	PoolCreatedEvent,
-	PoolCreationFailedEvent
+	PoolCreationFailedEvent,
+	PositionCreatedEvent,
+	PositionCreationFailedEvent,
 } from './events';
 
-import {
-	CreatePoolCommand
-} from './commands/createPool';
-import {
-	PoolsStore,
-	PositionsStore,
-	PriceTicksStore,
-	SettingsStore
-} from './stores';
-import {
-	DexMethod
-} from './method';
-import {
-	DexGlobalStore
-} from './stores/dexGlobalStore';
-import {
-	CreatePositionCommand
-} from './commands/createPosition';
+import { CreatePoolCommand } from './commands/createPool';
+import { PoolsStore, PositionsStore, PriceTicksStore, SettingsStore } from './stores';
+import { DexMethod } from './method';
+import { DexGlobalStore } from './stores/dexGlobalStore';
+import { CreatePositionCommand } from './commands/createPosition';
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
 	public endpoint = new DexEndpoint(this.stores, this.offchainStores);
 	public method = new DexMethod(this.stores, this.events);
-	public _tokenMethod = new TokenMethod(this.stores, this.events, this.name);
-	public _validatorsMethod = new ValidatorsMethod(this.stores, this.events);
+	public _tokenMethod!: TokenMethod;
+	public _validatorsMethod!: ValidatorsMethod;
 	public _moduleConfig!: ModuleConfig;
 
-	private readonly _createPoolCommand = new CreatePoolCommand(this.stores, this.events)
-	private readonly _createPositionCommand = new CreatePositionCommand(this.stores, this.events)
+	private readonly _createPoolCommand = new CreatePoolCommand(this.stores, this.events);
+	private readonly _createPositionCommand = new CreatePositionCommand(this.stores, this.events);
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public commands = [this._createPoolCommand, this._createPositionCommand];
@@ -84,7 +57,10 @@ export class DexModule extends BaseModule {
 		this.stores.register(SettingsStore, new SettingsStore(this.name));
 		this.events.register(PoolCreatedEvent, new PoolCreatedEvent(this.name));
 		this.events.register(PoolCreationFailedEvent, new PoolCreationFailedEvent(this.name));
+		this.events.register(PositionCreatedEvent, new PositionCreatedEvent(this.name));
+		this.events.register(PositionCreationFailedEvent, new PositionCreationFailedEvent(this.name));
 		this.events.register(AmountBelowMinEvent, new AmountBelowMinEvent(this.name));
+		this.events.register(FeesIncentivesCollectedEvent, new FeesIncentivesCollectedEvent(this.name));
 	}
 
 	public metadata(): ModuleMetadata {
@@ -93,6 +69,7 @@ export class DexModule extends BaseModule {
 			endpoints: [],
 			commands: this.commands.map(command => ({
 				name: command.name,
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				params: command.schema,
 			})),
 			events: this.events.values().map(v => ({
@@ -103,19 +80,22 @@ export class DexModule extends BaseModule {
 		};
 	}
 
+	public addDependencies(tokenMethod: TokenMethod, validatorsMethod: ValidatorsMethod) {
+		this._tokenMethod = tokenMethod;
+		this._validatorsMethod = validatorsMethod;
+	}
+
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs) {
-		const {
-			moduleConfig
-		} = args;
+		const { moduleConfig } = args;
 		this._moduleConfig = utils.objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfig;
 
 		this._createPoolCommand.init({
 			moduleConfig: this._moduleConfig,
-			tokenMethod: this._tokenMethod
+			tokenMethod: this._tokenMethod,
 		});
 		this._createPositionCommand.init({
-			tokenMethod: this._tokenMethod
+			tokenMethod: this._tokenMethod,
 		});
 	}
 }

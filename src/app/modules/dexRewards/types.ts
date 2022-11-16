@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseMethod } from 'lisk-sdk';
+export type Address = Buffer;
 
-export class DexMethod extends BaseMethod {}
+export interface ModuleInitArgs {
+	moduleConfig: Record<string, unknown>;
+}

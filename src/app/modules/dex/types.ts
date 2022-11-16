@@ -12,12 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	JSONObject
-} from 'lisk-sdk';
-import {
-	DexAPI
-} from './api';
+import { JSONObject } from 'lisk-sdk';
 
 export interface FeeTiers {
 	[id: number]: number;
@@ -62,15 +57,17 @@ export interface CreatePositionParamsData {
 export type TokenIDReclaim = Buffer;
 
 export interface ModuleConfig {
-	feeTiers: {
-		number: number;
-	};
+	feeTiers: [
+		{
+			feeTier: number;
+		},
+	];
 }
 
-export type ModuleConfigJSON = JSONObject < ModuleConfig > ;
+export type ModuleConfigJSON = JSONObject<ModuleConfig>;
 
 export interface ModuleInitArgs {
-	moduleConfig: Record < string, unknown > ;
+	moduleConfig: Record<string, unknown>;
 }
 
 export type SqrtPrice = Q96;
