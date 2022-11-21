@@ -12,19 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseModule, } from 'lisk-sdk';
+import { BaseModule } from 'lisk-sdk';
 
 import { DexModule } from '../../../../src/app/modules/dex/module';
-import { DexAPI } from '../../../../src/app/modules/dex/api';
 import { DexEndpoint } from '../../../../src/app/modules/dex/endpoint';
 
 import {
 	MODULE_NAME_DEX,
 	MODULE_ID_DEX,
-	defaultConfig
+	defaultConfig,
 } from '../../../../src/app/modules/dex/constants';
 
-import {  } from '../../../../src/app/modules/dex/schemas';
+import { DexMethod } from '../../../../src/app/modules/dex/method';
+import { createGenesisBlockContext } from '../../../../node_modules/lisk-framework/dist-node/testing';
 
 describe('DexModule', () => {
 	let dexModule: DexModule;
@@ -52,8 +52,8 @@ describe('DexModule', () => {
 		});
 
 		it('should expose api', () => {
-			expect(dexModule).toHaveProperty('api');
-			expect(dexModule.api).toBeInstanceOf(DexAPI);
+			expect(dexModule).toHaveProperty('method');
+			expect(dexModule.method).toBeInstanceOf(DexMethod);
 		});
 	});
 
@@ -66,15 +66,22 @@ describe('DexModule', () => {
 			expect(dexModule['_moduleConfig']).toEqual(moduleConfig);
 		});
 		it('should initialize fee tiers', async () => {
-			await expect(dexModule.init({moduleConfig: defaultConfig})).resolves.toBeUndefined();
+			await expect(dexModule.init({ moduleConfig: defaultConfig })).resolves.toBeUndefined();
 
-            const defaultFeeTiers = {}
-            defaultFeeTiers[100] = 2;
-            defaultFeeTiers[500] = 10;
-            defaultFeeTiers[3000] = 60;
-            defaultFeeTiers[10000] = 200;
+			const defaultFeeTiers = {};
+			defaultFeeTiers[100] = 2;
+			defaultFeeTiers[500] = 10;
+			defaultFeeTiers[3000] = 60;
+			defaultFeeTiers[10000] = 200;
 
 			expect(dexModule['_moduleConfig']['feeTiers']).toEqual(defaultFeeTiers);
+		});
+	});
+
+	describe('initGenesisState', () => {
+		it('should setup initial state', async () => {
+			const context = createGenesisBlockContext({}).createInitGenesisStateContext();
+			return expect(dexModule.initGenesisState?.(context)).toBeUndefined();
 		});
 	});
 });

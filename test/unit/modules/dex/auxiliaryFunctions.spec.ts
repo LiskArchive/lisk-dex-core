@@ -2,18 +2,16 @@ import {
 	getToken0Id,
 	getToken1Id,
 	getFeeTier,
-	hexToBytes
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
-import {
-	PoolID, TokenID
-} from '../../../../src/app/modules/dex/types';
+import { PoolID, TokenID } from '../../../../src/app/modules/dex/types';
+import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 
 describe('dex:auxiliaryFunctions', () => {
 	describe('constructor', () => {
-		const poolId: PoolID = Buffer.from(hexToBytes('0x00000000000000000000000100000000000000c8'));
-		const token0Id: TokenID = Buffer.from(hexToBytes('0x0000000000000000'));
-		const token1Id: TokenID = Buffer.from(hexToBytes('0x0000000100000000'));
+		const poolId: PoolID = Buffer.from('00000000000000000000000100000000000000c8', 'hex');
+		const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
+		const token1Id: TokenID = Buffer.from('0000000100000000', 'hex');
 		it('getToken0Id', async () => {
 			expect(getToken0Id(poolId)).toEqual(token0Id);
 		});
@@ -21,7 +19,10 @@ describe('dex:auxiliaryFunctions', () => {
 			expect(getToken1Id(poolId)).toEqual(token1Id);
 		});
 		it('getFeeTier', async () => {
-			expect(getFeeTier(poolId)).toEqual(Number('0x000000c8'));
+			expect(getFeeTier(poolId)).toEqual(Buffer.from('000000c8', 'hex').readUInt32BE(0));
+		});
+		it('priceToTick', async () => {
+			expect(priceToTick(tickToPrice(-735247))).toEqual(-735247);
 		});
 	});
 });

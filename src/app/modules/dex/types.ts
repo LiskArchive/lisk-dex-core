@@ -24,19 +24,33 @@ export type PoolID = Buffer;
 export type PositionID = Buffer;
 export type Address = Buffer;
 
-export interface LegacyStoreData {
+export interface DexStoreData {
 	legacyAddress: string;
 	balance: bigint;
 }
 
-export interface ReclaimParamsData {
-	amount: bigint;
+export interface CreatePoolParamsData {
+	tokenID0: Buffer;
+	tokenID1: Buffer;
+	feeTier: number;
+	tickInitialPrice: number;
+	initialPosition: {
+		tickLower: number;
+		tickUpper: number;
+		amount0Desired: bigint;
+		amount1Desired: bigint;
+	};
+	maxTimestampValid: bigint;
 }
 
 export type TokenIDReclaim = Buffer;
 
 export interface ModuleConfig {
-	protocolFeeAddress: Address;
+	feeTiers: [
+		{
+			feeTier: number;
+		},
+	];
 }
 
 export type ModuleConfigJSON = JSONObject<ModuleConfig>;
@@ -44,3 +58,5 @@ export type ModuleConfigJSON = JSONObject<ModuleConfig>;
 export interface ModuleInitArgs {
 	moduleConfig: Record<string, unknown>;
 }
+
+export type SqrtPrice = Q96;

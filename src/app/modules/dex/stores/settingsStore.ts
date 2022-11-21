@@ -11,67 +11,63 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import {
-    BaseStore
-} from 'lisk-sdk';
-import {
-    NUM_BYTES_ADDRESS
-} from '../constants';
+import { BaseStore } from 'lisk-sdk';
+import { NUM_BYTES_ADDRESS } from '../constants';
 
 export interface SettingsStoreData {
-    protocolFeeAddress: Buffer;
-    protocolFeePart: number;
-    validatorsLSKRewardsPart: number;
-    poolCreationSettings: {
-        feeTier: number;
-        tickSpacing: number;
-    };
+	protocolFeeAddress: Buffer;
+	protocolFeePart: number;
+	validatorsLSKRewardsPart: number;
+	poolCreationSettings: {
+		feeTier: number;
+		tickSpacing: number;
+	};
 }
 
 export const settingsStoreSchema = {
-    $id: '/dex/store/settings',
-    "type": "object",
-    "required": [
-        "protocolFeeAddress",
-        "protocolFeePart",
-        "validatorsLSKRewardsPart",
-        "poolCreationSettings"
-    ],
-    "properties": {
-        "protocolFeeAddress": {
-            "dataType": "bytes",
-            "length": NUM_BYTES_ADDRESS,
-            "fieldNumber": 1
-        },
-        "protocolFeePart": {
-            "dataType": "uint32",
-            "fieldNumber": 2
-        },
-        "validatorsLSKRewardsPart": {
-            "dataType": "uint32",
-            "fieldNumber": 3
-        },
-        "poolCreationSettings": {
-            "type": "array",
-            "fieldNumber": 4,
-            "items": {
-                "type": "object",
-                "required": ["feeTier", "tickSpacing"],
-                "properties": {
-                    "feeTier": {
-                        "dataType": "uint32",
-                        "fieldNumber": 1
-                    },
-                    "tickSpacing": {
-                        "dataType": "uint32",
-                        "fieldNumber": 2
-                    }
-                }
-            }
-        }
-    }
+	$id: '/dex/store/settings',
+	type: 'object',
+	required: [
+		'protocolFeeAddress',
+		'protocolFeePart',
+		'validatorsLSKRewardsPart',
+		'poolCreationSettings',
+	],
+	properties: {
+		protocolFeeAddress: {
+			dataType: 'bytes',
+			maxLength: NUM_BYTES_ADDRESS,
+			fieldNumber: 1,
+		},
+		protocolFeePart: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+		validatorsLSKRewardsPart: {
+			dataType: 'uint32',
+			fieldNumber: 3,
+		},
+		poolCreationSettings: {
+			type: 'array',
+			fieldNumber: 4,
+			items: {
+				type: 'object',
+				required: ['feeTier', 'tickSpacing'],
+				properties: {
+					feeTier: {
+						dataType: 'uint32',
+						fieldNumber: 1,
+					},
+					tickSpacing: {
+						dataType: 'uint32',
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+	},
 };
 
-export class SettingsStore extends BaseStore < SettingsStoreData > {
-    public schema = settingsStoreSchema;
+export class SettingsStore extends BaseStore<SettingsStoreData> {
+	public schema = settingsStoreSchema;
 }

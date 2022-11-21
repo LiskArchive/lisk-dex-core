@@ -11,11 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { ModuleConfig, ModuleConfigJSON } from './types';
 
-export function getModuleConfig(config: ModuleConfigJSON): ModuleConfig {
-	return {
-		...config,
-		tokenIDReclaim: Buffer.from(config.tokenIDReclaim, 'hex'),
-	};
-}
+import { BaseMethod } from 'lisk-sdk';
+
+export class DexMethod extends BaseMethod {}

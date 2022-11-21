@@ -82,6 +82,7 @@ describe('DexRewardsModule', () => {
 	});
 
 	describe('initGenesisState', () => {
+		// eslint-disable-next-line @typescript-eslint/require-await
 		it('should setup initial state', async () => {
 			const context = createGenesisBlockContext({}).createInitGenesisStateContext();
 			return expect(dexRewardsModule.initGenesisState?.(context)).toBeUndefined();
