@@ -225,14 +225,14 @@ describe('dex:command:collectFees', () => {
 		})
 
 
-		describe('execute', () => {
+		describe('stress test for checking the event emissiona and the time taken', () => {
 
 			(async () => {
 				await test();
 			})();
 
 			async function test() {
-				const testarray = Array.from({ length: 20 }, () => Math.floor(Math.random() * 1));
+				const testarray = Array.from({ length: 20000 });
 				await Promise.all(
 					testarray.map(async () => {
 						await stress();
