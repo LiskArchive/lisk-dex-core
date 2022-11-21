@@ -392,16 +392,16 @@ describe('dex:command:removeLiquidity', () => {
 		});
 	})
 
-	describe('execute', () => {
-		
+	describe('stress test for checking the events', () => {
+
 		(async () => {
 
 			await test();
-			
+
 		})();
 
-		async function test(){
-			const testarray = Array.from({ length: 20 }, () => Math.floor(Math.random() * 1));
+		async function test() {
+			const testarray = Array.from({ length: 20000 });
 			await Promise.all(
 				testarray.map(async () => {
 					await stress();
@@ -409,13 +409,13 @@ describe('dex:command:removeLiquidity', () => {
 			)
 		}
 
-		async function stress (){
+		async function stress() {
 			const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
-	
+
 			const blockAfterExecuteContext = createBlockContext({
 				header: blockHeader,
 			}).getBlockAfterExecuteContext();
-	
+
 			var stressTestMethodContext = createMethodContext({
 				stateStore,
 				eventQueue: blockAfterExecuteContext.eventQueue,
@@ -469,7 +469,7 @@ describe('dex:command:removeLiquidity', () => {
 					})
 				).resolves.toBeUndefined();
 			});
-		}	
+		}
 
 	});
 });
