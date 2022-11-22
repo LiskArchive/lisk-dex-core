@@ -119,6 +119,7 @@ export const q96ToBytes = (numberQ96: Q96): Buffer => {
 	if (numberQ96 === BigInt(0)) return Buffer.from([]);
 
 	const _hex: string = numberQ96.toString(16);
+
 	let _byteArr = 0;
 
 	for (let c = 0; c < _hex.length; c += 2) {

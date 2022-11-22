@@ -51,6 +51,7 @@ export interface RemoveLiquidityParamsData {
 	maxTimestampValid: bigint;
 }
 
+
 export interface CollectFeesParamData {
 	positions: Buffer[];
 }
