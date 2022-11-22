@@ -228,69 +228,6 @@ describe('dex:command:collectFees', () => {
 		})
 
 
-		describe('stress test for checking the event emission and the time taken', () => {
 
-			(async () => {
-				await test();
-			})();
-
-			async function test() {
-				const testarray = Array.from({ length: 20000 });
-				await Promise.all(
-					testarray.map(async () => {
-						await stress();
-					})
-				)
-			}
-
-			async function stress() {
-				const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
-				const blockAfterExecuteContext = createBlockContext({
-					header: blockHeader,
-				}).getBlockAfterExecuteContext();
-
-				var stressTestMethodContext = createMethodContext({
-					stateStore,
-					eventQueue: blockAfterExecuteContext.eventQueue,
-				});
-				it('should collect fees stress tests', async () => {
-					await expect(
-						command.execute({
-							chainID: utils.getRandomBytes(32),
-							params: {
-								positions: [positionId],
-							},
-							logger: loggerMock,
-							header: blockHeader,
-							eventQueue: blockAfterExecuteContext.eventQueue,
-							getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-							getMethodContext: () => stressTestMethodContext,
-							assets: { getAsset: jest.fn() },
-							currentValidators: [],
-							impliesMaxPrevote: false,
-							maxHeightCertified: Number(10),
-							certificateThreshold: BigInt(2),
-							transaction: new Transaction({
-								module: 'dex',
-								command: 'collectFees',
-								fee: BigInt(5000000),
-								nonce: BigInt(0),
-								senderPublicKey: senderAddress,
-								params: codec.encode(collectFeesSchema, {
-									positions: [positionId],
-								}),
-								signatures: [utils.getRandomBytes(64)],
-							}),
-						})
-					).resolves.toBeUndefined();
-					expect(tokenMethod.transfer).toBeCalledTimes(1);
-					const events = blockAfterExecuteContext.eventQueue.getEvents();
-					const validatorFeesIncentivesCollectedEvent = events.filter(
-						e => e.toObject().name === 'feesIncentivesCollectedEvent'
-					);
-					expect(validatorFeesIncentivesCollectedEvent).toHaveLength(1);
-				});
-			}
-		})
 	})
 });
