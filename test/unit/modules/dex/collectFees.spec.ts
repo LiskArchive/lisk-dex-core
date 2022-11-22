@@ -66,7 +66,7 @@ describe('dex:command:collectFees', () => {
 
 		const poolsStoreData: PoolsStoreData = {
 			liquidity: BigInt(5),
-			sqrtPrice: q96ToBytes(BigInt(1)),
+			sqrtPrice: q96ToBytes(BigInt('327099227039063106')),
 			feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
 			feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(6))),
 			tickSpacing: 1
@@ -109,7 +109,10 @@ describe('dex:command:collectFees', () => {
 			dexGlobalStore = dexModule.stores.get(DexGlobalStore);
 			positionsStore = dexModule.stores.get(PositionsStore);
 
-			await dexGlobalStore.set(methodContext, positionId, dexGlobalStoreData)
+			await dexGlobalStore.set(methodContext, positionId, dexGlobalStoreData);
+			await dexGlobalStore.set(methodContext, Buffer.alloc(0), dexGlobalStoreData);
+			await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData);
+			
 			await poolsStore.setKey(methodContext, [senderAddress, getPoolIDFromPositionID(positionId)], poolsStoreData);
 			await poolsStore.set(methodContext, getPoolIDFromPositionID(positionId), poolsStoreData);
 			await priceTicksStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), tickToBytes(positionsStoreData.tickLower)], priceTicksStoreDataTickLower)
@@ -214,7 +217,7 @@ describe('dex:command:collectFees', () => {
 						}),
 					})
 				).resolves.toBeUndefined();
-				expect(tokenMethod.transfer).toBeCalledTimes(3);
+				expect(tokenMethod.transfer).toBeCalledTimes(1);
 				const events = blockAfterExecuteContext.eventQueue.getEvents();
 				const validatorFeesIncentivesCollectedEvent = events.filter(
 					e => e.toObject().name === 'feesIncentivesCollectedEvent'
@@ -225,7 +228,7 @@ describe('dex:command:collectFees', () => {
 		})
 
 
-		describe('stress test for checking the event emissiona and the time taken', () => {
+		describe('stress test for checking the event emission and the time taken', () => {
 
 			(async () => {
 				await test();
@@ -280,7 +283,7 @@ describe('dex:command:collectFees', () => {
 							}),
 						})
 					).resolves.toBeUndefined();
-					expect(tokenMethod.transfer).toBeCalledTimes(3);
+					expect(tokenMethod.transfer).toBeCalledTimes(1);
 					const events = blockAfterExecuteContext.eventQueue.getEvents();
 					const validatorFeesIncentivesCollectedEvent = events.filter(
 						e => e.toObject().name === 'feesIncentivesCollectedEvent'

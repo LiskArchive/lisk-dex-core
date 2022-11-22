@@ -26,7 +26,7 @@ export const numberToQ96 = (r: bigint): Q96 => {
 	return num;
 };
 
-export const roundDownQ96 = (a: Q96): bigint => a >> BigInt(0);
+export const roundDownQ96 = (a: Q96): bigint => a >> N_96;
 
 export const roundUpQ96 = (a: Q96): bigint => {
 	const _x = ONE << N_96;
@@ -107,6 +107,8 @@ export const bytesToQ96 = (numberBytes: Buffer): Q96 => {
 		hexArr.push((current & 0xf).toString(16));
 	}
 
+	if (hexArr.length === 0) return BigInt(0);
+
 	const hexBi = hexArr.join('');
 
 	// return big-endian decoding of bytes
@@ -114,6 +116,8 @@ export const bytesToQ96 = (numberBytes: Buffer): Q96 => {
 };
 
 export const q96ToBytes = (numberQ96: Q96): Buffer => {
+	if (numberQ96 === BigInt(0)) return Buffer.from([]);
+
 	const _hex: string = numberQ96.toString(16);
 	const _byteArr: number[] = [];
 

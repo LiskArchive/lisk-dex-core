@@ -5,6 +5,7 @@ import {
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { PoolID, TokenID } from '../../../../src/app/modules/dex/types';
+import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 
 describe('dex:auxiliaryFunctions', () => {
 	describe('constructor', () => {
@@ -19,6 +20,9 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 		it('getFeeTier', async () => {
 			expect(getFeeTier(poolId)).toEqual(Buffer.from('000000c8', 'hex').readUInt32BE(0));
+		});
+		it('priceToTick', async () => {
+			expect(priceToTick(tickToPrice(-735247))).toEqual(-735247);
 		});
 	});
 });

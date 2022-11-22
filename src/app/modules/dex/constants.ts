@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { numberToQ96 } from './utils/q96';
 import { Q96 } from './types';
 
 export const NUM_BYTES_ADDRESS = 20; // The number of bytes of an address (uint32)
@@ -61,11 +60,28 @@ export const MAX_TICK = 887272; // The maximum possible tick value as a sint32.
 export const LOG_MAX_TICK = 19;
 export const MIN_SQRT_RATIO = BigInt(4295128738); // Todo: check with devs	The minimum possible price value in the Q96 representation.
 export const MAX_SQRT_RATIO = BigInt('1461446703529909599612049957420313862569572983184'); // Todo: check with devs	The maximum possible price value in the Q96 representation.
-export const PRICE_VALUE_FOR_BIT_POSITION_IN_Q96: Q96[] = []; // TBA	Array of uint256 values with the pre-computed values of price for certain values of tickValue in the Q96 representation.
-for (let i = 0; i < LOG_MAX_TICK; i += 1) {
-	const eachPriceValue = BigInt(Math.floor(1.0001 ** ((-2) ** i / 2)));
-	PRICE_VALUE_FOR_BIT_POSITION_IN_Q96.push(numberToQ96(eachPriceValue));
-}
+export const PRICE_VALUE_FOR_BIT_POSITION_IN_Q96: Q96[] = [
+	BigInt('79224201403219477170569942573'),
+	BigInt('79220240490215316061937756560'),
+	BigInt('79212319258289487113226433916'),
+	BigInt('79196479170490597288862688490'),
+	BigInt('79164808496886665658930780291'),
+	BigInt('79101505139923049997807806614'),
+	BigInt('78975050245229982702767995059'),
+	BigInt('78722746600537056721934508529'),
+	BigInt('78220554859095770638340573243'),
+	BigInt('77225761753129597550065289036'),
+	BigInt('75273969370139069689486932537'),
+	BigInt('71517125791179246722882903167'),
+	BigInt('64556580881331167221767657719'),
+	BigInt('52601903197458624361810746399'),
+	BigInt('34923947901690145425342545398'),
+	BigInt('15394552875315951095595078917'),
+	BigInt('2991262837734375505310244436'),
+	BigInt('112935262922445818024280873'),
+	BigInt('160982827401375763736068'),
+	BigInt('327099227039063106'),
+]; // Array of uint256 values with the pre-computed values of price for certain values of tickValue in the Q96 representation.
 
 export const POOL_CREATION_SUCCESS = 0; // Return code for successful pool creation.           |
 export const POOL_CREATION_FAILED_INVALID_FEE_TIER = 1; // Return code for failed pool creation due to an invalid fee tier in the pool creation. |

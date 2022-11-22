@@ -38,7 +38,7 @@ import { PositionCreationFailedEvent } from '../events/positionCreationFailed';
 
 import { createPoolSchema } from '../schemas';
 import { PoolsStore, SettingsStore } from '../stores';
-import { CreatePoolParamsData, ModuleConfig, PoolID, TokenID } from '../types';
+import { CreatePoolParamsData, ModuleConfig, TokenID } from '../types';
 import {
 	createPool,
 	createPosition,
@@ -48,9 +48,11 @@ import {
 } from '../utils/auxiliaryFunctions';
 import { tickToPrice } from '../utils/math';
 
-const computePoolID = (tokenID0: TokenID, tokenID1: TokenID, feeTier: Buffer): PoolID =>
-	Buffer.concat([tokenID0, tokenID1, feeTier]);
-
+export const computePoolID = (tokenID0: TokenID, tokenID1: TokenID, feeTier: number): Buffer => {
+	const feeTierBuffer = Buffer.alloc(4);
+	feeTierBuffer.writeInt8(feeTier, 0);
+	return Buffer.concat([tokenID0, tokenID1, feeTierBuffer]);
+};
 export class CreatePoolCommand extends BaseCommand {
 	public schema = createPoolSchema;
 	private _moduleConfig!: ModuleConfig;
@@ -111,7 +113,7 @@ export class CreatePoolCommand extends BaseCommand {
             raise Exception()        
         */
 
-		const poolId = computePoolID(tokenID0, tokenID1, Buffer.from([feeTier]));
+		const poolId = computePoolID(tokenID0, tokenID1, feeTier);
 		const poolStore = this.stores.get(PoolsStore);
 		const doesPoolAlreadyExist = await poolStore.has(ctx.getMethodContext(), poolId);
 
@@ -130,7 +132,7 @@ export class CreatePoolCommand extends BaseCommand {
 	public async execute(ctx: CommandExecuteContext<CreatePoolParamsData>): Promise<void> {
 		const { senderAddress } = ctx.transaction;
 		const { tokenID0, tokenID1, feeTier, initialPosition } = ctx.params;
-		const methodContext = ctx.getMethodContext();
+		const methodContext = ctx;
 		const initialSqrtPrice = tickToPrice(ctx.params.tickInitialPrice);
 		const result = await createPool(
 			this._moduleConfig,
@@ -158,8 +160,7 @@ export class CreatePoolCommand extends BaseCommand {
 			throw new Error(`Pool creation failed with code ${result}.`);
 		}
 
-		const poolID = computePoolID(tokenID0, tokenID1, Buffer.from([feeTier]));
-
+		const poolID = computePoolID(tokenID0, tokenID1, feeTier);
 		this.events.get(PoolCreatedEvent).add(
 			methodContext,
 			{

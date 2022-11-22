@@ -58,9 +58,11 @@ export interface CollectFeesParamData {
 export type TokenIDReclaim = Buffer;
 
 export interface ModuleConfig {
-	feeTiers: {
-		number: number;
-	};
+	feeTiers: [
+		{
+			feeTier: number;
+		},
+	];
 }
 
 export type ModuleConfigJSON = JSONObject<ModuleConfig>;
