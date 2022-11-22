@@ -119,13 +119,13 @@ export const q96ToBytes = (numberQ96: Q96): Buffer => {
 	if (numberQ96 === BigInt(0)) return Buffer.from([]);
 
 	const _hex: string = numberQ96.toString(16);
-	const _byteArr: number[] = [];
+	let _byteArr = 0;
 
 	for (let c = 0; c < _hex.length; c += 2) {
-		_byteArr.push(parseInt(_hex.substring(c, 2), 16));
+		_byteArr++;
 	}
 
-	if (_byteArr.length > MAX_NUM_BYTES_Q96) {
+	if (_byteArr > MAX_NUM_BYTES_Q96) {
 		throw new Error('Overflow when serializing a Q96 number');
 	}
 
