@@ -560,3 +560,38 @@ export const collectFeesSchema = {
         }
     }
 }
+
+export const removeLiquiditySchema = {
+    $id: '/dex/removeLiquidity',
+    "type": "object",
+    "required": [
+        "positionID",
+        "liquidityToRemove",
+        "amount0Min",
+        "amount1Min",
+        "maxTimestampValid"
+    ],
+    "properties": {
+        "positionID": {
+            "dataType": "bytes",
+            "fieldNumber": 1
+        },
+        "liquidityToRemove": {
+            "dataType": "uint64",
+            "fieldNumber": 2
+        },
+        "amount0Min": {
+            "dataType": "uint64",
+            "fieldNumber": 3
+        },
+        "amount1Min": {
+            "dataType": "uint64",
+            "fieldNumber": 4
+        },
+        "maxTimestampValid": {
+            "dataType": "uint64",
+            "fieldNumber": 5
+        },
+
+    }
+}
