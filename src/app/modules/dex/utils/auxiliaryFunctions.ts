@@ -626,9 +626,9 @@ export const updatePosition = async (
 		);
 		throw new Error();
 	}
-
+   
 	await collectFeesAndIncentives(events, stores, tokenMethod, methodContext, positionID);
-
+    
 	if (liquidityDelta === BigInt(0)) {
 		amount0 = BigInt(0);
 		amount1 = BigInt(0);
@@ -661,7 +661,7 @@ export const updatePosition = async (
 		amount0 = BigInt(0);
 		amount1 = getAmount1Delta(sqrtPriceLow, sqrtPriceUp, abs(liquidityDelta), roundUp);
 	}
-
+    
 	const ownerAddress = await getOwnerAddressOfPosition(methodContext, positionsStore, positionID);
 	if (liquidityDelta > 0) {
 		await transferToPool(
