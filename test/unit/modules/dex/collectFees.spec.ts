@@ -220,7 +220,6 @@ describe('dex:command:collectFees', () => {
 
 		})
 
-
 		describe('stress test for checking the event emissiona and the time taken', () => {
 
 			(async () => {
