@@ -49,27 +49,27 @@ export const PositionCreatedEventSchema = {
 		},
 		tickLower: {
 			dataType: 'sint32',
-			fieldNumber: 2,
+			fieldNumber: 3,
 		},
 		tickUpper: {
 			dataType: 'sint32',
-			fieldNumber: 3,
+			fieldNumber: 4,
 		},
 		amount0: {
 			dataType: 'uint64',
-			fieldNumber: 4,
+			fieldNumber: 5,
 		},
 		tokenID0: {
 			dataType: 'bytes',
-			fieldNumber: 5,
+			fieldNumber: 6,
 		},
 		amount1: {
 			dataType: 'uint64',
-			fieldNumber: 6,
+			fieldNumber: 7,
 		},
 		tokenID1: {
 			dataType: 'bytes',
-			fieldNumber: 7,
+			fieldNumber: 8,
 		},
 	},
 };

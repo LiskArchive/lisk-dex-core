@@ -38,11 +38,6 @@ import {
 	subQ96,
 } from './q96';
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-const range = (from: number, to: number, step: number): number[] =>
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-	[...Array(Math.floor((to - from) / step) + 1)].map((_, i) => from + i * step);
-
 export const computeSqrtPrice = (a: Q96): Buffer => {
 	const sqrtA = sqrt(a);
 	const sqrtAHex: string = sqrtA.toString(16);
@@ -52,7 +47,7 @@ export const computeSqrtPrice = (a: Q96): Buffer => {
 
 export const tickToPrice = (tickValue: number): Q96 => {
 	if (tickValue < MIN_TICK || tickValue > MAX_TICK) {
-		throw new Error();
+		throw new Error(`tickValue is not valid.`);
 	}
 
 	const absTick: number = Math.abs(tickValue);
@@ -64,7 +59,7 @@ export const tickToPrice = (tickValue: number): Q96 => {
 		}
 	});
 
-	if (tickValue > 0) sqrtPrice = invQ96(sqrtPrice);
+	if (tickValue > BigInt(0)) sqrtPrice = invQ96(sqrtPrice);
 
 	return sqrtPrice;
 };
@@ -83,14 +78,14 @@ export const priceToTick = (sqrtPrice: Q96): number => {
 
 	let tickValue = 0;
 	let tempPrice = numberToQ96(BigInt(1));
-	range(LOG_MAX_TICK-1, 0, -1).forEach(i => {
+	for (let i = LOG_MAX_TICK; i >= 0; i -= 1) {
 		const sqrtPriceAtBit = PRICE_VALUE_FOR_BIT_POSITION_IN_Q96[i];
 		const newPrice = mulQ96(tempPrice, sqrtPriceAtBit);
 		if (sqrtPrice <= newPrice) {
 			tickValue += 1 << i;
 			tempPrice = newPrice;
 		}
-	});
+	}
 
 	if (!invertedPrice) {
 		tickValue = -tickValue;

@@ -73,7 +73,7 @@ describe('dex:command:removeLiquidity', () => {
 
 	const poolsStoreData: PoolsStoreData = {
 		liquidity: BigInt(5),
-		sqrtPrice: q96ToBytes(BigInt(1)),
+		sqrtPrice: q96ToBytes(BigInt('327099227039063106')),
 		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
 		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(6))),
 		tickSpacing: 1

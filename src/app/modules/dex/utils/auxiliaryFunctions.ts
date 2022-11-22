@@ -16,9 +16,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MethodContext, TokenMethod } from 'lisk-sdk';
-
-import { utils } from '@liskhq/lisk-cryptography';
+import { MethodContext, TokenMethod, cryptography } from 'lisk-sdk';
 
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 
@@ -71,6 +69,8 @@ import { getAmount0Delta, getAmount1Delta, priceToTick, tickToPrice } from './ma
 import { FeesIncentivesCollectedEvent, PositionUpdateFailedEvent } from '../events';
 import { tickToBytes } from '../stores/priceTicksStore';
 
+const { utils } = cryptography;
+
 const abs = (x: bigint) => (x < BigInt(0) ? -x : x);
 
 export const poolIdToAddress = (poolId: PoolID): Address => {
@@ -81,7 +81,7 @@ export const poolIdToAddress = (poolId: PoolID): Address => {
 export const getToken0Id = (poolId: PoolID): TokenID => poolId.slice(0, NUM_BYTES_TOKEN_ID);
 
 export const getToken1Id = (poolId: PoolID): TokenID =>
-	poolId.slice(NUM_BYTES_TOKEN_ID, 2 * NUM_BYTES_TOKEN_ID + 1);
+	poolId.slice(NUM_BYTES_TOKEN_ID, 2 * NUM_BYTES_TOKEN_ID);
 
 export const getFeeTier = (poolId: PoolID): number => {
 	const _buffer: Buffer = poolId.slice(-4);
@@ -158,7 +158,7 @@ export const transferToProtocolFeeAccount = async (
 	tokenId: TokenID,
 	amount: bigint,
 ): Promise<void> => {
-	const { protocolFeeAddress } = await settings.get(methodContext, Buffer.from([]));
+	const { protocolFeeAddress } = await settings.get(methodContext, Buffer.alloc(0));
 	await tokenMethod.transfer(methodContext, senderAddress, protocolFeeAddress, tokenId, amount);
 };
 
@@ -248,7 +248,8 @@ export const collectFeesAndIncentives = async (
 
 	const [collectableFeesLSK, incentivesForPosition] = await computeCollectableIncentives(
 		dexGlobalStore,
-		TokenMethod,
+		tokenMethod,
+		methodContext,
 		positionID,
 		collectedFees0,
 		collectedFees1,
@@ -261,9 +262,9 @@ export const collectFeesAndIncentives = async (
 		TOKEN_ID_REWARDS,
 		incentivesForPosition,
 	);
-	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
+	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.alloc(0));
 	dexGlobalStoreData.collectableLSKFees -= collectableFeesLSK;
-	await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData);
+	await dexGlobalStore.set(methodContext, Buffer.alloc(0), dexGlobalStoreData);
 
 	events.get(FeesIncentivesCollectedEvent).log(methodContext, {
 		senderAddress: ownerAddress,
@@ -309,24 +310,26 @@ export const computeCollectableFees = async (
 export const computeCollectableIncentives = async (
 	dexGlobalStore,
 	tokenMethod,
+	methodContext,
 	positionID: PositionID,
 	collectableFees0: bigint,
 	collectableFees1: bigint,
 ): Promise<[bigint, bigint]> => {
 	const poolID = getPoolIDFromPositionID(positionID);
 	let collectableFeesLSK = BigInt(0);
-	if (getToken0Id(poolID) === TOKEN_ID_LSK) {
+	if (getToken0Id(poolID).equals(TOKEN_ID_LSK)) {
 		collectableFeesLSK = collectableFees0;
-	} else if (getToken1Id(poolID) === TOKEN_ID_LSK) {
+	} else if (getToken1Id(poolID).equals(TOKEN_ID_LSK)) {
 		collectableFeesLSK = collectableFees1;
 	}
 
 	if (collectableFeesLSK === BigInt(0)) {
 		return [BigInt(0), BigInt(0)];
 	}
-
-	const totalCollectableLSKFees = dexGlobalStore.collectableLSKFees;
+	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
+	const totalCollectableLSKFees = dexGlobalStoreData.collectableLSKFees;
 	const availableLPIncentives = await tokenMethod.getAvailableBalance(
+		methodContext,
 		ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL,
 		TOKEN_ID_REWARDS,
 	);
@@ -350,7 +353,7 @@ export const createPool = async (
 	feeTier: number,
 	initialSqrtPrice: Q96,
 ): Promise<number> => {
-	const poolSetting = settings.poolCreationSettings.find(s => s.feeTier === feeTier);
+	const poolSetting = settings.feeTiers[feeTier];
 
 	if (!poolSetting) {
 		return POOL_CREATION_FAILED_INVALID_FEE_TIER;
@@ -368,7 +371,7 @@ export const createPool = async (
 		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(0))),
 		protocolFees0: numberToQ96(BigInt(0)),
 		protocolFees1: numberToQ96(BigInt(0)),
-		tickSpacing: poolSetting.tickSpacing,
+		tickSpacing: poolSetting,
 	};
 	await poolsStore.set(methodContext, poolID, poolStoreValue);
 	return POOL_CREATION_SUCCESS;
@@ -386,10 +389,10 @@ export const createPosition = async (
 	const poolsStore = stores.get(PoolsStore);
 	const positionsStore = stores.get(PositionsStore);
 	const priceTicksStore = stores.get(PriceTicksStore);
-	if (!(await poolsStore.getKey(methodContext, [senderAddress, poolID]))) {
+	if (!(await poolsStore.hasKey(methodContext, [poolID]))) {
 		return [POSITION_CREATION_FAILED_NO_POOL, Buffer.from([])];
 	}
-	const currentPool = await poolsStore.getKey(methodContext, [senderAddress, poolID]);
+	const currentPool = await poolsStore.get(methodContext, poolID);
 
 	if (MIN_TICK > tickLower || tickLower >= tickUpper || tickUpper > MAX_TICK) {
 		return [POSITION_CREATION_FAILED_INVALID_TICKS, Buffer.from([])];
@@ -399,7 +402,7 @@ export const createPosition = async (
 		return [POSITION_CREATION_FAILED_INVALID_TICK_SPACING, Buffer.from([])];
 	}
 
-	if (!(await priceTicksStore.getKey(methodContext, [poolID, tickToBytes(tickLower)]))) {
+	if (!(await priceTicksStore.hasKey(methodContext, [poolID, tickToBytes(tickLower)]))) {
 		const tickStoreValue = {
 			liquidityNet: BigInt(0),
 			liquidityGross: BigInt(0),
@@ -414,7 +417,7 @@ export const createPosition = async (
 		await priceTicksStore.setKey(methodContext, [poolID, tickToBytes(tickLower)], tickStoreValue);
 	}
 
-	if (!(await priceTicksStore.getKey(methodContext, [poolID, tickToBytes(tickUpper)]))) {
+	if (!(await priceTicksStore.hasKey(methodContext, [poolID, tickToBytes(tickUpper)]))) {
 		const tickStoreValue = {
 			liquidityNet: BigInt(0),
 			liquidityGross: BigInt(0),
@@ -574,7 +577,7 @@ export const getNewPositionID = (dexGlobalStoreData, poolID: PoolID): Buffer => 
 	const positionIndex = dexGlobalStoreData.positionCounter;
 	// eslint-disable-next-line no-param-reassign
 	dexGlobalStoreData.positionCounter += 1;
-	return Buffer.concat([poolID, Buffer.from(positionIndex)]);
+	return Buffer.concat([poolID, Buffer.from([positionIndex])]);
 };
 
 export const getOwnerAddressOfPosition = async (
@@ -588,7 +591,7 @@ export const getOwnerAddressOfPosition = async (
 };
 
 export const getPoolIDFromPositionID = (positionID: PositionID): Buffer =>
-	positionID.slice(-NUM_BYTES_POOL_ID);
+	positionID.slice(-NUM_BYTES_POOL_ID, 14);
 
 export const updatePosition = async (
 	methodContext: MethodContext,
@@ -636,11 +639,11 @@ export const updatePosition = async (
 	const poolInfo = await poolsStore.get(methodContext, poolID);
 	const lowerTickInfo = await priceTicksStore.getKey(methodContext, [
 		poolID,
-		q96ToBytes(tickToPrice(positionInfo.tickLower)),
+		tickToBytes(positionInfo.tickLower),
 	]);
 	const upperTickInfo = await priceTicksStore.getKey(methodContext, [
 		poolID,
-		q96ToBytes(tickToPrice(positionInfo.tickUpper)),
+		tickToBytes(positionInfo.tickUpper),
 	]);
 	const sqrtPriceLow = tickToPrice(positionInfo.tickLower);
 	const sqrtPriceUp = tickToPrice(positionInfo.tickUpper);

@@ -62,5 +62,13 @@ describe('DexQ96Module', () => {
 		it('bytesToQ96 and q96ToBytes', async () => {
 			expect(bytesToQ96(q96ToBytes(testValueMaxUint))).toBe(testValueMaxUint);
 		});
+
+		it('q96ToBytes for 0 values', async () => {
+			expect(q96ToBytes(numberToQ96(BigInt(0)))).toStrictEqual(Buffer.from([]));
+		});
+
+		it('bytesToQ96 for 0 values', async () => {
+			expect(bytesToQ96(q96ToBytes(numberToQ96(BigInt(0))))).toStrictEqual(BigInt(0));
+		});
 	});
 });
