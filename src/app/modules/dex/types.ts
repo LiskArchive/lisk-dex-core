@@ -51,6 +51,11 @@ export interface RemoveLiquidityParamsData {
 	maxTimestampValid: bigint;
 }
 
+
+export interface CollectFeesParamData {
+	positions: Buffer[];
+}
+
 export type TokenIDReclaim = Buffer;
 
 export interface ModuleConfig {

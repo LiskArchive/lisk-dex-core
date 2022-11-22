@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseModule, ModuleMetadata, utils, TokenMethod, ValidatorsMethod } from 'lisk-sdk';
+import { BaseModule, ModuleMetadata, utils, TokenMethod, ValidatorsMethod, MethodContext } from 'lisk-sdk';
 
 import { MODULE_ID_DEX, defaultConfig } from './constants';
 
@@ -32,9 +32,12 @@ import { CreatePoolCommand } from './commands/createPool';
 import { PoolsStore, PositionsStore, PriceTicksStore, SettingsStore } from './stores';
 import { DexMethod } from './method';
 import { DexGlobalStore } from './stores/dexGlobalStore';
+
+import { CollectFeesCommand } from './commands/collectFees';
 import { RemoveLiquidityFailedEvent } from './events/removeLiquidityFailed';
 import { RemoveLiquidityEvent } from './events/removeLiquidity';
 import { RemoveLiquidityCommand } from './commands/removeLiquidity';
+
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
@@ -44,11 +47,20 @@ export class DexModule extends BaseModule {
 	public _validatorsMethod!: ValidatorsMethod;
 	public _moduleConfig!: ModuleConfig;
 
+	public _methodContext:MethodContext | undefined;
+	
 	private readonly _createPoolCommand = new CreatePoolCommand(this.stores, this.events);
+
+	private readonly _collectFeeCommand = new CollectFeesCommand(this.stores, this.events);
+
+	// eslint-disable-next-line @typescript-eslint/member-ordering
+	public commands = [this._createPoolCommand, this._collectFeeCommand];
+
 	private readonly _removeLiquidityCommand = new RemoveLiquidityCommand(this.stores, this.events);
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public commands = [this._createPoolCommand,this._removeLiquidityCommand];
+
 
 	public constructor() {
 		super();
@@ -66,6 +78,9 @@ export class DexModule extends BaseModule {
 		this.events.register(RemoveLiquidityEvent, new RemoveLiquidityEvent(this.name));
 		this.events.register(RemoveLiquidityFailedEvent, new RemoveLiquidityFailedEvent(this.name));
 	}
+
+
+
 
 	public metadata(): ModuleMetadata {
 		return {
@@ -98,9 +113,15 @@ export class DexModule extends BaseModule {
 			tokenMethod: this._tokenMethod,
 		});
 
+		this._collectFeeCommand.init({
+			tokenMethod: this._tokenMethod,
+		});
+
+
 		this._removeLiquidityCommand.init({
 			tokenMethod:this._tokenMethod
 		})
+
 
 	}
 }

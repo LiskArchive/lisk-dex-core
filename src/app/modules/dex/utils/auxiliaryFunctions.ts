@@ -25,7 +25,7 @@ import {
 	PoolsStore,
 	PositionsStore,
 	PriceTicksStore,
-	SettingsStore,
+	SettingsStore
 } from '../stores';
 
 import {
@@ -48,7 +48,7 @@ import {
 	POSITION_UPDATE_FAILED_NOT_OWNER,
 	TOKEN_ID_LSK,
 	TOKEN_ID_REWARDS,
-	ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL,
+	ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL
 } from '../constants';
 
 import { uint32beInv } from './bigEndian';
@@ -214,13 +214,14 @@ export const collectFeesAndIncentives = async (
 	const dexGlobalStore = stores.get(DexGlobalStore);
 	const positionInfo = await positionsStore.get(methodContext, positionID);
 	const ownerAddress = await getOwnerAddressOfPosition(methodContext, positionsStore, positionID);
+
 	const [
 		collectedFees0,
 		collectedFees1,
 		feeGrowthInside0,
 		feeGrowthInside1,
 	] = await computeCollectableFees(stores, methodContext, positionID);
-
+	
 	if (collectedFees0 > 0) {
 		await transferFromPool(
 			tokenMethod,
@@ -245,7 +246,6 @@ export const collectFeesAndIncentives = async (
 	positionInfo.feeGrowthInsideLast1 = q96ToBytes(feeGrowthInside1);
 
 	await positionsStore.set(methodContext, positionID, positionInfo);
-
 	const [collectableFeesLSK, incentivesForPosition] = await computeCollectableIncentives(
 		dexGlobalStore,
 		tokenMethod,
@@ -254,7 +254,7 @@ export const collectFeesAndIncentives = async (
 		collectedFees0,
 		collectedFees1,
 	);
-
+		
 	await tokenMethod.transfer(
 		methodContext,
 		ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL,
@@ -333,7 +333,7 @@ export const computeCollectableIncentives = async (
 		ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL,
 		TOKEN_ID_REWARDS,
 	);
-	const incentivesForPosition =
+		const incentivesForPosition =
 		(availableLPIncentives * collectableFeesLSK) / totalCollectableLSKFees;
 	return [collectableFeesLSK, incentivesForPosition];
 };
@@ -474,7 +474,7 @@ export const getFeeGrowthInside = async (
 	let feeGrowthBelow1;
 	let feeGrowthAbove0;
 	let feeGrowthAbove1;
-
+	
 	if (tickCurrent >= tickLower) {
 		feeGrowthBelow0 = bytesToQ96(lowerTickInfo.feeGrowthOutside0);
 		feeGrowthBelow1 = bytesToQ96(lowerTickInfo.feeGrowthOutside1);
@@ -488,7 +488,7 @@ export const getFeeGrowthInside = async (
 			bytesToQ96(lowerTickInfo.feeGrowthOutside1),
 		);
 	}
-
+	
 	if (tickCurrent < tickUpper) {
 		feeGrowthAbove0 = bytesToQ96(upperTickInfo.feeGrowthOutside0);
 		feeGrowthAbove1 = bytesToQ96(upperTickInfo.feeGrowthOutside1);
@@ -502,7 +502,6 @@ export const getFeeGrowthInside = async (
 			bytesToQ96(upperTickInfo.feeGrowthOutside1),
 		);
 	}
-
 	const feeGrowthInside0 = subQ96(
 		subQ96(bytesToQ96(poolInfo.feeGrowthGlobal0), feeGrowthBelow0),
 		feeGrowthAbove0,
@@ -511,6 +510,7 @@ export const getFeeGrowthInside = async (
 		subQ96(bytesToQ96(poolInfo.feeGrowthGlobal1), feeGrowthBelow1),
 		feeGrowthAbove1,
 	);
+	
 	return [feeGrowthInside0, feeGrowthInside1];
 };
 
