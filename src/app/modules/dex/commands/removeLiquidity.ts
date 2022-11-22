@@ -46,7 +46,6 @@ export class RemoveLiquidityCommand extends BaseCommand {
             liquidityToRemove,
             amount0Min,
             amount1Min,
-            maxTimestampValid
         } = ctx.params;
 
         const methodContext = ctx.getMethodContext();
