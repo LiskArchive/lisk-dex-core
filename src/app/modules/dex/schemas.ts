@@ -347,6 +347,8 @@ export const collectFeesSchema = {
                 }
             }
         }
+    }
+}
 
 export const removeLiquiditySchema = {
     $id: '/dex/removeLiquidity',
