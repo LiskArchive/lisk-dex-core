@@ -37,22 +37,9 @@ import {
 
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
-import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
-import { TokenMethod, TokenModule } from 'lisk-framework';
-import { createMethodContext, MethodContext } from 'lisk-framework/dist-node/state_machine/method_context';
-import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
-import { EventQueue } from 'lisk-framework/dist-node/state_machine';
-import { DexGlobalStore, PoolsStore, PositionsStore, PriceTicksStore, SettingsStore } from '../../../../src/app/modules/dex/stores';
-import { DexModule } from '../../../../src/app/modules';
-import { FeesIncentivesCollectedEvent, PoolCreatedEvent, PositionCreatedEvent, PositionUpdateFailedEvent } from '../../../../src/app/modules/dex/events';
-import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
-import { PriceTicksStoreData, tickToBytes } from '../../../../src/app/modules/dex/stores/priceTicksStore';
-import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
-import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
-import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
-import { InMemoryPrefixedStateDB } from './inMemoryPrefixedStateDB';
-import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
-import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
+import { PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
+import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
+import { numberToQ96 } from '../../../../src/app/modules/dex/utils/q96';
 
 describe('dex:auxiliaryFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8','hex');
@@ -302,7 +289,9 @@ describe('dex:auxiliaryFunctions', () => {
 
 			}));
 		});
-
+		it('priceToTick', async () => {
+			expect(priceToTick(tickToPrice(-735247))).toEqual(-735247);
+		});
 	});
 
 });
