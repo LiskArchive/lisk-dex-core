@@ -30,6 +30,7 @@ import {
     COMMAND_ID_CREATE_POSITION,
     MAX_TICK,
     MIN_TICK,
+    POSITION_CREATION_FEE,
     POSITION_CREATION_SUCCESS,
 } from '../constants';
 import {
@@ -78,7 +79,7 @@ export class CreatePositionCommand extends BaseCommand {
     }
 
     // eslint-disable-next-line @typescript-eslint/require-await
-    public async verify(ctx: CommandVerifyContext < CreatePositionParamsData > ): Promise < VerificationResult > {
+    public async verify(ctx: CommandVerifyContext<CreatePositionParamsData>): Promise<VerificationResult> {
         try {
             validator.validate(createPositionParamsSchema, ctx.params);
         } catch (err) {
@@ -128,7 +129,7 @@ export class CreatePositionCommand extends BaseCommand {
         };
     }
 
-    public async execute(ctx: CommandExecuteContext < CreatePositionParamsData > ): Promise < void > {
+    public async execute(ctx: CommandExecuteContext<CreatePositionParamsData>): Promise<void> {
         const {
             senderAddress
         } = ctx.transaction;

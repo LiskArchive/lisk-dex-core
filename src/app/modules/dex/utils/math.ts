@@ -47,7 +47,7 @@ export const computeSqrtPrice = (a: Q96): Buffer => {
 
 export const tickToPrice = (tickValue: number): Q96 => {
 	if (tickValue < MIN_TICK || tickValue > MAX_TICK) {
-		throw new Error(`tickValue is not valid.`);
+		throw new Error(`tickValue ${tickValue} is not valid.`);
 	}
 
 	const absTick: number = Math.abs(tickValue);
