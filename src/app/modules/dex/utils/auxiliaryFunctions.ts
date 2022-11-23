@@ -68,6 +68,7 @@ import {
 import { getAmount0Delta, getAmount1Delta, priceToTick, tickToPrice } from './math';
 import { FeesIncentivesCollectedEvent, PositionUpdateFailedEvent } from '../events';
 import { tickToBytes } from '../stores/priceTicksStore';
+import { DexGlobalStoreData } from '../stores/dexGlobalStore';
 
 const { utils } = cryptography;
 
@@ -432,7 +433,7 @@ export const createPosition = async (
 		await priceTicksStore.setKey(methodContext, [poolID, tickToBytes(tickUpper)], tickStoreValue);
 	}
 
-	const dexGlobalStoreData = dexGlobalStore.get(methodContext, Buffer.from([]));
+	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
 	const positionID = getNewPositionID(dexGlobalStoreData, poolID);
 
 	const positionValue = {
@@ -573,11 +574,11 @@ export const getLiquidityForAmount1 = (
 	return roundDownQ96(result);
 };
 
-export const getNewPositionID = (dexGlobalStoreData, poolID: PoolID): Buffer => {
-	const positionIndex = dexGlobalStoreData.positionCounter;
+export const getNewPositionID = (dexGlobalStoreData:DexGlobalStoreData, poolID: PoolID): Buffer => {
+	const positionIndex =  dexGlobalStoreData.positionCounter;
 	// eslint-disable-next-line no-param-reassign
-	dexGlobalStoreData.positionCounter += 1;
-	return Buffer.concat([poolID, Buffer.from([positionIndex])]);
+	dexGlobalStoreData.positionCounter += BigInt(1);
+	return Buffer.concat([poolID, Buffer.from(positionIndex.valueOf().toLocaleString())]);
 };
 
 export const getOwnerAddressOfPosition = async (

@@ -53,14 +53,11 @@ export class DexModule extends BaseModule {
 
 	private readonly _collectFeeCommand = new CollectFeesCommand(this.stores, this.events);
 
-	// eslint-disable-next-line @typescript-eslint/member-ordering
-	public commands = [this._createPoolCommand, this._collectFeeCommand];
-
 	private readonly _removeLiquidityCommand = new RemoveLiquidityCommand(this.stores, this.events);
 
-	// eslint-disable-next-line @typescript-eslint/member-ordering
-	public commands = [this._createPoolCommand,this._removeLiquidityCommand];
 
+	// eslint-disable-next-line @typescript-eslint/member-ordering
+	public commands = [this._createPoolCommand, this._collectFeeCommand, this._removeLiquidityCommand];
 
 	public constructor() {
 		super();

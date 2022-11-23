@@ -12,6 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { CCMsg } from 'lisk-framework/dist-node/modules/interoperability/types';
+import { ImmutableMethodContext } from 'lisk-framework/dist-node/state_machine';
+import { MethodContext } from 'lisk-framework/dist-node/state_machine/method_context';
 import { JSONObject } from 'lisk-sdk';
 
 export interface FeeTiers {
@@ -73,3 +76,20 @@ export interface ModuleInitArgs {
 }
 
 export type SqrtPrice = Q96;
+
+export interface InteroperabilityMethod {
+	getOwnChainAccount(methodContext: ImmutableMethodContext): Promise<{ id: Buffer }>;
+	send(
+		methodContext: MethodContext,
+		feeAddress: Buffer,
+		module: string,
+		crossChainCommand: string,
+		receivingChainID: Buffer,
+		fee: bigint,
+		status: number,
+		parameters: Buffer,
+	): Promise<boolean>;
+	error(methodContext: MethodContext, ccm: CCMsg, code: number): Promise<void>;
+	terminateChain(methodContext: MethodContext, chainID: Buffer): Promise<void>;
+	getChannel(methodContext: MethodContext, chainID: Buffer): Promise<{ messageFeeTokenID: Buffer }>;
+}
