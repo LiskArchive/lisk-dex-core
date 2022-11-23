@@ -25,7 +25,7 @@ import {
 	PoolsStore,
 	PositionsStore,
 	PriceTicksStore,
-	SettingsStore
+	SettingsStore,
 } from '../stores';
 
 import {
@@ -48,7 +48,8 @@ import {
 	POSITION_UPDATE_FAILED_NOT_OWNER,
 	TOKEN_ID_LSK,
 	TOKEN_ID_REWARDS,
-	ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL
+	ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL,
+	MODULE_NAME_DEX,
 } from '../constants';
 
 import { uint32beInv } from './bigEndian';
@@ -68,6 +69,7 @@ import {
 import { getAmount0Delta, getAmount1Delta, priceToTick, tickToPrice } from './math';
 import { FeesIncentivesCollectedEvent, PositionUpdateFailedEvent } from '../events';
 import { tickToBytes } from '../stores/priceTicksStore';
+import { ADDRESS_VALIDATOR_REWARDS_POOL } from '../../dexRewards/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
 
 const { utils } = cryptography;
@@ -163,6 +165,22 @@ export const transferToProtocolFeeAccount = async (
 	await tokenMethod.transfer(methodContext, senderAddress, protocolFeeAddress, tokenId, amount);
 };
 
+export const transferToValidatorLSKPool = async (
+	tokenMethod: TokenMethod,
+	methodContext,
+	senderAddress: Address,
+	amount: bigint,
+): Promise<void> => {
+	await tokenMethod.transfer(
+		methodContext,
+		senderAddress,
+		ADDRESS_VALIDATOR_REWARDS_POOL,
+		TOKEN_ID_LSK,
+		amount,
+	);
+	await tokenMethod.lock(methodContext, senderAddress, MODULE_NAME_DEX, TOKEN_ID_LSK, amount);
+};
+
 export const checkPositionExistenceAndOwnership = async (
 	stores: NamedRegistry,
 	events: NamedRegistry,
@@ -222,7 +240,7 @@ export const collectFeesAndIncentives = async (
 		feeGrowthInside0,
 		feeGrowthInside1,
 	] = await computeCollectableFees(stores, methodContext, positionID);
-	
+
 	if (collectedFees0 > 0) {
 		await transferFromPool(
 			tokenMethod,
@@ -255,7 +273,7 @@ export const collectFeesAndIncentives = async (
 		collectedFees0,
 		collectedFees1,
 	);
-		
+
 	await tokenMethod.transfer(
 		methodContext,
 		ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL,
@@ -334,7 +352,7 @@ export const computeCollectableIncentives = async (
 		ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL,
 		TOKEN_ID_REWARDS,
 	);
-		const incentivesForPosition =
+	const incentivesForPosition =
 		(availableLPIncentives * collectableFeesLSK) / totalCollectableLSKFees;
 	return [collectableFeesLSK, incentivesForPosition];
 };
@@ -475,7 +493,7 @@ export const getFeeGrowthInside = async (
 	let feeGrowthBelow1;
 	let feeGrowthAbove0;
 	let feeGrowthAbove1;
-	
+
 	if (tickCurrent >= tickLower) {
 		feeGrowthBelow0 = bytesToQ96(lowerTickInfo.feeGrowthOutside0);
 		feeGrowthBelow1 = bytesToQ96(lowerTickInfo.feeGrowthOutside1);
@@ -489,7 +507,7 @@ export const getFeeGrowthInside = async (
 			bytesToQ96(lowerTickInfo.feeGrowthOutside1),
 		);
 	}
-	
+
 	if (tickCurrent < tickUpper) {
 		feeGrowthAbove0 = bytesToQ96(upperTickInfo.feeGrowthOutside0);
 		feeGrowthAbove1 = bytesToQ96(upperTickInfo.feeGrowthOutside1);
@@ -511,7 +529,7 @@ export const getFeeGrowthInside = async (
 		subQ96(bytesToQ96(poolInfo.feeGrowthGlobal1), feeGrowthBelow1),
 		feeGrowthAbove1,
 	);
-	
+
 	return [feeGrowthInside0, feeGrowthInside1];
 };
 
@@ -627,9 +645,9 @@ export const updatePosition = async (
 		);
 		throw new Error();
 	}
-   
+
 	await collectFeesAndIncentives(events, stores, tokenMethod, methodContext, positionID);
-    
+
 	if (liquidityDelta === BigInt(0)) {
 		amount0 = BigInt(0);
 		amount1 = BigInt(0);
@@ -662,7 +680,7 @@ export const updatePosition = async (
 		amount0 = BigInt(0);
 		amount1 = getAmount1Delta(sqrtPriceLow, sqrtPriceUp, abs(liquidityDelta), roundUp);
 	}
-    
+
 	const ownerAddress = await getOwnerAddressOfPosition(methodContext, positionsStore, positionID);
 	if (liquidityDelta > 0) {
 		await transferToPool(
