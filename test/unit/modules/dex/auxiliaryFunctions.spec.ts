@@ -243,7 +243,7 @@ describe('dex:auxiliaryFunctions', () => {
 			await checkPositionExistenceAndOwnership(dexModule.stores, dexModule.events, methodContext, senderAddress, positionId);
 		});
 
-		it('should return [0n, 0n, 316912650057057350374175801344, 158456325028528675187087900672] as collectableFees0, collectableFees1, feeGrowthInside0, feeGrowthInside1 in result', async () => {
+		it('should return [0n, 0n, 0n, 0n] as collectableFees0, collectableFees1, feeGrowthInside0, feeGrowthInside1 in result', async () => {
 			await computeCollectableFees(dexModule.stores, methodContext, positionId).then(res => {
 				expect(res[0]).toBe(BigInt(0));
 				expect(res[1]).toBe(BigInt(0));
@@ -252,7 +252,7 @@ describe('dex:auxiliaryFunctions', () => {
 			});
 		});
 
-		it('should return [1,25] in result', async () => {
+		it('should return [1n,25n] in result', async () => {
 			await computeCollectableIncentives(dexGlobalStore, tokenMethod, methodContext,positionId, BigInt(1), BigInt(2)).then(res => {
 				expect(res[0]).toBe(BigInt(1));
 				expect(res[1]).toBe(BigInt(25));
