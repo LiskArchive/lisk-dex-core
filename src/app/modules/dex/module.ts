@@ -12,7 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseModule, ModuleMetadata, utils, TokenMethod, ValidatorsMethod } from 'lisk-sdk';
+import {
+	BaseModule,
+	ModuleMetadata,
+	utils,
+	TokenMethod,
+	ValidatorsMethod,
+	MethodContext,
+} from 'lisk-sdk';
 
 import { MODULE_ID_DEX, defaultConfig } from './constants';
 
@@ -34,6 +41,11 @@ import { DexMethod } from './method';
 import { DexGlobalStore } from './stores/dexGlobalStore';
 import { CreatePositionCommand } from './commands/createPosition';
 
+import { CollectFeesCommand } from './commands/collectFees';
+import { RemoveLiquidityFailedEvent } from './events/removeLiquidityFailed';
+import { RemoveLiquidityEvent } from './events/removeLiquidity';
+import { RemoveLiquidityCommand } from './commands/removeLiquidity';
+
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
 	public endpoint = new DexEndpoint(this.stores, this.offchainStores);
@@ -42,11 +54,20 @@ export class DexModule extends BaseModule {
 	public _validatorsMethod!: ValidatorsMethod;
 	public _moduleConfig!: ModuleConfig;
 
+	public _methodContext: MethodContext | undefined;
+
 	private readonly _createPoolCommand = new CreatePoolCommand(this.stores, this.events);
 	private readonly _createPositionCommand = new CreatePositionCommand(this.stores, this.events);
+	private readonly _collectFeeCommand = new CollectFeesCommand(this.stores, this.events);
+	private readonly _removeLiquidityCommand = new RemoveLiquidityCommand(this.stores, this.events);
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
-	public commands = [this._createPoolCommand, this._createPositionCommand];
+	public commands = [
+		this._createPoolCommand,
+		this._createPositionCommand,
+		this._collectFeeCommand,
+		this._removeLiquidityCommand,
+	];
 
 	public constructor() {
 		super();
@@ -61,6 +82,8 @@ export class DexModule extends BaseModule {
 		this.events.register(PositionCreationFailedEvent, new PositionCreationFailedEvent(this.name));
 		this.events.register(AmountBelowMinEvent, new AmountBelowMinEvent(this.name));
 		this.events.register(FeesIncentivesCollectedEvent, new FeesIncentivesCollectedEvent(this.name));
+		this.events.register(RemoveLiquidityEvent, new RemoveLiquidityEvent(this.name));
+		this.events.register(RemoveLiquidityFailedEvent, new RemoveLiquidityFailedEvent(this.name));
 	}
 
 	public metadata(): ModuleMetadata {
@@ -94,7 +117,16 @@ export class DexModule extends BaseModule {
 			moduleConfig: this._moduleConfig,
 			tokenMethod: this._tokenMethod,
 		});
+
 		this._createPositionCommand.init({
+			tokenMethod: this._tokenMethod,
+		});
+
+		this._collectFeeCommand.init({
+			tokenMethod: this._tokenMethod,
+		});
+
+		this._removeLiquidityCommand.init({
 			tokenMethod: this._tokenMethod,
 		});
 	}

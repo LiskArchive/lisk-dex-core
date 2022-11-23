@@ -232,6 +232,7 @@ export const collectFeesAndIncentives = async (
 	const dexGlobalStore = stores.get(DexGlobalStore);
 	const positionInfo = await positionsStore.get(methodContext, positionID);
 	const ownerAddress = await getOwnerAddressOfPosition(methodContext, positionsStore, positionID);
+
 	const [
 		collectedFees0,
 		collectedFees1,
@@ -263,7 +264,6 @@ export const collectFeesAndIncentives = async (
 	positionInfo.feeGrowthInsideLast1 = q96ToBytes(feeGrowthInside1);
 
 	await positionsStore.set(methodContext, positionID, positionInfo);
-
 	const [collectableFeesLSK, incentivesForPosition] = await computeCollectableIncentives(
 		dexGlobalStore,
 		tokenMethod,
@@ -520,7 +520,6 @@ export const getFeeGrowthInside = async (
 			bytesToQ96(upperTickInfo.feeGrowthOutside1),
 		);
 	}
-
 	const feeGrowthInside0 = subQ96(
 		subQ96(bytesToQ96(poolInfo.feeGrowthGlobal0), feeGrowthBelow0),
 		feeGrowthAbove0,
@@ -529,6 +528,7 @@ export const getFeeGrowthInside = async (
 		subQ96(bytesToQ96(poolInfo.feeGrowthGlobal1), feeGrowthBelow1),
 		feeGrowthAbove1,
 	);
+
 	return [feeGrowthInside0, feeGrowthInside1];
 };
 
