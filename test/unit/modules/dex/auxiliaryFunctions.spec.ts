@@ -261,6 +261,7 @@ describe('dex:auxiliaryFunctions', () => {
 			});
 
 
+<<<<<<< HEAD
 			it('should return BigInt(3) in result', async () => {
 				await expect(getLiquidityForAmounts(numberToQ96(BigInt(2)),
 					numberToQ96(BigInt(1)),
@@ -269,6 +270,49 @@ describe('dex:auxiliaryFunctions', () => {
 					BigInt(3)
 				)).toBe(BigInt(3));
 			});
+=======
+		it('should return BigInt(3) in result', async () => {
+			await expect( getLiquidityForAmounts(numberToQ96(BigInt(2)),
+				numberToQ96(BigInt(1)),
+				numberToQ96(BigInt(5)),
+				BigInt(1),
+				BigInt(3)
+			)).toBe(BigInt(3));
+		});
+
+		it('should not throw any error in result', async () => {
+			await checkPositionExistenceAndOwnership(dexModule.stores, dexModule.events, methodContext, senderAddress, positionId);
+		});
+
+		it('should return [0n, 0n, 0n, 0n] as collectableFees0, collectableFees1, feeGrowthInside0, feeGrowthInside1 in result', async () => {
+			await computeCollectableFees(dexModule.stores, methodContext, positionId).then(res => {
+				expect(res[0]).toBe(BigInt(0));
+				expect(res[1]).toBe(BigInt(0));
+				expect(res[2]).toBe(BigInt(0));
+				expect(res[3]).toBe(BigInt(0));
+			});
+		});
+
+		it('should return [1n,25n] in result', async () => {
+			await computeCollectableIncentives(dexGlobalStore, tokenMethod, methodContext,positionId, BigInt(1), BigInt(2)).then(res => {
+				expect(res[0]).toBe(BigInt(1));
+				expect(res[1]).toBe(BigInt(25));
+			})
+		});
+
+		it('should return [0,0] as newTestpositionId!=positionId', async () => {
+			const newTestpositionId: PositionID = Buffer.from('0x00000000000100000000000000000000c8','hex');
+			await computeCollectableIncentives(dexGlobalStore, tokenMethod, methodContext, newTestpositionId, BigInt(1), BigInt(2)).then(res => {
+				expect(res[0]).toBe(BigInt(0));
+				expect(res[1]).toBe(BigInt(0));
+			})
+		});
+
+		it('should return [1,1] in result as liquidityDelta is 1', async () => {
+			await updatePosition(methodContext, dexModule.events, dexModule.stores, tokenMethod, positionId, BigInt(200)).then(res => {
+				expect(res[0].toString()).toBe('1');
+				expect(res[1].toString()).toBe('1');
+>>>>>>> dd185b5 (updates test for updates in auxiliary functions)
 
 			it('should not throw any error in result', async () => {
 				await checkPositionExistenceAndOwnership(dexModule.stores, dexModule.events, methodContext, senderAddress, positionId);
