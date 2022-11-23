@@ -12,7 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseModule, ModuleMetadata, utils, TokenMethod, ValidatorsMethod } from 'lisk-sdk';
+import {
+	BaseModule,
+	ModuleMetadata,
+	utils,
+	TokenMethod,
+	ValidatorsMethod,
+	MethodContext,
+} from 'lisk-sdk';
 
 import { MODULE_ID_DEX, defaultConfig } from './constants';
 
@@ -33,6 +40,7 @@ import { PoolsStore, PositionsStore, PriceTicksStore, SettingsStore } from './st
 import { DexMethod } from './method';
 import { DexGlobalStore } from './stores/dexGlobalStore';
 import { AddLiquidityCommand } from './commands/addLiquidity';
+import { CreatePositionCommand } from './commands/createPosition';
 
 import { CollectFeesCommand } from './commands/collectFees';
 import { RemoveLiquidityFailedEvent } from './events/removeLiquidityFailed';
@@ -49,6 +57,9 @@ export class DexModule extends BaseModule {
 
 	private readonly _createPoolCommand = new CreatePoolCommand(this.stores, this.events);
 	private readonly _addLiquidityCommand = new AddLiquidityCommand(this.stores, this.events);
+	public _methodContext: MethodContext | undefined;
+
+	private readonly _createPositionCommand = new CreatePositionCommand(this.stores, this.events);
 	private readonly _collectFeeCommand = new CollectFeesCommand(this.stores, this.events);
 	private readonly _removeLiquidityCommand = new RemoveLiquidityCommand(this.stores, this.events);
 
@@ -58,6 +69,7 @@ export class DexModule extends BaseModule {
 		this._collectFeeCommand,
 		this._removeLiquidityCommand,
 		this._addLiquidityCommand,
+		this._createPositionCommand,
 	];
 
 	public constructor() {
@@ -109,6 +121,10 @@ export class DexModule extends BaseModule {
 			tokenMethod: this._tokenMethod,
 		});
 		this._addLiquidityCommand.init({
+			tokenMethod: this._tokenMethod,
+		});
+
+		this._createPositionCommand.init({
 			tokenMethod: this._tokenMethod,
 		});
 
