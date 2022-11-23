@@ -46,6 +46,19 @@ export interface CreatePoolParamsData {
 	maxTimestampValid: bigint;
 }
 
+export interface RemoveLiquidityParamsData {
+	positionID: Buffer;
+	liquidityToRemove: bigint;
+	amount0Min: bigint;
+	amount1Min: bigint;
+	maxTimestampValid: bigint;
+}
+
+
+export interface CollectFeesParamData {
+	positions: Buffer[];
+}
+
 export type TokenIDReclaim = Buffer;
 
 export interface ModuleConfig {

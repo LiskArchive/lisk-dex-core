@@ -37,9 +37,20 @@ import {
 
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
-import { PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
+import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
 import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
-import { numberToQ96 } from '../../../../src/app/modules/dex/utils/q96';
+import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
+import { MethodContext, TokenMethod } from 'lisk-framework';
+import { DexModule } from '../../../../src/app/modules';
+import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
+import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
+import { DexGlobalStore, PoolsStore, PositionsStore, PriceTicksStore, SettingsStore } from '../../../../src/app/modules/dex/stores';
+import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_machine';
+import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
+import { PriceTicksStoreData, tickToBytes } from '../../../../src/app/modules/dex/stores/priceTicksStore';
+import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
+import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
+import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 
 describe('dex:auxiliaryFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8','hex');
@@ -49,11 +60,12 @@ describe('dex:auxiliaryFunctions', () => {
 	const positionId: PositionID = Buffer.from('00000001000000000101643130','hex');
 	const feeTier: Number = Number('0x00000c8');
 	let sqrtPrice: bigint = numberToQ96(BigInt(1));
+	const dexModule = new DexModule();
 
 	let methodContext: MethodContext;
-	const tokenModule = new TokenModule();
+
 	let inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
-	let tokenMethod: TokenMethod = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
+	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
 	let stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
 
 	let poolsStore: PoolsStore;
@@ -80,7 +92,7 @@ describe('dex:auxiliaryFunctions', () => {
 
 	const poolsStoreData: PoolsStoreData = {
 		liquidity: BigInt(5),
-		sqrtPrice: q96ToBytes(BigInt(1)),
+		sqrtPrice: q96ToBytes(BigInt(tickToPrice(0))),
 		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
 		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(6))),
 		tickSpacing: 1
@@ -105,8 +117,8 @@ describe('dex:auxiliaryFunctions', () => {
 		collectableLSKFees: BigInt(10),
 	}
 	const positionsStoreData: PositionsStoreData = {
-		tickLower: -8,
-		tickUpper: -5,
+		tickLower: -10,
+		tickUpper: 10,
 		liquidity: BigInt(10),
 		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(3))),
 		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(1))),
@@ -126,25 +138,11 @@ describe('dex:auxiliaryFunctions', () => {
 	describe('constructor', () => {
 		beforeEach(async () => {
 
-			tokenModule.stores.register(PoolsStore, new PoolsStore(DexModule.name));
-			tokenModule.stores.register(PositionsStore, new PositionsStore(DexModule.name));
-			tokenModule.stores.register(DexGlobalStore, new DexGlobalStore(DexModule.name));
-			tokenModule.stores.register(PriceTicksStore, new PriceTicksStore(DexModule.name));
-			tokenModule.stores.register(SettingsStore, new SettingsStore(DexModule.name));
-
-
-			tokenModule.events.register(PositionUpdateFailedEvent, new PositionUpdateFailedEvent(DexModule.name));
-			tokenModule.events.register(PositionCreatedEvent, new PositionCreatedEvent(DexModule.name));
-			tokenModule.events.register(PoolCreatedEvent, new PoolCreatedEvent(DexModule.name));
-			tokenModule.events.register(PoolCreatedEvent, new PoolCreatedEvent(DexModule.name));
-			tokenModule.events.register(FeesIncentivesCollectedEvent, new FeesIncentivesCollectedEvent(DexModule.name));
-
-
-			poolsStore = tokenModule.stores.get(PoolsStore);
-			priceTicksStore = tokenModule.stores.get(PriceTicksStore);
-			dexGlobalStore = tokenModule.stores.get(DexGlobalStore);
-			positionsStore = tokenModule.stores.get(PositionsStore);
-			settingsStore = tokenModule.stores.get(SettingsStore);
+			poolsStore = dexModule.stores.get(PoolsStore);
+			priceTicksStore = dexModule.stores.get(PriceTicksStore);
+			dexGlobalStore = dexModule.stores.get(DexGlobalStore);
+			positionsStore = dexModule.stores.get(PositionsStore);
+			settingsStore = dexModule.stores.get(SettingsStore);
 
 			await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData)
 
@@ -215,7 +213,7 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('should return 0 for POSITION_CREATION_SUCCESS and positionID in result', async () => {
-			await createPosition(methodContext, tokenModule.stores, senderAddress, getPoolIDFromPositionID(positionId), positionsStoreData.tickLower, positionsStoreData.tickUpper).then(res => {
+			await createPosition(methodContext, dexModule.stores, senderAddress, getPoolIDFromPositionID(positionId), positionsStoreData.tickLower, positionsStoreData.tickUpper).then(res => {
 				expect(res[0]).toBe(0);
 			});
 		});
@@ -225,7 +223,7 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('should return [316912650057057350374175801344,158456325028528675187087900672] as feeGrowthInside0, feeGrowthInside1 in result', async () => {
-			await getFeeGrowthInside(tokenModule.stores, methodContext, positionId).then(res => {
+			await getFeeGrowthInside(dexModule.stores, methodContext, positionId).then(res => {
 				expect(res[0]).toBe(BigInt(316912650057057350374175801344));
 				expect(res[1]).toBe(BigInt(158456325028528675187087900672));
 			});
@@ -242,11 +240,11 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('should not throw any error in result', async () => {
-			await checkPositionExistenceAndOwnership(tokenModule.stores, tokenModule.events, methodContext, senderAddress, positionId);
+			await checkPositionExistenceAndOwnership(dexModule.stores, dexModule.events, methodContext, senderAddress, positionId);
 		});
 
 		it('should return [0n, 0n, 316912650057057350374175801344, 158456325028528675187087900672] as collectableFees0, collectableFees1, feeGrowthInside0, feeGrowthInside1 in result', async () => {
-			await computeCollectableFees(tokenModule.stores, methodContext, positionId).then(res => {
+			await computeCollectableFees(dexModule.stores, methodContext, positionId).then(res => {
 				expect(res[0]).toBe(BigInt(0));
 				expect(res[1]).toBe(BigInt(0));
 				expect(res[2]).toBe(BigInt(316912650057057350374175801344));
@@ -270,7 +268,7 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('should return [79228162514264337593543950335,0] in result', async () => {
-			await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(1)).then(res => {
+			await updatePosition(methodContext, dexModule.events, dexModule.stores, tokenMethod, positionId, BigInt(1)).then(res => {
 				expect(res[0].toString()).toBe('79228162514264337593543950335');
 				expect(res[1].toString()).toBe('1');
 
@@ -278,12 +276,12 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('should fail position update as due to insufficeint liquidity', async () => {
-			await expect(updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(-100))).rejects.toThrowError();
+			await expect(updatePosition(methodContext, dexModule.events, dexModule.stores, tokenMethod, positionId, BigInt(-100))).rejects.toThrowError();
 		});
 
 
 		it('should return [0,0] liquidityDelta is 0', async () => {
-			expect(await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(0)).then(res => {
+			expect(await updatePosition(methodContext, dexModule.events, dexModule.stores, tokenMethod, positionId, BigInt(0)).then(res => {
 				expect(res[0].toString()).toBe('0');
 				expect(res[1].toString()).toBe('0');
 
