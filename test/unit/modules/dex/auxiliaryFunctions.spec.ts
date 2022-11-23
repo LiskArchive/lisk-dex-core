@@ -92,24 +92,24 @@ describe('dex:auxiliaryFunctions', () => {
 
 	const poolsStoreData: PoolsStoreData = {
 		liquidity: BigInt(5),
-		sqrtPrice: q96ToBytes(BigInt(tickToPrice(0))),
-		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
-		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(6))),
+		sqrtPrice: q96ToBytes(BigInt(tickToPrice(5))),
+		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(0))),
+		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(0))),
 		tickSpacing: 1
 	}
 	
 	const priceTicksStoreDataTickLower: PriceTicksStoreData = {
 		liquidityNet: BigInt(5),
 		liquidityGross: BigInt(5),
-		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(8))),
-		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(5))),
+		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(0))),
+		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(0))),
 	}
 	
 	const priceTicksStoreDataTickUpper: PriceTicksStoreData = {
 		liquidityNet: BigInt(5),
 		liquidityGross: BigInt(5),
-		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(4))),
-		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(3))),
+		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(0))),
+		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(0))),
 	}
 
 	const dexGlobalStoreData: DexGlobalStoreData = {
@@ -119,9 +119,9 @@ describe('dex:auxiliaryFunctions', () => {
 	const positionsStoreData: PositionsStoreData = {
 		tickLower: -10,
 		tickUpper: 10,
-		liquidity: BigInt(10),
-		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(3))),
-		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(1))),
+		liquidity: BigInt(1000),
+		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(0))),
+		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(0))),
 		ownerAddress: senderAddress
 	}
 
@@ -224,8 +224,8 @@ describe('dex:auxiliaryFunctions', () => {
 
 		it('should return [316912650057057350374175801344,158456325028528675187087900672] as feeGrowthInside0, feeGrowthInside1 in result', async () => {
 			await getFeeGrowthInside(dexModule.stores, methodContext, positionId).then(res => {
-				expect(res[0]).toBe(BigInt(316912650057057350374175801344));
-				expect(res[1]).toBe(BigInt(158456325028528675187087900672));
+				expect(res[0]).toBe(BigInt(0));
+				expect(res[1]).toBe(BigInt(0));
 			});
 		});
 
@@ -247,8 +247,8 @@ describe('dex:auxiliaryFunctions', () => {
 			await computeCollectableFees(dexModule.stores, methodContext, positionId).then(res => {
 				expect(res[0]).toBe(BigInt(0));
 				expect(res[1]).toBe(BigInt(0));
-				expect(res[2]).toBe(BigInt(316912650057057350374175801344));
-				expect(res[3]).toBe(BigInt(158456325028528675187087900672));
+				expect(res[2]).toBe(BigInt(0));
+				expect(res[3]).toBe(BigInt(0));
 			});
 		});
 
@@ -267,16 +267,16 @@ describe('dex:auxiliaryFunctions', () => {
 			})
 		});
 
-		it('should return [79228162514264337593543950335,0] in result', async () => {
-			await updatePosition(methodContext, dexModule.events, dexModule.stores, tokenMethod, positionId, BigInt(1)).then(res => {
-				expect(res[0].toString()).toBe('79228162514264337593543950335');
+		it('should return [1,1] in result as liquidityDelta is 1', async () => {
+			await updatePosition(methodContext, dexModule.events, dexModule.stores, tokenMethod, positionId, BigInt(200)).then(res => {
+				expect(res[0].toString()).toBe('1');
 				expect(res[1].toString()).toBe('1');
 
 			});
 		});
 
 		it('should fail position update as due to insufficeint liquidity', async () => {
-			await expect(updatePosition(methodContext, dexModule.events, dexModule.stores, tokenMethod, positionId, BigInt(-100))).rejects.toThrowError();
+			await expect(updatePosition(methodContext, dexModule.events, dexModule.stores, tokenMethod, positionId, BigInt(-10000))).rejects.toThrowError();
 		});
 
 

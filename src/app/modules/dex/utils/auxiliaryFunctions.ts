@@ -651,7 +651,6 @@ export const updatePosition = async (
 
 	const roundUp = liquidityDelta > 0;
 	const sqrtPrice = bytesToQ96(poolInfo.sqrtPrice);
-	console.log(sqrtPrice,sqrtPriceLow,sqrtPriceUp)
 
 	if (sqrtPrice <= sqrtPriceLow) {
 		amount0 = getAmount0Delta(sqrtPriceLow, sqrtPriceUp, abs(liquidityDelta), roundUp);
