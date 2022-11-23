@@ -55,13 +55,13 @@ import {
 import { DexModule } from '../../../../src/app/modules';
 import { FeesIncentivesCollectedEvent, PoolCreatedEvent, PositionCreatedEvent, PositionUpdateFailedEvent } from '../../../../src/app/modules/dex/events';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
+import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { PriceTicksStoreData, tickToBytes } from '../../../../src/app/modules/dex/stores/priceTicksStore';
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedStateDB';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
-import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 
 describe('dex:auxiliaryFunctions', () => {
 	const poolId: PoolID = Buffer.from(hexToBytes('0x000000000000000000000001000000000000c8'));
@@ -105,16 +105,23 @@ describe('dex:auxiliaryFunctions', () => {
 
 	const poolsStoreData: PoolsStoreData = {
 		liquidity: BigInt(5),
-		sqrtPrice: q96ToBytes(BigInt(1)),
-		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(1))),
-		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(1))),
+		sqrtPrice: q96ToBytes(BigInt(tickToPrice(5))),
+		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(0))),
+		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(0))),
 		tickSpacing: 1
 	}
 	const priceTicksStoreData: PriceTicksStoreData = {
 		liquidityNet: BigInt(1),
 		liquidityGross: BigInt(5),
-		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(1))),
-		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(1))),
+		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(0))),
+		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(0))),
+	}
+
+	const priceTicksStoreDataTickUpper: PriceTicksStoreData = {
+		liquidityNet: BigInt(5),
+		liquidityGross: BigInt(5),
+		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(0))),
+		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(0))),
 	}
 
 	const dexGlobalStoreData: DexGlobalStoreData = {
@@ -122,9 +129,9 @@ describe('dex:auxiliaryFunctions', () => {
 		collectableLSKFees: BigInt(10),
 	}
 	const positionsStoreData: PositionsStoreData = {
-		tickLower: -3,
-		tickUpper: -2,
-		liquidity: BigInt(5),
+		tickLower: -10,
+		tickUpper: 10,
+		liquidity: BigInt(1000),
 		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(0))),
 		ownerAddress: senderAddress
@@ -247,12 +254,13 @@ describe('dex:auxiliaryFunctions', () => {
 			expect(tokenMethod.lock).toBeCalled();
 		});
 
+		it('should return [316912650057057350374175801344,158456325028528675187087900672] as feeGrowthInside0, feeGrowthInside1 in result', async () => {
+			await getFeeGrowthInside(dexModule.stores, methodContext, positionId).then(res => {
+				expect(res[0]).toBe(BigInt(0));
+				expect(res[1]).toBe(BigInt(0));
+			});
 
-		it('should transfer, lock and unlock for transferPoolToPool', async () => {
-			await transferPoolToPool(tokenMethod, methodContext, senderAddress, poolId, token1Id, BigInt(1));
-			expect(tokenMethod.transfer).toBeCalled();
-			expect(tokenMethod.lock).toBeCalled();
-			expect(tokenMethod.unlock).toBeCalled();
+
 			it('should return BigInt(3) in result', async () => {
 				await expect(getLiquidityForAmounts(numberToQ96(BigInt(2)),
 					numberToQ96(BigInt(1)),
@@ -263,126 +271,63 @@ describe('dex:auxiliaryFunctions', () => {
 			});
 
 			it('should not throw any error in result', async () => {
-				await checkPositionExistenceAndOwnership(tokenModule.stores, tokenModule.events, methodContext, senderAddress, positionId);
+				await checkPositionExistenceAndOwnership(dexModule.stores, dexModule.events, methodContext, senderAddress, positionId);
 			});
 
 			it('should return [0n, 0n, 316912650057057350374175801344, 158456325028528675187087900672] as collectableFees0, collectableFees1, feeGrowthInside0, feeGrowthInside1 in result', async () => {
-				await computeCollectableFees(tokenModule.stores, methodContext, positionId).then(res => {
+				await computeCollectableFees(dexModule.stores, methodContext, positionId).then(res => {
 					expect(res[0]).toBe(BigInt(0));
 					expect(res[1]).toBe(BigInt(0));
-					expect(res[2]).toBe(BigInt(316912650057057350374175801344));
-					expect(res[3]).toBe(BigInt(158456325028528675187087900672));
-				});
-			});
-
-			it('should return [1n,25n] in result', async () => {
-				await computeCollectableIncentives(
-					dexGlobalStore,
-					tokenMethod,
-					methodContext,
-					positionId,
-					BigInt(1),
-					BigInt(2),
-				).then(res => {
-					expect(res[0]).toBe(BigInt(1));
-					expect(res[1]).toBe(BigInt(25));
-				});
-			});
-
-			it('should return [0,0] as newTestpositionId!=positionId', async () => {
-				const newTestpositionId: PositionID = Buffer.from(
-					'0x00000000000100000000000000000000c8',
-					'hex',
-				);
-				await computeCollectableIncentives(
-					dexGlobalStore,
-					tokenMethod,
-					methodContext,
-					newTestpositionId,
-					BigInt(1),
-					BigInt(2),
-				).then(res => {
-					expect(res[0]).toBe(BigInt(0));
-					expect(res[1]).toBe(BigInt(0));
-				});
-			});
-
-			it('should return [79228162514264337593543950335,0] in result', async () => {
-				await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(1)).then(res => {
-					expect(res[0].toString()).toBe('79228162514264337593543950335');
-					expect(res[1].toString()).toBe('1');
-
+					expect(res[2]).toBe(BigInt(0));
+					expect(res[3]).toBe(BigInt(0));
 				});
 
-				it('should transfer for transferToProtocolFeeAccount', async () => {
-					await transferToProtocolFeeAccount(tokenMethod, methodContext, settingsStore, poolId, token1Id, BigInt(1));
-					expect(tokenMethod.transfer).toBeCalled();
-				});
-
-				it('should return the poolId from the positionId', async () => {
-					expect(getPoolIDFromPositionID(positionId).toString('hex')).toBe('000000000000000001000000000000c8');
-				});
-
-				it('should return 0 for POSITION_CREATION_SUCCESS and positionID in result', async () => {
-					await createPosition(methodContext, tokenModule.stores, senderAddress, getPoolIDFromPositionID(positionId), positionsStoreData.tickLower, positionsStoreData.tickUpper).then(res => {
-						expect(res[0]).toBe(0);
-					});
-				});
-
-				it('should return concatenated poolID with dexGlobalStoreData.positionCounter in result', async () => {
-					expect(await getNewPositionID(dexGlobalStoreData, getPoolIDFromPositionID(positionId)).toString('hex')).toBe("000000000000000001000000000000c83130");
-				});
-
-				it('should return [0,0] as feeGrowthInside0, feeGrowthInside1 in result', async () => {
-					await getFeeGrowthInside(tokenModule.stores, methodContext, positionId).then(res => {
+				it('should return [0n, 0n, 316912650057057350374175801344, 158456325028528675187087900672] as collectableFees0, collectableFees1, feeGrowthInside0, feeGrowthInside1 in result', async () => {
+					await computeCollectableFees(tokenModule.stores, methodContext, positionId).then(res => {
 						expect(res[0]).toBe(BigInt(0));
 						expect(res[1]).toBe(BigInt(0));
+						expect(res[2]).toBe(BigInt(316912650057057350374175801344));
+						expect(res[3]).toBe(BigInt(158456325028528675187087900672));
 					});
 				});
 
-
-				it('should return BigInt(1) in result', async () => {
-					expect(await getLiquidityForAmounts(numberToQ96(BigInt(3)),
-						numberToQ96(BigInt(1)),
-						numberToQ96(BigInt(5)),
+				it('should return [1n,25n] in result', async () => {
+					await computeCollectableIncentives(
+						dexGlobalStore,
+						tokenMethod,
+						methodContext,
+						positionId,
 						BigInt(1),
-						BigInt(3)
-					)).toBe(BigInt(1));
-				});
-
-				it('should not throw any error in result', async () => {
-					await checkPositionExistenceAndOwnership(tokenModule.stores, tokenModule.events, methodContext, senderAddress, positionId);
-				});
-
-				it('should return [0n, 0n, 0n, 0n] as collectableFees0, collectableFees1, feeGrowthInside0, feeGrowthInside1 in result', async () => {
-					await computeCollectableFees(dexModule.stores, methodContext, positionId).then(res => {
-						expect(res[0]).toBe(BigInt(0));
-						expect(res[1]).toBe(BigInt(0));
-						expect(res[2]).toBe(BigInt(0));
-						expect(res[3]).toBe(BigInt(0));
+						BigInt(2),
+					).then(res => {
+						expect(res[0]).toBe(BigInt(1));
+						expect(res[1]).toBe(BigInt(25));
 					});
 				});
 
-				it('should return [0,0] in result', async () => {
-					expect(await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(2)).then(res => {
-						expect(res[0]).toBe(BigInt(0));
-						expect(res[1]).toBe(BigInt(0));
-					}));
+				it('should return [1,1] in result as liquidityDelta is 1', async () => {
+					await updatePosition(methodContext, dexModule.events, dexModule.stores, tokenMethod, positionId, BigInt(200)).then(res => {
+						expect(res[0].toString()).toBe('1');
+						expect(res[1].toString()).toBe('1');
+
+					});
 				});
 
 				it('should fail position update as due to insufficeint liquidity', async () => {
-					expect(await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(-10))).toThrowError();
+					await expect(updatePosition(methodContext, dexModule.events, dexModule.stores, tokenMethod, positionId, BigInt(-10000))).rejects.toThrowError();
 				});
 
 
 				it('should return [0,0] liquidityDelta is 0', async () => {
-					expect(await updatePosition(methodContext, tokenModule.events, tokenModule.stores, tokenMethod, positionId, BigInt(0)).then(res => {
-						expect(res[0]).toBe(BigInt(0));
-						expect(res[1]).toBe(BigInt(0));
+					expect(await updatePosition(methodContext, dexModule.events, dexModule.stores, tokenMethod, positionId, BigInt(0)).then(res => {
+						expect(res[0].toString()).toBe('0');
+						expect(res[1].toString()).toBe('0');
 
 					}));
 				});
-
+				it('priceToTick', async () => {
+					expect(priceToTick(tickToPrice(-735247))).toEqual(-735247);
+				});
 			});
 		});
 	});
