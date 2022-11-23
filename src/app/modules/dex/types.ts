@@ -12,12 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	JSONObject
-} from 'lisk-sdk';
-import {
-	DexAPI
-} from './api';
+import { CCMsg } from 'lisk-framework/dist-node/modules/interoperability/types';
+import { ImmutableMethodContext } from 'lisk-framework/dist-node/state_machine';
+import { MethodContext } from 'lisk-framework/dist-node/state_machine/method_context';
+import { JSONObject } from 'lisk-sdk';
 
 export interface FeeTiers {
 	[id: number]: number;
@@ -56,19 +54,49 @@ export interface AddLiquidityParamsData {
 	amount1Min: bigint;
 	maxTimestampValid: bigint;
 }
+export interface RemoveLiquidityParamsData {
+	positionID: Buffer;
+	liquidityToRemove: bigint;
+	amount0Min: bigint;
+	amount1Min: bigint;
+	maxTimestampValid: bigint;
+}
+
+export interface CollectFeesParamData {
+	positions: Buffer[];
+}
 
 export type TokenIDReclaim = Buffer;
 
 export interface ModuleConfig {
-	feeTiers: {
-		number: number;
-	};
+	feeTiers: [
+		{
+			feeTier: number;
+		},
+	];
 }
 
-export type ModuleConfigJSON = JSONObject < ModuleConfig > ;
+export type ModuleConfigJSON = JSONObject<ModuleConfig>;
 
 export interface ModuleInitArgs {
-	moduleConfig: Record < string, unknown > ;
+	moduleConfig: Record<string, unknown>;
 }
 
 export type SqrtPrice = Q96;
+
+export interface InteroperabilityMethod {
+	getOwnChainAccount(methodContext: ImmutableMethodContext): Promise<{ id: Buffer }>;
+	send(
+		methodContext: MethodContext,
+		feeAddress: Buffer,
+		module: string,
+		crossChainCommand: string,
+		receivingChainID: Buffer,
+		fee: bigint,
+		status: number,
+		parameters: Buffer,
+	): Promise<boolean>;
+	error(methodContext: MethodContext, ccm: CCMsg, code: number): Promise<void>;
+	terminateChain(methodContext: MethodContext, chainID: Buffer): Promise<void>;
+	getChannel(methodContext: MethodContext, chainID: Buffer): Promise<{ messageFeeTokenID: Buffer }>;
+}

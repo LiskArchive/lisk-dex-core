@@ -2,7 +2,7 @@ import {
 	int32be,
 	uint32be,
 	int32beInv,
-	uint32beInv
+	uint32beInv,
 } from '../../../../src/app/modules/dex/utils/bigEndian';
 
 describe('dex:bigEndian', () => {

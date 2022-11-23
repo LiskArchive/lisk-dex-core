@@ -15,56 +15,56 @@ import { BaseEvent, EventQueuer } from 'lisk-sdk';
 
 export interface AmountBelowMinEventData {
 	senderAddress: Buffer;
-    amount0: bigint;
-    amount0Min: bigint;
-    tokenID0: Buffer;
-    amount1: bigint;
-    amount1Min: bigint;
-    tokenID1: Buffer;
+	amount0: bigint;
+	amount0Min: bigint;
+	tokenID0: Buffer;
+	amount1: bigint;
+	amount1Min: bigint;
+	tokenID1: Buffer;
 }
 
 export const AmountBelowMinEventSchema = {
 	$id: '/dex/events/amountBelowMin',
-    "type": "object",
-    "required": [
-        "senderAddress",
-        "amount0",
-        "amount0Min",
-        "tokenID0",
-        "amount1",
-        "amount1Min",
-        "tokenID1"
-    ],
-    "properties": {
-        "senderAddress": {
-            "dataType": "bytes",
-            "fieldNumber": 1
-        },
-        "amount0": {
-            "dataType": "uint64",
-            "fieldNumber": 2
-        },
-        "amount0Min": {
-            "dataType": "uint64",
-            "fieldNumber": 3
-        },
-        "tokenID0": {
-            "dataType": "bytes",
-            "fieldNumber": 4
-        },
-        "amount1": {
-            "dataType": "uint64",
-            "fieldNumber": 5
-        },
-        "amount1Min": {
-            "dataType": "uint64",
-            "fieldNumber": 6
-        },
-        "tokenID1": {
-            "dataType": "bytes",
-            "fieldNumber": 7
-        }
-    }
+	type: 'object',
+	required: [
+		'senderAddress',
+		'amount0',
+		'amount0Min',
+		'tokenID0',
+		'amount1',
+		'amount1Min',
+		'tokenID1',
+	],
+	properties: {
+		senderAddress: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+		amount0: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+		amount0Min: {
+			dataType: 'uint64',
+			fieldNumber: 3,
+		},
+		tokenID0: {
+			dataType: 'bytes',
+			fieldNumber: 4,
+		},
+		amount1: {
+			dataType: 'uint64',
+			fieldNumber: 5,
+		},
+		amount1Min: {
+			dataType: 'uint64',
+			fieldNumber: 6,
+		},
+		tokenID1: {
+			dataType: 'bytes',
+			fieldNumber: 7,
+		},
+	},
 };
 
 export class AmountBelowMinEvent extends BaseEvent<AmountBelowMinEventData> {

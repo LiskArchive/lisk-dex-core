@@ -21,38 +21,38 @@ export const enum PoolCreatedEventResult {
 
 export interface PoolCreatedEventData {
 	senderAddress: Buffer;
-    poolID: Buffer;
-    tokenID0: Buffer;
-    tokenID1: Buffer;
-    feeTier: number;
+	poolID: Buffer;
+	tokenID0: Buffer;
+	tokenID1: Buffer;
+	feeTier: number;
 }
 
 export const PoolCreatedEventSchema = {
 	$id: '/dex/events/poolCreated',
-    "type": "object",
-    "required":  ["senderAddress", "poolID", "tokenID0", "tokenID1", "feeTier"],
-    "properties": {
-        "senderAddress": {
-            "dataType": "bytes",
-            "fieldNumber": 1
-        },
-        "poolID": {
-            "dataType": "bytes",
-            "fieldNumber": 2
-        },
-        "tokenID0": {
-            "dataType": "bytes",
-            "fieldNumber": 3
-        },
-        "tokenID1": {
-            "dataType": "bytes",
-            "fieldNumber": 4
-        },
-        "feeTier": {
-            "dataType": "uint32",
-            "fieldNumber": 5
-        }
-    }
+	type: 'object',
+	required: ['senderAddress', 'poolID', 'tokenID0', 'tokenID1', 'feeTier'],
+	properties: {
+		senderAddress: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+		poolID: {
+			dataType: 'bytes',
+			fieldNumber: 2,
+		},
+		tokenID0: {
+			dataType: 'bytes',
+			fieldNumber: 3,
+		},
+		tokenID1: {
+			dataType: 'bytes',
+			fieldNumber: 4,
+		},
+		feeTier: {
+			dataType: 'uint32',
+			fieldNumber: 5,
+		},
+	},
 };
 
 export class PoolCreatedEvent extends BaseEvent<PoolCreatedEventData> {

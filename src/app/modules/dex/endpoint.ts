@@ -12,10 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	BaseEndpoint,
-} from 'lisk-sdk';
+import { BaseEndpoint } from 'lisk-sdk';
 
-
-export class DexEndpoint extends BaseEndpoint {
-}
+export class DexEndpoint extends BaseEndpoint {}
