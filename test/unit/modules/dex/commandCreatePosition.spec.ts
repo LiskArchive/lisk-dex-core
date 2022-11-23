@@ -92,7 +92,7 @@ describe('dex:command:createPosition', () => {
 		ownerAddress: senderAddress,
 	};
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		dexModule = new DexModule();
 		tokenModule = new TokenModule();
 		validatorModule = new ValidatorsModule();
