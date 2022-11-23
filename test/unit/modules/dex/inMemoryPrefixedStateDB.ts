@@ -10,11 +10,9 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
 
 import { InMemoryDatabase, IterateOptions } from '@liskhq/lisk-db';
-
 export class InMemoryPrefixedStateDB {
 	private readonly _db: InMemoryDatabase;
 
