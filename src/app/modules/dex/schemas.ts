@@ -426,8 +426,8 @@ export const removeLiquiditySchema = {
 	},
 };
 
-export const addLiquidityParamsSchema = {
-	$id: '/dex/addLiquidityParamsSchema',
+export const addLiquiditySchema = {
+	$id: '/dex/addLiquiditySchema',
 	type: 'object',
 	required: [
 		'positionID',

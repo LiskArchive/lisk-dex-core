@@ -12,14 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	BaseModule,
-	ModuleMetadata,
-	utils,
-	TokenMethod,
-	ValidatorsMethod,
-	MethodContext,
-} from 'lisk-sdk';
+import { BaseModule, ModuleMetadata, utils, TokenMethod, ValidatorsMethod } from 'lisk-sdk';
 
 import { MODULE_ID_DEX, defaultConfig } from './constants';
 
@@ -33,6 +26,8 @@ import {
 	PoolCreationFailedEvent,
 	PositionCreatedEvent,
 	PositionCreationFailedEvent,
+	PositionUpdatedEvent,
+	PositionUpdateFailedEvent,
 } from './events';
 
 import { CreatePoolCommand } from './commands/createPool';
@@ -57,8 +52,6 @@ export class DexModule extends BaseModule {
 
 	private readonly _createPoolCommand = new CreatePoolCommand(this.stores, this.events);
 	private readonly _addLiquidityCommand = new AddLiquidityCommand(this.stores, this.events);
-	public _methodContext: MethodContext | undefined;
-
 	private readonly _createPositionCommand = new CreatePositionCommand(this.stores, this.events);
 	private readonly _collectFeeCommand = new CollectFeesCommand(this.stores, this.events);
 	private readonly _removeLiquidityCommand = new RemoveLiquidityCommand(this.stores, this.events);
@@ -83,6 +76,8 @@ export class DexModule extends BaseModule {
 		this.events.register(PoolCreationFailedEvent, new PoolCreationFailedEvent(this.name));
 		this.events.register(PositionCreatedEvent, new PositionCreatedEvent(this.name));
 		this.events.register(PositionCreationFailedEvent, new PositionCreationFailedEvent(this.name));
+		this.events.register(PositionUpdatedEvent, new PositionUpdatedEvent(this.name));
+		this.events.register(PositionUpdateFailedEvent, new PositionUpdateFailedEvent(this.name));
 		this.events.register(AmountBelowMinEvent, new AmountBelowMinEvent(this.name));
 		this.events.register(FeesIncentivesCollectedEvent, new FeesIncentivesCollectedEvent(this.name));
 		this.events.register(RemoveLiquidityEvent, new RemoveLiquidityEvent(this.name));
