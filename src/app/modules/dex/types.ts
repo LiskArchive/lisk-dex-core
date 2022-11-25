@@ -46,6 +46,14 @@ export interface CreatePoolParamsData {
 	maxTimestampValid: bigint;
 }
 
+export interface AddLiquidityParamsData {
+	positionID: Buffer;
+	amount0Desired: bigint;
+	amount1Desired: bigint;
+	amount0Min: bigint;
+	amount1Min: bigint;
+	maxTimestampValid: bigint;
+}
 export interface CreatePositionParamsData {
 	poolID: Buffer;
 	tickLower: number;

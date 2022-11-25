@@ -592,8 +592,11 @@ export const getLiquidityForAmount1 = (
 	return roundDownQ96(result);
 };
 
-export const getNewPositionID = (dexGlobalStoreData:DexGlobalStoreData, poolID: PoolID): Buffer => {
-	const positionIndex =  dexGlobalStoreData.positionCounter;
+export const getNewPositionID = (
+	dexGlobalStoreData: DexGlobalStoreData,
+	poolID: PoolID,
+): Buffer => {
+	const positionIndex = dexGlobalStoreData.positionCounter;
 	// eslint-disable-next-line no-param-reassign
 	dexGlobalStoreData.positionCounter += BigInt(1);
 	return Buffer.concat([poolID, Buffer.from(positionIndex.valueOf().toLocaleString())]);
