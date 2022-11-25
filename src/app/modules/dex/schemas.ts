@@ -578,6 +578,5 @@ export const removeLiquiditySchema = {
             "dataType": "uint64",
             "fieldNumber": 5
         },
-
     }
 }
