@@ -203,5 +203,38 @@ describe('dex:command:createPosition', () => {
 			);
 			expect(positionCreatedEvents).toHaveLength(1);
 		});
+
+		describe('stress test for checking the events',()=>{
+			(async () => {
+				await test();
+			})();
+			async function test() {
+				const testarray = Array.from({ length: 20000 });
+				await Promise.all(
+					testarray.map(async () => {
+						await stress();
+					})
+				)
+			}
+			async function stress() {
+				contextPosition = createTransactionContext({
+					stateStore,
+					transaction: new Transaction(createPositionFixtures[0][1] as any),
+				});
+				it('should call execute methods and emit events', async()=>{
+					await commandCreatePosition.execute(
+						contextPosition.createCommandExecuteContext(createPositionSchema),
+					);
+					expect(dexModule._tokenMethod.lock).toHaveBeenCalledTimes(1);
+					expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(2);
+		
+					const events = contextPosition.eventQueue.getEvents();
+					const positionCreatedEvents = events.filter(
+						e => e.toObject().name === 'positionCreatedEvent',
+					);
+					expect(positionCreatedEvents).toHaveLength(1);
+				})
+			}
+		})
 	});
 });
