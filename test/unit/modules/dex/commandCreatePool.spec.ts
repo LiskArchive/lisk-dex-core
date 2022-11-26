@@ -143,7 +143,7 @@ describe('dex:command:createPool', () => {
 				await test();
 			})();
 			async function test() {
-				const testarray = Array.from({ length: 20000 });
+				const testarray = Array.from({ length: 10000 });
 				await Promise.all(
 					testarray.map(async() => {
 						await stress();
