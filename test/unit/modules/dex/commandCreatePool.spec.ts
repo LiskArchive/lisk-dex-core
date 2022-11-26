@@ -28,7 +28,7 @@ import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settin
 import { Address, PositionID } from '../../../../src/app/modules/dex/types';
 import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import { q96ToBytes, numberToQ96 } from '../../../../src/app/modules/dex/utils/q96';
-import { createPoolFixtures } from './fixtures/createPoolFixture';
+import { createPoolFixtures, createRandomPoolFixturesGenerator } from './fixtures/createPoolFixture';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 
 const { createTransactionContext } = testing;
@@ -101,9 +101,9 @@ describe('dex:command:createPool', () => {
 
 	describe('execute', () => {
 		let context: ReturnType<typeof createTransactionContext>;
-
+		const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		beforeEach(async () => {
-			const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+			
 			context = createTransactionContext({
 				stateStore,
 				transaction: new Transaction(createPoolFixtures[0][1] as any),
@@ -137,5 +137,38 @@ describe('dex:command:createPool', () => {
 			expect(poolCreatedEvents).toHaveLength(1);
 			expect(positionCreatedEvents).toHaveLength(1);
 		});
+
+		describe('stress test for checking the event emission and the time taken', () => {
+			(async () => {
+				await test();
+			})();
+			async function test() {
+				const testarray = Array.from({ length: 20000 });
+				await Promise.all(
+					testarray.map(async() => {
+						await stress();
+					})
+				)
+			}
+			async function stress() {
+					it(`should emit poolCreatedEvent and positionCreatedEvent for every iteration`, async () => {
+						context = createTransactionContext({
+							stateStore,
+							transaction: new Transaction(createRandomPoolFixturesGenerator()[0][1] as any),
+						});
+						await command.execute(context.createCommandExecuteContext(createPoolSchema));
+						expect(dexModule._tokenMethod.lock).toHaveBeenCalledTimes(2);
+						expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(4);
+						const events = context.eventQueue.getEvents();
+						const poolCreatedEvents = events.filter(e => e.toObject().name === 'poolCreatedEvent');
+						const positionCreatedEvents = events.filter(
+							e => e.toObject().name === 'positionCreatedEvent',
+						);
+						expect(poolCreatedEvents).toHaveLength(1);
+						expect(positionCreatedEvents).toHaveLength(1);
+					});
+	
+			}
+		})
 	});
 });

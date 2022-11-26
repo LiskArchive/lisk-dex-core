@@ -392,6 +392,87 @@ describe('dex:command:removeLiquidity', () => {
 		});
 	})
 
+	describe('stress test for checking the events', () => {
+
+		(async () => {
+
+			await test();
+
+		})();
+
+		async function test() {
+			const testarray = Array.from({ length: 20000 });
+			await Promise.all(
+				testarray.map(async () => {
+					await stress();
+				})
+			)
+		}
+
+		async function stress() {
+			const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
+
+			const blockAfterExecuteContext = createBlockContext({
+				header: blockHeader,
+			}).getBlockAfterExecuteContext();
+
+			var stressTestMethodContext = createMethodContext({
+				stateStore,
+				eventQueue: blockAfterExecuteContext.eventQueue,
+			});
+
+			it('stress', async () => {
+				await expect(
+					command.execute({
+						chainID: utils.getRandomBytes(32),
+						params: {
+							positionID: positionId,
+							liquidityToRemove: BigInt(-5),
+							amount0Min: BigInt(0),
+							amount1Min: BigInt(0),
+							maxTimestampValid: BigInt(1000)
+						},
+						logger: loggerMock,
+						header: blockHeader,
+						eventQueue: blockAfterExecuteContext.eventQueue,
+						getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+						getMethodContext: () => stressTestMethodContext,
+						assets: { getAsset: jest.fn() },
+						currentValidators: [],
+						impliesMaxPrevote: false,
+						maxHeightCertified: Number(10),
+						certificateThreshold: BigInt(2),
+						transaction: new Transaction({
+							module: 'dex',
+							command: 'removeLiquidty',
+							fee: BigInt(5000000),
+							nonce: BigInt(0),
+							senderPublicKey: senderAddress,
+							params: codec.encode(removeLiquiditySchema, {
+								positionID: positionId,
+								liquidityToRemove: BigInt(-5),
+								amount0Min: BigInt(1000),
+								amount1Min: BigInt(1000),
+								maxTimestampValid: BigInt(1000)
+							}),
+							signatures: [utils.getRandomBytes(64)],
+						}),
+					}).then(async () => {
+						expect(tokenMethod.transfer).toBeCalledTimes(3);
+						expect(tokenMethod.unlock).toBeCalledTimes(2);
+						expect((await dexModule.stores.get(PositionsStore).get(stressTestMethodContext, positionId)).liquidity).toBe(positionsStoreData.liquidity + BigInt(-5));
+						const events = blockAfterExecuteContext.eventQueue.getEvents();
+						const validatorRemoveLiquidityEvents = events.filter(
+							e => e.toObject().name === 'removeLiquidityEvent'
+						);
+						expect(validatorRemoveLiquidityEvents).toHaveLength(1);
+					})
+				).resolves.toBeUndefined();
+			});
+		}
+
+	});
+
 
 });
 
