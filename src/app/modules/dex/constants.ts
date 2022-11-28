@@ -94,18 +94,18 @@ export const PRICE_VALUE_FOR_BIT_POSITION_IN_Q96: Q96[] = [
 	BigInt('327099227039063106'),
 ]; // Array of uint256 values with the pre-computed values of price for certain values of tickValue in the Q96 representation.
 
-export const POOL_CREATION_SUCCESS = 0 // Return code for successful pool creation.           |     
-export const POOL_CREATION_FAILED_INVALID_FEE_TIER = 1 // Return code for failed pool creation due to an invalid fee tier in the pool creation. |     
-export const POOL_CREATION_FAILED_ALREADY_EXISTS = 2 // Return code for failed pool creation due to an already existing pool. |
-export const POSITION_CREATION_SUCCESS = 0 // Return code for successful position creation.       |     
-export const POSITION_CREATION_FAILED_NO_POOL = 1 // Return code for failed position creation due to a non-existing pool. |     
-export const POSITION_CREATION_FAILED_INVALID_TICK_SPACING = 2 // Return code for failed position creation due to a invalid tick spacing. |
-export const POSITION_CREATION_FAILED_INVALID_TICKS = 3 // Return code for failed position creation due to a invalid ticks. |          
-export const POSITION_UPDATE_FAILED_NOT_EXISTS = 1 // Return code for failed position update as position does not exist. |
-export const POSITION_UPDATE_FAILED_NOT_OWNER = 2 // Return code for failed position update as position owner is different from transaction sender. |
-export const POSITION_UPDATE_FAILED_INSUFFICIENT_LIQUIDITY = 3 // Return code for failed position update as transaction sender is not position owner. |
-export const TOKEN_ID_LSK = Buffer.from('0x0000000100000000') // The token ID of the LSK token.           |     
-export const TOKEN_ID_REWARDS = Buffer.from(''); // The token ID of the token used for liquidity provider incentives.           |     
+export const POOL_CREATION_SUCCESS = 0; // Return code for successful pool creation.           |
+export const POOL_CREATION_FAILED_INVALID_FEE_TIER = 1; // Return code for failed pool creation due to an invalid fee tier in the pool creation. |
+export const POOL_CREATION_FAILED_ALREADY_EXISTS = 2; // Return code for failed pool creation due to an already existing pool. |
+export const POSITION_CREATION_SUCCESS = 0; // Return code for successful position creation.       |
+export const POSITION_CREATION_FAILED_NO_POOL = 1; // Return code for failed position creation due to a non-existing pool. |
+export const POSITION_CREATION_FAILED_INVALID_TICK_SPACING = 2; // Return code for failed position creation due to a invalid tick spacing. |
+export const POSITION_CREATION_FAILED_INVALID_TICKS = 3; // Return code for failed position creation due to a invalid ticks. |
+export const POSITION_UPDATE_FAILED_NOT_EXISTS = 1; // Return code for failed position update as position does not exist. |
+export const POSITION_UPDATE_FAILED_NOT_OWNER = 2; // Return code for failed position update as position owner is different from transaction sender. |
+export const POSITION_UPDATE_FAILED_INSUFFICIENT_LIQUIDITY = 3; // Return code for failed position update as transaction sender is not position owner. |
+export const TOKEN_ID_LSK = Buffer.from('0000000100000000', 'hex'); // The token ID of the LSK token.           |
+export const TOKEN_ID_REWARDS = Buffer.from('0000000100000000', 'hex'); // The token ID of the token used for liquidity provider incentives.           |
 
 export const ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL = Buffer.from([])
 

@@ -210,8 +210,8 @@ describe('dex:command:createPosition', () => {
 				await Promise.all(
 					testarray.map(async () => {
 						await stress();
-					})
-				)
+					}),
+				);
 			})();
 
 			async function stress() {
@@ -231,8 +231,8 @@ describe('dex:command:createPosition', () => {
 						e => e.toObject().name === 'positionCreatedEvent',
 					);
 					expect(positionCreatedEvents).toHaveLength(1);
-				})
+				});
 			}
-		})
+		});
 	});
 });

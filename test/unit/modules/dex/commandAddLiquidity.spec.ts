@@ -211,8 +211,8 @@ describe('dex:command:addLiquidity', () => {
 				await Promise.all(
 					testarray.map(async () => {
 						await stress();
-					})
-				)
+					}),
+				);
 			})();
 
 			async function stress() {
@@ -221,15 +221,17 @@ describe('dex:command:addLiquidity', () => {
 					transaction: new Transaction(addLiquidityFixtures[0][1] as any),
 				});
 				it('should call execute methods and emit positionUpdatedEvent', async () => {
-					await commandAddLiquidity.execute(context.createCommandExecuteContext(addLiquiditySchema));
+					await commandAddLiquidity.execute(
+						context.createCommandExecuteContext(addLiquiditySchema),
+					);
 					expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(1);
 					const events = context.eventQueue.getEvents();
 					const positionUpdatedEvents = events.filter(
 						e => e.toObject().name === 'positionUpdatedEvent',
 					);
 					expect(positionUpdatedEvents).toHaveLength(1);
-				})
+				});
 			}
-		})
+		});
 	});
 });
