@@ -22,12 +22,9 @@ const { utils } = cryptography;
 
 const senderPublicKey = Buffer.from('0000000000000000', 'hex');
 const signature = utils.getRandomBytes(64);
-const tokenID0 = Buffer.from('0000000100', 'hex');
-const tokenID1 = Buffer.from('0000000101', 'hex');
-let randomTokenArray:string[] = [];
-var globalHexCounter = 0;
-var randomTokenID0:Buffer;
-var randomTokenID1:Buffer;
+const tokenID0 = Buffer.from('0100000000', 'hex');
+const tokenID1 = Buffer.from('1000000000', 'hex');
+var randomTokenID: number = 1111111111;
 
 const commonTransactionAttrs = {
 	module: 'dex',
@@ -50,30 +47,6 @@ const commonParams = {
 		amount1Desired: BigInt(1000),
 	},
 	maxTimestampValid: BigInt(1000),
-};
-
-const randomTokenArrayGenerator = ():[Buffer,Buffer] =>{
-
-	if(globalHexCounter==0){
-		
-		for(let i = 0; i < 2; ++i){
-			let randomArray:number[] = [];
-			for (let j = 0; j < 10; ++j) {
-				randomArray.push(Math.floor(Math.random() * 10));
-			}		
-			randomTokenArray.push(randomArray.sort().toString().replace(/,/g,''));
-		}
-		randomTokenArray.sort();
-		randomTokenID0 = Buffer.from(randomTokenArray[0], 'hex')
-		randomTokenID1 = Buffer.from(randomTokenArray[1], 'hex')		
-		globalHexCounter++;
-		return [randomTokenID0,randomTokenID1]
-	}else{
-		globalHexCounter=0;
-		randomTokenArray=[];
-		return [randomTokenID0,randomTokenID1]
-	}
-	
 };
 
 export const createPoolFixtures: Fixtures = [
@@ -133,19 +106,19 @@ export const createPoolFixtures: Fixtures = [
 	],
 ];
 
-export const createRandomPoolFixturesGenerator=():Fixtures=>{
+export const createRandomPoolFixturesGenerator = (): Fixtures => {
 	return [
 		[
 			'should be successful with random tokenIDs',
 			{
 				...commonTransactionAttrs,
 				params: codec.encode(createPoolSchema, {
-					...commonParams,				
-					tokenID0: randomTokenArrayGenerator()[0],
-					tokenID1: randomTokenArrayGenerator()[1],
+					...commonParams,
+					tokenID0: Buffer.from((randomTokenID--).toString(), 'hex'),
+					tokenID1: Buffer.from((randomTokenID--).toString(), 'hex'),
 				}),
 			},
-			false
-		]
-	]
-}
+			false,
+		],
+	];
+};

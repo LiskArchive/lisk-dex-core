@@ -17,17 +17,32 @@ import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { TokenMethod, VerifyStatus } from 'lisk-framework';
 import { EventQueue } from 'lisk-framework/dist-node/state_machine';
-import { createMethodContext, MethodContext } from 'lisk-framework/dist-node/state_machine/method_context';
+import {
+	createMethodContext,
+	MethodContext,
+} from 'lisk-framework/dist-node/state_machine/method_context';
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
-import { createBlockContext, createBlockHeaderWithDefaults, createTransactionContext } from 'lisk-framework/dist-node/testing';
+import {
+	createBlockContext,
+	createBlockHeaderWithDefaults,
+	createTransactionContext,
+} from 'lisk-framework/dist-node/testing';
 import { DexModule } from '../../../../src/app/modules';
 import { CollectFeesCommand } from '../../../../src/app/modules/dex/commands/collectFees';
 import { collectFeesSchema } from '../../../../src/app/modules/dex/schemas';
-import { DexGlobalStore, PoolsStore, PositionsStore, PriceTicksStore } from '../../../../src/app/modules/dex/stores';
+import {
+	DexGlobalStore,
+	PoolsStore,
+	PositionsStore,
+	PriceTicksStore,
+} from '../../../../src/app/modules/dex/stores';
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
-import { PriceTicksStoreData, tickToBytes } from '../../../../src/app/modules/dex/stores/priceTicksStore';
+import {
+	PriceTicksStoreData,
+	tickToBytes,
+} from '../../../../src/app/modules/dex/stores/priceTicksStore';
 import { Address, PositionID } from '../../../../src/app/modules/dex/types';
 import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
@@ -35,14 +50,10 @@ import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q
 import { loggerMock } from 'lisk-framework/dist-node/testing/mocks';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedStateDB';
 describe('dex:command:collectFees', () => {
-
-
-
 	describe('dex:command:collectFees', () => {
 		let command: CollectFeesCommand;
 		var stateStore: PrefixedStateReadWriter;
 		var methodContext: MethodContext;
-
 
 		const dexModule = new DexModule();
 		const senderAddress: Address = Buffer.from('00000000000000000', 'hex');
@@ -69,37 +80,35 @@ describe('dex:command:collectFees', () => {
 			sqrtPrice: q96ToBytes(BigInt('327099227039063106')),
 			feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
 			feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(6))),
-			tickSpacing: 1
-		}
+			tickSpacing: 1,
+		};
 
 		const priceTicksStoreDataTickLower: PriceTicksStoreData = {
 			liquidityNet: BigInt(5),
 			liquidityGross: BigInt(5),
 			feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(8))),
 			feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(5))),
-		}
+		};
 
 		const priceTicksStoreDataTickUpper: PriceTicksStoreData = {
 			liquidityNet: BigInt(5),
 			liquidityGross: BigInt(5),
 			feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(4))),
 			feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(3))),
-		}
+		};
 
 		const dexGlobalStoreData: DexGlobalStoreData = {
 			positionCounter: BigInt(10),
 			collectableLSKFees: BigInt(10),
-		}
+		};
 		const positionsStoreData: PositionsStoreData = {
 			tickLower: -8,
 			tickUpper: -5,
 			liquidity: BigInt(15),
 			feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(3))),
 			feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(1))),
-			ownerAddress: senderAddress
-		}
-
-
+			ownerAddress: senderAddress,
+		};
 
 		beforeEach(async () => {
 			command = new CollectFeesCommand(dexModule.stores, dexModule.events);
@@ -112,13 +121,39 @@ describe('dex:command:collectFees', () => {
 			await dexGlobalStore.set(methodContext, positionId, dexGlobalStoreData);
 			await dexGlobalStore.set(methodContext, Buffer.alloc(0), dexGlobalStoreData);
 			await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData);
-			
-			await poolsStore.setKey(methodContext, [senderAddress, getPoolIDFromPositionID(positionId)], poolsStoreData);
+
+			await poolsStore.setKey(
+				methodContext,
+				[senderAddress, getPoolIDFromPositionID(positionId)],
+				poolsStoreData,
+			);
 			await poolsStore.set(methodContext, getPoolIDFromPositionID(positionId), poolsStoreData);
-			await priceTicksStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), tickToBytes(positionsStoreData.tickLower)], priceTicksStoreDataTickLower)
-			await priceTicksStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), tickToBytes(positionsStoreData.tickUpper)], priceTicksStoreDataTickUpper)
-			await priceTicksStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), q96ToBytes(tickToPrice(positionsStoreData.tickLower))], priceTicksStoreDataTickLower)
-			await priceTicksStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), q96ToBytes(tickToPrice(positionsStoreData.tickUpper))], priceTicksStoreDataTickUpper)
+			await priceTicksStore.setKey(
+				methodContext,
+				[getPoolIDFromPositionID(positionId), tickToBytes(positionsStoreData.tickLower)],
+				priceTicksStoreDataTickLower,
+			);
+			await priceTicksStore.setKey(
+				methodContext,
+				[getPoolIDFromPositionID(positionId), tickToBytes(positionsStoreData.tickUpper)],
+				priceTicksStoreDataTickUpper,
+			);
+			await priceTicksStore.setKey(
+				methodContext,
+				[
+					getPoolIDFromPositionID(positionId),
+					q96ToBytes(tickToPrice(positionsStoreData.tickLower)),
+				],
+				priceTicksStoreDataTickLower,
+			);
+			await priceTicksStore.setKey(
+				methodContext,
+				[
+					getPoolIDFromPositionID(positionId),
+					q96ToBytes(tickToPrice(positionsStoreData.tickUpper)),
+				],
+				priceTicksStoreDataTickUpper,
+			);
 
 			await positionsStore.set(methodContext, positionId, positionsStoreData);
 			await positionsStore.setKey(methodContext, [senderAddress, positionId], positionsStoreData);
@@ -128,10 +163,8 @@ describe('dex:command:collectFees', () => {
 			tokenMethod.getAvailableBalance = getAvailableBalance.mockReturnValue(BigInt(250));
 
 			command.init({
-				tokenMethod
+				tokenMethod,
 			});
-
-
 		});
 
 		describe('verify', () => {
@@ -171,11 +204,10 @@ describe('dex:command:collectFees', () => {
 					}),
 				});
 				const result = await command.verify(context.createCommandVerifyContext(collectFeesSchema));
-				expect(result.error?.message).toBe("Please enter the correct positions");
+				expect(result.error?.message).toBe('Please enter the correct positions');
 				expect(result.status).toEqual(VerifyStatus.FAIL);
 			});
 		});
-
 
 		describe('execute', () => {
 			const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
@@ -215,27 +247,25 @@ describe('dex:command:collectFees', () => {
 							}),
 							signatures: [utils.getRandomBytes(64)],
 						}),
-					})
+					}),
 				).resolves.toBeUndefined();
 				expect(tokenMethod.transfer).toBeCalledTimes(1);
 				const events = blockAfterExecuteContext.eventQueue.getEvents();
 				const validatorFeesIncentivesCollectedEvent = events.filter(
-					e => e.toObject().name === 'feesIncentivesCollectedEvent'
+					e => e.toObject().name === 'feesIncentivesCollectedEvent',
 				);
 				expect(validatorFeesIncentivesCollectedEvent).toHaveLength(1);
 			});
-
-		})
+		});
 
 		describe('stress test for checking the event emission and the time taken', () => {
-
 			(async () => {
 				const testarray = Array.from({ length: 20000 });
 				await Promise.all(
 					testarray.map(async () => {
 						await stress();
-					})
-				)
+					}),
+				);
 			})();
 
 			async function stress() {
@@ -276,16 +306,16 @@ describe('dex:command:collectFees', () => {
 								}),
 								signatures: [utils.getRandomBytes(64)],
 							}),
-						})
+						}),
 					).resolves.toBeUndefined();
 					expect(tokenMethod.transfer).toBeCalledTimes(1);
 					const events = blockAfterExecuteContext.eventQueue.getEvents();
 					const validatorFeesIncentivesCollectedEvent = events.filter(
-						e => e.toObject().name === 'feesIncentivesCollectedEvent'
+						e => e.toObject().name === 'feesIncentivesCollectedEvent',
 					);
 					expect(validatorFeesIncentivesCollectedEvent).toHaveLength(1);
 				});
 			}
-		})
-	})
+		});
+	});
 });

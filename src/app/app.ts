@@ -24,5 +24,3 @@ export const getApplication = async (config: PartialApplicationConfig): Promise<
 
 	return app;
 };
-
-
