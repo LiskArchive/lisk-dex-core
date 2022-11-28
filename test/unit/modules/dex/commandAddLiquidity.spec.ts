@@ -205,36 +205,31 @@ describe('dex:command:addLiquidity', () => {
 			expect(positionUpdatedEvents).toHaveLength(1);
 		});
 
-		describe('stress test for checking the events',()=>{
+		describe('stress test for checking the events', () => {
 			(async () => {
-	
-				await test();
-	
-			})();
-			async function test() {
 				const testarray = Array.from({ length: 20000 });
 				await Promise.all(
 					testarray.map(async () => {
 						await stress();
 					})
 				)
-			}
+			})();
+
 			async function stress() {
 				context = createTransactionContext({
 					stateStore,
 					transaction: new Transaction(addLiquidityFixtures[0][1] as any),
 				});
-				it('should call execute methods and emit positionUpdatedEvent', async()=>{
+				it('should call execute methods and emit positionUpdatedEvent', async () => {
 					await commandAddLiquidity.execute(context.createCommandExecuteContext(addLiquiditySchema));
 					expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(1);
 					const events = context.eventQueue.getEvents();
 					const positionUpdatedEvents = events.filter(
-					e => e.toObject().name === 'positionUpdatedEvent',
+						e => e.toObject().name === 'positionUpdatedEvent',
 					);
 					expect(positionUpdatedEvents).toHaveLength(1);
 				})
 			}
 		})
-
 	});
 });

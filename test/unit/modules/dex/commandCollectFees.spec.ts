@@ -230,17 +230,13 @@ describe('dex:command:collectFees', () => {
 		describe('stress test for checking the event emission and the time taken', () => {
 
 			(async () => {
-				await test();
-			})();
-
-			async function test() {
 				const testarray = Array.from({ length: 20000 });
 				await Promise.all(
 					testarray.map(async () => {
 						await stress();
 					})
 				)
-			}
+			})();
 
 			async function stress() {
 				const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
@@ -291,6 +287,5 @@ describe('dex:command:collectFees', () => {
 				});
 			}
 		})
-
 	})
 });
