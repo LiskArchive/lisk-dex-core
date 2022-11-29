@@ -206,11 +206,13 @@ describe('dex:command:addLiquidity', () => {
 		});
 
 		describe('stress test for checking the events', () => {
-			(() => {
-				const testarray = Array.from({ length: 20000 });
-				testarray.forEach(() => {
-					stress();
-				});
+			(async () => {
+				const testarray = Array.from({ length: 10000 });
+				await Promise.all(
+					testarray.map(async () => {
+						stress();
+					}),
+				);
 			})();
 
 			function stress() {
