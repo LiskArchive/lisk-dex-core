@@ -33,7 +33,6 @@ import {
 	checkPositionExistenceAndOwnership,
 	computeCollectableFees,
 	computeCollectableIncentives,
-	updatePosition,
 	transferToPool,
 	transferPoolToPool,
 	transferToProtocolFeeAccount,
@@ -69,31 +68,30 @@ describe('dex:auxiliaryFunctions', () => {
 	const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
-	const feeTier: Number = Number('0x00000c8');
-	let sqrtPrice: bigint = numberToQ96(BigInt(1));
-
-	const tokenModule = new TokenModule();
-	let inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
-	let tokenMethod: TokenMethod = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
-	let stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
-
-	let poolsStore: PoolsStore;
-	let priceTicksStore: PriceTicksStore;
-	let dexGlobalStore: DexGlobalStore;
-	let positionsStore: PositionsStore;
-	let settingsStore: SettingsStore;
+	const feeTier: number = Number('0x00000c8');
+	const sqrtPrice: bigint = numberToQ96(BigInt(1));
 	const dexModule = new DexModule();
 
-	const transferMock = jest.fn();
-	const lockMock = jest.fn();
-	const unlockMock = jest.fn();
-	const getAvailableBalanceMock = jest.fn().mockReturnValue(BigInt(250));
+	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
+	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
+	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
 		stateStore,
 		eventQueue: new EventQueue(0),
 	});
+
+	let poolsStore: PoolsStore;
+	let priceTicksStore: PriceTicksStore;
+	let dexGlobalStore: DexGlobalStore;
+	let positionsStore: PositionsStore;
+	let settingsStore: SettingsStore;
+
+	const transferMock = jest.fn();
+	const lockMock = jest.fn();
+	const unlockMock = jest.fn();
+	const getAvailableBalanceMock = jest.fn().mockReturnValue(BigInt(250));
 
 	const settings = {
 		feeTiers: [100],
@@ -198,20 +196,20 @@ describe('dex:auxiliaryFunctions', () => {
 			tokenMethod.unlock = unlockMock;
 			tokenMethod.getAvailableBalance = getAvailableBalanceMock.mockReturnValue(BigInt(250));
 		});
-		it('should get Token0Id from poolID', async () => {
+		it('should get Token0Id from poolID', () => {
 			expect(getToken0Id(poolId)).toEqual(token0Id);
 		});
-		it('should get Token1Id from poolID', async () => {
+		it('should get Token1Id from poolID', () => {
 			expect(getToken1Id(poolId)).toEqual(token1Id);
 		});
-		it('should return the feeTier from the poolID', async () => {
+		it('should return the feeTier from the poolID', () => {
 			expect(getFeeTier(poolId)).toEqual(feeTier);
 		});
 
 		it('should transfer and lock using the tokenMethod', async () => {
 			await transferToPool(tokenMethod, methodContext, senderAddress, poolId, token1Id, BigInt(1));
-			expect(tokenMethod.transfer).toBeCalled();
-			expect(tokenMethod.lock).toBeCalled();
+			expect(tokenMethod.transfer).toHaveBeenCalled();
+			expect(tokenMethod.lock).toHaveBeenCalled();
 		});
 
 		it('should transfer, lock and unlock for transferPoolToPool', async () => {
@@ -223,9 +221,9 @@ describe('dex:auxiliaryFunctions', () => {
 				token1Id,
 				BigInt(1),
 			);
-			expect(tokenMethod.transfer).toBeCalled();
-			expect(tokenMethod.lock).toBeCalled();
-			expect(tokenMethod.unlock).toBeCalled();
+			expect(tokenMethod.transfer).toHaveBeenCalled();
+			expect(tokenMethod.lock).toHaveBeenCalled();
+			expect(tokenMethod.unlock).toHaveBeenCalled();
 		});
 
 		it('should transfer for transferToProtocolFeeAccount', async () => {
@@ -237,10 +235,10 @@ describe('dex:auxiliaryFunctions', () => {
 				token1Id,
 				BigInt(1),
 			);
-			expect(tokenMethod.transfer).toBeCalled();
+			expect(tokenMethod.transfer).toHaveBeenCalled();
 		});
 
-		it('should return the poolId from the positionId', async () => {
+		it('should return the poolId from the positionId', () => {
 			expect(getPoolIDFromPositionID(positionId).toString('hex')).toBe(
 				'00000001000000000101643130',
 			);
@@ -253,9 +251,9 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('should return concatenated (tokenID0, tokenID1, feeTier) after computing poolID', async () => {
-			expect(
-				await computePoolID(token0Id, token1Id, Number(0x0064).valueOf()).toString('hex'),
-			).toBe('0000000000000000000001000000000064000000');
+			expect(computePoolID(token0Id, token1Id, Number(0x0064).valueOf()).toString('hex')).toBe(
+				'0000000000000000000001000000000064000000',
+			);
 		});
 
 		it('should return 0 for POSITION_CREATION_SUCCESS and positionID in result', async () => {
@@ -273,9 +271,7 @@ describe('dex:auxiliaryFunctions', () => {
 
 		it('should return concatenated poolID with dexGlobalStoreData.positionCounter in result', async () => {
 			expect(
-				await getNewPositionID(dexGlobalStoreData, getPoolIDFromPositionID(positionId)).toString(
-					'hex',
-				),
+				getNewPositionID(dexGlobalStoreData, getPoolIDFromPositionID(positionId)).toString('hex'),
 			).toBe('000000010000000001016431303130');
 		});
 
@@ -372,15 +368,6 @@ describe('dex:auxiliaryFunctions', () => {
 							expect(res[3]).toBe(BigInt(0));
 						});
 
-						it('should return [0n, 0n, 316912650057057350374175801344, 158456325028528675187087900672] as collectableFees0, collectableFees1, feeGrowthInside0, feeGrowthInside1 in result', async () => {
-							await computeCollectableFees(tokenModule.stores, methodContext, positionId).then(res => {
-								expect(res[0]).toBe(BigInt(0));
-								expect(res[1]).toBe(BigInt(0));
-								expect(res[2]).toBe(BigInt(316912650057057350374175801344));
-								expect(res[3]).toBe(BigInt(158456325028528675187087900672));
-							});
-						});
-
 						it('should return [1n,25n] in result', async () => {
 							await computeCollectableIncentives(
 								dexGlobalStore,
@@ -433,25 +420,23 @@ describe('dex:auxiliaryFunctions', () => {
 					positionId,
 					BigInt(-10000),
 				),
-			).rejects.toThrowError();
+			).rejects.toThrow();
 		});
 
 		it('should return [0,0] liquidityDelta is 0', async () => {
-			expect(
-				await updatePosition(
-					methodContext,
-					dexModule.events,
-					dexModule.stores,
-					tokenMethod,
-					positionId,
-					BigInt(0),
-				).then(res => {
-					expect(res[0].toString()).toBe('0');
-					expect(res[1].toString()).toBe('0');
-				}),
-			);
+			await updatePosition(
+				methodContext,
+				dexModule.events,
+				dexModule.stores,
+				tokenMethod,
+				positionId,
+				BigInt(0),
+			).then(res => {
+				expect(res[0].toString()).toBe('0');
+				expect(res[1].toString()).toBe('0');
+			});
 		});
-		it('priceToTick', async () => {
+		it('priceToTick', () => {
 			expect(priceToTick(tickToPrice(-735247))).toEqual(-735247);
 		});
 	});

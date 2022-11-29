@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-<<<<<<< HEAD
 import { BaseModule, ModuleMetadata, utils, TokenMethod, ValidatorsMethod, MethodContext } from 'lisk-sdk';
 
 import {
@@ -20,9 +19,6 @@ import {
 	MODULE_NAME_DEX,
 	defaultConfig
 } from './constants';
-=======
-import { BaseModule, ModuleMetadata, utils, TokenMethod, ValidatorsMethod } from 'lisk-sdk';
->>>>>>> e154ac0 (Add tests)
 
 import {
 	DexEndpoint
@@ -42,6 +38,14 @@ import {
 	PositionUpdatedEvent,
 	PositionUpdateFailedEvent,
 } from './events';
+
+import { AddLiquidityCommand } from './commands/addLiquidity';
+import { CreatePositionCommand } from './commands/createPosition';
+import { CollectFeesCommand } from './commands/collectFees';
+import { RemoveLiquidityCommand } from './commands/removeLiquidity';
+
+import { RemoveLiquidityFailedEvent } from './events/removeLiquidityFailed';
+import { RemoveLiquidityEvent } from './events/removeLiquidity';
 
 import {
 	CreatePoolCommand
@@ -70,16 +74,12 @@ export class DexModule extends BaseModule {
 	public _validatorsMethod!: ValidatorsMethod;
 	public _moduleConfig!: ModuleConfig;
 
-<<<<<<< HEAD
 	public _methodContext: MethodContext | undefined;
 
-	private readonly _createPoolCommand = new CreatePoolCommand(this.stores, this.events);
-=======
 	private readonly _createPoolCommand = new CreatePoolCommand(this.stores, this.events);
 	private readonly _addLiquidityCommand = new AddLiquidityCommand(this.stores, this.events);
 	private readonly _createPositionCommand = new CreatePositionCommand(this.stores, this.events);
 	private readonly _collectFeeCommand = new CollectFeesCommand(this.stores, this.events);
->>>>>>> e154ac0 (Add tests)
 	private readonly _removeLiquidityCommand = new RemoveLiquidityCommand(this.stores, this.events);
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
