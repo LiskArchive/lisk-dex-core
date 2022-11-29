@@ -205,16 +205,16 @@ describe('dex:command:createPosition', () => {
 		});
 
 		describe('stress test for checking the events', () => {
-			(async () => {
+			(() => {
 				const testarray = Array.from({ length: 20000 });
-				await Promise.all(
-					testarray.map(async () => {
-						await stress();
+				Promise.all(
+					testarray.map(() => {
+						return stress();
 					}),
 				);
 			})();
 
-			async function stress() {
+			function stress() {
 				contextPosition = createTransactionContext({
 					stateStore,
 					transaction: new Transaction(createPositionFixtures[0][1] as any),

@@ -206,16 +206,16 @@ describe('dex:command:addLiquidity', () => {
 		});
 
 		describe('stress test for checking the events', () => {
-			(async () => {
+			(() => {
 				const testarray = Array.from({ length: 20000 });
-				await Promise.all(
-					testarray.map(async () => {
-						await stress();
+				Promise.all(
+					testarray.map(() => {
+						return stress();
 					}),
 				);
 			})();
 
-			async function stress() {
+			function stress() {
 				context = createTransactionContext({
 					stateStore,
 					transaction: new Transaction(addLiquidityFixtures[0][1] as any),

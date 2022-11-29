@@ -59,14 +59,14 @@ import {
 
 describe('dex:command:removeLiquidity', () => {
 	let command: RemoveLiquidityCommand;
-	var stateStore: PrefixedStateReadWriter;
-	var methodContext: MethodContext;
+	let stateStore: PrefixedStateReadWriter;
+	let methodContext: MethodContext;
 
 	const dexModule = new DexModule();
 
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
-	const liquidityToRemove: bigint = BigInt(-2);
+	const liquidityToRemove = BigInt(-2);
 
 	const transferMock = jest.fn();
 	const lockMock = jest.fn();
@@ -194,14 +194,14 @@ describe('dex:command:removeLiquidity', () => {
 		});
 	});
 
-	describe('execute', () => {
+	describe('execute block should fail as positionID is not same as positionsStore', () => {
 		it('should terminate and throw error if the positionID is not same as positionsStore doesnt have position with the specified positionID', async () => {
 			await expect(
 				command.execute({
 					chainID: utils.getRandomBytes(32),
 					params: {
 						positionID: Buffer.from('0000000100', 'hex'),
-						liquidityToRemove: liquidityToRemove,
+						liquidityToRemove,
 						amount0Min: BigInt(1000),
 						amount1Min: BigInt(1000),
 						maxTimestampValid: BigInt(1000),
@@ -224,7 +224,7 @@ describe('dex:command:removeLiquidity', () => {
 						senderPublicKey: senderAddress,
 						params: codec.encode(removeLiquiditySchema, {
 							positionID: Buffer.from('0000000100', 'hex'),
-							liquidityToRemove: liquidityToRemove,
+							liquidityToRemove,
 							amount0Min: BigInt(1000),
 							amount1Min: BigInt(1000),
 							maxTimestampValid: BigInt(1000),
@@ -232,12 +232,12 @@ describe('dex:command:removeLiquidity', () => {
 						signatures: [utils.getRandomBytes(64)],
 					}),
 				}),
-			).rejects.toThrowError();
+			).rejects.toThrow();
 		});
 	});
 
-	describe('execute', () => {
-		it('should terminate and throw error if the liquidityToRemove > totalLiquiidty', async () => {
+	describe('execute block failure due to liquidityToRemove > totalLiquiidty', () => {
+		it('should terminate and throw error', async () => {
 			await expect(
 				command.execute({
 					chainID: utils.getRandomBytes(32),
@@ -274,11 +274,11 @@ describe('dex:command:removeLiquidity', () => {
 						signatures: [utils.getRandomBytes(64)],
 					}),
 				}),
-			).rejects.toThrowError();
+			).rejects.toThrow();
 		});
 	});
 
-	describe('execute', () => {
+	describe('execute successfully', () => {
 		const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		const blockAfterExecuteContext = createBlockContext({
@@ -294,7 +294,7 @@ describe('dex:command:removeLiquidity', () => {
 					chainID: utils.getRandomBytes(32),
 					params: {
 						positionID: positionId,
-						liquidityToRemove: liquidityToRemove,
+						liquidityToRemove,
 						amount0Min: BigInt(0),
 						amount1Min: BigInt(0),
 						maxTimestampValid: BigInt(1000),
@@ -317,7 +317,7 @@ describe('dex:command:removeLiquidity', () => {
 						senderPublicKey: senderAddress,
 						params: codec.encode(removeLiquiditySchema, {
 							positionID: positionId,
-							liquidityToRemove: liquidityToRemove,
+							liquidityToRemove,
 							amount0Min: BigInt(1000),
 							amount1Min: BigInt(1000),
 							maxTimestampValid: BigInt(1000),
@@ -326,8 +326,8 @@ describe('dex:command:removeLiquidity', () => {
 					}),
 				}),
 			).resolves.toBeUndefined();
-			expect(tokenMethod.transfer).toBeCalledTimes(3);
-			expect(tokenMethod.unlock).toBeCalledTimes(2);
+			expect(tokenMethod.transfer).toHaveBeenCalledTimes(3);
+			expect(tokenMethod.unlock).toHaveBeenCalledTimes(2);
 			expect(
 				(await dexModule.stores.get(PositionsStore).get(methodContext, positionId)).liquidity,
 			).toBe(positionsStoreData.liquidity + liquidityToRemove);
@@ -339,14 +339,14 @@ describe('dex:command:removeLiquidity', () => {
 		});
 	});
 
-	describe('execute', () => {
-		it('should throw Error as amount1Min > amount1', async () => {
+	describe('execute should terminate and throw error as amount1Min > amount1', () => {
+		it('should throw Error', async () => {
 			await expect(
 				command.execute({
 					chainID: utils.getRandomBytes(32),
 					params: {
 						positionID: positionId,
-						liquidityToRemove: liquidityToRemove,
+						liquidityToRemove,
 						amount0Min: BigInt(0),
 						amount1Min: BigInt(1000),
 						maxTimestampValid: BigInt(1000),
@@ -369,7 +369,7 @@ describe('dex:command:removeLiquidity', () => {
 						senderPublicKey: senderAddress,
 						params: codec.encode(removeLiquiditySchema, {
 							positionID: positionId,
-							liquidityToRemove: liquidityToRemove,
+							liquidityToRemove,
 							amount0Min: BigInt(1000),
 							amount1Min: BigInt(1000),
 							maxTimestampValid: BigInt(1000),
@@ -377,18 +377,18 @@ describe('dex:command:removeLiquidity', () => {
 						signatures: [utils.getRandomBytes(64)],
 					}),
 				}),
-			).rejects.toThrowError('Update position amounts are more then minimum amounts');
+			).rejects.toThrow('Update position amounts are more then minimum amounts');
 		});
 	});
 
-	describe('execute', () => {
-		it('should throw Error as amount0Min > amount0', async () => {
+	describe('execute should terminate and throw error as amount0Min > amount0', () => {
+		it('should throw Error', async () => {
 			await expect(
 				command.execute({
 					chainID: utils.getRandomBytes(32),
 					params: {
 						positionID: positionId,
-						liquidityToRemove: liquidityToRemove,
+						liquidityToRemove,
 						amount0Min: BigInt(158456325028528675187087900671),
 						amount1Min: BigInt(0),
 						maxTimestampValid: BigInt(1000),
@@ -411,7 +411,7 @@ describe('dex:command:removeLiquidity', () => {
 						senderPublicKey: senderAddress,
 						params: codec.encode(removeLiquiditySchema, {
 							positionID: positionId,
-							liquidityToRemove: liquidityToRemove,
+							liquidityToRemove,
 							amount0Min: BigInt(1000),
 							amount1Min: BigInt(1000),
 							maxTimestampValid: BigInt(1000),
@@ -419,28 +419,28 @@ describe('dex:command:removeLiquidity', () => {
 						signatures: [utils.getRandomBytes(64)],
 					}),
 				}),
-			).rejects.toThrowError('Update position amounts are more then minimum amounts');
+			).rejects.toThrow('Update position amounts are more then minimum amounts');
 		});
 	});
 
 	describe('stress test for checking the events', () => {
-		(async () => {
+		(() => {
 			const testarray = Array.from({ length: 20000 });
-			await Promise.all(
-				testarray.map(async () => {
-					await stress();
+			Promise.all(
+				testarray.map(() => {
+					return stress();
 				}),
 			);
 		})();
 
-		async function stress() {
+		function stress() {
 			const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
 
 			const blockAfterExecuteContext = createBlockContext({
 				header: blockHeader,
 			}).getBlockAfterExecuteContext();
 
-			var stressTestMethodContext = createMethodContext({
+			const stressTestMethodContext = createMethodContext({
 				stateStore,
 				eventQueue: blockAfterExecuteContext.eventQueue,
 			});
@@ -484,8 +484,8 @@ describe('dex:command:removeLiquidity', () => {
 							}),
 						})
 						.then(async () => {
-							expect(tokenMethod.transfer).toBeCalledTimes(3);
-							expect(tokenMethod.unlock).toBeCalledTimes(2);
+							expect(tokenMethod.transfer).toHaveBeenCalledTimes(3);
+							expect(tokenMethod.unlock).toHaveBeenCalledTimes(2);
 							expect(
 								(
 									await dexModule.stores

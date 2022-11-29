@@ -27,6 +27,7 @@ import {
 	createBlockHeaderWithDefaults,
 	createTransactionContext,
 } from 'lisk-framework/dist-node/testing';
+import { loggerMock } from 'lisk-framework/dist-node/testing/mocks';
 import { DexModule } from '../../../../src/app/modules';
 import { CollectFeesCommand } from '../../../../src/app/modules/dex/commands/collectFees';
 import { collectFeesSchema } from '../../../../src/app/modules/dex/schemas';
@@ -47,13 +48,13 @@ import { Address, PositionID } from '../../../../src/app/modules/dex/types';
 import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
-import { loggerMock } from 'lisk-framework/dist-node/testing/mocks';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedStateDB';
+
 describe('dex:command:collectFees', () => {
 	describe('dex:command:collectFees', () => {
 		let command: CollectFeesCommand;
-		var stateStore: PrefixedStateReadWriter;
-		var methodContext: MethodContext;
+		let stateStore: PrefixedStateReadWriter;
+		let methodContext: MethodContext;
 
 		const dexModule = new DexModule();
 		const senderAddress: Address = Buffer.from('00000000000000000', 'hex');
@@ -249,7 +250,7 @@ describe('dex:command:collectFees', () => {
 						}),
 					}),
 				).resolves.toBeUndefined();
-				expect(tokenMethod.transfer).toBeCalledTimes(1);
+				expect(tokenMethod.transfer).toHaveBeenCalledTimes(1);
 				const events = blockAfterExecuteContext.eventQueue.getEvents();
 				const validatorFeesIncentivesCollectedEvent = events.filter(
 					e => e.toObject().name === 'feesIncentivesCollectedEvent',
@@ -259,22 +260,22 @@ describe('dex:command:collectFees', () => {
 		});
 
 		describe('stress test for checking the event emission and the time taken', () => {
-			(async () => {
+			(() => {
 				const testarray = Array.from({ length: 20000 });
-				await Promise.all(
-					testarray.map(async () => {
-						await stress();
+				Promise.all(
+					testarray.map(() => {
+						return stress();
 					}),
 				);
 			})();
 
-			async function stress() {
+			function stress() {
 				const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
 				const blockAfterExecuteContext = createBlockContext({
 					header: blockHeader,
 				}).getBlockAfterExecuteContext();
 
-				var stressTestMethodContext = createMethodContext({
+				let stressTestMethodContext = createMethodContext({
 					stateStore,
 					eventQueue: blockAfterExecuteContext.eventQueue,
 				});

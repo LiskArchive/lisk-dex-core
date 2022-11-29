@@ -68,7 +68,7 @@ describe('dex:command:createPool', () => {
 		},
 	};
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		dexModule = new DexModule();
 		tokenModule = new TokenModule();
 		validatorModule = new ValidatorsModule();
@@ -141,16 +141,16 @@ describe('dex:command:createPool', () => {
 		});
 
 		describe('stress test for checking the event emission and the time taken', () => {
-			(async () => {
+			(() => {
 				const testarray = Array.from({ length: 20000 });
-				await Promise.all(
-					testarray.map(async () => {
-						await stress();
+				Promise.all(
+					testarray.map(() => {
+						return stress();
 					}),
 				);
 			})();
 
-			async function stress() {
+			function stress() {
 				it(`should emit poolCreatedEvent and positionCreatedEvent for every iteration`, async () => {
 					context = createTransactionContext({
 						stateStore,

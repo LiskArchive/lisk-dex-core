@@ -71,7 +71,7 @@ export class CollectFeesCommand extends BaseCommand {
 
 		const methodContext = ctx.getMethodContext();
 
-		for (var positionID of positions) {
+		for (const positionID of positions) {
 			await checkPositionExistenceAndOwnership(
 				this.stores,
 				this.events,
