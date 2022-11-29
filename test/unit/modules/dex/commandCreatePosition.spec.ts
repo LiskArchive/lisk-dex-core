@@ -207,11 +207,9 @@ describe('dex:command:createPosition', () => {
 		describe('stress test for checking the events', () => {
 			(() => {
 				const testarray = Array.from({ length: 20000 });
-				Promise.all(
-					testarray.map(() => {
-						return stress();
-					}),
-				);
+				testarray.map(() => {
+					return stress();
+				})
 			})();
 
 			function stress() {
