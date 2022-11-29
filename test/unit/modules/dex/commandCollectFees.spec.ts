@@ -262,11 +262,9 @@ describe('dex:command:collectFees', () => {
 		describe('stress test for checking the event emission and the time taken', () => {
 			(() => {
 				const testarray = Array.from({ length: 20000 });
-				Promise.all(
-					testarray.map(() => {
-						return stress();
-					}),
-				);
+				testarray.map(() => {
+					return stress();
+				})
 			})();
 
 			function stress() {
