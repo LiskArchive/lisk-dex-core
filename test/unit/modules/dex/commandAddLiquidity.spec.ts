@@ -208,7 +208,7 @@ describe('dex:command:addLiquidity', () => {
 		describe('stress test for checking the events', () => {
 			(() => {
 				const testarray = Array.from({ length: 20000 });
-				testarray.map(() => {
+				testarray.forEach(() => {
 					stress();
 				})
 			})();
