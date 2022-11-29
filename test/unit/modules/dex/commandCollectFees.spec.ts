@@ -266,11 +266,12 @@ describe('dex:command:collectFees', () => {
 			});
 		});
 
-		skipOnCI('stress test for checking the event emission and the time taken', () => {
-			// eslint-disable-next-line @typescript-eslint/no-floating-promises
-			(async () => {
-				const testarray = Array.from({ length: 10000 });
-				await Promise.all(testarray.map(() => stress()));
+		describe('stress test for checking the event emission and the time taken', () => {
+			(() => {
+				const testarray = Array.from({ length: 20000 });
+				testarray.forEach(() => {
+					return stress();
+				});
 			})();
 			function stress() {
 				const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
