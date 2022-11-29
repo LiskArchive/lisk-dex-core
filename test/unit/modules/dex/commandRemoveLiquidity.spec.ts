@@ -428,7 +428,7 @@ describe('dex:command:removeLiquidity', () => {
 			const testarray = Array.from({ length: 20000 });
 			testarray.forEach(() => {
 				return stress();
-			})
+			});
 		})();
 
 		function stress() {

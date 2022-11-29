@@ -210,7 +210,7 @@ describe('dex:command:addLiquidity', () => {
 				const testarray = Array.from({ length: 20000 });
 				testarray.forEach(() => {
 					stress();
-				})
+				});
 			})();
 
 			function stress() {

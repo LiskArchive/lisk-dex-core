@@ -264,7 +264,7 @@ describe('dex:command:collectFees', () => {
 				const testarray = Array.from({ length: 20000 });
 				testarray.forEach(() => {
 					return stress();
-				})
+				});
 			})();
 
 			function stress() {
