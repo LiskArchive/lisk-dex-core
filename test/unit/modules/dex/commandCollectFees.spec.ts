@@ -267,11 +267,13 @@ describe('dex:command:collectFees', () => {
 		});
 
 		describe('stress test for checking the event emission and the time taken', () => {
-			(() => {
-				const testarray = Array.from({ length: 20000 });
-				testarray.forEach(() => {
-					return stress();
-				});
+			(async () => {
+				const testarray = Array.from({ length: 10000 });
+				await Promise.all(
+					testarray.map(async () => {
+						stress();
+					}),
+				);
 			})();
 			function stress() {
 				const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
