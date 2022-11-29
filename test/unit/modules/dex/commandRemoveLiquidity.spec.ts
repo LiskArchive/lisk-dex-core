@@ -426,7 +426,7 @@ describe('dex:command:removeLiquidity', () => {
 	describe('stress test for checking the events', () => {
 		(() => {
 			const testarray = Array.from({ length: 20000 });
-			testarray.map(() => {
+			testarray.forEach(() => {
 				return stress();
 			})
 		})();
