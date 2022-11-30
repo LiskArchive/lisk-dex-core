@@ -22,8 +22,9 @@ const { utils } = cryptography;
 
 const senderPublicKey = Buffer.from('0000000000000000', 'hex');
 const signature = utils.getRandomBytes(64);
-const tokenID0 = Buffer.from('0000000100', 'hex');
-const tokenID1 = Buffer.from('0000000101', 'hex');
+const tokenID0 = Buffer.from('0100000000', 'hex');
+const tokenID1 = Buffer.from('1000000000', 'hex');
+var randomTokenID: number = 1111111111;
 
 const commonTransactionAttrs = {
 	module: 'dex',
@@ -104,3 +105,20 @@ export const createPoolFixtures: Fixtures = [
 		'Please specify valid tick values.',
 	],
 ];
+
+export const createRandomPoolFixturesGenerator = (): Fixtures => {
+	return [
+		[
+			'should be successful with random tokenIDs',
+			{
+				...commonTransactionAttrs,
+				params: codec.encode(createPoolSchema, {
+					...commonParams,
+					tokenID0: Buffer.from((randomTokenID--).toString(), 'hex'),
+					tokenID1: Buffer.from((randomTokenID--).toString(), 'hex'),
+				}),
+			},
+			false,
+		],
+	];
+};
