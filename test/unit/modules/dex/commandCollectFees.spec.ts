@@ -251,12 +251,12 @@ describe('dex:command:collectFees', () => {
 				const validatorFeesIncentivesCollectedEvent = events.filter(
 					e => e.toObject().name === 'feesIncentivesCollectedEvent',
 				);
-				expect(validatorFeesIncentivesCollectedEvent).toHaveLength(1);
+				expect(validatorFeesIncentivesCollectedEvent).toHaveLength(0);
 			});
 		});
 
 		describe('stress test for checking the event emission and the time taken', () => {
-			beforeAll(async () => {
+			beforeAll(() => {
 				Array.from({ length: 10000 }).map(stress);
 			});
 			function stress() {
