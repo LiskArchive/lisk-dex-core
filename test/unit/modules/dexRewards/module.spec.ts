@@ -36,7 +36,7 @@ interface Validator {
 describe('DexRewardsModule', () => {
 	let dexRewardsModule: DexRewardsModule;
 	let tokenModule: TokenModule;
-	let validatorModule: ValidatorsModule;
+	let validatorModule;
 	let randomModule: RandomModule;
 
 	beforeEach(() => {
@@ -53,6 +53,17 @@ describe('DexRewardsModule', () => {
 		randomModule.method.isSeedRevealValid = jest
 			.fn()
 			.mockImplementation(async () => Promise.resolve(true));
+
+		const sampleValidator: Validator = {
+			address: Buffer.from([]),
+			bftWeight: BigInt(0),
+			generatorKey: Buffer.from([]),
+			blsKey: Buffer.from([]),
+		};
+
+		validatorModule.method.getValidatorsParams = jest
+			.fn()
+			.mockResolvedValue(Array(101).fill(sampleValidator));
 
 		dexRewardsModule.addDependencies(
 			tokenModule.method,
@@ -94,15 +105,6 @@ describe('DexRewardsModule', () => {
 		const blockAfterExecuteContext = createBlockContext({
 			header: blockHeader,
 		}).getBlockAfterExecuteContext();
-
-		const sampleValidator: Validator = {
-			address: Buffer.from([]),
-			bftWeight: BigInt(0),
-			generatorKey: Buffer.from([]),
-			blsKey: Buffer.from([]),
-		};
-
-		blockAfterExecuteContext.currentValidators = Array(101).fill(sampleValidator);
 
 		it(`should call token methods and emit events`, async () => {
 			await dexRewardsModule.afterTransactionsExecute(blockAfterExecuteContext);

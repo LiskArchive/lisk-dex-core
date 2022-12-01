@@ -68,7 +68,7 @@ describe('dex:auxiliaryFunctions', () => {
 	const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
-	const feeTier: number = Number('0x00000c8');
+	const feeTier = Number('0x00000c8');
 	const sqrtPrice: bigint = numberToQ96(BigInt(1));
 	const dexModule = new DexModule();
 
@@ -92,6 +92,12 @@ describe('dex:auxiliaryFunctions', () => {
 	const lockMock = jest.fn();
 	const unlockMock = jest.fn();
 	const getAvailableBalanceMock = jest.fn().mockReturnValue(BigInt(250));
+
+	methodContext = createMethodContext({
+		contextStore: new Map(),
+		stateStore,
+		eventQueue: new EventQueue(0),
+	});
 
 	const settings = {
 		feeTiers: [100],
@@ -196,7 +202,7 @@ describe('dex:auxiliaryFunctions', () => {
 			tokenMethod.unlock = unlockMock;
 			tokenMethod.getAvailableBalance = getAvailableBalanceMock.mockReturnValue(BigInt(250));
 		});
-		it('should get Token0Id from poolID', () => {
+		it('should get Token0Id from poolID', async () => {
 			expect(getToken0Id(poolId)).toEqual(token0Id);
 		});
 		it('should get Token1Id from poolID', () => {
@@ -420,21 +426,23 @@ describe('dex:auxiliaryFunctions', () => {
 					positionId,
 					BigInt(-10000),
 				),
-			).rejects.toThrow();
+			).rejects.toThrowError();
 		});
 
 		it('should return [0,0] liquidityDelta is 0', async () => {
-			await updatePosition(
-				methodContext,
-				dexModule.events,
-				dexModule.stores,
-				tokenMethod,
-				positionId,
-				BigInt(0),
-			).then(res => {
-				expect(res[0].toString()).toBe('0');
-				expect(res[1].toString()).toBe('0');
-			});
+			expect(
+				await updatePosition(
+					methodContext,
+					dexModule.events,
+					dexModule.stores,
+					tokenMethod,
+					positionId,
+					BigInt(0),
+				).then(res => {
+					expect(res[0].toString()).toBe('0');
+					expect(res[1].toString()).toBe('0');
+				}),
+			);
 		});
 		it('priceToTick', () => {
 			expect(priceToTick(tickToPrice(-735247))).toEqual(-735247);

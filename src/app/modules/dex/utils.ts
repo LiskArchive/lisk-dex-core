@@ -16,6 +16,5 @@ import { ModuleConfig, ModuleConfigJSON } from './types';
 export function getModuleConfig(config: ModuleConfigJSON): ModuleConfig {
 	return {
 		...config,
-		tokenIDReclaim: Buffer.from(config.tokenIDReclaim, 'hex'),
 	};
 }
