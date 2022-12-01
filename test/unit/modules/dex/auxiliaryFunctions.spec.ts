@@ -16,6 +16,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { MethodContext, TokenMethod } from 'lisk-framework';
+import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
+import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_machine';
+
 import {
 	getToken0Id,
 	getToken1Id,
@@ -40,10 +44,10 @@ import {
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
-import { hexToBytes } from '../../../../src/app/modules/dex/constants';
-import { TokenMethod, TokenModule } from 'lisk-framework';
-import { createMethodContext, MethodContext, EventQueue } from 'lisk-framework/dist-node/state_machine/method_context';
-import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
+import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
+import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
+import { DexModule } from '../../../../src/app/modules';
+import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import {
 	DexGlobalStore,
 	PoolsStore,
@@ -51,15 +55,11 @@ import {
 	PriceTicksStore,
 	SettingsStore,
 } from '../../../../src/app/modules/dex/stores';
-import { DexModule } from '../../../../src/app/modules';
 import { FeesIncentivesCollectedEvent, PoolCreatedEvent, PositionCreatedEvent, PositionUpdateFailedEvent } from '../../../../src/app/modules/dex/events';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
-import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { PriceTicksStoreData, tickToBytes } from '../../../../src/app/modules/dex/stores/priceTicksStore';
-import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
-import { InMemoryPrefixedStateDB } from './inMemoryPrefixedStateDB';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 
 describe('dex:auxiliaryFunctions', () => {
@@ -92,12 +92,6 @@ describe('dex:auxiliaryFunctions', () => {
 	const lockMock = jest.fn();
 	const unlockMock = jest.fn();
 	const getAvailableBalanceMock = jest.fn().mockReturnValue(BigInt(250));
-
-	methodContext = createMethodContext({
-		contextStore: new Map(),
-		stateStore,
-		eventQueue: new EventQueue(0),
-	});
 
 	const settings = {
 		feeTiers: [100],
@@ -202,7 +196,7 @@ describe('dex:auxiliaryFunctions', () => {
 			tokenMethod.unlock = unlockMock;
 			tokenMethod.getAvailableBalance = getAvailableBalanceMock.mockReturnValue(BigInt(250));
 		});
-		it('should get Token0Id from poolID', async () => {
+		it('should get Token0Id from poolID', () => {
 			expect(getToken0Id(poolId)).toEqual(token0Id);
 		});
 		it('should get Token1Id from poolID', () => {
@@ -256,7 +250,7 @@ describe('dex:auxiliaryFunctions', () => {
 			).toBe(0);
 		});
 
-		it('should return concatenated (tokenID0, tokenID1, feeTier) after computing poolID', async () => {
+		it('should return concatenated (tokenID0, tokenID1, feeTier) after computing poolID', () => {
 			expect(computePoolID(token0Id, token1Id, Number(0x0064).valueOf()).toString('hex')).toBe(
 				'0000000000000000000001000000000064000000',
 			);
@@ -275,7 +269,7 @@ describe('dex:auxiliaryFunctions', () => {
 			});
 		});
 
-		it('should return concatenated poolID with dexGlobalStoreData.positionCounter in result', async () => {
+		it('should return concatenated poolID with dexGlobalStoreData.positionCounter in result', () => {
 			expect(
 				getNewPositionID(dexGlobalStoreData, getPoolIDFromPositionID(positionId)).toString('hex'),
 			).toBe('000000010000000001016431303130');
@@ -426,7 +420,7 @@ describe('dex:auxiliaryFunctions', () => {
 					positionId,
 					BigInt(-10000),
 				),
-			).rejects.toThrowError();
+			).rejects.toThrow();
 		});
 
 		it('should return [0,0] liquidityDelta is 0', async () => {
@@ -442,7 +436,7 @@ describe('dex:auxiliaryFunctions', () => {
 					expect(res[0].toString()).toBe('0');
 					expect(res[1].toString()).toBe('0');
 				}),
-			);
+			).not.toThrow();
 		});
 		it('priceToTick', () => {
 			expect(priceToTick(tickToPrice(-735247))).toEqual(-735247);
