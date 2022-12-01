@@ -22,6 +22,12 @@ import {
 	MethodContext,
 	VerifyStatus,
 } from 'lisk-framework/dist-node/state_machine';
+import {
+	createMethodContext,
+	EventQueue,
+	MethodContext,
+	VerifyStatus,
+} from 'lisk-framework/dist-node/state_machine';
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { DexModule } from '../../../../src/app/modules';
 import { RemoveLiquidityCommand } from '../../../../src/app/modules/dex/commands/removeLiquidity';
@@ -80,6 +86,7 @@ describe('dex:command:removeLiquidity', () => {
 
 	stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	methodContext = createMethodContext({
+		contextStore: new Map(),
 		stateStore,
 		eventQueue: new EventQueue(0),
 	});
