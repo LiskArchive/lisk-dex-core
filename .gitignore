@@ -21,9 +21,12 @@ docs/jsdoc/
 
 # Logs
 logs/*
+src/logs/
+src/logs.log
 logs.log
 npm-debug.log
 tmux-client-*.log
+framework/test/mocha/network/logs/
 stacktrace*
 
 # IDE directories
@@ -33,13 +36,20 @@ Session.vim
 
 # Config files
 sftp-config.json
-.secrets
+framework/test/mocha/network/pm2.network.json
+framework/test/mocha/network/configs/
+framework/test/mocha/network/networkTestsLogger.logs
 
 # Coverage directory used by tools like istanbul
+.coverage-unit/
 .coverage/
 
 # Local config file useful for development
 config.local.json
 
+# Helm charts dependencies
+helm/**/charts/*tgz
+
 # Build Directory
 dist
+data

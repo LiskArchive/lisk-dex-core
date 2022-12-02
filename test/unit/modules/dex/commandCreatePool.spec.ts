@@ -146,7 +146,11 @@ describe('dex:command:createPool', () => {
 			expect(positionCreatedEvents).toHaveLength(1);
 		});
 
+<<<<<<< HEAD
 		skipOnCI('stress test for checking the event emission and the time taken', () => {
+=======
+		describe('stress test for checking the event emission and the time taken', () => {
+>>>>>>> c3bac01 (Add dotfiles, fix tests, add src/utils)
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			(async () => {
 				const testarray = Array.from({ length: 10000 });

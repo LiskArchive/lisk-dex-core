@@ -205,13 +205,10 @@ describe('dex:command:createPosition', () => {
 		});
 
 		describe('stress test for checking the events', () => {
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			(async () => {
 				const testarray = Array.from({ length: 10000 });
-				await Promise.all(
-					testarray.map(async () => {
-						stress();
-					}),
-				);
+				await Promise.all(testarray.map(() => stress()));
 			})();
 
 			function stress() {
