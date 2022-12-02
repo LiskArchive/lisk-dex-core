@@ -2,11 +2,13 @@ docs/
 examples/
 **/*.d.ts
 jest.config.js
-.eslintrc.js
 coverage
 benchmark
 dist
 tmp
 build
+qa
 scripts
 config
+.eslintrc.js
+ecosystem.config.js

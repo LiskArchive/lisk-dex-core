@@ -414,11 +414,7 @@ describe('dex:command:removeLiquidity', () => {
 		// eslint-disable-next-line @typescript-eslint/no-floating-promises
 		(async () => {
 			const testarray = Array.from({ length: 10000 });
-			await Promise.all(
-				testarray.map(async () => {
-					stress();
-				}),
-			);
+			await Promise.all(testarray.map(() => stress()));
 		})();
 
 		function stress() {
@@ -435,59 +431,51 @@ describe('dex:command:removeLiquidity', () => {
 			});
 
 			it('stress', async () => {
-				// eslint-disable-next-line jest/valid-expect-in-promise
-				await expect(
-					command
-						.execute({
-							contextStore: new Map(),
-							stateStore,
-							chainID: utils.getRandomBytes(32),
-							params: {
-								positionID: positionId,
-								liquidityToRemove: BigInt(-5),
-								amount0Min: BigInt(0),
-								amount1Min: BigInt(0),
-								maxTimestampValid: BigInt(1000),
-							},
-							logger: loggerMock,
-							header: blockHeader,
-							eventQueue: blockAfterExecuteContext.eventQueue,
-							getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-							getMethodContext: () => stressTestMethodContext,
-							assets: { getAsset: jest.fn() },
-							transaction: new Transaction({
-								module: 'dex',
-								command: 'removeLiquidty',
-								fee: BigInt(5000000),
-								nonce: BigInt(0),
-								senderPublicKey: senderAddress,
-								params: codec.encode(removeLiquiditySchema, {
-									positionID: positionId,
-									liquidityToRemove: BigInt(-5),
-									amount0Min: BigInt(1000),
-									amount1Min: BigInt(1000),
-									maxTimestampValid: BigInt(1000),
-								}),
-								signatures: [utils.getRandomBytes(64)],
-							}),
-						})
-						.then(async () => {
-							expect(tokenMethod.transfer).toHaveBeenCalledTimes(3);
-							expect(tokenMethod.unlock).toHaveBeenCalledTimes(2);
-							expect(
-								(
-									await dexModule.stores
-										.get(PositionsStore)
-										.get(stressTestMethodContext, positionId)
-								).liquidity,
-							).toBe(positionsStoreData.liquidity + BigInt(-5));
-							const events = blockAfterExecuteContext.eventQueue.getEvents();
-							const validatorRemoveLiquidityEvents = events.filter(
-								e => e.toObject().name === 'removeLiquidityEvent',
-							);
-							expect(validatorRemoveLiquidityEvents).toHaveLength(1);
+				await command.execute({
+					contextStore: new Map(),
+					stateStore,
+					chainID: utils.getRandomBytes(32),
+					params: {
+						positionID: positionId,
+						liquidityToRemove: BigInt(-5),
+						amount0Min: BigInt(0),
+						amount1Min: BigInt(0),
+						maxTimestampValid: BigInt(1000),
+					},
+					logger: loggerMock,
+					header: blockHeader,
+					eventQueue: blockAfterExecuteContext.eventQueue,
+					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+					getMethodContext: () => stressTestMethodContext,
+					assets: { getAsset: jest.fn() },
+					transaction: new Transaction({
+						module: 'dex',
+						command: 'removeLiquidty',
+						fee: BigInt(5000000),
+						nonce: BigInt(0),
+						senderPublicKey: senderAddress,
+						params: codec.encode(removeLiquiditySchema, {
+							positionID: positionId,
+							liquidityToRemove: BigInt(-5),
+							amount0Min: BigInt(1000),
+							amount1Min: BigInt(1000),
+							maxTimestampValid: BigInt(1000),
 						}),
-				).resolves.toBeUndefined();
+						signatures: [utils.getRandomBytes(64)],
+					}),
+				});
+
+				expect(tokenMethod.transfer).toHaveBeenCalledTimes(3);
+				expect(tokenMethod.unlock).toHaveBeenCalledTimes(2);
+				expect(
+					(await dexModule.stores.get(PositionsStore).get(stressTestMethodContext, positionId))
+						.liquidity,
+				).toBe(positionsStoreData.liquidity + BigInt(-5));
+				const events = blockAfterExecuteContext.eventQueue.getEvents();
+				const validatorRemoveLiquidityEvents = events.filter(
+					e => e.toObject().name === 'removeLiquidityEvent',
+				);
+				expect(validatorRemoveLiquidityEvents).toHaveLength(1);
 			});
 		}
 	});
