@@ -280,27 +280,37 @@ describe('dex:auxiliaryFunctions', () => {
 				expect(res[0]).toBe(BigInt(0));
 				expect(res[1]).toBe(BigInt(0));
 			});
+		});
 
-			it('should return BigInt(3) in result', async () => {
-				await expect(
-					getLiquidityForAmounts(
-						numberToQ96(BigInt(2)),
-						numberToQ96(BigInt(1)),
-						numberToQ96(BigInt(5)),
-						BigInt(1),
-						BigInt(3),
-					),
-				).toBe(BigInt(3));
-			});
+		it('should return BigInt(3) in result', async () => {
+			await expect(
+				getLiquidityForAmounts(
+					numberToQ96(BigInt(2)),
+					numberToQ96(BigInt(1)),
+					numberToQ96(BigInt(5)),
+					BigInt(1),
+					BigInt(3),
+				),
+			).toBe(BigInt(3));
+		});
 
-			it('should not throw any error in result', async () => {
-				await checkPositionExistenceAndOwnership(
-					dexModule.stores,
-					dexModule.events,
-					methodContext,
-					senderAddress,
-					positionId,
-				);
+		it('should not throw any error in result', async () => {
+			expect(await checkPositionExistenceAndOwnership(
+				dexModule.stores,
+				dexModule.events,
+				methodContext,
+				senderAddress,
+				positionId,
+			)
+			).toBeUndefined();
+		});
+
+		it('should return [0n, 0n, 0n, 0n] as collectableFees0, collectableFees1, feeGrowthInside0, feeGrowthInside1 in result', async () => {
+			await computeCollectableFees(dexModule.stores, methodContext, positionId).then(res => {
+				expect(res[0]).toBe(BigInt(0));
+				expect(res[1]).toBe(BigInt(0));
+				expect(res[2]).toBe(BigInt(0));
+				expect(res[3]).toBe(BigInt(0));
 			});
 
 			it('should return [0n, 0n, 0n, 0n] as collectableFees0, collectableFees1, feeGrowthInside0, feeGrowthInside1 in result', async () => {
@@ -436,7 +446,7 @@ describe('dex:auxiliaryFunctions', () => {
 					expect(res[0].toString()).toBe('0');
 					expect(res[1].toString()).toBe('0');
 				}),
-			).not.toThrow();
+			).toBeUndefined();
 		});
 		it('priceToTick', () => {
 			expect(priceToTick(tickToPrice(-735247))).toEqual(-735247);

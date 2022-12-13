@@ -199,9 +199,7 @@ describe('dex:command:addLiquidity', () => {
 			expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(1);
 
 			const events = context.eventQueue.getEvents();
-			const positionUpdatedEvents = events.filter(
-				e => e.toObject().name === 'positionUpdatedEvent',
-			);
+			const positionUpdatedEvents = events.filter(e => e.toObject().name === 'positionUpdated');
 			expect(positionUpdatedEvents).toHaveLength(1);
 		});
 
@@ -223,9 +221,7 @@ describe('dex:command:addLiquidity', () => {
 					);
 					expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(1);
 					const events = context.eventQueue.getEvents();
-					const positionUpdatedEvents = events.filter(
-						e => e.toObject().name === 'positionUpdatedEvent',
-					);
+					const positionUpdatedEvents = events.filter(e => e.toObject().name === 'positionUpdated');
 					expect(positionUpdatedEvents).toHaveLength(1);
 				});
 			}
