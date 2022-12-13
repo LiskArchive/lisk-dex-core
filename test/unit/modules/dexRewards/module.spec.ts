@@ -63,7 +63,7 @@ describe('DexRewardsModule', () => {
 
 		validatorModule.method.getValidatorsParams = jest
 			.fn()
-			.mockResolvedValue(Array(101).fill(sampleValidator));
+			.mockResolvedValue({ validators: Array(101).fill(sampleValidator) });
 
 		dexRewardsModule.addDependencies(
 			tokenModule.method,
@@ -115,12 +115,12 @@ describe('DexRewardsModule', () => {
 
 			const events = blockAfterExecuteContext.eventQueue.getEvents();
 			const validatorTradeRewardsPayoutEvents = events.filter(
-				e => e.toObject().name === 'validatorTradeRewardsPayoutEvent',
+				e => e.toObject().name === 'validatorTradeRewardsPayout',
 			);
 			expect(validatorTradeRewardsPayoutEvents).toHaveLength(101);
 
 			const generatorRewardMintedEvents = events.filter(
-				e => e.toObject().name === 'generatorRewardMintedEvent',
+				e => e.toObject().name === 'generatorRewardMinted',
 			);
 			expect(generatorRewardMintedEvents).toHaveLength(1);
 		});

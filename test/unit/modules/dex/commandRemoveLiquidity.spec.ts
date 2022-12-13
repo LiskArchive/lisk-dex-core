@@ -324,7 +324,7 @@ describe('dex:command:removeLiquidity', () => {
 			).toBe(positionsStoreData.liquidity + liquidityToRemove);
 			const events = blockAfterExecuteContext.eventQueue.getEvents();
 			const validatorRemoveLiquidityEvents = events.filter(
-				e => e.toObject().name === 'removeLiquidityEvent',
+				e => e.toObject().name === 'removeLiquidity',
 			);
 			expect(validatorRemoveLiquidityEvents).toHaveLength(1);
 		});
@@ -473,7 +473,7 @@ describe('dex:command:removeLiquidity', () => {
 				).toBe(positionsStoreData.liquidity + BigInt(-5));
 				const events = blockAfterExecuteContext.eventQueue.getEvents();
 				const validatorRemoveLiquidityEvents = events.filter(
-					e => e.toObject().name === 'removeLiquidityEvent',
+					e => e.toObject().name === 'removeLiquidity',
 				);
 				expect(validatorRemoveLiquidityEvents).toHaveLength(1);
 			});

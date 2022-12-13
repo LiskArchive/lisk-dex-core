@@ -51,6 +51,7 @@ describe('dex:command:collectFees', () => {
 		let command: CollectFeesCommand;
 		let stateStore: PrefixedStateReadWriter;
 		let methodContext: MethodContext;
+		let contextStore = new Map();
 
 		const dexModule = new DexModule();
 		const senderAddress: Address = Buffer.from('00000000000000000', 'hex');
@@ -70,7 +71,7 @@ describe('dex:command:collectFees', () => {
 		methodContext = createMethodContext({
 			stateStore,
 			eventQueue: new EventQueue(0),
-			contextStore: new Map(),
+			contextStore,
 		});
 
 		const poolsStoreData: PoolsStoreData = {
@@ -214,7 +215,7 @@ describe('dex:command:collectFees', () => {
 				header: blockHeader,
 			}).getBlockAfterExecuteContext();
 			methodContext = createMethodContext({
-				contextStore: new Map(),
+				contextStore,
 				stateStore,
 				eventQueue: blockAfterExecuteContext.eventQueue,
 			});
@@ -222,7 +223,7 @@ describe('dex:command:collectFees', () => {
 				await expect(
 					command.execute({
 						stateStore,
-						contextStore: new Map(),
+						contextStore,
 						chainID: utils.getRandomBytes(32),
 						params: {
 							positions: [positionId],
@@ -263,27 +264,27 @@ describe('dex:command:collectFees', () => {
 			})();
 			function stress() {
 				const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
-				const blockAfterExecuteContext = createBlockContext({
+				const blockContext = createBlockContext({
 					header: blockHeader,
-				}).getBlockAfterExecuteContext();
+				});
 
 				const stressTestMethodContext = createMethodContext({
 					stateStore,
-					contextStore: new Map(),
-					eventQueue: blockAfterExecuteContext.eventQueue,
+					contextStore,
+					eventQueue: blockContext.eventQueue,
 				});
 				it('should collect fees stress tests', async () => {
 					await expect(
 						command.execute({
 							stateStore,
-							contextStore: new Map(),
+							contextStore,
 							chainID: utils.getRandomBytes(32),
 							params: {
 								positions: [positionId],
 							},
 							logger: loggerMock,
 							header: blockHeader,
-							eventQueue: blockAfterExecuteContext.eventQueue,
+							eventQueue: blockContext.eventQueue,
 							getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 							getMethodContext: () => stressTestMethodContext,
 							assets: { getAsset: jest.fn() },
@@ -301,9 +302,9 @@ describe('dex:command:collectFees', () => {
 						}),
 					).resolves.toBeUndefined();
 					expect(tokenMethod.transfer).toHaveBeenCalledTimes(1);
-					const events = blockAfterExecuteContext.eventQueue.getEvents();
+					const events = blockContext.eventQueue.getEvents();
 					const validatorFeesIncentivesCollectedEvent = events.filter(
-						e => e.toObject().name === 'feesIncentivesCollectedEvent',
+						e => e.toObject().name === 'feesIncentivesCollected',
 					);
 					expect(validatorFeesIncentivesCollectedEvent).toHaveLength(1);
 				});

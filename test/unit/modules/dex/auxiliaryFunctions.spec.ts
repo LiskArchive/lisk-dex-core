@@ -302,7 +302,7 @@ describe('dex:auxiliaryFunctions', () => {
 					senderAddress,
 					positionId,
 				),
-			).not.toThrow();
+			).toBeUndefined();
 		});
 
 		it('should return [0n, 0n, 0n, 0n] as collectableFees0, collectableFees1, feeGrowthInside0, feeGrowthInside1 in result', async () => {
@@ -386,7 +386,7 @@ describe('dex:auxiliaryFunctions', () => {
 					expect(res[0].toString()).toBe('0');
 					expect(res[1].toString()).toBe('0');
 				}),
-			).not.toThrow();
+			).toBeUndefined();
 		});
 		it('priceToTick', () => {
 			expect(priceToTick(tickToPrice(-735247))).toEqual(-735247);

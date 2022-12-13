@@ -198,9 +198,7 @@ describe('dex:command:createPosition', () => {
 			expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(2);
 
 			const events = contextPosition.eventQueue.getEvents();
-			const positionCreatedEvents = events.filter(
-				e => e.toObject().name === 'positionCreatedEvent',
-			);
+			const positionCreatedEvents = events.filter(e => e.toObject().name === 'positionCreated');
 			expect(positionCreatedEvents).toHaveLength(1);
 		});
 
@@ -224,9 +222,7 @@ describe('dex:command:createPosition', () => {
 					expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(2);
 
 					const events = contextPosition.eventQueue.getEvents();
-					const positionCreatedEvents = events.filter(
-						e => e.toObject().name === 'positionCreatedEvent',
-					);
+					const positionCreatedEvents = events.filter(e => e.toObject().name === 'positionCreated');
 					expect(positionCreatedEvents).toHaveLength(1);
 				});
 			}
