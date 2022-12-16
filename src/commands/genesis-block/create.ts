@@ -1,7 +1,6 @@
 import { BaseGenesisBlockCommand } from 'lisk-commander';
 import { Application, PartialApplicationConfig } from 'lisk-sdk';
 import { join } from 'path';
-
 import { getApplication } from '../../app/app';
 
 export class GenesisBlockCommand extends BaseGenesisBlockCommand {
