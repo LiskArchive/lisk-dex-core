@@ -106,3 +106,9 @@ export const defaultConfig = {
 		10000: 200,
 	},
 };
+
+export const VALIDATORS_LSK_INCENTIVE_PART = 200000;
+
+
+//Swap Constants
+export const FEE_TIER_PARTITION = 1000000;
