@@ -1,5 +1,5 @@
 /*
- * Copyright © 2022 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -10,11 +10,21 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
+ *
  */
-import { ModuleConfig, ModuleConfigJSON } from './types';
+// eslint-disable-next-line max-classes-per-file
+export class FileSystemError extends Error {
+	public constructor(message: string) {
+		super(message);
+		this.message = message;
+		this.name = 'FileSystemError';
+	}
+}
 
-export function getModuleConfig(config: ModuleConfigJSON): ModuleConfig {
-	return {
-		...config,
-	};
+export class ValidationError extends Error {
+	public constructor(message: string) {
+		super(message);
+		this.message = message;
+		this.name = 'ValidationError';
+	}
 }

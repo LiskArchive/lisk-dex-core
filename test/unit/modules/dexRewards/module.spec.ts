@@ -36,7 +36,7 @@ interface Validator {
 describe('DexRewardsModule', () => {
 	let dexRewardsModule: DexRewardsModule;
 	let tokenModule: TokenModule;
-	let validatorModule: ValidatorsModule;
+	let validatorModule;
 	let randomModule: RandomModule;
 
 	beforeEach(() => {
@@ -53,6 +53,17 @@ describe('DexRewardsModule', () => {
 		randomModule.method.isSeedRevealValid = jest
 			.fn()
 			.mockImplementation(async () => Promise.resolve(true));
+
+		const sampleValidator: Validator = {
+			address: Buffer.from([]),
+			bftWeight: BigInt(0),
+			generatorKey: Buffer.from([]),
+			blsKey: Buffer.from([]),
+		};
+
+		validatorModule.method.getValidatorsParams = jest
+			.fn()
+			.mockResolvedValue({ validators: Array(101).fill(sampleValidator) });
 
 		dexRewardsModule.addDependencies(
 			tokenModule.method,
@@ -95,15 +106,6 @@ describe('DexRewardsModule', () => {
 			header: blockHeader,
 		}).getBlockAfterExecuteContext();
 
-		const sampleValidator: Validator = {
-			address: Buffer.from([]),
-			bftWeight: BigInt(0),
-			generatorKey: Buffer.from([]),
-			blsKey: Buffer.from([]),
-		};
-
-		blockAfterExecuteContext.currentValidators = Array(101).fill(sampleValidator);
-
 		it(`should call token methods and emit events`, async () => {
 			await dexRewardsModule.afterTransactionsExecute(blockAfterExecuteContext);
 			expect(dexRewardsModule._tokenMethod.mint).toHaveBeenCalledTimes(3);
@@ -113,12 +115,12 @@ describe('DexRewardsModule', () => {
 
 			const events = blockAfterExecuteContext.eventQueue.getEvents();
 			const validatorTradeRewardsPayoutEvents = events.filter(
-				e => e.toObject().name === 'validatorTradeRewardsPayoutEvent',
+				e => e.toObject().name === 'validatorTradeRewardsPayout',
 			);
 			expect(validatorTradeRewardsPayoutEvents).toHaveLength(101);
 
 			const generatorRewardMintedEvents = events.filter(
-				e => e.toObject().name === 'generatorRewardMintedEvent',
+				e => e.toObject().name === 'generatorRewardMinted',
 			);
 			expect(generatorRewardMintedEvents).toHaveLength(1);
 		});

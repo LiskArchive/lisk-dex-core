@@ -12,22 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Transaction } from '@liskhq/lisk-chain';
-import { codec } from '@liskhq/lisk-codec';
-import { utils } from '@liskhq/lisk-cryptography';
+import { codec, Transaction, cryptography, testing } from 'lisk-sdk';
 import { TokenMethod, VerifyStatus } from 'lisk-framework';
+import { loggerMock } from 'lisk-framework/dist-node/testing/mocks';
 import { EventQueue } from 'lisk-framework/dist-node/state_machine';
 import {
 	createMethodContext,
 	MethodContext,
 } from 'lisk-framework/dist-node/state_machine/method_context';
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
-import {
-	createBlockContext,
-	createBlockHeaderWithDefaults,
-	createTransactionContext,
-} from 'lisk-framework/dist-node/testing';
-import { loggerMock } from 'lisk-framework/dist-node/testing/mocks';
 import { DexModule } from '../../../../src/app/modules';
 import { CollectFeesCommand } from '../../../../src/app/modules/dex/commands/collectFees';
 import { collectFeesSchema } from '../../../../src/app/modules/dex/schemas';
@@ -50,11 +43,15 @@ import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedStateDB';
 
+const { createBlockContext, createBlockHeaderWithDefaults, createTransactionContext } = testing;
+const { utils } = cryptography;
+
 describe('dex:command:collectFees', () => {
 	describe('dex:command:collectFees', () => {
 		let command: CollectFeesCommand;
 		let stateStore: PrefixedStateReadWriter;
 		let methodContext: MethodContext;
+		let contextStore = new Map();
 
 		const dexModule = new DexModule();
 		const senderAddress: Address = Buffer.from('00000000000000000', 'hex');
@@ -74,6 +71,7 @@ describe('dex:command:collectFees', () => {
 		methodContext = createMethodContext({
 			stateStore,
 			eventQueue: new EventQueue(0),
+			contextStore,
 		});
 
 		const poolsStoreData: PoolsStoreData = {
@@ -217,12 +215,15 @@ describe('dex:command:collectFees', () => {
 				header: blockHeader,
 			}).getBlockAfterExecuteContext();
 			methodContext = createMethodContext({
+				contextStore,
 				stateStore,
 				eventQueue: blockAfterExecuteContext.eventQueue,
 			});
 			it('should collect Fees ', async () => {
 				await expect(
 					command.execute({
+						stateStore,
+						contextStore,
 						chainID: utils.getRandomBytes(32),
 						params: {
 							positions: [positionId],
@@ -233,10 +234,6 @@ describe('dex:command:collectFees', () => {
 						getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 						getMethodContext: () => methodContext,
 						assets: { getAsset: jest.fn() },
-						currentValidators: [],
-						impliesMaxPrevote: false,
-						maxHeightCertified: Number(10),
-						certificateThreshold: BigInt(2),
 						transaction: new Transaction({
 							module: 'dex',
 							command: 'collectFees',
@@ -255,47 +252,42 @@ describe('dex:command:collectFees', () => {
 				const validatorFeesIncentivesCollectedEvent = events.filter(
 					e => e.toObject().name === 'feesIncentivesCollectedEvent',
 				);
-				expect(validatorFeesIncentivesCollectedEvent).toHaveLength(1);
+				expect(validatorFeesIncentivesCollectedEvent).toHaveLength(0);
 			});
 		});
 
 		describe('stress test for checking the event emission and the time taken', () => {
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			(async () => {
 				const testarray = Array.from({ length: 10000 });
-				await Promise.all(
-					testarray.map(async () => {
-						stress();
-					}),
-				);
+				await Promise.all(testarray.map(() => stress()));
 			})();
-
 			function stress() {
 				const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
-				const blockAfterExecuteContext = createBlockContext({
+				const blockContext = createBlockContext({
 					header: blockHeader,
-				}).getBlockAfterExecuteContext();
+				});
 
-				let stressTestMethodContext = createMethodContext({
+				const stressTestMethodContext = createMethodContext({
 					stateStore,
-					eventQueue: blockAfterExecuteContext.eventQueue,
+					contextStore,
+					eventQueue: blockContext.eventQueue,
 				});
 				it('should collect fees stress tests', async () => {
 					await expect(
 						command.execute({
+							stateStore,
+							contextStore,
 							chainID: utils.getRandomBytes(32),
 							params: {
 								positions: [positionId],
 							},
 							logger: loggerMock,
 							header: blockHeader,
-							eventQueue: blockAfterExecuteContext.eventQueue,
+							eventQueue: blockContext.eventQueue,
 							getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 							getMethodContext: () => stressTestMethodContext,
 							assets: { getAsset: jest.fn() },
-							currentValidators: [],
-							impliesMaxPrevote: false,
-							maxHeightCertified: Number(10),
-							certificateThreshold: BigInt(2),
 							transaction: new Transaction({
 								module: 'dex',
 								command: 'collectFees',
@@ -309,10 +301,10 @@ describe('dex:command:collectFees', () => {
 							}),
 						}),
 					).resolves.toBeUndefined();
-					expect(tokenMethod.transfer).toBeCalledTimes(1);
-					const events = blockAfterExecuteContext.eventQueue.getEvents();
+					expect(tokenMethod.transfer).toHaveBeenCalledTimes(1);
+					const events = blockContext.eventQueue.getEvents();
 					const validatorFeesIncentivesCollectedEvent = events.filter(
-						e => e.toObject().name === 'feesIncentivesCollectedEvent',
+						e => e.toObject().name === 'feesIncentivesCollected',
 					);
 					expect(validatorFeesIncentivesCollectedEvent).toHaveLength(1);
 				});

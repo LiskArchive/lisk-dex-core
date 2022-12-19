@@ -199,20 +199,15 @@ describe('dex:command:addLiquidity', () => {
 			expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(1);
 
 			const events = context.eventQueue.getEvents();
-			const positionUpdatedEvents = events.filter(
-				e => e.toObject().name === 'positionUpdatedEvent',
-			);
+			const positionUpdatedEvents = events.filter(e => e.toObject().name === 'positionUpdated');
 			expect(positionUpdatedEvents).toHaveLength(1);
 		});
 
 		describe('stress test for checking the events', () => {
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			(async () => {
 				const testarray = Array.from({ length: 10000 });
-				await Promise.all(
-					testarray.map(async () => {
-						stress();
-					}),
-				);
+				await Promise.all(testarray.map(() => stress()));
 			})();
 
 			function stress() {
@@ -226,9 +221,7 @@ describe('dex:command:addLiquidity', () => {
 					);
 					expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(1);
 					const events = context.eventQueue.getEvents();
-					const positionUpdatedEvents = events.filter(
-						e => e.toObject().name === 'positionUpdatedEvent',
-					);
+					const positionUpdatedEvents = events.filter(e => e.toObject().name === 'positionUpdated');
 					expect(positionUpdatedEvents).toHaveLength(1);
 				});
 			}

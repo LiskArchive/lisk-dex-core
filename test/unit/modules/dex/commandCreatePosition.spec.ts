@@ -198,20 +198,15 @@ describe('dex:command:createPosition', () => {
 			expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(2);
 
 			const events = contextPosition.eventQueue.getEvents();
-			const positionCreatedEvents = events.filter(
-				e => e.toObject().name === 'positionCreatedEvent',
-			);
+			const positionCreatedEvents = events.filter(e => e.toObject().name === 'positionCreated');
 			expect(positionCreatedEvents).toHaveLength(1);
 		});
 
 		describe('stress test for checking the events', () => {
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			(async () => {
 				const testarray = Array.from({ length: 10000 });
-				await Promise.all(
-					testarray.map(async () => {
-						stress();
-					}),
-				);
+				await Promise.all(testarray.map(() => stress()));
 			})();
 
 			function stress() {
@@ -227,9 +222,7 @@ describe('dex:command:createPosition', () => {
 					expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(2);
 
 					const events = contextPosition.eventQueue.getEvents();
-					const positionCreatedEvents = events.filter(
-						e => e.toObject().name === 'positionCreatedEvent',
-					);
+					const positionCreatedEvents = events.filter(e => e.toObject().name === 'positionCreated');
 					expect(positionCreatedEvents).toHaveLength(1);
 				});
 			}

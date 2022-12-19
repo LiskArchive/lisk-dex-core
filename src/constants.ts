@@ -1,5 +1,6 @@
 /*
- * Copyright © 2022 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -10,11 +11,16 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
+ *
  */
-import { ModuleConfig, ModuleConfigJSON } from './types';
 
-export function getModuleConfig(config: ModuleConfigJSON): ModuleConfig {
-	return {
-		...config,
-	};
+export enum NETWORK {
+	MAINNET = 'mainnet',
+	TESTNET = 'testnet',
+	BETANET = 'betanet',
+	ALPHANET = 'alphanet',
+	DEVNET = 'devnet',
 }
+export const DEFAULT_NETWORK = NETWORK.DEVNET;
+export const SNAPSHOT_URL = 'https://snapshots.lisk.com';
+export const DOWNLOAD_URL = 'https://downloads.lisk.com/lisk';

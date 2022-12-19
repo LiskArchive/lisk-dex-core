@@ -16,6 +16,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { MethodContext, TokenMethod } from 'lisk-framework';
+import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
+import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_machine';
+
 import {
 	getToken0Id,
 	getToken1Id,
@@ -39,10 +43,8 @@ import {
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
 import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
-import { MethodContext, TokenMethod } from 'lisk-framework';
 import { DexModule } from '../../../../src/app/modules';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
-import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import {
 	DexGlobalStore,
 	PoolsStore,
@@ -50,7 +52,6 @@ import {
 	PriceTicksStore,
 	SettingsStore,
 } from '../../../../src/app/modules/dex/stores';
-import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_machine';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import {
 	PriceTicksStoreData,
@@ -66,7 +67,7 @@ describe('dex:auxiliaryFunctions', () => {
 	const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
-	const feeTier: number = Number('0x00000c8');
+	const feeTier = Number('0x00000c8');
 	const sqrtPrice: bigint = numberToQ96(BigInt(1));
 	const dexModule = new DexModule();
 
@@ -75,6 +76,7 @@ describe('dex:auxiliaryFunctions', () => {
 	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
 
 	const methodContext: MethodContext = createMethodContext({
+		contextStore: new Map(),
 		stateStore,
 		eventQueue: new EventQueue(0),
 	});
@@ -247,7 +249,7 @@ describe('dex:auxiliaryFunctions', () => {
 			).toBe(0);
 		});
 
-		it('should return concatenated (tokenID0, tokenID1, feeTier) after computing poolID', async () => {
+		it('should return concatenated (tokenID0, tokenID1, feeTier) after computing poolID', () => {
 			expect(computePoolID(token0Id, token1Id, Number(0x0064).valueOf()).toString('hex')).toBe(
 				'0000000000000000000001000000000064000000',
 			);
@@ -266,7 +268,7 @@ describe('dex:auxiliaryFunctions', () => {
 			});
 		});
 
-		it('should return concatenated poolID with dexGlobalStoreData.positionCounter in result', async () => {
+		it('should return concatenated poolID with dexGlobalStoreData.positionCounter in result', () => {
 			expect(
 				getNewPositionID(dexGlobalStoreData, getPoolIDFromPositionID(positionId)).toString('hex'),
 			).toBe('000000010000000001016431303130');
@@ -279,7 +281,7 @@ describe('dex:auxiliaryFunctions', () => {
 			});
 		});
 
-		it('should return BigInt(3) in result', async () => {
+		it('should return BigInt(3) in result', () => {
 			expect(
 				getLiquidityForAmounts(
 					numberToQ96(BigInt(2)),
@@ -292,13 +294,15 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('should not throw any error in result', async () => {
-			await checkPositionExistenceAndOwnership(
-				dexModule.stores,
-				dexModule.events,
-				methodContext,
-				senderAddress,
-				positionId,
-			);
+			expect(
+				await checkPositionExistenceAndOwnership(
+					dexModule.stores,
+					dexModule.events,
+					methodContext,
+					senderAddress,
+					positionId,
+				),
+			).toBeUndefined();
 		});
 
 		it('should return [0n, 0n, 0n, 0n] as collectableFees0, collectableFees1, feeGrowthInside0, feeGrowthInside1 in result', async () => {
@@ -370,17 +374,19 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('should return [0,0] liquidityDelta is 0', async () => {
-			await updatePosition(
-				methodContext,
-				dexModule.events,
-				dexModule.stores,
-				tokenMethod,
-				positionId,
-				BigInt(0),
-			).then(res => {
-				expect(res[0].toString()).toBe('0');
-				expect(res[1].toString()).toBe('0');
-			});
+			expect(
+				await updatePosition(
+					methodContext,
+					dexModule.events,
+					dexModule.stores,
+					tokenMethod,
+					positionId,
+					BigInt(0),
+				).then(res => {
+					expect(res[0].toString()).toBe('0');
+					expect(res[1].toString()).toBe('0');
+				}),
+			).toBeUndefined();
 		});
 		it('priceToTick', () => {
 			expect(priceToTick(tickToPrice(-735247))).toEqual(-735247);

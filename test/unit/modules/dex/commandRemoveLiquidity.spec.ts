@@ -12,9 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Transaction } from '@liskhq/lisk-chain';
-import { codec } from '@liskhq/lisk-codec';
-import { utils } from '@liskhq/lisk-cryptography';
+import { codec, Transaction, cryptography, testing } from 'lisk-sdk';
 import { TokenMethod } from 'lisk-framework';
 import {
 	createMethodContext,
@@ -22,12 +20,12 @@ import {
 	MethodContext,
 	VerifyStatus,
 } from 'lisk-framework/dist-node/state_machine';
+import { loggerMock } from 'lisk-framework/dist-node/testing/mocks';
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { DexModule } from '../../../../src/app/modules';
 import { RemoveLiquidityCommand } from '../../../../src/app/modules/dex/commands/removeLiquidity';
 import { removeLiquiditySchema } from '../../../../src/app/modules/dex/schemas';
 
-import { loggerMock } from 'lisk-framework/dist-node/testing/mocks';
 import { PoolsStore, PositionsStore } from '../../../../src/app/modules/dex/stores';
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
@@ -45,17 +43,14 @@ import {
 } from '../../../../src/app/modules/dex/stores/priceTicksStore';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedStateDB';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
-import {
+
+const {
 	createBlockContext,
 	createBlockHeaderWithDefaults,
 	createFakeBlockHeader,
 	createTransactionContext,
-} from 'lisk-framework/dist-node/testing';
-
-// import {
-// 	createBlockHeaderWithDefaults,
-// 	createBlockContext,
-// } from '../../../../node_modules/lisk-framework/dist-node/testing';
+} = testing;
+const { utils } = cryptography;
 
 describe('dex:command:removeLiquidity', () => {
 	let command: RemoveLiquidityCommand;
@@ -80,6 +75,7 @@ describe('dex:command:removeLiquidity', () => {
 
 	stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	methodContext = createMethodContext({
+		contextStore: new Map(),
 		stateStore,
 		eventQueue: new EventQueue(0),
 	});
@@ -198,6 +194,8 @@ describe('dex:command:removeLiquidity', () => {
 		it('should terminate and throw error if the positionID is not same as positionsStore doesnt have position with the specified positionID', async () => {
 			await expect(
 				command.execute({
+					contextStore: new Map(),
+					stateStore,
 					chainID: utils.getRandomBytes(32),
 					params: {
 						positionID: Buffer.from('0000000100', 'hex'),
@@ -212,10 +210,6 @@ describe('dex:command:removeLiquidity', () => {
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					getMethodContext: () => methodContext,
 					assets: { getAsset: jest.fn() },
-					currentValidators: [],
-					impliesMaxPrevote: false,
-					maxHeightCertified: Number(10),
-					certificateThreshold: BigInt(2),
 					transaction: new Transaction({
 						module: 'dex',
 						command: 'removeLiquidty',
@@ -240,6 +234,8 @@ describe('dex:command:removeLiquidity', () => {
 		it('should terminate and throw error', async () => {
 			await expect(
 				command.execute({
+					contextStore: new Map(),
+					stateStore,
 					chainID: utils.getRandomBytes(32),
 					params: {
 						positionID: positionId,
@@ -254,10 +250,6 @@ describe('dex:command:removeLiquidity', () => {
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					getMethodContext: () => methodContext,
 					assets: { getAsset: jest.fn() },
-					currentValidators: [],
-					impliesMaxPrevote: false,
-					maxHeightCertified: Number(10),
-					certificateThreshold: BigInt(2),
 					transaction: new Transaction({
 						module: 'dex',
 						command: 'removeLiquidty',
@@ -285,12 +277,15 @@ describe('dex:command:removeLiquidity', () => {
 			header: blockHeader,
 		}).getBlockAfterExecuteContext();
 		methodContext = createMethodContext({
+			contextStore: new Map(),
 			stateStore,
 			eventQueue: blockAfterExecuteContext.eventQueue,
 		});
 		it('should remove liquidity from an existing position', async () => {
 			await expect(
 				command.execute({
+					contextStore: new Map(),
+					stateStore,
 					chainID: utils.getRandomBytes(32),
 					params: {
 						positionID: positionId,
@@ -305,10 +300,6 @@ describe('dex:command:removeLiquidity', () => {
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					getMethodContext: () => methodContext,
 					assets: { getAsset: jest.fn() },
-					currentValidators: [],
-					impliesMaxPrevote: false,
-					maxHeightCertified: Number(10),
-					certificateThreshold: BigInt(2),
 					transaction: new Transaction({
 						module: 'dex',
 						command: 'removeLiquidty',
@@ -333,7 +324,7 @@ describe('dex:command:removeLiquidity', () => {
 			).toBe(positionsStoreData.liquidity + liquidityToRemove);
 			const events = blockAfterExecuteContext.eventQueue.getEvents();
 			const validatorRemoveLiquidityEvents = events.filter(
-				e => e.toObject().name === 'removeLiquidityEvent',
+				e => e.toObject().name === 'removeLiquidity',
 			);
 			expect(validatorRemoveLiquidityEvents).toHaveLength(1);
 		});
@@ -343,6 +334,8 @@ describe('dex:command:removeLiquidity', () => {
 		it('should throw Error', async () => {
 			await expect(
 				command.execute({
+					contextStore: new Map(),
+					stateStore,
 					chainID: utils.getRandomBytes(32),
 					params: {
 						positionID: positionId,
@@ -357,10 +350,6 @@ describe('dex:command:removeLiquidity', () => {
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					getMethodContext: () => methodContext,
 					assets: { getAsset: jest.fn() },
-					currentValidators: [],
-					impliesMaxPrevote: false,
-					maxHeightCertified: Number(10),
-					certificateThreshold: BigInt(2),
 					transaction: new Transaction({
 						module: 'dex',
 						command: 'removeLiquidty',
@@ -385,6 +374,8 @@ describe('dex:command:removeLiquidity', () => {
 		it('should throw Error', async () => {
 			await expect(
 				command.execute({
+					contextStore: new Map(),
+					stateStore,
 					chainID: utils.getRandomBytes(32),
 					params: {
 						positionID: positionId,
@@ -399,10 +390,6 @@ describe('dex:command:removeLiquidity', () => {
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					getMethodContext: () => methodContext,
 					assets: { getAsset: jest.fn() },
-					currentValidators: [],
-					impliesMaxPrevote: false,
-					maxHeightCertified: Number(10),
-					certificateThreshold: BigInt(2),
 					transaction: new Transaction({
 						module: 'dex',
 						command: 'removeLiquidty',
@@ -424,13 +411,10 @@ describe('dex:command:removeLiquidity', () => {
 	});
 
 	describe('stress test for checking the events', () => {
+		// eslint-disable-next-line @typescript-eslint/no-floating-promises
 		(async () => {
 			const testarray = Array.from({ length: 10000 });
-			await Promise.all(
-				testarray.map(async () => {
-					stress();
-				}),
-			);
+			await Promise.all(testarray.map(() => stress()));
 		})();
 
 		function stress() {
@@ -441,65 +425,57 @@ describe('dex:command:removeLiquidity', () => {
 			}).getBlockAfterExecuteContext();
 
 			const stressTestMethodContext = createMethodContext({
+				contextStore: new Map(),
 				stateStore,
 				eventQueue: blockAfterExecuteContext.eventQueue,
 			});
 
 			it('stress', async () => {
-				await expect(
-					command
-						.execute({
-							chainID: utils.getRandomBytes(32),
-							params: {
-								positionID: positionId,
-								liquidityToRemove: BigInt(-5),
-								amount0Min: BigInt(0),
-								amount1Min: BigInt(0),
-								maxTimestampValid: BigInt(1000),
-							},
-							logger: loggerMock,
-							header: blockHeader,
-							eventQueue: blockAfterExecuteContext.eventQueue,
-							getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-							getMethodContext: () => stressTestMethodContext,
-							assets: { getAsset: jest.fn() },
-							currentValidators: [],
-							impliesMaxPrevote: false,
-							maxHeightCertified: Number(10),
-							certificateThreshold: BigInt(2),
-							transaction: new Transaction({
-								module: 'dex',
-								command: 'removeLiquidty',
-								fee: BigInt(5000000),
-								nonce: BigInt(0),
-								senderPublicKey: senderAddress,
-								params: codec.encode(removeLiquiditySchema, {
-									positionID: positionId,
-									liquidityToRemove: BigInt(-5),
-									amount0Min: BigInt(1000),
-									amount1Min: BigInt(1000),
-									maxTimestampValid: BigInt(1000),
-								}),
-								signatures: [utils.getRandomBytes(64)],
-							}),
-						})
-						.then(async () => {
-							expect(tokenMethod.transfer).toHaveBeenCalledTimes(3);
-							expect(tokenMethod.unlock).toHaveBeenCalledTimes(2);
-							expect(
-								(
-									await dexModule.stores
-										.get(PositionsStore)
-										.get(stressTestMethodContext, positionId)
-								).liquidity,
-							).toBe(positionsStoreData.liquidity + BigInt(-5));
-							const events = blockAfterExecuteContext.eventQueue.getEvents();
-							const validatorRemoveLiquidityEvents = events.filter(
-								e => e.toObject().name === 'removeLiquidityEvent',
-							);
-							expect(validatorRemoveLiquidityEvents).toHaveLength(1);
+				await command.execute({
+					contextStore: new Map(),
+					stateStore,
+					chainID: utils.getRandomBytes(32),
+					params: {
+						positionID: positionId,
+						liquidityToRemove: BigInt(-5),
+						amount0Min: BigInt(0),
+						amount1Min: BigInt(0),
+						maxTimestampValid: BigInt(1000),
+					},
+					logger: loggerMock,
+					header: blockHeader,
+					eventQueue: blockAfterExecuteContext.eventQueue,
+					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+					getMethodContext: () => stressTestMethodContext,
+					assets: { getAsset: jest.fn() },
+					transaction: new Transaction({
+						module: 'dex',
+						command: 'removeLiquidty',
+						fee: BigInt(5000000),
+						nonce: BigInt(0),
+						senderPublicKey: senderAddress,
+						params: codec.encode(removeLiquiditySchema, {
+							positionID: positionId,
+							liquidityToRemove: BigInt(-5),
+							amount0Min: BigInt(1000),
+							amount1Min: BigInt(1000),
+							maxTimestampValid: BigInt(1000),
 						}),
-				).resolves.toBeUndefined();
+						signatures: [utils.getRandomBytes(64)],
+					}),
+				});
+
+				expect(tokenMethod.transfer).toHaveBeenCalledTimes(3);
+				expect(tokenMethod.unlock).toHaveBeenCalledTimes(2);
+				expect(
+					(await dexModule.stores.get(PositionsStore).get(stressTestMethodContext, positionId))
+						.liquidity,
+				).toBe(positionsStoreData.liquidity + BigInt(-5));
+				const events = blockAfterExecuteContext.eventQueue.getEvents();
+				const validatorRemoveLiquidityEvents = events.filter(
+					e => e.toObject().name === 'removeLiquidity',
+				);
+				expect(validatorRemoveLiquidityEvents).toHaveLength(1);
 			});
 		}
 	});

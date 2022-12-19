@@ -87,7 +87,7 @@ export class DexRewardsModule extends BaseModule {
 			methodContext,
 			this._randomMethod,
 			header,
-			context.impliesMaxPrevote,
+			context.header.impliesMaxPrevotes,
 		);
 
 		if (blockReward > 0) {
@@ -135,7 +135,9 @@ export class DexRewardsModule extends BaseModule {
 			BLOCK_REWARD_TRADERS,
 		);
 
-		const validators = context.currentValidators;
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+		const { validators } = await this._validatorsMethod.getValidatorsParams(methodContext);
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 		if (header.height % validators.length === 0) {
 			await transferValidatorLSKRewards(validators, methodContext, this._tokenMethod, this.events);
 		}

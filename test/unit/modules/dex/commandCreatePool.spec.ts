@@ -131,23 +131,18 @@ describe('dex:command:createPool', () => {
 			expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(4);
 
 			const events = context.eventQueue.getEvents();
-			const poolCreatedEvents = events.filter(e => e.toObject().name === 'poolCreatedEvent');
-			const positionCreatedEvents = events.filter(
-				e => e.toObject().name === 'positionCreatedEvent',
-			);
+			const poolCreatedEvents = events.filter(e => e.toObject().name === 'poolCreated');
+			const positionCreatedEvents = events.filter(e => e.toObject().name === 'positionCreated');
 
 			expect(poolCreatedEvents).toHaveLength(1);
 			expect(positionCreatedEvents).toHaveLength(1);
 		});
 
 		describe('stress test for checking the event emission and the time taken', () => {
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			(async () => {
 				const testarray = Array.from({ length: 10000 });
-				await Promise.all(
-					testarray.map(async () => {
-						stress();
-					}),
-				);
+				await Promise.all(testarray.map(() => stress()));
 			})();
 
 			function stress() {
@@ -160,10 +155,8 @@ describe('dex:command:createPool', () => {
 					expect(dexModule._tokenMethod.lock).toHaveBeenCalledTimes(2);
 					expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(4);
 					const events = context.eventQueue.getEvents();
-					const poolCreatedEvents = events.filter(e => e.toObject().name === 'poolCreatedEvent');
-					const positionCreatedEvents = events.filter(
-						e => e.toObject().name === 'positionCreatedEvent',
-					);
+					const poolCreatedEvents = events.filter(e => e.toObject().name === 'poolCreated');
+					const positionCreatedEvents = events.filter(e => e.toObject().name === 'positionCreated');
 					expect(poolCreatedEvents).toHaveLength(1);
 					expect(positionCreatedEvents).toHaveLength(1);
 				});

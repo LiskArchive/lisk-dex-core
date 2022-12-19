@@ -1,5 +1,6 @@
 /*
- * Copyright © 2022 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -10,8 +11,7 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
+ *
  */
 
-import { BaseAPI } from 'lisk-sdk';
-
-export class DexAPI extends BaseAPI {}
+export type PromiseResolvedType<T> = T extends Promise<infer R> ? R : never;

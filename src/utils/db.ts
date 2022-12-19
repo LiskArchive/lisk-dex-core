@@ -1,5 +1,5 @@
 /*
- * Copyright © 2022 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -10,11 +10,11 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
+ *
  */
-import { ModuleConfig, ModuleConfigJSON } from './types';
 
-export function getModuleConfig(config: ModuleConfigJSON): ModuleConfig {
-	return {
-		...config,
-	};
-}
+import { db } from 'lisk-sdk';
+import { getBlockchainDBPath } from './path';
+
+export const getBlockchainDB = (dataPath: string): db.StateDB =>
+	new db.StateDB(getBlockchainDBPath(dataPath));
