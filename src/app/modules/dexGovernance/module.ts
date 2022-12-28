@@ -15,7 +15,6 @@
 import { BaseCommand, BaseModule, ModuleMetadata, PoSMethod, TokenMethod } from 'lisk-sdk';
 
 import { DexGovernanceEndpoint } from './endpoint';
-import { GeneratorRewardMintedEvent, ValidatorTradeRewardsPayoutEvent } from './events';
 
 import { DexGovernanceMethod } from './method';
 import { IndexStore, ProposalsStore, VotesStore } from './stores';
@@ -33,11 +32,6 @@ export class DexGovernanceModule extends BaseModule {
 		this.stores.register(IndexStore, new IndexStore(this.name));
 		this.stores.register(ProposalsStore, new ProposalsStore(this.name));
 		this.stores.register(VotesStore, new VotesStore(this.name));
-		this.events.register(GeneratorRewardMintedEvent, new GeneratorRewardMintedEvent(this.name));
-		this.events.register(
-			ValidatorTradeRewardsPayoutEvent,
-			new ValidatorTradeRewardsPayoutEvent(this.name),
-		);
 	}
 
 	public metadata(): ModuleMetadata {
