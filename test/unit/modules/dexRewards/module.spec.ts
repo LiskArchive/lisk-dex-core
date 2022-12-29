@@ -14,17 +14,17 @@
 
 import { BaseModule, RandomModule, TokenModule, ValidatorsModule } from 'lisk-sdk';
 
-import { DexRewardsModule } from '../../../../src/app/modules/dexRewards/module';
-import { DexRewardsEndpoint } from '../../../../src/app/modules/dexRewards/endpoint';
+import { DexIncentivesModule } from '../../../../src/app/modules/dexIncentives/module';
+import { DexIncentivesEndpoint } from '../../../../src/app/modules/dexIncentives/endpoint';
 
-import { MODULE_NAME_DEX_REWARDS } from '../../../../src/app/modules/dexRewards/constants';
+import { MODULE_NAME_DEX_INCENTIVES } from '../../../../src/app/modules/dexIncentives/constants';
 
 import {
 	createGenesisBlockContext,
 	createBlockHeaderWithDefaults,
 	createBlockContext,
 } from '../../../../node_modules/lisk-framework/dist-node/testing';
-import { DexRewardsMethod } from '../../../../src/app/modules/dexRewards/method';
+import { DexIncentivesMethod } from '../../../../src/app/modules/dexIncentives/method';
 
 interface Validator {
 	address: Buffer;
@@ -33,14 +33,14 @@ interface Validator {
 	blsKey: Buffer;
 }
 
-describe('DexRewardsModule', () => {
-	let dexRewardsModule: DexRewardsModule;
+describe('DexIncentivesModule', () => {
+	let dexIncentivesModule: DexIncentivesModule;
 	let tokenModule: TokenModule;
 	let validatorModule;
 	let randomModule: RandomModule;
 
 	beforeEach(() => {
-		dexRewardsModule = new DexRewardsModule();
+		dexIncentivesModule = new DexIncentivesModule();
 		tokenModule = new TokenModule();
 		validatorModule = new ValidatorsModule();
 		randomModule = new RandomModule();
@@ -65,7 +65,7 @@ describe('DexRewardsModule', () => {
 			.fn()
 			.mockResolvedValue({ validators: Array(101).fill(sampleValidator) });
 
-		dexRewardsModule.addDependencies(
+		dexIncentivesModule.addDependencies(
 			tokenModule.method,
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 			validatorModule.method,
@@ -74,22 +74,22 @@ describe('DexRewardsModule', () => {
 	});
 
 	it('should inherit from BaseModule', () => {
-		expect(DexRewardsModule.prototype).toBeInstanceOf(BaseModule);
+		expect(DexIncentivesModule.prototype).toBeInstanceOf(BaseModule);
 	});
 
 	describe('constructor', () => {
 		it('should have valid name', () => {
-			expect(dexRewardsModule.name).toBe(MODULE_NAME_DEX_REWARDS);
+			expect(dexIncentivesModule.name).toBe(MODULE_NAME_DEX_INCENTIVES);
 		});
 
 		it('should expose endpoint', () => {
-			expect(dexRewardsModule).toHaveProperty('endpoint');
-			expect(dexRewardsModule.endpoint).toBeInstanceOf(DexRewardsEndpoint);
+			expect(dexIncentivesModule).toHaveProperty('endpoint');
+			expect(dexIncentivesModule.endpoint).toBeInstanceOf(DexIncentivesEndpoint);
 		});
 
 		it('should expose method', () => {
-			expect(dexRewardsModule).toHaveProperty('method');
-			expect(dexRewardsModule.method).toBeInstanceOf(DexRewardsMethod);
+			expect(dexIncentivesModule).toHaveProperty('method');
+			expect(dexIncentivesModule.method).toBeInstanceOf(DexIncentivesMethod);
 		});
 	});
 
@@ -97,7 +97,7 @@ describe('DexRewardsModule', () => {
 		// eslint-disable-next-line @typescript-eslint/require-await
 		it('should setup initial state', async () => {
 			const context = createGenesisBlockContext({}).createInitGenesisStateContext();
-			return expect(dexRewardsModule.initGenesisState?.(context)).toBeUndefined();
+			return expect(dexIncentivesModule.initGenesisState?.(context)).toBeUndefined();
 		});
 	});
 
@@ -108,22 +108,22 @@ describe('DexRewardsModule', () => {
 		}).getBlockAfterExecuteContext();
 
 		it(`should call token methods and emit events`, async () => {
-			await dexRewardsModule.afterTransactionsExecute(blockAfterExecuteContext);
-			expect(dexRewardsModule._tokenMethod.mint).toHaveBeenCalledTimes(3);
-			expect(dexRewardsModule._tokenMethod.lock).toHaveBeenCalledTimes(2);
-			expect(dexRewardsModule._tokenMethod.unlock).toHaveBeenCalledTimes(1);
-			expect(dexRewardsModule._tokenMethod.transfer).toHaveBeenCalledTimes(101);
+			await dexIncentivesModule.afterTransactionsExecute(blockAfterExecuteContext);
+			expect(dexIncentivesModule._tokenMethod.mint).toHaveBeenCalledTimes(3);
+			expect(dexIncentivesModule._tokenMethod.lock).toHaveBeenCalledTimes(2);
+			expect(dexIncentivesModule._tokenMethod.unlock).toHaveBeenCalledTimes(1);
+			expect(dexIncentivesModule._tokenMethod.transfer).toHaveBeenCalledTimes(101);
 
 			const events = blockAfterExecuteContext.eventQueue.getEvents();
-			const validatorTradeRewardsPayoutEvents = events.filter(
-				e => e.toObject().name === 'validatorTradeRewardsPayout',
+			const validatorTradeIncentivesPayoutEvents = events.filter(
+				e => e.toObject().name === 'validatorTradeIncentivesPayout',
 			);
-			expect(validatorTradeRewardsPayoutEvents).toHaveLength(101);
+			expect(validatorTradeIncentivesPayoutEvents).toHaveLength(101);
 
-			const generatorRewardMintedEvents = events.filter(
-				e => e.toObject().name === 'generatorRewardMinted',
+			const generatorIncentiveMintedEvents = events.filter(
+				e => e.toObject().name === 'generatorIncentiveMinted',
 			);
-			expect(generatorRewardMintedEvents).toHaveLength(1);
+			expect(generatorIncentiveMintedEvents).toHaveLength(1);
 		});
 	});
 });

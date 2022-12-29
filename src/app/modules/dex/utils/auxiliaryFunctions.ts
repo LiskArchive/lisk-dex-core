@@ -48,8 +48,8 @@ import {
 	POSITION_UPDATE_FAILED_NOT_EXISTS,
 	POSITION_UPDATE_FAILED_NOT_OWNER,
 	TOKEN_ID_LSK,
-	TOKEN_ID_REWARDS,
-	ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL,
+	TOKEN_ID_INCENTIVES,
+	ADDRESS_LIQUIDITY_PROVIDERS_INCENTIVES_POOL,
 	MODULE_NAME_DEX,
 } from '../constants';
 
@@ -76,7 +76,7 @@ import {
 import { getAmount0Delta, getAmount1Delta, priceToTick, tickToPrice } from './math';
 import { FeesIncentivesCollectedEvent, PositionUpdateFailedEvent } from '../events';
 import { tickToBytes } from '../stores/priceTicksStore';
-import { ADDRESS_VALIDATOR_REWARDS_POOL } from '../../dexRewards/constants';
+import { ADDRESS_VALIDATOR_INCENTIVES_POOL } from '../../dexIncentives/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
 import { DexEndpoint } from '../endpoint';
 import { DexModule } from '../module';
@@ -169,7 +169,7 @@ export const transferToValidatorLSKPool = async (
 	await tokenMethod.transfer(
 		methodContext,
 		senderAddress,
-		ADDRESS_VALIDATOR_REWARDS_POOL,
+		ADDRESS_VALIDATOR_INCENTIVES_POOL,
 		TOKEN_ID_LSK,
 		amount,
 	);
@@ -267,9 +267,9 @@ export const collectFeesAndIncentives = async (
 
 	await tokenMethod.transfer(
 		methodContext,
-		ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL,
+		ADDRESS_LIQUIDITY_PROVIDERS_INCENTIVES_POOL,
 		ownerAddress,
-		TOKEN_ID_REWARDS,
+		TOKEN_ID_INCENTIVES,
 		incentivesForPosition,
 	);
 	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.alloc(0));
@@ -284,7 +284,7 @@ export const collectFeesAndIncentives = async (
 		collectedFees1,
 		tokenID1: getToken1Id(poolID),
 		collectedIncentives: incentivesForPosition,
-		tokenIDIncentives: TOKEN_ID_REWARDS,
+		tokenIDIncentives: TOKEN_ID_INCENTIVES,
 	});
 };
 
@@ -340,8 +340,8 @@ export const computeCollectableIncentives = async (
 	const totalCollectableLSKFees = dexGlobalStoreData.collectableLSKFees;
 	const availableLPIncentives = await tokenMethod.getAvailableBalance(
 		methodContext,
-		ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL,
-		TOKEN_ID_REWARDS,
+		ADDRESS_LIQUIDITY_PROVIDERS_INCENTIVES_POOL,
+		TOKEN_ID_INCENTIVES,
 	);
 	const incentivesForPosition =
 		(availableLPIncentives * collectableFeesLSK) / totalCollectableLSKFees;

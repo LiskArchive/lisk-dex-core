@@ -13,20 +13,20 @@
  */
 import { BaseEvent, EventQueuer } from 'lisk-sdk';
 
-export const enum GeneratorRewardMintedEventResult {
-	REWARD_REDUCTION_SEED_REVEAL,
-	REWARD_REDUCTION_MAX_PREVOTES,
-	REWARD_NO_REDUCTION,
+export const enum GeneratorIncentiveMintedEventResult {
+	INCENTIVE_REDUCTION_SEED_REVEAL,
+	INCENTIVE_REDUCTION_MAX_PREVOTES,
+	INCENTIVE_NO_REDUCTION,
 }
 
-export interface GeneratorRewardMintedEventData {
+export interface GeneratorIncentiveMintedEventData {
 	amount: bigint;
 	generatorAddress: Buffer;
-	reduction: GeneratorRewardMintedEventResult;
+	reduction: GeneratorIncentiveMintedEventResult;
 }
 
-export const GeneratorRewardMintedEventSchema = {
-	$id: '/dexRewards/events/generatorRewardMinted',
+export const GeneratorIncentiveMintedEventSchema = {
+	$id: '/dexIncentives/events/generatorIncentiveMinted',
 	type: 'object',
 	required: ['amount', 'reduction'],
 	properties: {
@@ -41,10 +41,10 @@ export const GeneratorRewardMintedEventSchema = {
 	},
 };
 
-export class GeneratorRewardMintedEvent extends BaseEvent<GeneratorRewardMintedEventData> {
-	public schema = GeneratorRewardMintedEventSchema;
+export class GeneratorIncentiveMintedEvent extends BaseEvent<GeneratorIncentiveMintedEventData> {
+	public schema = GeneratorIncentiveMintedEventSchema;
 
-	public log(ctx: EventQueuer, data: GeneratorRewardMintedEventData): void {
+	public log(ctx: EventQueuer, data: GeneratorIncentiveMintedEventData): void {
 		this.add(ctx, data, [data.generatorAddress]);
 	}
 }

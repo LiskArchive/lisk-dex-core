@@ -16,34 +16,34 @@
 import { RandomMethod, TokenMethod } from 'lisk-sdk';
 import { MODULE_NAME_DEX } from '../../dex/constants';
 import {
-	ADDRESS_VALIDATOR_REWARDS_POOL,
+	ADDRESS_VALIDATOR_INCENTIVES_POOL,
 	TOKEN_ID_LSK,
-	REWARD_REDUCTION_SEED_REVEAL,
-	BLOCK_REWARD_VALIDATORS,
-	REWARD_REDUCTION_FACTOR_BFT,
-	REWARD_REDUCTION_MAX_PREVOTES,
-	REWARD_NO_REDUCTION,
+	INCENTIVE_REDUCTION_SEED_REVEAL,
+	BLOCK_INCENTIVE_VALIDATORS,
+	INCENTIVE_REDUCTION_FACTOR_BFT,
+	INCENTIVE_REDUCTION_MAX_PREVOTES,
+	INCENTIVE_NO_REDUCTION,
 } from '../constants';
-import { ValidatorTradeRewardsPayoutEvent } from '../events';
+import { ValidatorTradeIncentivesPayoutEvent } from '../events';
 
-export const transferValidatorLSKRewards = async (
+export const transferValidatorLSKIncentives = async (
 	validators,
 	methodContext,
 	tokenMethod: TokenMethod,
 	events,
 ) => {
-	const availableRewards = await tokenMethod.getLockedAmount(
+	const availableIncentives = await tokenMethod.getLockedAmount(
 		methodContext,
-		ADDRESS_VALIDATOR_REWARDS_POOL,
+		ADDRESS_VALIDATOR_INCENTIVES_POOL,
 		TOKEN_ID_LSK,
 		MODULE_NAME_DEX,
 	);
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-	const shareAmount = BigInt(availableRewards) / BigInt(validators.length);
+	const shareAmount = BigInt(availableIncentives) / BigInt(validators.length);
 	if (shareAmount !== BigInt(0)) {
 		await tokenMethod.unlock(
 			methodContext,
-			ADDRESS_VALIDATOR_REWARDS_POOL,
+			ADDRESS_VALIDATOR_INCENTIVES_POOL,
 			MODULE_NAME_DEX,
 			TOKEN_ID_LSK,
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -54,14 +54,14 @@ export const transferValidatorLSKRewards = async (
 		await validators.forEach(async validator => {
 			await tokenMethod.transfer(
 				methodContext,
-				ADDRESS_VALIDATOR_REWARDS_POOL,
+				ADDRESS_VALIDATOR_INCENTIVES_POOL,
 				validator,
 				TOKEN_ID_LSK,
 				shareAmount,
 			);
 
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-			events.get(ValidatorTradeRewardsPayoutEvent).add(
+			events.get(ValidatorTradeIncentivesPayoutEvent).add(
 				methodContext,
 				{
 					amount: shareAmount,
@@ -74,7 +74,7 @@ export const transferValidatorLSKRewards = async (
 	}
 };
 
-export const getValidatorBlockReward = async (
+export const getValidatorBlockIncentive = async (
 	methodContext,
 	randomMethod: RandomMethod,
 	blockHeader,
@@ -89,12 +89,12 @@ export const getValidatorBlockReward = async (
 			blockHeader.seedReveal,
 		))
 	) {
-		return [BigInt(0), REWARD_REDUCTION_SEED_REVEAL];
+		return [BigInt(0), INCENTIVE_REDUCTION_SEED_REVEAL];
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 	if (!impliesMaximalPrevotes) {
-		return [BLOCK_REWARD_VALIDATORS / REWARD_REDUCTION_FACTOR_BFT, REWARD_REDUCTION_MAX_PREVOTES];
+		return [BLOCK_INCENTIVE_VALIDATORS / INCENTIVE_REDUCTION_FACTOR_BFT, INCENTIVE_REDUCTION_MAX_PREVOTES];
 	}
-	return [BLOCK_REWARD_VALIDATORS, REWARD_NO_REDUCTION];
+	return [BLOCK_INCENTIVE_VALIDATORS, INCENTIVE_NO_REDUCTION];
 };

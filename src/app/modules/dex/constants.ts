@@ -94,9 +94,9 @@ export const POSITION_UPDATE_FAILED_NOT_EXISTS = 1; // Return code for failed po
 export const POSITION_UPDATE_FAILED_NOT_OWNER = 2; // Return code for failed position update as position owner is different from transaction sender. |
 export const POSITION_UPDATE_FAILED_INSUFFICIENT_LIQUIDITY = 3; // Return code for failed position update as transaction sender is not position owner. |
 export const TOKEN_ID_LSK = Buffer.from('0000000100000000', 'hex'); // The token ID of the LSK token.           |
-export const TOKEN_ID_REWARDS = Buffer.from('0000000100000000', 'hex'); // The token ID of the token used for liquidity provider incentives.           |
+export const TOKEN_ID_INCENTIVES = Buffer.from('0000000100000000', 'hex'); // The token ID of the token used for liquidity provider incentives.           |
 
-export const ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL = Buffer.from([]);
+export const ADDRESS_LIQUIDITY_PROVIDERS_INCENTIVES_POOL = Buffer.from([]);
 
 export const defaultConfig = {
 	feeTiers: {
