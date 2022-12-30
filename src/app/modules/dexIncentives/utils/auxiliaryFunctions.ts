@@ -13,24 +13,20 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { RandomMethod, TokenMethod } from 'lisk-sdk';
+import { TokenMethod } from 'lisk-sdk';
 import { MODULE_NAME_DEX } from '../../dex/constants';
+import { divQ96, mulQ96, roundDownQ96 } from '../../dex/utils/q96';
 import {
 	ADDRESS_VALIDATOR_INCENTIVES,
 	TOKEN_ID_LSK,
-	INCENTIVE_REDUCTION_SEED_REVEAL,
-	BLOCK_INCENTIVE_VALIDATORS,
-	INCENTIVE_REDUCTION_FACTOR_BFT,
-	INCENTIVE_REDUCTION_MAX_PREVOTES,
-	INCENTIVE_NO_REDUCTION,
 } from '../constants';
 import { ValidatorTradeIncentivesPayoutEvent } from '../events';
+import { Address } from '../types';
 
-export const transferValidatorLSKIncentives = async (
+export const transferAllValidatorLSKIncentives = async (
 	validators,
 	methodContext,
 	tokenMethod: TokenMethod,
-	events,
 ) => {
 	const availableIncentives = await tokenMethod.getLockedAmount(
 		methodContext,
@@ -39,62 +35,72 @@ export const transferValidatorLSKIncentives = async (
 		MODULE_NAME_DEX,
 	);
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-	const shareAmount = BigInt(availableIncentives) / BigInt(validators.length);
-	if (shareAmount !== BigInt(0)) {
+	if (availableIncentives !== BigInt(0)) {
 		await tokenMethod.unlock(
 			methodContext,
 			ADDRESS_VALIDATOR_INCENTIVES,
 			MODULE_NAME_DEX,
 			TOKEN_ID_LSK,
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			shareAmount * BigInt(validators.length),
+			availableIncentives
 		);
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+		let totalWeight = BigInt(0);
+		const standByShare = availableIncentives / BigInt(validators.length);
 		await validators.forEach(async validator => {
-			await tokenMethod.transfer(
-				methodContext,
-				ADDRESS_VALIDATOR_INCENTIVES,
-				validator,
-				TOKEN_ID_LSK,
-				shareAmount,
-			);
-
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-			events.get(ValidatorTradeIncentivesPayoutEvent).add(
-				methodContext,
-				{
-					amount: shareAmount,
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-					validatorAddress: validator,
-				},
-				[validator],
-			);
+			totalWeight += validator.bftWeight;
+			if (validator.bftWeight === BigInt(0)) {
+				await tokenMethod.transfer(
+					methodContext,
+					ADDRESS_VALIDATOR_INCENTIVES,
+					validator,
+					TOKEN_ID_LSK,
+					standByShare
+				);
+			}
 		});
+		const incentivePerBFTWeight = divQ96(availableIncentives, totalWeight);
+		await validators.forEach(async validator => {
+			if (validator.bftWeight !== BigInt(0)) {
+				const share = roundDownQ96(mulQ96(incentivePerBFTWeight, validator.bftWeight));
+				await tokenMethod.transfer(
+					methodContext,
+					ADDRESS_VALIDATOR_INCENTIVES,
+					validator,
+					TOKEN_ID_LSK,
+					share
+				);
+			}
+		});
+		tokenMethod.unlock(
+			methodContext,
+			ADDRESS_VALIDATOR_INCENTIVES,
+			MODULE_NAME_DEX,
+			TOKEN_ID_LSK,
+			availableIncentives
+		);
 	}
 };
 
-export const getValidatorBlockIncentive = async (
+export const tokenValidatorIncentive = async (
 	methodContext,
-	randomMethod: RandomMethod,
-	blockHeader,
-	impliesMaximalPrevotes,
-): Promise<[bigint, number]> => {
-	if (
-		!(await randomMethod.isSeedRevealValid(
-			methodContext,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			blockHeader.generatorAddress,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			blockHeader.seedReveal,
-		))
-	) {
-		return [BigInt(0), INCENTIVE_REDUCTION_SEED_REVEAL];
-	}
-
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-	if (!impliesMaximalPrevotes) {
-		return [BLOCK_INCENTIVE_VALIDATORS / INCENTIVE_REDUCTION_FACTOR_BFT, INCENTIVE_REDUCTION_MAX_PREVOTES];
-	}
-	return [BLOCK_INCENTIVE_VALIDATORS, INCENTIVE_NO_REDUCTION];
+	tokenMethod: TokenMethod,
+	validatorAddress: Address,
+	amount: bigint,
+	events
+) => {
+	tokenMethod.transfer(
+		methodContext,
+		ADDRESS_VALIDATOR_INCENTIVES,
+		validatorAddress,
+		TOKEN_ID_LSK,
+		amount
+	);
+	events.get(ValidatorTradeIncentivesPayoutEvent).add(
+		methodContext,
+		{
+			"amount": amount
+		},
+	);
 };

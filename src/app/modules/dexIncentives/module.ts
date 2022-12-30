@@ -35,7 +35,7 @@ import { DexIncentivesEndpoint } from './endpoint';
 import { GeneratorIncentiveMintedEvent, ValidatorTradeIncentivesPayoutEvent } from './events';
 
 import { DexIncentivesMethod } from './method';
-import { getValidatorBlockIncentive, transferValidatorLSKIncentives } from './utils/auxiliaryFunctions';
+import { transferAllValidatorLSKIncentives } from './utils/auxiliaryFunctions';
 
 export class DexIncentivesModule extends BaseModule {
 	public endpoint = new DexIncentivesEndpoint(this.stores, this.offchainStores);
@@ -87,30 +87,6 @@ export class DexIncentivesModule extends BaseModule {
 	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
 		const methodContext = context.getMethodContext();
 		const { header } = context;
-		const [blockIncentive, reduction] = await getValidatorBlockIncentive(
-			methodContext,
-			this._randomMethod,
-			header,
-			context.header.impliesMaxPrevotes,
-		);
-
-		if (blockIncentive > 0) {
-			await this._tokenMethod.mint(
-				methodContext,
-				header.generatorAddress,
-				TOKEN_ID_DEX_NATIVE,
-				blockIncentive,
-			);
-		}
-		this.events.get(GeneratorIncentiveMintedEvent).add(
-			methodContext,
-			{
-				amount: blockIncentive,
-				reduction,
-				generatorAddress: header.generatorAddress,
-			},
-			[header.generatorAddress],
-		);
 
 		await this._tokenMethod.mint(
 			methodContext,
@@ -143,7 +119,7 @@ export class DexIncentivesModule extends BaseModule {
 		const { validators } = await this._validatorsMethod.getValidatorsParams(methodContext);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 		if (header.height % validators.length === 0) {
-			await transferValidatorLSKIncentives(validators, methodContext, this._tokenMethod, this.events);
+			await transferAllValidatorLSKIncentives(validators, methodContext, this._tokenMethod);
 		}
 	}
 }
