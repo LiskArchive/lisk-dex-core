@@ -19,8 +19,7 @@ import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { MethodContext } from 'lisk-sdk';
 import { DexGlobalStore, PoolsStore } from '../stores';
 import { PoolID } from '../types';
-import { getPool } from './auxiliaryFunctions';
-import { getAllPoolIDs } from './offChainFunctions';
+import { getAllPoolIDs, getPool } from './auxiliaryFunctions';
 import { addQ96, bytesToQ96, divQ96, mulDivQ96, numberToQ96, q96ToBytes } from './q96';
 
 export const computeNewIncentivesPerLiquidity = async (

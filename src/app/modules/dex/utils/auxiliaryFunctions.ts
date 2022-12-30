@@ -56,7 +56,16 @@ import {
 
 import { uint32beInv } from './bigEndian';
 
-import { PoolID, PositionID, Address, TokenID, Q96, TickID, routeInterface } from '../types';
+import {
+	PoolID,
+	PositionID,
+	Address,
+	TokenID,
+	Q96,
+	TickID,
+	routeInterface,
+	AdjacentEdgesInterface,
+} from '../types';
 
 import {
 	subQ96,
@@ -74,22 +83,23 @@ import {
 	roundUpQ96,
 } from './q96';
 
-import { getAmount0Delta, getAmount1Delta, priceToTick, tickToPrice } from './math';
+import {
+	computeNextPrice,
+	getAmount0Delta,
+	getAmount1Delta,
+	priceToTick,
+	tickToPrice,
+} from './math';
 import { FeesIncentivesCollectedEvent, PositionUpdateFailedEvent } from '../events';
-import { tickToBytes } from '../stores/priceTicksStore';
+import { PriceTicksStoreData, tickToBytes } from '../stores/priceTicksStore';
 import { ADDRESS_VALIDATOR_REWARDS_POOL } from '../../dexRewards/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
 import { PoolsStoreData } from '../stores/poolsStore';
-import {
-	getAllPoolIDs,
-	getDexGlobalData,
-	getTickWithPoolIdAndTickValue,
-} from './offChainFunctions';
-import { crossTick, getAdjacent, swapWithin } from './swapFunctions';
 
 const { utils } = cryptography;
 
 import { MAX_SINT32 } from '@liskhq/lisk-validator';
+import { updatePoolIncentives } from './tokenEcnomicsFunctions';
 
 const abs = (x: bigint) => (x < BigInt(0) ? -x : x);
 
@@ -1115,6 +1125,103 @@ export const computeExceptionalRoute = async (
 	return [];
 };
 
+export const swapWithin = (
+	sqrtCurrentPrice: bigint,
+	sqrtTargetPrice: bigint,
+	liquidity: bigint,
+	amountRemaining: bigint,
+	exactInput: boolean,
+): [bigint, bigint, bigint] => {
+	const zeroToOne: boolean = sqrtCurrentPrice >= sqrtTargetPrice;
+	let amountIn = BigInt(0);
+	let amountOut = BigInt(0);
+	let sqrtUpdatedPrice = BigInt(0);
+
+	if (exactInput) {
+		if (zeroToOne) {
+			amountIn = getAmount0Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, true);
+		} else {
+			amountIn = getAmount1Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, true);
+		}
+	} else if (zeroToOne) {
+		amountOut = getAmount1Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, false);
+	} else {
+		amountOut = getAmount0Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, false);
+	}
+	if (
+		(exactInput && amountRemaining >= amountIn) ||
+		(!exactInput && amountRemaining >= amountOut)
+	) {
+		sqrtUpdatedPrice = sqrtTargetPrice;
+	} else {
+		sqrtUpdatedPrice = computeNextPrice(
+			sqrtCurrentPrice,
+			liquidity,
+			amountRemaining,
+			zeroToOne,
+			exactInput,
+		);
+	}
+	if (zeroToOne) {
+		amountIn = getAmount0Delta(sqrtCurrentPrice, sqrtUpdatedPrice, liquidity, true);
+		amountOut = getAmount1Delta(sqrtCurrentPrice, sqrtUpdatedPrice, liquidity, false);
+	} else {
+		amountIn = getAmount1Delta(sqrtCurrentPrice, sqrtUpdatedPrice, liquidity, true);
+		amountOut = getAmount0Delta(sqrtCurrentPrice, sqrtUpdatedPrice, liquidity, false);
+	}
+	return [sqrtUpdatedPrice, amountIn, amountOut];
+};
+
+export const crossTick = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	tickId: TickID,
+	leftToRight: boolean,
+	currentHeight: number,
+) => {
+	const poolId = tickId.slice(0, NUM_BYTES_POOL_ID);
+	await updatePoolIncentives(methodContext, stores, poolId, currentHeight);
+	const poolStoreData = await getPool(methodContext, stores, poolId);
+	const priceTickStoreData = await getTickWithTickId(methodContext, stores, [tickId]);
+	if (leftToRight) {
+		poolStoreData.liquidity += priceTickStoreData.liquidityNet;
+	} else {
+		poolStoreData.liquidity += priceTickStoreData.liquidityNet;
+	}
+	const feeGrowthGlobal0Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal0);
+	const feeGrowthOutside0Q96 = bytesToQ96(priceTickStoreData.feeGrowthOutside0);
+	priceTickStoreData.feeGrowthOutside0 = q96ToBytes(
+		subQ96(feeGrowthGlobal0Q96, feeGrowthOutside0Q96),
+	);
+	const feeGrowthGlobal1Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal1);
+	const feeGrowthOutside1Q96 = bytesToQ96(priceTickStoreData.feeGrowthOutside1);
+	priceTickStoreData.feeGrowthOutside1 = q96ToBytes(
+		subQ96(feeGrowthGlobal1Q96, feeGrowthOutside1Q96),
+	);
+	const incentivesAccumulatorQ96 = bytesToQ96(poolStoreData.incentivesPerLiquidityAccumulator);
+	const incentivesOutsideQ96 = bytesToQ96(priceTickStoreData.incentivesPerLiquidityOutside);
+	priceTickStoreData.incentivesPerLiquidityOutside = q96ToBytes(
+		subQ96(incentivesAccumulatorQ96, incentivesOutsideQ96),
+	);
+};
+
+export const getAdjacent = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	vertex: TokenID,
+): Promise<AdjacentEdgesInterface[]> => {
+	const result: AdjacentEdgesInterface[] = [];
+	const poolIDs = await getAllPoolIDs(methodContext, stores.get(PoolsStore));
+	poolIDs.forEach(edge => {
+		if (getToken0Id(edge).equals(vertex)) {
+			result.push({ edge, vertex: getToken1Id(edge) });
+		} else if (getToken1Id(edge).equals(vertex)) {
+			result.push({ edge, vertex: getToken0Id(edge) });
+		}
+	});
+	return result;
+};
+
 // token-Ecnomics-Functions
 export const getCredibleDirectPrice = async (
 	tokenMethod: TokenMethod,
@@ -1177,4 +1284,57 @@ export const getCredibleDirectPrice = async (
 		await getPool(methodContext, stores, directPools[minToken1ValueLockedIndex])
 	).sqrtPrice;
 	return mulQ96(bytesToQ96(poolSqrtPrice), bytesToQ96(poolSqrtPrice));
+};
+
+// off-Chain-Functions
+export const getAllPoolIDs = async (
+	methodContext: MethodContext,
+	poolStore: PoolsStore,
+): Promise<PoolID[]> => {
+	const poolIds: PoolID[] = [];
+	const allPoolIds = await poolStore.getAll(methodContext);
+	if (allPoolIds != null && allPoolIds.length > 0) {
+		allPoolIds.forEach(poolId => {
+			poolIds.push(poolId.key);
+		});
+	}
+	return poolIds;
+};
+
+export const getTickWithTickId = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	tickId: TickID[],
+) => {
+	const priceTicksStore = stores.get(PriceTicksStore);
+	const priceTicksStoreData = await priceTicksStore.getKey(methodContext, tickId);
+	if (priceTicksStoreData == null) {
+		throw new Error('No tick with the specified poolId');
+	} else {
+		return priceTicksStoreData;
+	}
+};
+
+export const getDexGlobalData = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+): Promise<DexGlobalStoreData> => {
+	const dexGlobalStore = stores.get(DexGlobalStore);
+	return dexGlobalStore.get(methodContext, Buffer.from([]));
+};
+
+export const getTickWithPoolIdAndTickValue = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	poolId: PoolID,
+	tickValue: number,
+): Promise<PriceTicksStoreData> => {
+	const priceTicksStore = stores.get(PriceTicksStore);
+	const key = poolId.toLocaleString() + tickToBytes(tickValue).toLocaleString();
+	const priceTicksStoreData = await priceTicksStore.get(methodContext, Buffer.from(key, 'hex'));
+	if (priceTicksStoreData == null) {
+		throw new Error('No tick with the specified poolId and tickValue');
+	} else {
+		return priceTicksStoreData;
+	}
 };
