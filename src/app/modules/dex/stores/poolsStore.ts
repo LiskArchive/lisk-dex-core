@@ -17,8 +17,8 @@ import { MAX_NUM_BYTES_Q96 } from '../constants';
 export interface PoolsStoreData {
 	liquidity: bigint;
 	sqrtPrice: Buffer;
-	incentivesPerLiquidityAccumulator:Buffer,
-	heightIncentivesUpdate:number,
+	incentivesPerLiquidityAccumulator: Buffer;
+	heightIncentivesUpdate: number;
 	feeGrowthGlobal0: Buffer;
 	feeGrowthGlobal1: Buffer;
 	tickSpacing: number;
@@ -27,7 +27,15 @@ export interface PoolsStoreData {
 export const poolsStoreSchema = {
 	$id: '/dex/store/pools',
 	type: 'object',
-	required: ['liquidity', 'sqrtPrice', 'incentivesPerLiquidityAccumulator', 'heightIncentivesUpdate', 'feeGrowthGlobal0', 'feeGrowthGlobal1', 'tickSpacing'],
+	required: [
+		'liquidity',
+		'sqrtPrice',
+		'incentivesPerLiquidityAccumulator',
+		'heightIncentivesUpdate',
+		'feeGrowthGlobal0',
+		'feeGrowthGlobal1',
+		'tickSpacing',
+	],
 	properties: {
 		liquidity: {
 			dataType: 'uint64',
@@ -38,12 +46,12 @@ export const poolsStoreSchema = {
 			maxLength: MAX_NUM_BYTES_Q96,
 			fieldNumber: 2,
 		},
-		incentivesPerLiquidityAccumulator:{
+		incentivesPerLiquidityAccumulator: {
 			dataType: 'bytes',
 			maxLength: MAX_NUM_BYTES_Q96,
 			fieldNumber: 3,
 		},
-		heightIncentivesUpdate:{
+		heightIncentivesUpdate: {
 			dataType: 'uint32',
 			fieldNumber: 4,
 		},
@@ -61,7 +69,7 @@ export const poolsStoreSchema = {
 			dataType: 'uint32',
 			fieldNumber: 7,
 		},
-	}
+	},
 };
 
 export class PoolsStore extends BaseStore<PoolsStoreData> {

@@ -16,15 +16,21 @@ import { BaseStore } from 'lisk-sdk';
 export interface DexGlobalStoreData {
 	positionCounter: bigint;
 	collectableLSKFees: bigint;
-	poolCreationSettings,
-	incentivizedPools,
-	totalIncentivesMultiplier:number
+	poolCreationSettings;
+	incentivizedPools;
+	totalIncentivesMultiplier: number;
 }
 
 export const dexGlobalStoreSchema = {
 	$id: '/dex/store/global',
 	type: 'object',
-	required: ['positionCounter', 'collectableLSKFees', 'poolCreationSettings', 'incentivizedPools', 'totalIncentivesMultiplier'],
+	required: [
+		'positionCounter',
+		'collectableLSKFees',
+		'poolCreationSettings',
+		'incentivizedPools',
+		'totalIncentivesMultiplier',
+	],
 	properties: {
 		positionCounter: {
 			dataType: 'uint64',
@@ -37,38 +43,38 @@ export const dexGlobalStoreSchema = {
 		poolCreationSettings: {
 			type: 'array',
 			fieldNumber: 3,
-			items:{
+			items: {
 				type: 'object',
 				required: ['feeTier', 'tickSpacing'],
-				properties:{
-					feeTier:{
+				properties: {
+					feeTier: {
 						dataType: 'uint32',
 						fieldNumber: 1,
 					},
-					tickSpacing:{
+					tickSpacing: {
 						dataType: 'uint32',
 						fieldNumber: 2,
 					},
-				}
-			}
+				},
+			},
 		},
 		incentivizedPools: {
 			type: 'array',
 			fieldNumber: 4,
-			items:{
+			items: {
 				type: 'object',
-				required:['poolId','multiplier'],
-				properties:{
-					poolId:{
-						dataType:'bytes',
-						fieldNumber:1
+				required: ['poolId', 'multiplier'],
+				properties: {
+					poolId: {
+						dataType: 'bytes',
+						fieldNumber: 1,
 					},
-					multiplier:{
-						dataType:'uint32',
-						fieldNumber:2
-					}
-				}
-			}
+					multiplier: {
+						dataType: 'uint32',
+						fieldNumber: 2,
+					},
+				},
+			},
 		},
 		totalIncentivesMultiplier: {
 			dataType: 'uint32',

@@ -45,7 +45,13 @@ export interface PriceTicksStoreData {
 export const priceTicksStoreSchema = {
 	$id: '/dex/store/priceTicks',
 	type: 'object',
-	required: ['liquidityNet', 'liquidityGross', 'feeGrowthOutside0', 'feeGrowthOutside1', 'incentivesPerLiquidityOutside'],
+	required: [
+		'liquidityNet',
+		'liquidityGross',
+		'feeGrowthOutside0',
+		'feeGrowthOutside1',
+		'incentivesPerLiquidityOutside',
+	],
 	properties: {
 		liquidityNet: {
 			dataType: 'sint64',

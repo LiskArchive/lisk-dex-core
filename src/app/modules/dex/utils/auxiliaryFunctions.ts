@@ -49,9 +49,6 @@ import {
 	TOKEN_ID_REWARDS,
 	ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL,
 	MODULE_NAME_DEX,
-	MAX_HOPS_SWAP,
-	MIN_SQRT_RATIO,
-	MAX_SQRT_RATIO,
 	MAX_NUMBER_CROSSED_TICKS,
 	FEE_TIER_PARTITION,
 	VALIDATORS_LSK_INCENTIVE_PART,
@@ -59,7 +56,7 @@ import {
 
 import { uint32beInv } from './bigEndian';
 
-import { PoolID, PositionID, Address, TokenID, Q96, TickID, PoolsGraph, AdjacentEdges, route } from '../types';
+import { PoolID, PositionID, Address, TokenID, Q96, TickID, routeInterface } from '../types';
 
 import {
 	subQ96,
@@ -77,17 +74,22 @@ import {
 	roundUpQ96,
 } from './q96';
 
-import { MAX_SINT32} from '@liskhq/lisk-validator';
-
-import { computeNextPrice, getAmount0Delta, getAmount1Delta, priceToTick, tickToPrice } from './math';
+import { getAmount0Delta, getAmount1Delta, priceToTick, tickToPrice } from './math';
 import { FeesIncentivesCollectedEvent, PositionUpdateFailedEvent } from '../events';
-import { PriceTicksStoreData, tickToBytes } from '../stores/priceTicksStore';
+import { tickToBytes } from '../stores/priceTicksStore';
 import { ADDRESS_VALIDATOR_REWARDS_POOL } from '../../dexRewards/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
 import { PoolsStoreData } from '../stores/poolsStore';
-import { PositionsStoreData } from '../stores/positionsStore';
+import {
+	getAllPoolIDs,
+	getDexGlobalData,
+	getTickWithPoolIdAndTickValue,
+} from './offChainFunctions';
+import { crossTick, getAdjacent, swapWithin } from './swapFunctions';
 
 const { utils } = cryptography;
+
+import { MAX_SINT32 } from '@liskhq/lisk-validator';
 
 const abs = (x: bigint) => (x < BigInt(0) ? -x : x);
 
@@ -408,7 +410,7 @@ export const createPool = async (
 		protocolFees0: numberToQ96(BigInt(0)),
 		protocolFees1: numberToQ96(BigInt(0)),
 		tickSpacing: poolSetting,
-	}
+	};
 	await poolsStore.set(methodContext, poolID, poolStoreValue);
 	return POOL_CREATION_SUCCESS;
 };
@@ -444,7 +446,7 @@ export const createPosition = async (
 			liquidityGross: BigInt(0),
 			feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(0))),
 			feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(0))),
-			incentivesPerLiquidityOutside: q96ToBytes(BigInt(0))
+			incentivesPerLiquidityOutside: q96ToBytes(BigInt(0)),
 		};
 		if (bytesToQ96(currentPool.sqrtPrice) >= tickToPrice(tickLower)) {
 			tickStoreValue.feeGrowthOutside0 = currentPool.feeGrowthGlobal0;
@@ -460,7 +462,7 @@ export const createPosition = async (
 			liquidityGross: BigInt(0),
 			feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(0))),
 			feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(0))),
-			incentivesPerLiquidityOutside: q96ToBytes(BigInt(0))
+			incentivesPerLiquidityOutside: q96ToBytes(BigInt(0)),
 		};
 		if (bytesToQ96(currentPool.sqrtPrice) >= tickToPrice(tickUpper)) {
 			tickStoreValue.feeGrowthOutside0 = currentPool.feeGrowthGlobal0;
@@ -786,691 +788,393 @@ export const updatePosition = async (
 	return [amount0, amount1];
 };
 
-export const computeNewIncentivesPerLiquidity= async (methodContext: MethodContext, stores:NamedRegistry, poolID: PoolID, currentHeight:number): Promise<bigint> =>{
-
-	const dexGlobalStore = stores.get(DexGlobalStore);
-	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
-
-	var incentivizedPools;
-
-	dexGlobalStoreData.incentivizedPools.forEach(incentivizedPool=>{
-		if(incentivizedPool.poolId === poolID){
-			incentivizedPools = incentivizedPool;
-		}
-	});
-
-	if(incentivizedPools==null){
-		throw new Error("Invalid arguments");
-	}
-
-	const pool = await getPool(methodContext,stores,poolID);
-	const allPoolIds = await getAllPoolIDs(methodContext, stores.get(PoolsStore))
-	if (!allPoolIds.includes(poolID) || (pool.heightIncentivesUpdate>=currentHeight)){
-		throw new Error("Invalid arguments");
-	}
-
-	const poolMultiplier:bigint = incentivizedPools.multiplier;
-	//WIP:need to add DEXIncentives Module here
-	//const totalIncentives:bigint = DEXIncentives.getLPIncentivesInRange(pool.heightIncentivesUpdate, currentHeight)
-	const totalIncentives:bigint = BigInt(0);
-	
-	const incentives = mulDivQ96(totalIncentives, poolMultiplier, BigInt(dexGlobalStoreData.totalIncentivesMultiplier));
-	const incentivesPerLiquidity = divQ96(numberToQ96(incentives), numberToQ96(pool.liquidity));
-	const currentIncentivesPerLiquidity = bytesToQ96(pool.incentivesPerLiquidityAccumulator);
-	return addQ96(incentivesPerLiquidity,currentIncentivesPerLiquidity);
-}
-
-export const updatePoolIncentives  = async (methodContext: MethodContext, stores:NamedRegistry, poolID: PoolID, currentHeight:number) => {
-	const dexGlobalStore = stores.get(DexGlobalStore);
-	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
-
-	var incentivizedPools;
-
-	dexGlobalStoreData.incentivizedPools.forEach(incentivizedPool=>{
-		if(incentivizedPool.poolId === poolID){
-			incentivizedPools = incentivizedPool;
-		}
-	});
-
-	if(incentivizedPools==null){
-		return;
-	}
-
-	const pool = await getPool(methodContext,stores,poolID);
-	const allPoolIds = await getAllPoolIDs(methodContext, stores.get(PoolsStore))
-	if (!allPoolIds.includes(poolID) || (pool.heightIncentivesUpdate>=currentHeight)){
-		return;
-	}
-
-	const newIncentivesPerLiquidity = await computeNewIncentivesPerLiquidity(methodContext, stores, poolID, currentHeight);
-	pool.incentivesPerLiquidityAccumulator = q96ToBytes(newIncentivesPerLiquidity);
-	pool.heightIncentivesUpdate = currentHeight.valueOf();
-}
-
-export const getCredibleDirectPrice = async (tokenMethod: TokenMethod, methodContext: MethodContext, stores:NamedRegistry, tokenID0: TokenID, tokenID1: TokenID) : Promise<bigint> => {
-	const directPools:Buffer[] = [];
-	
-	const settings  = (await getDexGlobalData(methodContext, stores)).poolCreationSettings;
-	const allpoolIDs = await getAllPoolIDs(methodContext,stores.get(PoolsStore));
-
-	const tokenIDArrays = [tokenID0,tokenID1];
-	const concatedTokenIDs =  Buffer.concat(tokenIDArrays);
-	
-
-	settings.forEach((setting)=>{
-		const result = Buffer.alloc(4);
-		const tokenIDAndSettingsArray = [concatedTokenIDs,q96ToBytes(BigInt(result.writeUInt32BE(setting.feeTier,0)))];
-		const potentialPoolId:Buffer = Buffer.concat(tokenIDAndSettingsArray);
-		allpoolIDs.forEach(poolId=>{
-			if(poolId.equals(potentialPoolId)){
-				directPools.push(potentialPoolId);
-			}
-		})
-	})
-	
-	if(directPools.length == 0){
-		throw new Error("No direct pool between given tokens");
-	}
-
-	const token1ValuesLocked:bigint[] = []
-
-	directPools.forEach(async (directPool)=>{
-		const poolId = directPool;
-		const pool = await getPool(methodContext, stores, poolId);
-		const token0ValueQ96 = mulQ96(mulQ96(numberToQ96(await getToken0Amount(tokenMethod, methodContext, poolId)), bytesToQ96(pool.sqrtPrice)), bytesToQ96(pool.sqrtPrice));
-		token1ValuesLocked.push(roundDownQ96(token0ValueQ96) + await getToken1Amount(tokenMethod, methodContext, poolId));
-	})
-	
-	var minToken1ValueLocked = BigInt(MAX_SINT32);
-	var minToken1ValueLockedIndex = 0;
-	token1ValuesLocked.forEach((token1ValueLocked,index)=>{
-		if(token1ValueLocked > minToken1ValueLocked){
-			minToken1ValueLocked = token1ValueLocked; 
-			minToken1ValueLockedIndex = index;
-		}
-	})
-
-	const poolSqrtPrice = (await getPool(methodContext, stores, directPools[minToken1ValueLockedIndex])).sqrtPrice;
-	return mulQ96(bytesToQ96(poolSqrtPrice), bytesToQ96(poolSqrtPrice));
-}
-
-export const addPoolCreationSettings = async (methodContext: MethodContext, stores:NamedRegistry, feeTier: number, tickSpacing: number) =>{
-	if(feeTier>1000000){
+export const addPoolCreationSettings = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	feeTier: number,
+	tickSpacing: number,
+) => {
+	if (feeTier > 1000000) {
 		throw new Error('Fee tier can not be greater than 100%');
 	}
-	const dexGlobalStoreData = await getDexGlobalData(methodContext,stores);
-	dexGlobalStoreData.poolCreationSettings.forEach((creationSettings)=>{
-		if(creationSettings.feeTier == feeTier){
+	const dexGlobalStoreData = await getDexGlobalData(methodContext, stores);
+	dexGlobalStoreData.poolCreationSettings.forEach(creationSettings => {
+		if (creationSettings.feeTier === feeTier) {
 			throw new Error('Cannot update fee tier');
 		}
-	})
-	dexGlobalStoreData.poolCreationSettings.push({"feeTier": feeTier, "tickSpacing": tickSpacing});
+	});
+	dexGlobalStoreData.poolCreationSettings.push({ feeTier, tickSpacing });
+};
 
-}
-
-export const getCurrentSqrtPrice = async (methodContext: MethodContext, stores:NamedRegistry, poolID: PoolID, priceDirection: boolean):Promise<Q96>=>{
-	const pools= await getPool(methodContext, stores, poolID);
-	if(pools == null){
-		throw new Error()
-	}
-	const q96SqrtPrice = bytesToQ96(pools.sqrtPrice);
-	if(priceDirection){
-		return q96SqrtPrice;
-	}else{
-		return invQ96(q96SqrtPrice);
-	}
-}
-
-export const getProtocolSettings = async (methodContext: MethodContext, stores:NamedRegistry)=>{
-	const dexGlobalStoreData = await getDexGlobalData(methodContext,stores);
+export const getProtocolSettings = async (methodContext: MethodContext, stores: NamedRegistry) => {
+	const dexGlobalStoreData = await getDexGlobalData(methodContext, stores);
 	return dexGlobalStoreData;
+};
 
-}
+export const updateIncentivizedPools = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	poolId: PoolID,
+	multiplier: number,
+	currentHeight: bigint,
+) => {
+	const dexGlobalStoreData = await getDexGlobalData(methodContext, stores);
 
-export const updateIncentivizedPools = async (methodContext: MethodContext, stores:NamedRegistry, poolID: PoolID, multiplier: number, currentHeight: bigint)=>{
-	const dexGlobalStoreData = await getDexGlobalData(methodContext,stores);
-	dexGlobalStoreData.incentivizedPools.forEach(() => {
-		updateIncentivizedPools(methodContext, stores, poolID, multiplier, currentHeight);
-	});
-	dexGlobalStoreData.incentivizedPools.forEach((incentivizedPools,index) => {
-		if(incentivizedPools.poolId == poolID){
+	for (const incentivizedPool of dexGlobalStoreData.incentivizedPools) {
+		await updateIncentivizedPools(
+			methodContext,
+			stores,
+			incentivizedPool.poolId,
+			multiplier,
+			currentHeight,
+		);
+	}
+	dexGlobalStoreData.incentivizedPools.forEach((incentivizedPools, index) => {
+		if (incentivizedPools.poolId.equals(poolId)) {
 			dexGlobalStoreData.totalIncentivesMultiplier -= incentivizedPools.multiplier;
-			dexGlobalStoreData.incentivizedPools.splice(index,1);
-		}				
+			dexGlobalStoreData.incentivizedPools.splice(index, 1);
+		}
 	});
-	if(multiplier >= 0){
-		dexGlobalStoreData.totalIncentivesMultiplier += multiplier
-        dexGlobalStoreData.incentivizedPools.push({"poolId": poolID, "multiplier": multiplier});
+	if (multiplier >= 0) {
+		dexGlobalStoreData.totalIncentivesMultiplier += multiplier;
+		dexGlobalStoreData.incentivizedPools.push({ poolId, multiplier });
 		dexGlobalStoreData.incentivizedPools.sort((a, b) => (a.poolId < b.poolId ? -1 : 1));
 	}
+};
 
-}
-
-export const getAllPoolIDs = async (methodContext: MethodContext, poolStore:PoolsStore):Promise<PoolID[]> =>{
-	//WIP:Implematation of Iterate function logic
-	let poolIds:PoolID[] = [];
-	const allPoolIds = await poolStore.getAll(methodContext);
-	allPoolIds.forEach((poolId)=>{
-		poolIds.push(poolId.key);
-	})
-	return poolIds;
-}
-
-export const getPool = async (methodContext: MethodContext, stores:NamedRegistry, poolID:PoolID):Promise<PoolsStoreData> =>{
+export const getPool = async (
+	methodContext,
+	stores: NamedRegistry,
+	poolID: PoolID,
+): Promise<PoolsStoreData> => {
 	const poolsStore = stores.get(PoolsStore);
 	const poolStoreData = await poolsStore.getKey(methodContext, [poolID]);
 	return poolStoreData;
-}
+};
 
-export const getDexGlobalData = async (methodContext: MethodContext, stores:NamedRegistry):Promise<DexGlobalStoreData> =>{
-	const dexGlobalStore = stores.get(DexGlobalStore);
-	return await dexGlobalStore.get(methodContext, Buffer.from([]));
-}
-
-export const getToken0Amount = async (tokenMethod: TokenMethod, methodContext: MethodContext, poolId: PoolID):Promise<bigint> =>{
+export const getToken0Amount = async (
+	tokenMethod: TokenMethod,
+	methodContext: MethodContext,
+	poolId: PoolID,
+): Promise<bigint> => {
 	const address = poolIdToAddress(poolId);
 	const tokenId = getToken0Id(poolId);
-	return await tokenMethod.getLockedAmount(methodContext, address, tokenId, MODULE_ID_DEX.toString())
-}
+	return tokenMethod.getLockedAmount(methodContext, address, tokenId, MODULE_ID_DEX.toString());
+};
 
-export const getToken1Amount = async (tokenMethod: TokenMethod, methodContext: MethodContext, poolId: PoolID):Promise<bigint> =>{
+export const getToken1Amount = async (
+	tokenMethod: TokenMethod,
+	methodContext: MethodContext,
+	poolId: PoolID,
+): Promise<bigint> => {
 	const address = poolIdToAddress(poolId);
 	const tokenId = getToken1Id(poolId);
-	return await tokenMethod.getLockedAmount(methodContext, address, tokenId, MODULE_ID_DEX.toString())
-}
-    
-export const getAllTokenIDs = async (methodContext: MethodContext, stores:NamedRegistry):Promise<Set<TokenID>>=>{
-	let tokens = new Set<TokenID>();
-	const allPoolIds = await getAllPoolIDs(methodContext,stores.get(PoolsStore)); 
-	allPoolIds.forEach(poolID=>{
-		tokens.add(getToken0Id(poolID));
-		tokens.add(getToken1Id(poolID));
-	});
-	return tokens;
-}    
+	return tokenMethod.getLockedAmount(methodContext, address, tokenId, MODULE_ID_DEX.toString());
+};
 
-export const getAllPositionIDsInPool = (poolId: PoolID, positionIdsList:PositionID[]):Buffer[]=>{
-	let result:Buffer[]  = [];
-	positionIdsList.forEach(positionId=>{
-		if (getPoolIDFromPositionID(positionId).equals(poolId)){
-	getPoolIDFromPositionID
-			result.push(positionId);
-		}		
-	})
-	return result;
-}    
-
-export const getAllTickIDsInPool = async(methodContext: MethodContext, stores:NamedRegistry, poolId: PoolID):Promise<TickID[]>=>{
-	const result:Buffer[] = []
-	const allTicks = await getAllTicks(methodContext,stores);
-	allTicks.forEach((tickID)=>{
-		if(getPoolIDFromTickID(tickID).equals(poolId)){
-			result.push(tickID);
-		}
-	}) 
-	return result;
-}
-
-export const getPoolIDFromTickID = (tickID:TickID):PoolID=>{
-	return tickID.slice(0,NUM_BYTES_POOL_ID);
-}
-
-export const getAllTicks = async(methodContext: MethodContext, stores:NamedRegistry):Promise<TickID[]>=>{
-	let tickIds:Buffer[]=[];
-	const priceTicksStore  = stores.get(PriceTicksStore);
+export const getAllTicks = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+): Promise<TickID[]> => {
+	const tickIds: Buffer[] = [];
+	const priceTicksStore = stores.get(PriceTicksStore);
 	const allTickIds = await priceTicksStore.getAll(methodContext);
-	allTickIds.forEach((tickId)=>{
+	allTickIds.forEach(tickId => {
 		tickIds.push(tickId.key);
-	})
-	return tickIds;
-}
-
-export const getPosition= async (methodContext: MethodContext, stores:NamedRegistry, positionID:PositionID, positionIdsList:PositionID[]):Promise<PositionsStoreData>=>{
-	if(positionIdsList.indexOf(positionID)==-1){
-		throw new Error()
-	}
-	const positionsStore = stores.get(PositionsStore);
-	const positionStoreData = await positionsStore.get(methodContext, positionID);
-	return positionStoreData;
-
-}
-
-export const getTickWithTickId = async (methodContext: MethodContext, stores: NamedRegistry, tickId:TickID[])=>{
-	const priceTicksStore = stores.get(PriceTicksStore);
-	const priceTicksStoreData = await priceTicksStore.getKey(methodContext, tickId);
-	if (priceTicksStoreData == null) {
-		throw new Error("No tick with the specified poolId");
-	} else {
-		return priceTicksStoreData
-	}
-}
-
-export const getTickWithPoolIdAndTickValue = async (methodContext: MethodContext, stores: NamedRegistry, poolId: PoolID, tickValue: number): Promise<PriceTicksStoreData> => {
-	const priceTicksStore = stores.get(PriceTicksStore);
-	const key = poolId.toLocaleString() + tickToBytes(tickValue).toLocaleString();
-	const priceTicksStoreData = await priceTicksStore.get(methodContext, Buffer.from(key, 'hex'));
-	if (priceTicksStoreData == null) {
-		throw new Error("No tick with the specified poolId and tickValue");
-	} else {
-		return priceTicksStoreData
-	}
-}
-
-export const dryRunSwapExactIn = async (methodContext: MethodContext, stores: NamedRegistry, tokenIdIn: TokenID, amountIn: bigint, tokenIdOut: TokenID,
-	minAmountOut: bigint, swapRoute: PoolID[]): Promise<[bigint, bigint, Q96, Q96]> => {
-		let zeroToOne:boolean
-		let IdOut:TokenID;
-		let tokens = [{id: tokenIdIn, amount: amountIn}]
-		let fees = [{}]
-		let amountOut:bigint;
-		let feesIn:bigint;
-		let feesOut:bigint;
-		let priceBefore:bigint;
-		let priceAfter:bigint;
-
-		if (tokenIdIn == tokenIdOut || swapRoute.length == 0 || swapRoute.length > MAX_HOPS_SWAP) {
-		throw new Error("Invalid parameters");
-	}
-	try {
-		priceBefore = await computeCurrentPrice(methodContext, stores, tokenIdIn, tokenIdOut, swapRoute);
-	} catch (error) {
-		throw new Error("Invalid swap route");
-	}
-
-	swapRoute.forEach(async (poolId) => {
-		const currentTokenIn = tokens[-1]
-		if (getToken0Id(poolId) == currentTokenIn.id){
-			zeroToOne = true;
-            IdOut = getToken1Id(poolId)
-		}else if(getToken1Id(poolId) == currentTokenIn.id){
-			zeroToOne = false;
-			IdOut = getToken0Id(poolId)
-		}
-		const sqrtLimitPrice = zeroToOne ? MIN_SQRT_RATIO : MAX_SQRT_RATIO
-		//current height of the last block;
-		const currentHeight = 10  
-		try {
-			[amountIn, amountOut, feesIn, feesOut] = await swap(methodContext, stores, poolId, zeroToOne, sqrtLimitPrice, currentTokenIn.amount, false, currentHeight, tokenIdIn, tokenIdOut)
-		} catch (error) {
-			throw new Error("Crossed too many ticks")
-		}
-		tokens.push({id:IdOut, amount: amountOut})
-		fees.push({in: feesIn, out: feesOut})
-	})
-
-	if (tokens[-1].amount < minAmountOut){
-		throw new Error("Too low output amount")
-	}
-	priceAfter = await computeCurrentPrice(methodContext, stores, tokenIdIn, tokenIdOut, swapRoute)
-	return [amountIn, tokens[-1].amount, priceBefore, priceAfter]    
-}
-
-export const dryRunSwapExactOut = async (methodContext: MethodContext, stores: NamedRegistry, tokenIdIn: TokenID, maxAmountIn: bigint, tokenIdOut: TokenID,
-	amountOut: bigint, swapRoute: PoolID[]): Promise<[bigint, bigint, Q96, Q96]> => {
-	let zeroToOne: boolean
-	let IdIn: TokenID;
-	let tokens = [{ id: tokenIdOut, amount: amountOut }]
-	let fees = [{}]
-	let amountIn: bigint;
-	let feesIn: bigint;
-	let feesOut: bigint;
-	let priceBefore: bigint;
-	let priceAfter: bigint;
-
-	if (tokenIdIn == tokenIdOut || (swapRoute.length == 0) || (swapRoute.length > MAX_HOPS_SWAP)) {
-		throw new Error("Invalid parameters");
-	}
-	try {
-		priceBefore = await computeCurrentPrice(methodContext, stores, tokenIdIn, tokenIdOut, swapRoute);
-	} catch (error) {
-		throw new Error("Invalid swap route");
-	}
-
-	const inverseSwapRoute = swapRoute.reverse();
-
-	inverseSwapRoute.forEach(async (poolId) => {
-		const currentTokenOut = tokens[-1]
-		if (getToken0Id(poolId) == currentTokenOut.id) {
-			zeroToOne = true;
-			IdIn = getToken0Id(poolId)
-		} else if (getToken1Id(poolId) == currentTokenOut.id) {
-			zeroToOne = false;
-			IdIn = getToken1Id(poolId)
-		}
-		const sqrtLimitPrice = zeroToOne ? MIN_SQRT_RATIO : MAX_SQRT_RATIO
-		//current height of the last block;
-		const currentHeight=10
-		try {
-			[amountIn, amountOut, feesIn, feesOut] = await swap(methodContext, stores, poolId, zeroToOne, sqrtLimitPrice, currentTokenOut.amount, false, currentHeight, tokenIdIn, tokenIdOut)
-		} catch (error) {
-			throw new Error("Crossed too many ticks")
-		}
-		tokens.push({ id: IdIn, amount: amountIn })
-		fees.push({ in: feesIn, out: feesOut })
-	})
-
-	if (tokens[-1].amount < maxAmountIn) {
-		throw new Error("Too low output amount")
-	}
-	priceAfter = await computeCurrentPrice(methodContext, stores, tokenIdIn, tokenIdOut, swapRoute)
-	return [tokens[-1].amount, amountOut, priceBefore, priceAfter]
-}
-
-export const  getLSKPrice = async (tokenMethod:TokenMethod,methodContext: MethodContext, stores:NamedRegistry, tokenId: TokenID):Promise<bigint>=>{
-
-	let route = await computeRegularRoute(methodContext, stores, tokenId, TOKEN_ID_LSK)
-	if (route.length == 0){
-		route = await computeExceptionalRoute(methodContext, stores, tokenId, TOKEN_ID_LSK)
-	}
-	if (route.length == 0){
-		throw new Error("No swap route between LSK and the given token");
-	}
-	let price  = BigInt(1);
-	let tokenIn = route[0];
-	for (let i  = 0;i<route.length;i++){
-		let tokenOut = route[i];
-		let credibleDirectPrice = await getCredibleDirectPrice(tokenMethod,methodContext,stores, tokenIn,tokenOut);
-		if(tokenIn<tokenOut){
-			price = mulQ96(price, credibleDirectPrice)
-		}
-		else{
-			price = divQ96(price, credibleDirectPrice)
-		}
-		tokenIn = tokenOut;
-	}
-	return price
-}
-
-export const getTVL = async (tokenMethod:TokenMethod,methodContext: MethodContext, stores:NamedRegistry, poolId:PoolID):Promise<bigint>=>{
-	
-	let pool  =  await getPool(methodContext,stores,poolId);
-	const token1Amount = await getToken1Amount(tokenMethod,methodContext, poolId);
-	const token0Amount = await getToken0Amount(tokenMethod,methodContext, poolId);
-	let token0Id = getToken0Id(poolId)
-    let token1Id = getToken1Id(poolId)
-		
-	if (getToken0Id(poolId) == TOKEN_ID_LSK){
-		let token1ValueQ96 = divQ96(divQ96(BigInt(token1Amount), bytesToQ96(pool.sqrtPrice)),bytesToQ96(pool.sqrtPrice));
-        return roundDownQ96(token1ValueQ96) + await getToken0Amount(tokenMethod, methodContext, poolId);
-	}
-	if (getToken1Id(poolId) == TOKEN_ID_LSK){
-		let token0ValueQ96 = mulQ96(mulQ96(BigInt(token0Amount), bytesToQ96(pool.sqrtPrice)), bytesToQ96(pool.sqrtPrice))
-        return roundDownQ96(token0ValueQ96) + await getToken1Amount(tokenMethod, methodContext, poolId)
-	}
-
-    let value0Q96 = mulQ96(await getLSKPrice(tokenMethod,methodContext, stores, token0Id), BigInt(token0Amount))
-    let value1Q96 = mulQ96(await getLSKPrice(tokenMethod,methodContext, stores, token1Id), BigInt(token1Amount))
-    return roundDownQ96(addQ96(value0Q96, value1Q96))
-}
-
-
-
-export const computeCurrentPrice = async (methodContext: MethodContext, stores:NamedRegistry, tokenIn: TokenID, tokenOut: TokenID, swapRoute: PoolID[]):Promise<bigint> => {
-	let price  = BigInt(1);
-	let tokenInPool = tokenIn;
-	swapRoute.forEach(async (poolId) => {
-		const pool = await getPool(methodContext,stores,poolId);
-		if (getPool(methodContext,stores,poolId)==null){
-			throw new Error("Not a valid pool")
-		}
-		if(tokenInPool == getToken0Id(poolId)){
-			price = mulQ96(price, bytesToQ96(pool.sqrtPrice))
-			tokenInPool = getToken1Id(poolId)
-		}else if(tokenInPool == getToken0Id(poolId)){
-			price = mulQ96(price, invQ96(bytesToQ96(pool.sqrtPrice)))
-			tokenInPool = getToken0Id(poolId)
-		}else{
-			throw new Error("Incorrect swap path for price computation");
-		}
 	});
-	if(tokenInPool!=tokenOut){
-		throw new Error("Incorrect swap path for price computation");
-	}
-	return mulQ96(price, price);
-}
+	return tickIds;
+};
 
-export const swap = async (methodContext: MethodContext, stores:NamedRegistry, poolID:PoolID, zeroToOne: boolean,
-    sqrtLimitPrice: bigint,
-    amountSpecified: bigint,
-    exactInput: boolean,
-    currentHeight: number,
+// Swap-Functions
+export const swap = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	poolID: PoolID,
+	zeroToOne: boolean,
+	sqrtLimitPrice: bigint,
+	amountSpecified: bigint,
+	exactInput: boolean,
+	currentHeight: number,
 	tokenIn: TokenID,
-	tokenOut: TokenID):Promise<[bigint, bigint, bigint, bigint]>=>{
-
-	const feeTier = getFeeTier(poolID)
-    let poolSqrtPriceQ96 = bytesToQ96((await getPool(methodContext,stores,poolID)).sqrtPrice)
-	let numCrossedTicks = 0
-    let amountRemaining = amountSpecified
-    let amountTotalIn:bigint = BigInt(0)
-    let amountTotalOut:bigint = BigInt(0)
-    let totalFeesIn:bigint = BigInt(0)
-    let totalFeesOut:bigint = BigInt(0)
+	tokenOut: TokenID,
+): Promise<[bigint, bigint, bigint, bigint]> => {
+	const feeTier = getFeeTier(poolID);
+	let poolSqrtPriceQ96 = bytesToQ96((await getPool(methodContext, stores, poolID)).sqrtPrice);
+	let numCrossedTicks = 0;
+	let amountRemaining = amountSpecified;
+	let amountTotalIn = BigInt(0);
+	let amountTotalOut = BigInt(0);
+	let totalFeesIn = BigInt(0);
+	let totalFeesOut = BigInt(0);
 	let nextTick;
 	let sqrtTargetPrice;
-	let amountIn;
-	let amountOut;
-	const poolStoreData = await getPool(methodContext,stores,poolID);
-	if ((zeroToOne && sqrtLimitPrice >= poolSqrtPriceQ96) ||
-	(!zeroToOne && sqrtLimitPrice <= poolSqrtPriceQ96)){
-		return [BigInt(0), BigInt(0), BigInt(0), BigInt(0)]
+	let amountIn: bigint;
+	let amountOut: bigint;
+	const poolStoreData = await getPool(methodContext, stores, poolID);
+	if (
+		(zeroToOne && sqrtLimitPrice >= poolSqrtPriceQ96) ||
+		(!zeroToOne && sqrtLimitPrice <= poolSqrtPriceQ96)
+	) {
+		return [BigInt(0), BigInt(0), BigInt(0), BigInt(0)];
 	}
 
+	while (amountRemaining !== BigInt(0) && poolSqrtPriceQ96 !== sqrtLimitPrice) {
+		if (numCrossedTicks >= MAX_NUMBER_CROSSED_TICKS) {
+			throw new Error('Crossed too many ticks');
+		}
 
-	while(amountRemaining != BigInt(0) && poolSqrtPriceQ96 != sqrtLimitPrice){
-		if (numCrossedTicks >= MAX_NUMBER_CROSSED_TICKS){
-			throw new Error("Crossed too many ticks"); 
+		const currentTick = priceToTick(poolSqrtPriceQ96);
+		const priceTickStoreData = getTickWithPoolIdAndTickValue(
+			methodContext,
+			stores,
+			poolID,
+			currentTick,
+		);
+		if (zeroToOne && priceTickStoreData !== null && poolSqrtPriceQ96 === tickToPrice(currentTick)) {
+			await crossTick(methodContext, stores, q96ToBytes(BigInt(currentTick)), false, currentHeight);
+			numCrossedTicks += 1;
 		}
-		
-		const currentTick = priceToTick(poolSqrtPriceQ96)
-        const priceTickStoreData = getTickWithPoolIdAndTickValue(methodContext, stores, poolID, currentTick);
-		if (zeroToOne && (priceTickStoreData!=null) && poolSqrtPriceQ96 ==  tickToPrice(currentTick)){
-			crossTick(methodContext,stores,  q96ToBytes(BigInt(currentTick)), false, currentHeight)
-            numCrossedTicks += 1
-		}	
 
-        if (zeroToOne){
-			//nextTick = next initialized tick < currentTick
-			nextTick = currentTick
-		
-		}else{
-			//nextTick = next initialized tick > currentTick
-			nextTick = currentTick		
-		}
-         
-        const sqrtNextTickPriceQ96 = tickToPrice(nextTick)
-		if ((zeroToOne && sqrtNextTickPriceQ96 < sqrtLimitPrice) ||
-		(!zeroToOne && sqrtNextTickPriceQ96 > sqrtLimitPrice)) {
-			sqrtTargetPrice = sqrtLimitPrice
-		} else {
-			sqrtTargetPrice = sqrtNextTickPriceQ96
-		}
-		const firstFee = mulDivRoundUpQ96(q96ToInt(amountRemaining), BigInt(feeTier/2), BigInt(FEE_TIER_PARTITION))
-        const amountRemainingTemp = amountRemaining - firstFee
-		
-        const result = await swapWithin(poolSqrtPriceQ96, sqrtTargetPrice, poolStoreData.liquidity, amountRemainingTemp, exactInput);
-		[poolSqrtPriceQ96, amountIn, amountOut] = result;
-        const feeCoeff = divQ96(BigInt(feeTier/2), BigInt(FEE_TIER_PARTITION - feeTier/2))
-        const feeIn = roundUpQ96(mulQ96(q96ToInt(amountIn), feeCoeff))
-        const feeOut = roundUpQ96(mulQ96(q96ToInt(amountOut), feeCoeff))
-		if (exactInput) {
-			amountRemaining -= (amountIn + feeIn)
-		} else {
-			amountRemaining -= (amountOut + feeOut)
-		}
-		amountTotalOut += amountOut + feeOut
-        amountTotalIn += amountIn + feeIn
-		totalFeesIn += feeIn
-        totalFeesOut += feeOut
-		
-		const validatorFeePartIn = tokenIn == TOKEN_ID_LSK ? VALIDATORS_LSK_INCENTIVE_PART : 0
-        const validatorFeePartOut = tokenOut == TOKEN_ID_LSK ? VALIDATORS_LSK_INCENTIVE_PART : 0
-        
-		const liquidityFeeInQ96 = mulDivQ96(BigInt(feeIn), BigInt(FEE_TIER_PARTITION - validatorFeePartIn), BigInt(FEE_TIER_PARTITION))
-        const liquidityFeeOutQ96 = mulDivQ96(BigInt(feeOut), BigInt(FEE_TIER_PARTITION - validatorFeePartOut), BigInt(FEE_TIER_PARTITION))
-
-		const liquidityFee0Q96 = zeroToOne ? liquidityFeeInQ96 : liquidityFeeOutQ96
-        const liquidityFee1Q96 = zeroToOne ? liquidityFeeOutQ96 : liquidityFeeInQ96
-        const globalFeesQ96_0 = divQ96(liquidityFee0Q96, BigInt(poolStoreData.liquidity))
-		const globalFeesQ96_1 = divQ96(liquidityFee1Q96, BigInt(poolStoreData.liquidity))
-        const feeGrowthGlobal0Q96_0 = bytesToQ96(poolStoreData.feeGrowthGlobal0)
-        poolStoreData.feeGrowthGlobal0 = q96ToBytes(addQ96(feeGrowthGlobal0Q96_0, globalFeesQ96_0))
-        const feeGrowthGlobal1Q96_1 = bytesToQ96(poolStoreData.feeGrowthGlobal1)
-        poolStoreData.feeGrowthGlobal1 = q96ToBytes(addQ96(feeGrowthGlobal1Q96_1, globalFeesQ96_1))
-
-		if (poolSqrtPriceQ96 == sqrtNextTickPriceQ96 && !zeroToOne){
-            crossTick(methodContext,stores, nextTick, true, currentHeight)
-            numCrossedTicks += 1
-		}
-	}
-	poolStoreData.sqrtPrice = q96ToBytes(poolSqrtPriceQ96)
-	return [amountTotalIn, amountTotalOut, totalFeesIn, totalFeesOut]
-} 
-
-export const swapWithin = async (
-    sqrtCurrentPrice: bigint,
-    sqrtTargetPrice: bigint,
-    liquidity: bigint,
-    amountRemaining: bigint,
-    exactInput: boolean
-    ): Promise<[Q96, bigint, bigint]>=>{
-
-		const zeroToOne:boolean = sqrtCurrentPrice >= sqrtTargetPrice;
-		let amountIn;
-		let amountOut;
-		let sqrtUpdatedPrice;
-		
-		if (exactInput) {
-			if (zeroToOne) {
-				amountIn = getAmount0Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, true)
-			} else {
-				amountIn = getAmount1Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, true)
-			}
-		} else {
-			if (zeroToOne) {
-				amountOut = getAmount1Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, false)
-			} else {
-				amountOut = getAmount0Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, false)
-			}
-		}
-		if ((exactInput && amountRemaining >= amountIn)||(!exactInput && amountRemaining >= amountOut)) {
-			sqrtUpdatedPrice = sqrtTargetPrice
-		} else {
-			sqrtUpdatedPrice = computeNextPrice(sqrtCurrentPrice, liquidity, amountRemaining, zeroToOne, exactInput)
-		}
 		if (zeroToOne) {
-			amountIn = getAmount0Delta(sqrtCurrentPrice, sqrtUpdatedPrice, liquidity, true)
-			amountOut = getAmount1Delta(sqrtCurrentPrice, sqrtUpdatedPrice, liquidity, false)
+			nextTick = currentTick;
 		} else {
-			amountIn = getAmount1Delta(sqrtCurrentPrice, sqrtUpdatedPrice, liquidity, true)
-			amountOut = getAmount0Delta(sqrtCurrentPrice, sqrtUpdatedPrice, liquidity, false)
+			nextTick = currentTick;
 		}
-		return [sqrtUpdatedPrice, amountIn, amountOut]
+
+		const sqrtNextTickPriceQ96 = tickToPrice(nextTick);
+		if (
+			(zeroToOne && sqrtNextTickPriceQ96 < sqrtLimitPrice) ||
+			(!zeroToOne && sqrtNextTickPriceQ96 > sqrtLimitPrice)
+		) {
+			sqrtTargetPrice = sqrtLimitPrice;
+		} else {
+			sqrtTargetPrice = sqrtNextTickPriceQ96;
+		}
+		const firstFee = mulDivRoundUpQ96(
+			q96ToInt(amountRemaining),
+			BigInt(feeTier / 2),
+			BigInt(FEE_TIER_PARTITION),
+		);
+		const amountRemainingTemp = amountRemaining - firstFee;
+
+		const result = swapWithin(
+			poolSqrtPriceQ96,
+			sqrtTargetPrice,
+			poolStoreData.liquidity,
+			amountRemainingTemp,
+			exactInput,
+		);
+		[poolSqrtPriceQ96, amountIn, amountOut] = result;
+		const feeCoeff = divQ96(BigInt(feeTier / 2), BigInt(FEE_TIER_PARTITION - feeTier / 2));
+		const feeIn = roundUpQ96(mulQ96(q96ToInt(amountIn), feeCoeff));
+		const feeOut = roundUpQ96(mulQ96(q96ToInt(amountOut), feeCoeff));
+		if (exactInput) {
+			amountRemaining -= amountIn + feeIn;
+		} else {
+			amountRemaining -= amountOut + feeOut;
+		}
+		amountTotalOut += amountOut + feeOut;
+		amountTotalIn += amountIn + feeIn;
+		totalFeesIn += feeIn;
+		totalFeesOut += feeOut;
+
+		const validatorFeePartIn = tokenIn.equals(TOKEN_ID_LSK) ? VALIDATORS_LSK_INCENTIVE_PART : 0;
+		const validatorFeePartOut = tokenOut.equals(TOKEN_ID_LSK) ? VALIDATORS_LSK_INCENTIVE_PART : 0;
+
+		const liquidityFeeInQ96 = mulDivQ96(
+			BigInt(feeIn),
+			BigInt(FEE_TIER_PARTITION - validatorFeePartIn),
+			BigInt(FEE_TIER_PARTITION),
+		);
+		const liquidityFeeOutQ96 = mulDivQ96(
+			BigInt(feeOut),
+			BigInt(FEE_TIER_PARTITION - validatorFeePartOut),
+			BigInt(FEE_TIER_PARTITION),
+		);
+
+		const liquidityFee0Q96 = zeroToOne ? liquidityFeeInQ96 : liquidityFeeOutQ96;
+		const liquidityFee1Q96 = zeroToOne ? liquidityFeeOutQ96 : liquidityFeeInQ96;
+		const globalFees0Q96 = divQ96(liquidityFee0Q96, BigInt(poolStoreData.liquidity));
+		const globalFees1Q96 = divQ96(liquidityFee1Q96, BigInt(poolStoreData.liquidity));
+		const feeGrowthGlobal0Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal0);
+		poolStoreData.feeGrowthGlobal0 = q96ToBytes(addQ96(feeGrowthGlobal0Q96, globalFees0Q96));
+		const feeGrowthGlobal1Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal1);
+		poolStoreData.feeGrowthGlobal1 = q96ToBytes(addQ96(feeGrowthGlobal1Q96, globalFees1Q96));
+
+		if (poolSqrtPriceQ96 === sqrtNextTickPriceQ96 && !zeroToOne) {
+			await crossTick(methodContext, stores, nextTick, true, currentHeight);
+			numCrossedTicks += 1;
+		}
+	}
+	poolStoreData.sqrtPrice = q96ToBytes(poolSqrtPriceQ96);
+	return [amountTotalIn, amountTotalOut, totalFeesIn, totalFeesOut];
+};
+
+export const computeCurrentPrice = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	tokenIn: TokenID,
+	tokenOut: TokenID,
+	swapRoute: PoolID[],
+): Promise<bigint> => {
+	let price = BigInt(1);
+	let tokenInPool = tokenIn;
+	// eslint-disable-next-line @typescript-eslint/no-misused-promises
+	for (const poolId of swapRoute) {
+		const pool = await getPool(methodContext, stores, poolId);
+		if (getPool(methodContext, stores, poolId) == null) {
+			throw new Error('Not a valid pool');
+		}
+		if (tokenInPool.equals(getToken0Id(poolId))) {
+			price = mulQ96(price, bytesToQ96(pool.sqrtPrice));
+			tokenInPool = getToken1Id(poolId);
+		} else if (tokenInPool.equals(getToken1Id(poolId))) {
+			price = mulQ96(price, invQ96(bytesToQ96(pool.sqrtPrice)));
+			tokenInPool = getToken0Id(poolId);
+		} else {
+			throw new Error('Incorrect swap path for price computation');
+		}
 	}
 
-export const crossTick = async (methodContext: MethodContext, stores:NamedRegistry, tickId: TickID, leftToRight: boolean, currentHeight: number)=>{
-	const poolId = tickId.slice(0, NUM_BYTES_POOL_ID);
-	updatePoolIncentives(methodContext, stores, poolId, currentHeight);
-	const poolStoreData = await getPool(methodContext,stores,poolId);
-	const priceTickStoreData = await getTickWithTickId(methodContext, stores, [tickId]);
-	if (leftToRight) {
-		poolStoreData.liquidity += priceTickStoreData.liquidityNet
-	} else {
-		poolStoreData.liquidity += priceTickStoreData.liquidityNet
+	if (!tokenInPool.equals(tokenOut)) {
+		throw new Error('Incorrect swap path for price computation');
 	}
-	const feeGrowthGlobal0Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal0)
-    const feeGrowthOutside0Q96 = bytesToQ96(priceTickStoreData.feeGrowthOutside0)
-    priceTickStoreData.feeGrowthOutside0 = q96ToBytes(subQ96(feeGrowthGlobal0Q96, feeGrowthOutside0Q96))
-    const feeGrowthGlobal1Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal1)
-    const feeGrowthOutside1Q96 = bytesToQ96(priceTickStoreData.feeGrowthOutside1)
-    priceTickStoreData.feeGrowthOutside1 = q96ToBytes(subQ96(feeGrowthGlobal1Q96, feeGrowthOutside1Q96))
-    const incentivesAccumulatorQ96 = bytesToQ96(poolStoreData.incentivesPerLiquidityAccumulator)
-    const incentivesOutsideQ96 = bytesToQ96(priceTickStoreData.incentivesPerLiquidityOutside)
-    priceTickStoreData.incentivesPerLiquidityOutside = q96ToBytes(subQ96(incentivesAccumulatorQ96, incentivesOutsideQ96))
-}
+	return mulQ96(price, price);
+};
 
-export const constructPoolsGraph = async (methodContext: MethodContext,stores:NamedRegistry):Promise<PoolsGraph> =>{
-	const vertices = new Set<TokenID>();
-	const poolIDs  = await getAllPoolIDs(methodContext, stores.get(PoolsStore)); 
-	let edges= new Set<PoolID>();
-	poolIDs.forEach((poolId)=>{
-		vertices.add(getToken0Id(poolId))
-        vertices.add(getToken1Id(poolId))
-		edges.add(poolId);
-	});
-	return ({vertices,edges});
-}
-
-export const getAdjacent =async (methodContext: MethodContext,stores:NamedRegistry, vertex: TokenID):Promise<AdjacentEdges[]>=>{
-	let result:AdjacentEdges[]=[];
-	const poolIDs  = await getAllPoolIDs(methodContext, stores.get(PoolsStore));
-	poolIDs.forEach(edge=>{
-		if(getToken0Id(edge)==vertex){
-			const adjacent = getToken1Id(edge);
-			result.push({edge:edge, vertex:adjacent})
-		}else if(getToken1Id(edge)==vertex){
-			const adjacent = getToken1Id(edge);
-			result.push({edge:edge, vertex:adjacent})
-		}
-	})
-	return result;
-}
-
-export const computeRegularRoute = async (methodContext: MethodContext,stores:NamedRegistry, tokenIn: TokenID, tokenOut: TokenID):Promise<TokenID[]>=>{
+export const computeRegularRoute = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	tokenIn: TokenID,
+	tokenOut: TokenID,
+): Promise<TokenID[]> => {
 	let lskAdjacent = await getAdjacent(methodContext, stores, TOKEN_ID_LSK);
-	
-	let tokenInFlag:boolean = false;
-	let tokenOutFlag:boolean = false;
+	let tokenInFlag = false;
+	let tokenOutFlag = false;
 
-	lskAdjacent.forEach(lskAdjacent=>{
-		if(lskAdjacent.edge == tokenIn){
-			tokenInFlag = true
-		}else if(lskAdjacent.edge == tokenOut){
-			tokenOutFlag = true
+	lskAdjacent.forEach(lskAdjacentEdge => {
+		if (lskAdjacentEdge.edge.equals(tokenIn)) {
+			tokenInFlag = true;
 		}
-	})
-	if(tokenInFlag && tokenOutFlag){
-		return [tokenIn,TOKEN_ID_LSK, tokenOut]
+		if (lskAdjacentEdge.edge.equals(tokenOut)) {
+			tokenOutFlag = true;
+		}
+	});
+
+	if (tokenInFlag && tokenOutFlag) {
+		return [tokenIn, TOKEN_ID_LSK, tokenOut];
 	}
-	tokenOutFlag = false
+
+	tokenOutFlag = false;
 	lskAdjacent = await getAdjacent(methodContext, stores, tokenIn);
-	lskAdjacent.forEach(lskAdjacent => {
-		if(lskAdjacent.edge == tokenOut){
-			tokenOutFlag = true;		
+
+	lskAdjacent.forEach(lskAdjacentEdge => {
+		if (lskAdjacentEdge.edge.equals(tokenOut)) {
+			tokenOutFlag = true;
 		}
-	})	
-	if (tokenOutFlag){
-		return [tokenIn,tokenOut]
-	}
-	return []
-}
+	});
 
-export const computeExceptionalRoute = async (methodContext: MethodContext,stores:NamedRegistry, tokenIn: TokenID, tokenOut: TokenID):Promise<TokenID[]>=>{
-
-	const route:route = {
-		path: [],
-		endVertex: tokenIn
+	if (tokenOutFlag) {
+		return [tokenIn, tokenOut];
 	}
-	let routes:route[] = [route];
-	let visited = [tokenIn];
-	while(routes.length>0){
-		let route = routes.shift();		
-		if (route!=null){
-			const endVertex = route.endVertex;	
-			if(route?.endVertex == tokenOut){
-				route.path.push(tokenOut)
-				return route.path;
+	return [];
+};
+
+export const computeExceptionalRoute = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	tokenIn: TokenID,
+	tokenOut: TokenID,
+): Promise<TokenID[]> => {
+	const routes: routeInterface[] = [
+		{
+			path: [],
+			endVertex: tokenIn,
+		},
+	];
+	const visited = [tokenIn];
+	while (routes.length > 0) {
+		const routeElement = routes.shift();
+		if (routeElement != null) {
+			if (routeElement?.endVertex.equals(tokenOut)) {
+				routeElement.path.push(tokenOut);
+				return routeElement.path;
 			}
-			const adjacent =await getAdjacent(methodContext, stores, endVertex); 
-			adjacent.forEach(adjacent=>{
-				if(visited.indexOf(adjacent.vertex)==-1){
-					if(route!=null){
-						route.path.push(adjacent.edge);
-						routes.push({path:route.path, endVertex:adjacent.vertex});
-						visited.push(adjacent.vertex)
-					}					
+			const adjacent = await getAdjacent(methodContext, stores, routeElement?.endVertex);
+			adjacent.forEach(adjacentEdge => {
+				if (visited.includes(adjacentEdge.vertex)) {
+					if (routeElement != null) {
+						routeElement.path.push(adjacentEdge.edge);
+						routes.push({ path: routeElement.path, endVertex: adjacentEdge.vertex });
+						visited.push(adjacentEdge.vertex);
+					}
 				}
-			})
+			});
 		}
 	}
 	return [];
-}
+};
+
+// token-Ecnomics-Functions
+export const getCredibleDirectPrice = async (
+	tokenMethod: TokenMethod,
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	tokenID0: TokenID,
+	tokenID1: TokenID,
+): Promise<bigint> => {
+	const directPools: Buffer[] = [];
+
+	const settings = (await getDexGlobalData(methodContext, stores)).poolCreationSettings;
+	const allpoolIDs = await getAllPoolIDs(methodContext, stores.get(PoolsStore));
+
+	const tokenIDArrays = [tokenID0, tokenID1];
+	const concatedTokenIDs = Buffer.concat(tokenIDArrays);
+
+	settings.forEach(setting => {
+		const result = Buffer.alloc(4);
+		const tokenIDAndSettingsArray = [
+			concatedTokenIDs,
+			q96ToBytes(BigInt(result.writeUInt32BE(setting.feeTier, 0))),
+		];
+		const potentialPoolId: Buffer = Buffer.concat(tokenIDAndSettingsArray);
+		allpoolIDs.forEach(poolId => {
+			if (poolId.equals(potentialPoolId)) {
+				directPools.push(potentialPoolId);
+			}
+		});
+	});
+
+	if (directPools.length === 0) {
+		throw new Error('No direct pool between given tokens');
+	}
+
+	const token1ValuesLocked: bigint[] = [];
+
+	for (const directPool of directPools) {
+		const pool = await getPool(methodContext, stores, directPool);
+		const token0Amount = await getToken0Amount(tokenMethod, methodContext, directPool);
+		const token0ValueQ96 = mulQ96(
+			mulQ96(numberToQ96(token0Amount), bytesToQ96(pool.sqrtPrice)),
+			bytesToQ96(pool.sqrtPrice),
+		);
+		token1ValuesLocked.push(
+			roundDownQ96(token0ValueQ96) +
+				(await getToken1Amount(tokenMethod, methodContext, directPool)),
+		);
+	}
+
+	let minToken1ValueLocked = BigInt(MAX_SINT32);
+	let minToken1ValueLockedIndex = 0;
+	token1ValuesLocked.forEach((token1ValueLocked, index) => {
+		if (token1ValueLocked > minToken1ValueLocked) {
+			minToken1ValueLocked = token1ValueLocked;
+			minToken1ValueLockedIndex = index;
+		}
+	});
+
+	const poolSqrtPrice = (
+		await getPool(methodContext, stores, directPools[minToken1ValueLockedIndex])
+	).sqrtPrice;
+	return mulQ96(bytesToQ96(poolSqrtPrice), bytesToQ96(poolSqrtPrice));
+};
