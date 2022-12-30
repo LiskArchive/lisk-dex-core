@@ -17,6 +17,7 @@ import { BaseCommand, BaseModule, ModuleMetadata, PoSMethod, TokenMethod } from 
 import { DexGovernanceEndpoint } from './endpoint';
 
 import { DexGovernanceMethod } from './method';
+import { IndexStore, ProposalsStore, VotesStore } from './stores';
 
 export class DexGovernanceModule extends BaseModule {
 	public endpoint = new DexGovernanceEndpoint(this.stores, this.offchainStores);
@@ -25,6 +26,13 @@ export class DexGovernanceModule extends BaseModule {
 	public _posMethod!: PoSMethod;
 
 	public commands = [];
+
+	public constructor() {
+		super();
+		this.stores.register(IndexStore, new IndexStore(this.name));
+		this.stores.register(ProposalsStore, new ProposalsStore(this.name));
+		this.stores.register(VotesStore, new VotesStore(this.name));
+	}
 
 	public metadata(): ModuleMetadata {
 		return {
