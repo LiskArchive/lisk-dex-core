@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseModule, RandomModule, TokenModule, ValidatorsModule } from 'lisk-sdk';
+import { BaseModule, FeeModule, RandomModule, TokenModule, ValidatorsModule } from 'lisk-sdk';
 
 import { DexIncentivesModule } from '../../../../src/app/modules/dexIncentives/module';
 import { DexIncentivesEndpoint } from '../../../../src/app/modules/dexIncentives/endpoint';
@@ -38,6 +38,7 @@ describe('DexIncentivesModule', () => {
 	let tokenModule: TokenModule;
 	let validatorModule;
 	let randomModule: RandomModule;
+	let feeModule: FeeModule;
 
 	beforeEach(() => {
 		dexIncentivesModule = new DexIncentivesModule();
@@ -50,6 +51,7 @@ describe('DexIncentivesModule', () => {
 		tokenModule.method.unlock = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.transfer = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.getLockedAmount = jest.fn().mockResolvedValue(BigInt(1000));
+		feeModule.method.payFee = jest.fn().mockResolvedValue(BigInt(100));
 		randomModule.method.isSeedRevealValid = jest
 			.fn()
 			.mockImplementation(async () => Promise.resolve(true));
@@ -70,6 +72,7 @@ describe('DexIncentivesModule', () => {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 			validatorModule.method,
 			randomModule.method,
+			feeModule.method
 		);
 	});
 

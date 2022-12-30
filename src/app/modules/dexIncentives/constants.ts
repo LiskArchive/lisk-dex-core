@@ -35,18 +35,18 @@ export const MODULE_NAME_DEX = 'dex'; // Name of the DEX module, as defined in t
 export const NUM_BYTES_ADDRESS = 20; // The number of bytes of an address.
 
 // The address of the liquidity provider incentives pool, as defined in the DEX module.
-export const ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES_POOL = Buffer.from(
-	sha256('liquidityProviderIncentivesPool'),
+export const ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES = Buffer.from(
+	sha256('liquidityProviderIncentivesAccount'),
 ).slice(0, NUM_BYTES_ADDRESS);
 
 // The address of the trader incentives pool, as defined in the DEX module.
-export const ADDRESS_TRADER_INCENTIVES_POOL = Buffer.from(sha256('traderIncentivesPool')).slice(
+export const ADDRESS_TRADER_INCENTIVES = Buffer.from(sha256('traderIncentivesAcount')).slice(
 	0,
 	NUM_BYTES_ADDRESS,
 );
 
 // The address of the validator incentives pool, as defined in the DEX module.
-export const ADDRESS_VALIDATOR_INCENTIVES_POOL = Buffer.from(sha256('validatorIncentivesPool')).slice(
+export const ADDRESS_VALIDATOR_INCENTIVES = Buffer.from(sha256('validatorIncentivesAccount')).slice(
 	0,
 	NUM_BYTES_ADDRESS,
 );

@@ -16,7 +16,7 @@
 import { RandomMethod, TokenMethod } from 'lisk-sdk';
 import { MODULE_NAME_DEX } from '../../dex/constants';
 import {
-	ADDRESS_VALIDATOR_INCENTIVES_POOL,
+	ADDRESS_VALIDATOR_INCENTIVES,
 	TOKEN_ID_LSK,
 	INCENTIVE_REDUCTION_SEED_REVEAL,
 	BLOCK_INCENTIVE_VALIDATORS,
@@ -34,7 +34,7 @@ export const transferValidatorLSKIncentives = async (
 ) => {
 	const availableIncentives = await tokenMethod.getLockedAmount(
 		methodContext,
-		ADDRESS_VALIDATOR_INCENTIVES_POOL,
+		ADDRESS_VALIDATOR_INCENTIVES,
 		TOKEN_ID_LSK,
 		MODULE_NAME_DEX,
 	);
@@ -43,7 +43,7 @@ export const transferValidatorLSKIncentives = async (
 	if (shareAmount !== BigInt(0)) {
 		await tokenMethod.unlock(
 			methodContext,
-			ADDRESS_VALIDATOR_INCENTIVES_POOL,
+			ADDRESS_VALIDATOR_INCENTIVES,
 			MODULE_NAME_DEX,
 			TOKEN_ID_LSK,
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -54,7 +54,7 @@ export const transferValidatorLSKIncentives = async (
 		await validators.forEach(async validator => {
 			await tokenMethod.transfer(
 				methodContext,
-				ADDRESS_VALIDATOR_INCENTIVES_POOL,
+				ADDRESS_VALIDATOR_INCENTIVES,
 				validator,
 				TOKEN_ID_LSK,
 				shareAmount,

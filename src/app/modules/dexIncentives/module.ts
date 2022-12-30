@@ -16,14 +16,15 @@ import {
 	BaseCommand,
 	BaseModule,
 	BlockAfterExecuteContext,
+	FeeMethod,
 	ModuleMetadata,
 	RandomMethod,
 	TokenMethod,
 	ValidatorsMethod,
 } from 'lisk-sdk';
 import {
-	ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES_POOL,
-	ADDRESS_TRADER_INCENTIVES_POOL,
+	ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
+	ADDRESS_TRADER_INCENTIVES,
 	BLOCK_INCENTIVE_LIQUIDITY_PROVIDERS,
 	BLOCK_INCENTIVE_TRADERS,
 	MODULE_NAME_DEX,
@@ -42,6 +43,7 @@ export class DexIncentivesModule extends BaseModule {
 	public _tokenMethod!: TokenMethod;
 	public _randomMethod!: RandomMethod;
 	public _validatorsMethod!: ValidatorsMethod;
+	public _feeMethod!: FeeMethod;
 
 	public commands = [];
 
@@ -74,10 +76,12 @@ export class DexIncentivesModule extends BaseModule {
 		tokenMethod: TokenMethod,
 		validatorsMethod: ValidatorsMethod,
 		randomMethod: RandomMethod,
+		feeMethod: FeeMethod
 	) {
 		this._tokenMethod = tokenMethod;
 		this._validatorsMethod = validatorsMethod;
 		this._randomMethod = randomMethod;
+		this._feeMethod = feeMethod;
 	}
 
 	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
@@ -110,26 +114,26 @@ export class DexIncentivesModule extends BaseModule {
 
 		await this._tokenMethod.mint(
 			methodContext,
-			ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES_POOL,
+			ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
 			TOKEN_ID_DEX_NATIVE,
 			BLOCK_INCENTIVE_LIQUIDITY_PROVIDERS,
 		);
 		await this._tokenMethod.lock(
 			methodContext,
-			ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES_POOL,
+			ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
 			MODULE_NAME_DEX,
 			TOKEN_ID_DEX_NATIVE,
 			BLOCK_INCENTIVE_LIQUIDITY_PROVIDERS,
 		);
 		await this._tokenMethod.mint(
 			methodContext,
-			ADDRESS_TRADER_INCENTIVES_POOL,
+			ADDRESS_TRADER_INCENTIVES,
 			TOKEN_ID_DEX_NATIVE,
 			BLOCK_INCENTIVE_TRADERS,
 		);
 		await this._tokenMethod.lock(
 			methodContext,
-			ADDRESS_TRADER_INCENTIVES_POOL,
+			ADDRESS_TRADER_INCENTIVES,
 			MODULE_NAME_DEX,
 			TOKEN_ID_DEX_NATIVE,
 			BLOCK_INCENTIVE_TRADERS,

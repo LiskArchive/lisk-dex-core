@@ -76,7 +76,7 @@ import {
 import { getAmount0Delta, getAmount1Delta, priceToTick, tickToPrice } from './math';
 import { FeesIncentivesCollectedEvent, PositionUpdateFailedEvent } from '../events';
 import { tickToBytes } from '../stores/priceTicksStore';
-import { ADDRESS_VALIDATOR_INCENTIVES_POOL } from '../../dexIncentives/constants';
+import { ADDRESS_VALIDATOR_INCENTIVES } from '../../dexIncentives/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
 import { DexEndpoint } from '../endpoint';
 import { DexModule } from '../module';
@@ -169,7 +169,7 @@ export const transferToValidatorLSKPool = async (
 	await tokenMethod.transfer(
 		methodContext,
 		senderAddress,
-		ADDRESS_VALIDATOR_INCENTIVES_POOL,
+		ADDRESS_VALIDATOR_INCENTIVES,
 		TOKEN_ID_LSK,
 		amount,
 	);
