@@ -52,6 +52,7 @@ import {
 	MAX_NUMBER_CROSSED_TICKS,
 	FEE_TIER_PARTITION,
 	VALIDATORS_LSK_INCENTIVE_PART,
+	ADDRESS_VALIDATOR_INCENTIVES,
 } from '../constants';
 
 import { uint32beInv } from './bigEndian';
@@ -1336,5 +1337,33 @@ export const getTickWithPoolIdAndTickValue = async (
 		throw new Error('No tick with the specified poolId and tickValue');
 	} else {
 		return priceTicksStoreData;
+	}
+};
+
+
+export const transferFeesFromPool = (
+	tokenMethod: TokenMethod,
+	methodContext: MethodContext,
+	amount: number,
+	id: TokenID,
+	pool: PoolID,
+) => {
+	let validatorFee = BigInt(0);
+	if (id.equals(TOKEN_ID_LSK)) {
+		validatorFee = roundDownQ96(
+			mulDivQ96(BigInt(amount), BigInt(VALIDATORS_LSK_INCENTIVE_PART), BigInt(FEE_TIER_PARTITION)),
+		);
+	}
+	if (validatorFee > 0) {
+		transferFromPool(
+			tokenMethod,
+			methodContext,
+			pool,
+			ADDRESS_VALIDATOR_INCENTIVES,
+			id,
+			validatorFee,
+		).catch(err => {
+			throw new Error(err);
+		});
 	}
 };
