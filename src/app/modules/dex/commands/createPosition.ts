@@ -21,6 +21,7 @@ import {
 	VerificationResult,
 	VerifyStatus,
 	TokenMethod,
+	FeeMethod,
 } from 'lisk-sdk';
 import { validator } from '@liskhq/lisk-validator';
 
@@ -43,7 +44,6 @@ import {
 	getLiquidityForAmounts,
 	getToken0Id,
 	getToken1Id,
-	transferToValidatorLSKPool,
 	updatePosition,
 } from '../utils/auxiliaryFunctions';
 import { tickToPrice } from '../utils/math';
@@ -53,9 +53,11 @@ export class CreatePositionCommand extends BaseCommand {
 	public id = COMMAND_ID_CREATE_POSITION;
 	public schema = createPositionSchema;
 	private _tokenMethod!: TokenMethod;
+	private _feeMethod!: FeeMethod;
 
-	public init({ tokenMethod }): void {
+	public init({ tokenMethod, feeMethod }): void {
 		this._tokenMethod = tokenMethod;
+		this._feeMethod = feeMethod;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -89,10 +91,10 @@ export class CreatePositionCommand extends BaseCommand {
 		}
 
 		/*
-        TODO: Not yet implemented on SDK
-        if lastBlockheader.timestamp > ctx.params.maxTimestampValid:
-            raise Exception()        
-        */
+				TODO: Not yet implemented on SDK
+				if lastBlockheader.timestamp > ctx.params.maxTimestampValid:
+						raise Exception()        
+				*/
 
 		return {
 			status: VerifyStatus.OK,
@@ -178,12 +180,7 @@ export class CreatePositionCommand extends BaseCommand {
 			throw new Error();
 		}
 
-		await transferToValidatorLSKPool(
-			this._tokenMethod,
-			methodContext,
-			senderAddress,
-			POSITION_CREATION_FEE,
-		);
+		await this._feeMethod.payFee(methodContext, POSITION_CREATION_FEE);
 
 		this.events.get(PositionCreatedEvent).add(
 			methodContext,
