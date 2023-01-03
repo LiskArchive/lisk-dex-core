@@ -108,10 +108,10 @@ export class CreatePoolCommand extends BaseCommand {
 		}
 
 		/*
-        TODO: Not yet implemented on SDK
-        if lastBlockheader.timestamp > ctx.params.maxTimestampValid:
-            raise Exception()        
-        */
+				TODO: Not yet implemented on SDK
+				if lastBlockheader.timestamp > ctx.params.maxTimestampValid:
+						raise Exception()        
+				*/
 
 		const poolId = computePoolID(tokenID0, tokenID1, feeTier);
 		const poolStore = this.stores.get(PoolsStore);
@@ -142,6 +142,7 @@ export class CreatePoolCommand extends BaseCommand {
 			tokenID1,
 			feeTier,
 			initialSqrtPrice,
+			0
 		);
 
 		if (result !== POOL_CREATION_SUCCESS) {

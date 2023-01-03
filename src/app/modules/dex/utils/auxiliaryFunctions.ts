@@ -54,7 +54,7 @@ import {
 
 import { uint32beInv } from './bigEndian';
 
-import { PoolID, PositionID, Address, TokenID, Q96 } from '../types';
+import { PoolID, PositionID, Address, TokenID, Q96, TickID } from '../types';
 
 import {
 	subQ96,
@@ -371,6 +371,7 @@ export const createPool = async (
 	tokenID1: TokenID,
 	feeTier: number,
 	initialSqrtPrice: Q96,
+	currentHeight: number
 ): Promise<number> => {
 	const poolSetting = settings.feeTiers[feeTier];
 
@@ -386,6 +387,8 @@ export const createPool = async (
 	const poolStoreValue = {
 		liquidity: BigInt(0),
 		sqrtPrice: q96ToBytes(initialSqrtPrice),
+		incentivePerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+		heightIncentivesUpdate: currentHeight,
 		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(0))),
 		protocolFees0: numberToQ96(BigInt(0)),
@@ -612,8 +615,11 @@ export const getOwnerAddressOfPosition = async (
 	return position.ownerAddress;
 };
 
-export const getPoolIDFromPositionID = (positionID: PositionID): Buffer =>
-	positionID.slice(-NUM_BYTES_POOL_ID, 14);
+export const getPoolIDFromPositionID = (positionId: PositionID): Buffer =>
+	positionId.slice(-NUM_BYTES_POOL_ID, 14);
+
+export const getPoolIDFromTickID = (tickId: TickID): Buffer =>
+	tickId.slice(-NUM_BYTES_POOL_ID, 14)
 
 export const updatePosition = async (
 	methodContext: MethodContext,

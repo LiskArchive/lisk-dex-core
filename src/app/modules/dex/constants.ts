@@ -38,9 +38,9 @@ export const CHAIN_ID_ALIAS_NATIVE = Buffer.from('0000', 'hex'); // chainID valu
 export const NUM_BYTES_TOKEN_ID = 8; // The number of bytes of a token ID. (uint32)
 
 // DEX Module Store
-export const STORE_PREFIX_POOL = Buffer.from('0000', 'hex'); // Store prefix of the pools substore.
+export const STORE_PREFIX_POOLS = Buffer.from('0000', 'hex'); // Store prefix of the pools substore.
 export const STORE_PREFIX_PRICE_TICK = Buffer.from('8000', 'hex'); // Store prefix of the price ticks substore.
-export const STORE_PREFIX_POSITION = Buffer.from('c000', 'hex'); // Store prefix of the positions substore.
+export const STORE_PREFIX_POSITIONS = Buffer.from('c000', 'hex'); // Store prefix of the positions substore.
 export const STORE_PREFIX_SETTINGS = Buffer.from('e000', 'hex'); // Store prefix of the protocol settings substore.
 
 // DEX Module Command IDs and Names

@@ -97,6 +97,10 @@ export const bytesToQ96 = (numberBytes: Buffer): Q96 => {
 		throw new Error();
 	}
 
+	if (numberBytes.length === 0) {
+		return numberToQ96(BigInt(0));
+	}
+
 	const hexArr: string[] = [];
 
 	for (const currentNumberBytes of numberBytes) {
