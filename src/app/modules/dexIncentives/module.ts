@@ -17,6 +17,7 @@ import {
 	BaseModule,
 	BlockAfterExecuteContext,
 	FeeMethod,
+	FeeModule,
 	ModuleMetadata,
 	RandomMethod,
 	TokenMethod,

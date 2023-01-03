@@ -83,7 +83,7 @@ export const transferAllValidatorLSKIncentives = async (
 	}
 };
 
-export const tokenValidatorIncentive = async (
+export const transferValidatorIncentives = async (
 	methodContext,
 	tokenMethod: TokenMethod,
 	validatorAddress: Address,
