@@ -88,7 +88,7 @@ describe('dex:command:createPool', () => {
 		tokenModule.method.transfer = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.getLockedAmount = jest.fn().mockResolvedValue(BigInt(1000));
 		feeModule.method.payFee = jest.fn().mockImplementation(async () => Promise.resolve());
-		dexModule.addDependencies(tokenModule.method, validatorModule.method, feeModule);
+		dexModule.addDependencies(tokenModule.method, validatorModule.method, feeModule.method);
 		command = dexModule.commands.find(e => e.name === 'createPool');
 		command.init({ moduleConfig: defaultConfig, tokenMethod: tokenModule.method });
 	});
