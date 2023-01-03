@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { TokenModule, Transaction, ValidatorsModule, VerifyStatus } from 'lisk-framework';
+import { FeeModule, TokenModule, Transaction, ValidatorsModule, VerifyStatus } from 'lisk-framework';
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { testing } from 'lisk-sdk';
 import { DexModule } from '../../../../src/app/modules';
@@ -41,6 +41,7 @@ describe('dex:command:createPool', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 	let dexModule: DexModule;
 	let tokenModule: TokenModule;
+	let feeModule: FeeModule;
 	let validatorModule: ValidatorsModule;
 
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
@@ -78,6 +79,7 @@ describe('dex:command:createPool', () => {
 	beforeEach(() => {
 		dexModule = new DexModule();
 		tokenModule = new TokenModule();
+		feeModule = new FeeModule();
 		validatorModule = new ValidatorsModule();
 
 		tokenModule.method.mint = jest.fn().mockImplementation(async () => Promise.resolve());
@@ -85,7 +87,8 @@ describe('dex:command:createPool', () => {
 		tokenModule.method.unlock = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.transfer = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.getLockedAmount = jest.fn().mockResolvedValue(BigInt(1000));
-		dexModule.addDependencies(tokenModule.method, validatorModule.method);
+		feeModule.method.payFee = jest.fn().mockImplementation(async () => Promise.resolve());
+		dexModule.addDependencies(tokenModule.method, validatorModule.method, feeModule);
 		command = dexModule.commands.find(e => e.name === 'createPool');
 		command.init({ moduleConfig: defaultConfig, tokenMethod: tokenModule.method });
 	});
