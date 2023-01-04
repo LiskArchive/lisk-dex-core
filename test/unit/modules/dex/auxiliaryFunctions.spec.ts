@@ -52,6 +52,7 @@ import {
 	getDexGlobalData,
 	getTickWithPoolIdAndTickValue,
 	updateIncentivizedPools,
+	getAllTokenIDs,
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
@@ -551,6 +552,11 @@ describe('dex:auxiliaryFunctions', () => {
 			);
 			expect(dexGlobalStoreData.totalIncentivesMultiplier).toEqual(totalIncentivesMultiplier);
 			expect(dexGlobalStoreData.incentivizedPools).toHaveLength(incentivizedPoolsLength);
+		});
+		it('getAllTokenIDs', async () => {
+			await getAllTokenIDs(methodContext, dexModule.stores).then(res => {
+				expect(res.size).toBeGreaterThan(0);
+			});
 		});
 	});
 });

@@ -1357,4 +1357,21 @@ export const getTickWithPoolIdAndTickValue = async (
 	} else {
 		return priceTicksStoreData;
 	}
+}
+
+export const getAllTokenIDs = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+): Promise<Set<TokenID>> => {
+	const tokens = new Set<TokenID>();
+	const allPoolIds = await getAllPoolIDs(methodContext, stores.get(PoolsStore));
+
+	if (allPoolIds != null && allPoolIds.length > 0) {
+		allPoolIds.forEach(poolID => {
+			tokens.add(getToken0Id(poolID));
+			tokens.add(getToken1Id(poolID));
+		});
+	}
+
+	return tokens;
 };
