@@ -245,7 +245,7 @@ describe('dex:auxiliaryFunctions', () => {
 
 		it('should return 0 as POOL_CREATION_SUCCESS', async () => {
 			expect(
-				await createPool(settings, methodContext, poolsStore, token0Id, token1Id, 0, sqrtPrice),
+				await createPool(settings, methodContext, poolsStore, token0Id, token1Id, 0, sqrtPrice, 10),
 			).toBe(0);
 		});
 
