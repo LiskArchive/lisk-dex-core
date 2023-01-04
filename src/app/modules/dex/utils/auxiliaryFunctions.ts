@@ -766,3 +766,17 @@ export const updatePosition = async (
 
 	return [amount0, amount1];
 };
+
+export const getAllPoolIDs = async (
+	methodContext: MethodContext,
+	poolStore: PoolsStore,
+): Promise<PoolID[]> => {
+	const poolIds: PoolID[] = [];
+	const allPoolIds = await poolStore.getAll(methodContext);
+	if (allPoolIds != null && allPoolIds.length > 0) {
+		allPoolIds.forEach(poolId => {
+			poolIds.push(poolId.key);
+		});
+	}
+	return poolIds;
+};
