@@ -591,6 +591,14 @@ export const getPoolIDFromPositionID = (positionId: PositionID): Buffer =>
 export const getPoolIDFromTickID = (tickId: TickID): Buffer =>
 	tickId.slice(-NUM_BYTES_POOL_ID, 14)
 
+export const poolExists = async (
+	methodContext,
+	poolsStore: PoolsStore,
+	poolId: PoolID
+): Promise<boolean> => {
+	return await poolsStore.has(methodContext, poolId);
+}
+
 export const updatePosition = async (
 	methodContext: MethodContext,
 	events: NamedRegistry,
