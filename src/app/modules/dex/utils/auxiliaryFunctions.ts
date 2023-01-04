@@ -1220,7 +1220,7 @@ export const crossTick = async (
 	await updatePoolIncentives(methodContext, stores, poolId, currentHeight);
 	const poolStoreData = await getPool(methodContext, stores, poolId);
 	const priceTickStoreData = await getTickWithTickId(methodContext, stores, [tickId]);
-	if (leftToRight == true) {
+	if (leftToRight) {
 		poolStoreData.liquidity += priceTickStoreData.liquidityNet;
 	} else {
 		poolStoreData.liquidity -= priceTickStoreData.liquidityNet;
