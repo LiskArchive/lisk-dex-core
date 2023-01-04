@@ -53,6 +53,7 @@ import {
 	getTickWithPoolIdAndTickValue,
 	updateIncentivizedPools,
 	getAllTokenIDs,
+	getAllPositionIDsInPool,
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
@@ -558,5 +559,12 @@ describe('dex:auxiliaryFunctions', () => {
 				expect(res.size).toBeGreaterThan(0);
 			});
 		});
+
+		it('getAllPositionIDsInPool', () => {
+			const positionIDs = getAllPositionIDsInPool(getPoolIDFromPositionID(positionId), [
+				positionId,
+		]);
+		expect(positionIDs.indexOf(positionId)).not.toBe(-1);
+	});
 	});
 });
