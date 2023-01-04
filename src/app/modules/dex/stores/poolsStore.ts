@@ -70,4 +70,12 @@ export class PoolsStore extends BaseStore<PoolsStoreData> {
 		const key = Buffer.concat(keys);
 		await this.set(context, key, value);
 	}
+
+	public async getAll(context: StoreGetter) {
+		return this.iterate(context, {
+			gte: Buffer.alloc(16, 0),
+			lte: Buffer.alloc(16, 255),
+			reverse: false,
+		});
+	}
 }

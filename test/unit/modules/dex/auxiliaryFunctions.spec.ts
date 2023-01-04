@@ -41,6 +41,7 @@ import {
 	transferPoolToPool,
 	transferToProtocolFeeAccount,
 	updatePosition,
+	getAllPoolIDs,
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
@@ -450,6 +451,14 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 		it('priceToTick', () => {
 			expect(priceToTick(tickToPrice(-735247))).toEqual(-735247);
+		});
+
+		it('getAllPoolIDs', async () => {
+			await getAllPoolIDs(methodContext, dexModule.stores.get(PoolsStore)).then(res => {
+				expect(res[0]).toStrictEqual(
+					Buffer.from('000000000000000000000001000000000101643130', 'hex'),
+				);
+			});
 		});
 	});
 });

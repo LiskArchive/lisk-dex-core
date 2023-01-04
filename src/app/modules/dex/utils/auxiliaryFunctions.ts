@@ -758,3 +758,16 @@ export const hexToBytes = (hex) => {
 		bytes.push(parseInt(hex.substr(c, 2), 16));
 	return bytes;
 }
+export const getAllPoolIDs = async (
+	methodContext: MethodContext,
+	poolStore: PoolsStore,
+): Promise<PoolID[]> => {
+	const poolIds: PoolID[] = [];
+	const allPoolIds = await poolStore.getAll(methodContext);
+	if (allPoolIds != null && allPoolIds.length > 0) {
+		allPoolIds.forEach(poolId => {
+			poolIds.push(poolId.key);
+		});
+	}
+	return poolIds;
+};
