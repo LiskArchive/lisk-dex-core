@@ -773,3 +773,16 @@ export const getAllTokenIDs = async (
 
 	return tokens;
 };
+
+export const getAllPositionIDsInPool = (
+	poolId: PoolID,
+	positionIdsList: PositionID[],
+): Buffer[] => {
+	const result: Buffer[] = [];
+	positionIdsList.forEach(positionId => {
+		if (getPoolIDFromPositionID(positionId).equals(poolId)) {
+			result.push(positionId);
+		}
+	});
+	return result;
+};
