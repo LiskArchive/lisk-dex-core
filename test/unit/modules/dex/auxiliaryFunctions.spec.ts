@@ -145,6 +145,7 @@ describe('dex:auxiliaryFunctions', () => {
 		incentivizedPools: [{ poolId, multiplier: 10 }],
 		totalIncentivesMultiplier: 1,
 	};
+
 	const positionsStoreData: PositionsStoreData = {
 		tickLower: -10,
 		tickUpper: 10,
