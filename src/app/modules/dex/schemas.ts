@@ -19,6 +19,7 @@ import {
 	NUM_BYTES_POSITION_ID,
 	NUM_BYTES_TICK_ID,
 } from './constants';
+import { PoolsStore } from './stores';
 
 export const settingsSchema = {
 	$id: '/dex/settings',
@@ -462,5 +463,24 @@ export const addLiquiditySchema = {
 			dataType: 'uint64',
 			fieldNumber: 6,
 		},
+	},
+};
+
+export const getAllPoolIdsRequestSchema = {
+	$id: 'dex/getAllPoolIds',
+	type: 'object',
+	required: ['poolStore'],
+	properties: {
+		poolStore: PoolsStore
+	},
+	
+};
+
+export const getAllPoolIdsResponseSchema = {
+	$id: 'dex/getAllPoolIds',
+	type: 'object',
+	required: ['PoolID'],
+	properties: {
+		PoolID:Buffer
 	},
 };

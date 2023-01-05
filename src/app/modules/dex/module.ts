@@ -43,6 +43,7 @@ import { RemoveLiquidityEvent } from './events/removeLiquidity';
 import { RemoveLiquidityCommand } from './commands/removeLiquidity';
 import { SwapFailedEvent } from './events/swapFailed';
 import { SwappedEvent } from './events/swapped';
+import { getAllPoolIdsRequestSchema, getAllPoolIdsResponseSchema } from './schemas';
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
@@ -92,7 +93,11 @@ export class DexModule extends BaseModule {
 	public metadata(): ModuleMetadata {
 		return {
 			name: this.name,
-			endpoints: [],
+			endpoints: [{
+				name: this.endpoint.getAllPoolIDs.name,
+				request: getAllPoolIdsRequestSchema,
+				response: getAllPoolIdsResponseSchema,
+			}],
 			commands: this.commands.map(command => ({
 				name: command.name,
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
