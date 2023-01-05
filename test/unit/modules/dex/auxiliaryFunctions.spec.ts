@@ -44,6 +44,7 @@ import {
 	getAllTokenIDs,
 	getAllPositionIDsInPool,
 	getPool,
+	getCurrentSqrtPrice,
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
@@ -487,6 +488,19 @@ describe('dex:auxiliaryFunctions', () => {
 				expect(res.liquidity).toBe(BigInt(5));
 			},
 		);
+	});
+
+	it('getCurrentSqrtPrice', async () => {
+		expect(
+			(
+				await getCurrentSqrtPrice(
+					methodContext,
+					dexModule.stores,
+					getPoolIDFromPositionID(positionId),
+					false,
+				)
+			).toString(),
+		).toBe('79208358939348018173455069823');
 	});
 
 	});
