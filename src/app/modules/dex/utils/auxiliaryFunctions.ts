@@ -73,6 +73,7 @@ import { PriceTicksStoreData, tickToBytes } from '../stores/priceTicksStore';
 import { ADDRESS_VALIDATOR_REWARDS_POOL } from '../../dexRewards/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { PoolsStoreData } from '../stores/poolsStore';
 import { PositionsStoreData } from '../stores/positionsStore';
 import { DexEndpoint } from '../endpoint';
@@ -80,6 +81,8 @@ import { DexModule } from '../module';
 =======
 import { SettingsStoreData } from '../stores/settingsStore';
 >>>>>>> 9deb8cb (feat: add addPoolCreationSettings function)
+=======
+>>>>>>> e8e276b (refactor: remove unneccessary imports)
 
 const { utils } = cryptography;
 
