@@ -71,7 +71,6 @@ import { FeesIncentivesCollectedEvent, PositionUpdateFailedEvent } from '../even
 import { tickToBytes } from '../stores/priceTicksStore';
 import { ADDRESS_VALIDATOR_REWARDS_POOL } from '../../dexRewards/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
-import { SettingsStoreData } from '../stores/settingsStore';
 
 const { utils } = cryptography;
 
