@@ -43,6 +43,7 @@ import {
 	getAllPoolIDs,
 	getAllTokenIDs,
 	getAllPositionIDsInPool,
+	getPool,
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
@@ -478,5 +479,15 @@ describe('dex:auxiliaryFunctions', () => {
 		]);
 		expect(positionIDs.indexOf(positionId)).not.toBe(-1);
 	});
+
+	it('getPool', async () => {
+		await getPool(methodContext, dexModule.stores, getPoolIDFromPositionID(positionId)).then(
+			res => {
+				expect(res).not.toBeNull();
+				expect(res.liquidity).toBe(BigInt(5));
+			},
+		);
+	});
+
 	});
 });

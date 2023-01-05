@@ -64,6 +64,7 @@ import { getAmount0Delta, getAmount1Delta, priceToTick, tickToPrice } from './ma
 import { FeesIncentivesCollectedEvent, PositionUpdateFailedEvent } from '../events';
 import { tickToBytes } from '../stores/priceTicksStore';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
+import { PoolsStoreData } from '../stores/poolsStore';
 
 const { utils } = cryptography;
 
@@ -786,3 +787,15 @@ export const getAllPositionIDsInPool = (
 	});
 	return result;
 };
+
+
+export const getPool = async (
+	methodContext,
+	stores: NamedRegistry,
+	poolID: PoolID,
+): Promise<PoolsStoreData> => {
+	const poolsStore = stores.get(PoolsStore);
+	const poolStoreData = await poolsStore.getKey(methodContext, [poolID]);
+	return poolStoreData;
+};
+
