@@ -66,6 +66,7 @@ import { FeesIncentivesCollectedEvent, PositionUpdateFailedEvent } from '../even
 import { tickToBytes } from '../stores/priceTicksStore';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
 import { PoolsStoreData } from '../stores/poolsStore';
+import { PositionsStoreData } from '../stores/positionsStore';
 
 const { utils } = cryptography;
 
@@ -823,4 +824,18 @@ export const getDexGlobalData = async (
 ): Promise<DexGlobalStoreData> => {
 	const dexGlobalStore = stores.get(DexGlobalStore);
 	return dexGlobalStore.get(methodContext, Buffer.from([]));
+};
+
+export const getPosition = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	positionID: PositionID,
+	positionIdsList: PositionID[],
+): Promise<PositionsStoreData> => {
+	if (positionIdsList.includes(positionID)) {
+		throw new Error();
+	}
+	const positionsStore = stores.get(PositionsStore);
+	const positionStoreData = await positionsStore.get(methodContext, positionID);
+	return positionStoreData;
 };

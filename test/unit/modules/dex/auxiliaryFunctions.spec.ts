@@ -46,6 +46,7 @@ import {
 	getPool,
 	getCurrentSqrtPrice,
 	getDexGlobalData,
+	getPosition,
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
@@ -509,6 +510,16 @@ describe('dex:auxiliaryFunctions', () => {
 			expect(res).not.toBeNull();
 			expect(res.positionCounter).toBe(BigInt(11));
 			expect(res.collectableLSKFees).toBe(BigInt(10));
+		});
+	});
+
+	it('getPosition', async () => {
+		const positionIdsList = [positionId];
+		const newPositionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
+		await positionsStore.set(methodContext, newPositionId, positionsStoreData);
+		await positionsStore.setKey(methodContext, [newPositionId], positionsStoreData);
+		await getPosition(methodContext, dexModule.stores, newPositionId, positionIdsList).then(res => {
+			expect(res).not.toBeNull(); 
 		});
 	});
 
