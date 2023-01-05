@@ -69,7 +69,7 @@ import {
 
 import { getAmount0Delta, getAmount1Delta, priceToTick, tickToPrice } from './math';
 import { FeesIncentivesCollectedEvent, PositionUpdateFailedEvent } from '../events';
-import { tickToBytes } from '../stores/priceTicksStore';
+import { PriceTicksStoreData, tickToBytes } from '../stores/priceTicksStore';
 import { ADDRESS_VALIDATOR_REWARDS_POOL } from '../../dexRewards/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
 import { PoolsStoreData } from '../stores/poolsStore';
@@ -862,4 +862,34 @@ export const getPosition = async (
 	const positionsStore = stores.get(PositionsStore);
 	const positionStoreData = await positionsStore.get(methodContext, positionID);
 	return positionStoreData;
+};
+
+export const getTickWithTickId = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	tickId: TickID[],
+) => {
+	const priceTicksStore = stores.get(PriceTicksStore);
+	const priceTicksStoreData = await priceTicksStore.getKey(methodContext, tickId);
+	if (priceTicksStoreData == null) {
+		throw new Error('No tick with the specified poolId');
+	} else {
+		return priceTicksStoreData;
+	}
+};
+
+export const getTickWithPoolIdAndTickValue = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	poolId: PoolID,
+	tickValue: number,
+): Promise<PriceTicksStoreData> => {
+	const priceTicksStore = stores.get(PriceTicksStore);
+	const key = poolId.toLocaleString() + tickToBytes(tickValue).toLocaleString();
+	const priceTicksStoreData = await priceTicksStore.get(methodContext, Buffer.from(key, 'hex'));
+	if (priceTicksStoreData == null) {
+		throw new Error('No tick with the specified poolId and tickValue');
+	} else {
+		return priceTicksStoreData;
+	}
 };

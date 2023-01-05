@@ -460,5 +460,26 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 	});
 
+	it('getTickWithTickId', async () => {
+		const tickWithTickID = await getTickWithTickId(methodContext, dexModule.stores, [
+			getPoolIDFromPositionID(positionId),
+			tickToBytes(positionsStoreData.tickLower),
+		]);
+		expect(tickWithTickID).not.toBeNull();
+		expect(tickWithTickID.liquidityNet).toBe(BigInt(5));
+	});
+
+	it('getTickWithPoolIdAndTickValue', async () => {
+		const tickWithPoolIdAndTickValue = await getTickWithPoolIdAndTickValue(
+			methodContext,
+			dexModule.stores,
+			getPoolIDFromPositionID(positionId),
+			5,
+		);
+		expect(tickWithPoolIdAndTickValue).not.toBeNull();
+		expect(tickWithPoolIdAndTickValue.liquidityNet).toBe(BigInt(5));
+	});
+
+
 	});
 });
