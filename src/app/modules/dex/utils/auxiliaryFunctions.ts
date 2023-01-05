@@ -1416,3 +1416,11 @@ export const getCurrentSqrtPrice = async (
 	}
 	return invQ96(q96SqrtPrice);
 };
+
+export const getDexGlobalData = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+): Promise<DexGlobalStoreData> => {
+	const dexGlobalStore = stores.get(DexGlobalStore);
+	return dexGlobalStore.get(methodContext, Buffer.from([]));
+};
