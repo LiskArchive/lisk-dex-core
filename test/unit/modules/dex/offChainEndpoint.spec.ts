@@ -45,7 +45,7 @@ import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/posit
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
-import { getAllPoolIDs } from '../../../../src/app/modules/dex/utils/offChainPoints';
+import { getAllPoolIDs } from '../../../../src/app/modules/dex/utils/offChainEndpoints';
 
 describe('dex:offChainEndpointFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');

@@ -33,7 +33,7 @@ export const getAllPoolIDs = async (
 ): Promise<PoolID[]> => {
 	const poolIds: PoolID[] = [];
 	const allPoolIds = await poolStore.getAll(methodContext);
-	if (allPoolIds != null && allPoolIds.length > 0) {
+	if (allPoolIds && allPoolIds.length){
 		allPoolIds.forEach(poolId => {
 			poolIds.push(poolId.key);
 		});
