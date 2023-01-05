@@ -72,10 +72,14 @@ import { FeesIncentivesCollectedEvent, PositionUpdateFailedEvent } from '../even
 import { PriceTicksStoreData, tickToBytes } from '../stores/priceTicksStore';
 import { ADDRESS_VALIDATOR_REWARDS_POOL } from '../../dexRewards/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
+<<<<<<< HEAD
 import { PoolsStoreData } from '../stores/poolsStore';
 import { PositionsStoreData } from '../stores/positionsStore';
 import { DexEndpoint } from '../endpoint';
 import { DexModule } from '../module';
+=======
+import { SettingsStoreData } from '../stores/settingsStore';
+>>>>>>> 9deb8cb (feat: add addPoolCreationSettings function)
 
 const { utils } = cryptography;
 
@@ -597,6 +601,25 @@ export const poolExists = async (
 	poolId: PoolID
 ): Promise<boolean> => {
 	return await poolsStore.has(methodContext, poolId);
+}
+
+export const addPoolCreationSettings = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	feeTier: number,
+	tickSpacing: number
+) => {
+	if (feeTier > 1000000) {
+		throw new Error("Fee tier can not be greater than 100%");
+	}
+	const settingGlobalStore = stores.get(SettingsStore);
+	const settingGlobalStoreData = await settingGlobalStore.get(methodContext, Buffer.alloc(0));
+	if (settingGlobalStoreData.poolCreationSettings.feeTier === feeTier) {
+		throw new Error("Can not update fee tier");
+	}
+	settingGlobalStoreData.poolCreationSettings.feeTier = feeTier;
+	settingGlobalStoreData.poolCreationSettings.tickSpacing = tickSpacing;
+	settingGlobalStore.set(methodContext, Buffer.alloc(0), settingGlobalStoreData);
 }
 
 export const updatePosition = async (
