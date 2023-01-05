@@ -1388,3 +1388,15 @@ export const getAllPositionIDsInPool = (
 	});
 	return result;
 };
+
+
+export const getPool = async (
+	methodContext,
+	stores: NamedRegistry,
+	poolID: PoolID,
+): Promise<PoolsStoreData> => {
+	const poolsStore = stores.get(PoolsStore);
+	const poolStoreData = await poolsStore.getKey(methodContext, [poolID]);
+	return poolStoreData;
+};
+
