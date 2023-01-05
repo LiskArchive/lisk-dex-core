@@ -19,6 +19,7 @@ import { divQ96, mulQ96, roundDownQ96 } from '../../dex/utils/q96';
 import {
 	ADDRESS_VALIDATOR_INCENTIVES,
 	TOKEN_ID_LSK,
+	EPOCH_LENGTH_INCENTIVE_REDUCTION
 } from '../constants';
 import { ValidatorTradeIncentivesPayoutEvent } from '../events';
 import { Address } from '../types';
@@ -104,3 +105,16 @@ export const transferValidatorIncentives = async (
 		},
 	);
 };
+
+export const getLiquidityIncentivesAtHeight = (height: number): bigint => {
+	if (height < EPOCH_LENGTH_INCENTIVE_REDUCTION) {
+		return BigInt('400000000');
+	} else if (height < BigInt(2) * EPOCH_LENGTH_INCENTIVE_REDUCTION) {
+		return BigInt('350000000');
+	} else if (height < BigInt(3) * EPOCH_LENGTH_INCENTIVE_REDUCTION) {
+		return BigInt('300000000');
+	} else if (height < BigInt(4) * EPOCH_LENGTH_INCENTIVE_REDUCTION) {
+		return BigInt('250000000');
+	}
+	return BigInt('200000000');
+}

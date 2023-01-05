@@ -100,6 +100,8 @@ export const genesisDEXSchema = {
 					'poolId',
 					'liquidity',
 					'sqrtPrice',
+					'incentivesPerLiquidityAccumulator',
+					'heightIncentivesUpdate',
 					'feeGrowthGlobal0',
 					'feeGrowthGlobal1',
 					'tickSpacing',
@@ -119,19 +121,28 @@ export const genesisDEXSchema = {
 						maxLength: MAX_NUM_BYTES_Q96,
 						fieldNumber: 3,
 					},
-					feeGrowthGlobal0: {
+					incentivesPerLiquidityAccumulator: {
 						dataType: 'bytes',
 						maxLength: MAX_NUM_BYTES_Q96,
-						fieldNumber: 4,
+						fieldNumber: 3
 					},
-					feeGrowthGlobal1: {
+					heightIncentivesUpdate: {
+						dataType: 'uint32',
+						fieldNumber: 4
+					},
+					feeGrowthGlobal0: {
 						dataType: 'bytes',
 						maxLength: MAX_NUM_BYTES_Q96,
 						fieldNumber: 5,
 					},
+					feeGrowthGlobal1: {
+						dataType: 'bytes',
+						maxLength: MAX_NUM_BYTES_Q96,
+						fieldNumber: 6,
+					},
 					tickSpacing: {
 						dataType: 'uint32',
-						fieldNumber: 6,
+						fieldNumber: 7,
 					},
 				},
 			},
@@ -147,6 +158,7 @@ export const genesisDEXSchema = {
 					'liquidityGross',
 					'feeGrowthOutside0',
 					'feeGrowthOutside1',
+					'incentivesPerLiquidityOutside'
 				],
 				properties: {
 					tickId: {
@@ -172,6 +184,11 @@ export const genesisDEXSchema = {
 						maxLength: MAX_NUM_BYTES_Q96,
 						fieldNumber: 5,
 					},
+					incentivesPerLiquidityOutside: {
+						dataType: 'bytes',
+						maxLength: MAX_NUM_BYTES_Q96,
+						fieldNumber: 6
+					}
 				},
 			},
 		},
@@ -187,6 +204,8 @@ export const genesisDEXSchema = {
 					'liquidity',
 					'feeGrowthInsideLast0',
 					'feeGrowthInsideLast1',
+					'ownerAddress',
+					'incentivesPerLiquidityLast'
 				],
 				properties: {
 					positionId: {
@@ -221,6 +240,11 @@ export const genesisDEXSchema = {
 						length: NUM_BYTES_ADDRESS,
 						fieldNumber: 7,
 					},
+					incentivesPerLiquidityLast: {
+						dataType: 'bytes',
+						maxLength: MAX_NUM_BYTES_Q96,
+						fieldNumber: 8
+					}
 				},
 			},
 		},

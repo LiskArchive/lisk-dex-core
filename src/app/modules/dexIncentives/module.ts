@@ -36,7 +36,10 @@ import { DexIncentivesEndpoint } from './endpoint';
 import { GeneratorIncentiveMintedEvent, ValidatorTradeIncentivesPayoutEvent } from './events';
 
 import { DexIncentivesMethod } from './method';
-import { transferAllValidatorLSKIncentives } from './utils/auxiliaryFunctions';
+import {
+	transferAllValidatorLSKIncentives,
+	getLiquidityIncentivesAtHeight
+} from './utils/auxiliaryFunctions';
 
 export class DexIncentivesModule extends BaseModule {
 	public endpoint = new DexIncentivesEndpoint(this.stores, this.offchainStores);
@@ -102,18 +105,19 @@ export class DexIncentivesModule extends BaseModule {
 			TOKEN_ID_DEX_NATIVE,
 			BLOCK_INCENTIVE_LIQUIDITY_PROVIDERS,
 		);
+		const liquidityIncentive = getLiquidityIncentivesAtHeight(context.header.height);
 		await this._tokenMethod.mint(
 			methodContext,
 			ADDRESS_TRADER_INCENTIVES,
 			TOKEN_ID_DEX_NATIVE,
-			BLOCK_INCENTIVE_TRADERS,
+			liquidityIncentive,
 		);
 		await this._tokenMethod.lock(
 			methodContext,
 			ADDRESS_TRADER_INCENTIVES,
 			MODULE_NAME_DEX,
 			TOKEN_ID_DEX_NATIVE,
-			BLOCK_INCENTIVE_TRADERS,
+			liquidityIncentive,
 		);
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call

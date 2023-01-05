@@ -51,6 +51,7 @@ export const ADDRESS_VALIDATOR_INCENTIVES = Buffer.from(sha256('validatorIncenti
 	NUM_BYTES_ADDRESS,
 );
 
+export const VALIDATORS_LSK_INCENTIVE_PART = 200000; // The portion of LSK swap fees that are paid to the validators, in parts-per-million.
 export const TOKEN_ID_DEX_NATIVE = Buffer.from(hexToBytes('0x0000000100000001')); // Token ID of the native token of DEX sidechain.
 export const TOKEN_ID_LSK = Buffer.from(hexToBytes('0x0000000100000000')); // Token ID of the LSK token.
 export const BLOCK_INCENTIVE_LIQUIDITY_PROVIDERS = BigInt('90000000'); // Amount of liquidity provider incentives per block, in DEX native token.
@@ -62,5 +63,6 @@ export const INCENTIVE_NO_REDUCTION = 0; // Return code for no block incentive r
 export const INCENTIVE_REDUCTION_SEED_REVEAL = 1; // Return code for block incentive reduction because of the failed seed reveal.
 export const INCENTIVE_REDUCTION_MAX_PREVOTES = 2; // Return code for block incentive reduction because the block header does not imply the maximal number of prevotes.
 export const INCENTIVE_REDUCTION_FACTOR_BFT = BigInt(4); // The reduction factor for validator block incentive in case when the block header does not imply the maximal number of prevotes.
+export const EPOCH_LENGTH_INCENTIVE_REDUCTION = BigInt('30000000'); // The duration of the epoch after which liquidity incentives decrease
 
 export const defaultConfig = {};
