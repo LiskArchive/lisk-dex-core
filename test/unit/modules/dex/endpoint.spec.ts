@@ -45,9 +45,10 @@ import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/posit
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
-import { getAllPoolIDs } from '../../../../src/app/modules/dex/utils/offChainEndpoints';
+import { DexEndpoint } from '../../../../src/app/modules/dex/endpoint';
 
-describe('dex:offChainEndpointFunctions', () => {
+
+describe('dex: offChainEndpointFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
@@ -68,12 +69,15 @@ describe('dex:offChainEndpointFunctions', () => {
 	let dexGlobalStore: DexGlobalStore;
 	let positionsStore: PositionsStore;
 	let settingsStore: SettingsStore;
+	let endpoint: DexEndpoint;
 
 	const transferMock = jest.fn();
 	const lockMock = jest.fn();
 	const unlockMock = jest.fn();
 	const getAvailableBalanceMock = jest.fn().mockReturnValue(BigInt(250));
 	const lockedAmountMock = jest.fn().mockReturnValue(BigInt(5));
+
+	
 
 	const poolsStoreData: PoolsStoreData = {
 		liquidity: BigInt(5),
@@ -134,6 +138,7 @@ describe('dex:offChainEndpointFunctions', () => {
 			dexGlobalStore = dexModule.stores.get(DexGlobalStore);
 			positionsStore = dexModule.stores.get(PositionsStore);
 			settingsStore = dexModule.stores.get(SettingsStore);
+			endpoint = new DexEndpoint(dexModule.stores, dexModule.offchainStores);
 
 			await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData);
 
@@ -197,7 +202,7 @@ describe('dex:offChainEndpointFunctions', () => {
 		});
 		
 		it('getAllPoolIDs', async () => {
-			await getAllPoolIDs(methodContext, dexModule.stores.get(PoolsStore)).then(res => {
+			await endpoint.getAllPoolIDs(methodContext, dexModule.stores.get(PoolsStore)).then(res => {
 				expect(res[0]).toStrictEqual(
 					Buffer.from('000000000000000000000001000000000101643130', 'hex'),
 				);

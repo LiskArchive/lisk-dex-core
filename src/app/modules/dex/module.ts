@@ -56,6 +56,7 @@ import { priceTicksStoreSchema } from './stores/priceTicksStore';
 import { settingsStoreSchema } from './stores/settingsStore';
 import { SwapFailedEvent } from './events/swapFailed';
 import { SwappedEvent } from './events/swapped';
+import { getAllPoolIdsRequestSchema, getAllPoolIdsResponseSchema } from './schemas';
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
@@ -123,9 +124,20 @@ export class DexModule extends BaseModule {
 					data: settingsStoreSchema,
 				},
 			],
-			endpoints: [],
-			commands: [],
-			events: [],
+			endpoints: [{
+				name: this.endpoint.getAllPoolIDs.name,
+				request: getAllPoolIdsRequestSchema,
+				response: getAllPoolIdsResponseSchema,
+			}],
+			commands: this.commands.map(command => ({
+				name: command.name,
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+				params: command.schema,
+			})),
+			events: this.events.values().map(v => ({
+				name: v.name,
+				data: v.schema,
+			})),
 			assets: [],
 		};
 	}
