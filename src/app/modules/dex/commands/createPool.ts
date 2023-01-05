@@ -21,6 +21,7 @@ import {
 	VerificationResult,
 	VerifyStatus,
 	TokenMethod,
+	FeeMethod,
 } from 'lisk-sdk';
 import { validator } from '@liskhq/lisk-validator';
 
@@ -30,20 +31,18 @@ import {
 	POOL_CREATION_FEE,
 	POOL_CREATION_SUCCESS,
 	POSITION_CREATION_SUCCESS,
-	TOKEN_ID_FEE_DEX,
 } from '../constants';
 import { AmountBelowMinEvent, PoolCreatedEvent, PoolCreationFailedEvent } from '../events';
 import { PositionCreatedEvent } from '../events/positionCreated';
 import { PositionCreationFailedEvent } from '../events/positionCreationFailed';
 
 import { createPoolSchema } from '../schemas';
-import { PoolsStore, SettingsStore } from '../stores';
+import { PoolsStore } from '../stores';
 import { CreatePoolParamsData, ModuleConfig, TokenID } from '../types';
 import {
 	createPool,
 	createPosition,
 	getLiquidityForAmounts,
-	transferToProtocolFeeAccount,
 	updatePosition,
 } from '../utils/auxiliaryFunctions';
 import { tickToPrice } from '../utils/math';
@@ -57,6 +56,7 @@ export class CreatePoolCommand extends BaseCommand {
 	public schema = createPoolSchema;
 	private _moduleConfig!: ModuleConfig;
 	private _tokenMethod!: TokenMethod;
+	private _feeMethod!: FeeMethod;
 
 	public init({ moduleConfig, tokenMethod }): void {
 		this._moduleConfig = moduleConfig;
@@ -108,10 +108,10 @@ export class CreatePoolCommand extends BaseCommand {
 		}
 
 		/*
-        TODO: Not yet implemented on SDK
-        if lastBlockheader.timestamp > ctx.params.maxTimestampValid:
-            raise Exception()        
-        */
+				TODO: Not yet implemented on SDK
+				if lastBlockheader.timestamp > ctx.params.maxTimestampValid:
+						raise Exception()        
+				*/
 
 		const poolId = computePoolID(tokenID0, tokenID1, feeTier);
 		const poolStore = this.stores.get(PoolsStore);
@@ -238,14 +238,7 @@ export class CreatePoolCommand extends BaseCommand {
 			throw new Error('Parameter amountX cannot be larger than amountXDesired.');
 		}
 
-		await transferToProtocolFeeAccount(
-			this._tokenMethod,
-			methodContext,
-			this.stores.get(SettingsStore),
-			senderAddress,
-			TOKEN_ID_FEE_DEX,
-			POOL_CREATION_FEE,
-		);
+		await this._feeMethod.payFee(methodContext, POOL_CREATION_FEE);
 
 		this.events.get(PositionCreatedEvent).add(
 			methodContext,
