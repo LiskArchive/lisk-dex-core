@@ -31,7 +31,7 @@ import {
 } from './constants';
 
 import { DexIncentivesEndpoint } from './endpoint';
-import { GeneratorIncentiveMintedEvent, ValidatorTradeIncentivesPayoutEvent } from './events';
+import { GeneratorIncentiveMintedEvent, validatorIncentivesPayout } from './events';
 
 import { DexIncentivesMethod } from './method';
 import {
@@ -52,8 +52,8 @@ export class DexIncentivesModule extends BaseModule {
 	public constructor() {
 		super();
 		this.events.register(
-			ValidatorTradeIncentivesPayoutEvent,
-			new ValidatorTradeIncentivesPayoutEvent(this.name),
+			validatorIncentivesPayout,
+			new validatorIncentivesPayout(this.name),
 		);
 		this.events.register(GeneratorIncentiveMintedEvent, new GeneratorIncentiveMintedEvent(this.name));
 	}

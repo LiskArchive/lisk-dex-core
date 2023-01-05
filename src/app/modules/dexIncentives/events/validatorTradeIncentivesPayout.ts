@@ -30,7 +30,7 @@ export const ValidatorTradeIncentivesPayoutEventSchema = {
 	},
 };
 
-export class ValidatorTradeIncentivesPayoutEvent extends BaseEvent<ValidatorTradeIncentivesPayoutEventData> {
+export class validatorIncentivesPayout extends BaseEvent<ValidatorTradeIncentivesPayoutEventData> {
 	public schema = ValidatorTradeIncentivesPayoutEventSchema;
 
 	public log(ctx: EventQueuer, data: ValidatorTradeIncentivesPayoutEventData): void {

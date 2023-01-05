@@ -21,7 +21,7 @@ import {
 	TOKEN_ID_LSK,
 	EPOCH_LENGTH_INCENTIVE_REDUCTION
 } from '../constants';
-import { ValidatorTradeIncentivesPayoutEvent } from '../events';
+import { validatorIncentivesPayout } from '../events';
 import { Address } from '../types';
 
 export const transferAllValidatorLSKIncentives = async (
@@ -98,7 +98,7 @@ export const transferValidatorIncentives = async (
 		TOKEN_ID_LSK,
 		amount
 	);
-	events.get(ValidatorTradeIncentivesPayoutEvent).add(
+	events.get(validatorIncentivesPayout).add(
 		methodContext,
 		{
 			"amount": amount
@@ -117,4 +117,33 @@ export const getLiquidityIncentivesAtHeight = (height: number): bigint => {
 		return BigInt('250000000');
 	}
 	return BigInt('200000000');
+};
+
+export const getLPIncentiveInRange = (
+	startHeight: number,
+	endHeight: number
+): BigInt => {
+	if (endHeight < startHeight) {
+		throw new Error();
+	}
+
+	const EPOCHS = [EPOCH_LENGTH_INCENTIVE_REDUCTION,
+		BigInt(2) * EPOCH_LENGTH_INCENTIVE_REDUCTION,
+		BigInt(3) * EPOCH_LENGTH_INCENTIVE_REDUCTION,
+		BigInt(4) * EPOCH_LENGTH_INCENTIVE_REDUCTION
+	];
+
+	let height: bigint = BigInt(startHeight + 1); // incentive for the start block are excluded
+	let incentives: bigint = BigInt(0);
+	EPOCHS.forEach((changeHeight) => {
+		if (changeHeight > startHeight && changeHeight < endHeight) {
+			incentives += (changeHeight - BigInt(height)) * getLiquidityIncentivesAtHeight(Number(height));
+			height = changeHeight;
+		}
+	})
+
+	incentives += (BigInt(endHeight) - height) * getLiquidityIncentivesAtHeight(Number(height));
+	incentives += getLiquidityIncentivesAtHeight(endHeight);
+
+	return incentives;
 }
