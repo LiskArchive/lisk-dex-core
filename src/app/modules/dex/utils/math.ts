@@ -22,7 +22,10 @@ import {
 	MAX_TICK,
 	LOG_MAX_TICK,
 } from '../constants';
-import { sqrt } from './mathConstants';
+import {
+	sqrt,
+	PRICE_VALUE_FOR_TICK_1
+} from './mathConstants';
 
 import { Q96, SqrtPrice } from '../types';
 import {
@@ -67,9 +70,6 @@ export const tickToPrice = (tickValue: number): Q96 => {
 export const priceToTick = (sqrtPrice: Q96): number => {
 	let invertedPrice = false;
 	const sqrtPriceOriginal = sqrtPrice;
-	const PRICE_VALUE_FOR_TICK_1 = sqrt(
-		divQ96(numberToQ96(BigInt(10001)), numberToQ96(BigInt(10000))) * BigInt(2) ** BigInt(96),
-	);
 	if (sqrtPrice >= PRICE_VALUE_FOR_TICK_1) {
 		// eslint-disable-next-line no-param-reassign
 		sqrtPrice = invQ96(sqrtPrice);

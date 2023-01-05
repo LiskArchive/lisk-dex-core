@@ -12,6 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import {
+	divQ96,
+	numberToQ96
+} from "./q96";
+
 export const MAX_SAFE_INTEGER = BigInt(Number.MAX_SAFE_INTEGER);
 
 export const ZERO = BigInt(0);
@@ -42,3 +47,7 @@ export const sqrt = (value: bigint): bigint => {
 	}
 	return z;
 };
+
+export const PRICE_VALUE_FOR_TICK_1 = sqrt(
+	divQ96(numberToQ96(BigInt(10001)), numberToQ96(BigInt(10000))) * BigInt(2) ** BigInt(96),
+);
