@@ -19,6 +19,8 @@ import {
 	NUM_BYTES_POSITION_ID,
 	NUM_BYTES_TICK_ID,
 } from './constants';
+import { PoolsStore } from './stores';
+import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 
 export const settingsSchema = {
 	$id: '/dex/settings',
@@ -462,5 +464,56 @@ export const addLiquiditySchema = {
 			dataType: 'uint64',
 			fieldNumber: 6,
 		},
+	},
+};
+
+export const getAllPoolIdsRequestSchema = {
+	$id: 'dex/getAllPoolIds',
+	type: 'object',
+	required: ['poolStore'],
+	properties: {
+		poolStore: PoolsStore
+	},
+	
+};
+
+export const getAllPoolIdsResponseSchema = {
+	$id: 'dex/getAllPoolIds',
+	type: 'object',
+	required: ['PoolID'],
+	properties: {
+		PoolID:Buffer
+	},
+};
+
+export const getAllTokenIdsRequestSchema = {
+	$id: 'dex/getAllTokenIds',
+	type: 'object',
+	required: ['stores'],
+	properties: {
+		stores: NamedRegistry
+	},
+	
+};
+
+export const getAllTokenIdsResponseSchema = {
+	$id: 'dex/getAllTokenIds',
+	type: 'object',
+	required: ['tokens'],
+	properties: {
+		tokens: {
+			type: 'set',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['tokenID'],
+				properties: {
+					tokenID: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+				},
+			},
+		}
 	},
 };
