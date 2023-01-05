@@ -132,4 +132,3 @@ export type feesInterface = {
 	in: bigint;
 	out: bigint;
 };
-//Swap Types
