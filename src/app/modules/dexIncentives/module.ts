@@ -17,7 +17,6 @@ import {
 	BaseModule,
 	BlockAfterExecuteContext,
 	FeeMethod,
-	FeeModule,
 	ModuleMetadata,
 	RandomMethod,
 	TokenMethod,
@@ -27,7 +26,6 @@ import {
 	ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
 	ADDRESS_TRADER_INCENTIVES,
 	BLOCK_INCENTIVE_LIQUIDITY_PROVIDERS,
-	BLOCK_INCENTIVE_TRADERS,
 	MODULE_NAME_DEX,
 	TOKEN_ID_DEX_NATIVE,
 } from './constants';
