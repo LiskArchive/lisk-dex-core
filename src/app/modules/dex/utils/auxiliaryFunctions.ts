@@ -73,6 +73,7 @@ import { tickToBytes } from '../stores/priceTicksStore';
 import { ADDRESS_VALIDATOR_REWARDS_POOL } from '../../dexRewards/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
 import { PoolsStoreData } from '../stores/poolsStore';
+import { PositionsStoreData } from '../stores/positionsStore';
 
 const { utils } = cryptography;
 
@@ -847,4 +848,18 @@ export const getDexGlobalData = async (
 ): Promise<DexGlobalStoreData> => {
 	const dexGlobalStore = stores.get(DexGlobalStore);
 	return dexGlobalStore.get(methodContext, Buffer.from([]));
+};
+
+export const getPosition = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	positionID: PositionID,
+	positionIdsList: PositionID[],
+): Promise<PositionsStoreData> => {
+	if (positionIdsList.includes(positionID)) {
+		throw new Error();
+	}
+	const positionsStore = stores.get(PositionsStore);
+	const positionStoreData = await positionsStore.get(methodContext, positionID);
+	return positionStoreData;
 };
