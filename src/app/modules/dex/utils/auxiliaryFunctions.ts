@@ -351,8 +351,8 @@ export const createPool = async (
 	const poolStoreValue = {
 		liquidity: BigInt(0),
 		sqrtPrice: q96ToBytes(initialSqrtPrice),
-		incentivePerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
-		heightIncentivesUpdate: currentHeight,
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+		heightIncentivesUpdate: 0,
 		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(0))),
 		protocolFees0: numberToQ96(BigInt(0)),
