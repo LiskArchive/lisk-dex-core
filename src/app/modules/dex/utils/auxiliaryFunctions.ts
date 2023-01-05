@@ -85,7 +85,7 @@ import {
 	invQ96,
 	mulDivRoundUpQ96,
 	q96ToInt,
-	roundUpQ96,
+	roundUpQ96
 } from './q96';
 
 import {
@@ -1400,3 +1400,19 @@ export const getPool = async (
 	return poolStoreData;
 };
 
+export const getCurrentSqrtPrice = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	poolID: PoolID,
+	priceDirection: boolean,
+): Promise<Q96> => {
+	const pools = await getPool(methodContext, stores, poolID);
+	if (pools == null) {
+		throw new Error();
+	}
+	const q96SqrtPrice = bytesToQ96(pools.sqrtPrice);
+	if (priceDirection) {
+		return q96SqrtPrice;
+	}
+	return invQ96(q96SqrtPrice);
+};
