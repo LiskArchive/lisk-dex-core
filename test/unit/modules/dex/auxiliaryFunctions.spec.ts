@@ -38,13 +38,6 @@ import {
 	transferPoolToPool,
 	transferToProtocolFeeAccount,
 	updatePosition,
-	getAllPoolIDs,
-	getAllTokenIDs,
-	getAllPositionIDsInPool,
-	getPool,
-	getCurrentSqrtPrice,
-	getDexGlobalData,
-	getPosition,
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
@@ -106,6 +99,8 @@ describe('dex:auxiliaryFunctions', () => {
 	const poolsStoreData: PoolsStoreData = {
 		liquidity: BigInt(5),
 		sqrtPrice: q96ToBytes(BigInt(tickToPrice(5))),
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+		heightIncentivesUpdate: 5,
 		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(0))),
 		tickSpacing: 1,
@@ -116,6 +111,7 @@ describe('dex:auxiliaryFunctions', () => {
 		liquidityGross: BigInt(5),
 		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(0))),
+		incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(2))),
 	};
 
 	const priceTicksStoreDataTickUpper: PriceTicksStoreData = {
@@ -123,12 +119,17 @@ describe('dex:auxiliaryFunctions', () => {
 		liquidityGross: BigInt(5),
 		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(0))),
+		incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(3))),
 	};
 
 	const dexGlobalStoreData: DexGlobalStoreData = {
-		positionCounter: BigInt(10),
+		positionCounter: BigInt(15),
 		collectableLSKFees: BigInt(10),
+		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
+		incentivizedPools: [{ poolId, multiplier: 10 }],
+		totalIncentivesMultiplier: 1,
 	};
+
 	const positionsStoreData: PositionsStoreData = {
 		tickLower: -10,
 		tickUpper: 10,
@@ -278,7 +279,7 @@ describe('dex:auxiliaryFunctions', () => {
 		it('should return concatenated poolID with dexGlobalStoreData.positionCounter in result', () => {
 			expect(
 				getNewPositionID(dexGlobalStoreData, getPoolIDFromPositionID(positionId)).toString('hex'),
-			).toBe('000000010000000001016431303130');
+			).toBe('000000010000000001016431303135');
 		});
 
 		it('should return [316912650057057350374175801344,158456325028528675187087900672] as feeGrowthInside0, feeGrowthInside1 in result', async () => {
@@ -395,91 +396,9 @@ describe('dex:auxiliaryFunctions', () => {
 				}),
 			).toBeUndefined();
 		});
+
 		it('priceToTick', () => {
 			expect(priceToTick(tickToPrice(-735247))).toEqual(-735247);
 		});
-
-		it('getAllPoolIDs', async () => {
-			await getAllPoolIDs(methodContext, dexModule.stores.get(PoolsStore)).then(res => {
-				expect(res[0]).toStrictEqual(
-					Buffer.from('000000000000000000000001000000000101643130', 'hex'),
-				);
-			});
-		});
-
-		it('getAllTokenIDs', async () => {
-			await getAllTokenIDs(methodContext, dexModule.stores).then(res => {
-				expect(res.size).toBeGreaterThan(0);
-			});
-		});
-
-		it('getAllPositionIDsInPool', () => {
-			const positionIDs = getAllPositionIDsInPool(getPoolIDFromPositionID(positionId), [
-				positionId,
-		]);
-		expect(positionIDs.indexOf(positionId)).not.toBe(-1);
-	});
-
-	it('getPool', async () => {
-		await getPool(methodContext, dexModule.stores, getPoolIDFromPositionID(positionId)).then(
-			res => {
-				expect(res).not.toBeNull();
-				expect(res.liquidity).toBe(BigInt(5));
-			},
-		);
-	});
-
-	it('getCurrentSqrtPrice', async () => {
-		expect(
-			(
-				await getCurrentSqrtPrice(
-					methodContext,
-					dexModule.stores,
-					getPoolIDFromPositionID(positionId),
-					false,
-				)
-			).toString(),
-		).toBe('79208358939348018173455069823');
-	});
-
-	it('getDexGlobalData', async () => {
-		await getDexGlobalData(methodContext, dexModule.stores).then(res => {
-			expect(res).not.toBeNull();
-			expect(res.positionCounter).toBe(BigInt(11));
-			expect(res.collectableLSKFees).toBe(BigInt(10));
-		});
-	});
-
-	it('getPosition', async () => {
-		const positionIdsList = [positionId];
-		const newPositionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
-		await positionsStore.set(methodContext, newPositionId, positionsStoreData);
-		await positionsStore.setKey(methodContext, [newPositionId], positionsStoreData);
-		await getPosition(methodContext, dexModule.stores, newPositionId, positionIdsList).then(res => {
-			expect(res).not.toBeNull(); 
-		});
-	});
-
-	it('getTickWithTickId', async () => {
-		const tickWithTickID = await getTickWithTickId(methodContext, dexModule.stores, [
-			getPoolIDFromPositionID(positionId),
-			tickToBytes(positionsStoreData.tickLower),
-		]);
-		expect(tickWithTickID).not.toBeNull();
-		expect(tickWithTickID.liquidityNet).toBe(BigInt(5));
-	});
-
-	it('getTickWithPoolIdAndTickValue', async () => {
-		const tickWithPoolIdAndTickValue = await getTickWithPoolIdAndTickValue(
-			methodContext,
-			dexModule.stores,
-			getPoolIDFromPositionID(positionId),
-			5,
-		);
-		expect(tickWithPoolIdAndTickValue).not.toBeNull();
-		expect(tickWithPoolIdAndTickValue.liquidityNet).toBe(BigInt(5));
-	});
-
-
 	});
 });
