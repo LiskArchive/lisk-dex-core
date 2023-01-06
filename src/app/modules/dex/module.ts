@@ -41,6 +41,7 @@ import { CollectFeesCommand } from './commands/collectFees';
 import { RemoveLiquidityFailedEvent } from './events/removeLiquidityFailed';
 import { RemoveLiquidityEvent } from './events/removeLiquidity';
 import { RemoveLiquidityCommand } from './commands/removeLiquidity';
+import { getAllPoolIdsRequestSchema, getAllPoolIdsResponseSchema, getAllPositionIDsInPoolRequestSchema, getAllPositionIDsInPoolResponseSchema, getCurrentSqrtPriceRequestSchema, getCurrentSqrtPriceResponseSchema, getPoolRequestSchema, getPoolResponseSchema } from './schemas';
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
@@ -87,7 +88,33 @@ export class DexModule extends BaseModule {
 	public metadata(): ModuleMetadata {
 		return {
 			name: this.name,
-			endpoints: [],
+			endpoints: [
+			{
+				name: this.endpoint.getAllPoolIDs.name,
+				request: getAllPoolIdsRequestSchema,
+				response: getAllPoolIdsResponseSchema,
+			},
+			{
+				name: this.endpoint.getAllTokenIDs.name,
+				request: getAllPoolIdsRequestSchema,
+				response: getAllPoolIdsResponseSchema,
+			},
+			{
+				name: this.endpoint.getAllPositionIDsInPool.name,
+				request: getAllPositionIDsInPoolRequestSchema,
+				response: getAllPositionIDsInPoolResponseSchema,
+			},
+			{
+				name: this.endpoint.getPool.name,
+				request: getPoolResponseSchema,
+				response: getPoolRequestSchema,
+			},
+			{
+				name: this.endpoint.getCurrentSqrtPrice.name,
+				request: getCurrentSqrtPriceRequestSchema,
+				response: getCurrentSqrtPriceResponseSchema,
+			}
+		],
 			commands: this.commands.map(command => ({
 				name: command.name,
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

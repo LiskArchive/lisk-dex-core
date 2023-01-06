@@ -64,7 +64,6 @@ import {
 	roundDownQ96,
 	q96ToBytes,
 	bytesToQ96,
-	invQ96,
 } from './q96';
 
 import { getAmount0Delta, getAmount1Delta, priceToTick, tickToPrice } from './math';
@@ -72,7 +71,6 @@ import { FeesIncentivesCollectedEvent, PositionUpdateFailedEvent } from '../even
 import { tickToBytes } from '../stores/priceTicksStore';
 import { ADDRESS_VALIDATOR_REWARDS_POOL } from '../../dexRewards/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
-import { PoolsStoreData } from '../stores/poolsStore';
 
 const { utils } = cryptography;
 
@@ -388,6 +386,8 @@ export const createPool = async (
 	const poolStoreValue = {
 		liquidity: BigInt(0),
 		sqrtPrice: q96ToBytes(initialSqrtPrice),
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+		heightIncentivesUpdate: 0,
 		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(0))),
 		protocolFees0: numberToQ96(BigInt(0)),
@@ -429,6 +429,7 @@ export const createPosition = async (
 			liquidityGross: BigInt(0),
 			feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(0))),
 			feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(0))),
+			incentivesPerLiquidityOutside: q96ToBytes(BigInt(0)),
 		};
 		if (bytesToQ96(currentPool.sqrtPrice) >= tickToPrice(tickLower)) {
 			tickStoreValue.feeGrowthOutside0 = currentPool.feeGrowthGlobal0;
@@ -444,6 +445,7 @@ export const createPosition = async (
 			liquidityGross: BigInt(0),
 			feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(0))),
 			feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(0))),
+			incentivesPerLiquidityOutside: q96ToBytes(BigInt(0)),
 		};
 		if (bytesToQ96(currentPool.sqrtPrice) >= tickToPrice(tickUpper)) {
 			tickStoreValue.feeGrowthOutside0 = currentPool.feeGrowthGlobal0;
@@ -769,74 +771,4 @@ export const updatePosition = async (
 	return [amount0, amount1];
 };
 
-export const getAllPoolIDs = async (
-	methodContext: MethodContext,
-	poolStore: PoolsStore,
-): Promise<PoolID[]> => {
-	const poolIds: PoolID[] = [];
-	const allPoolIds = await poolStore.getAll(methodContext);
-	if (allPoolIds != null && allPoolIds.length > 0) {
-		allPoolIds.forEach(poolId => {
-			poolIds.push(poolId.key);
-		});
-	}
-	return poolIds;
-};
 
-export const getAllTokenIDs = async (
-	methodContext: MethodContext,
-	stores: NamedRegistry,
-): Promise<Set<TokenID>> => {
-	const tokens = new Set<TokenID>();
-	const allPoolIds = await getAllPoolIDs(methodContext, stores.get(PoolsStore));
-
-	if (allPoolIds != null && allPoolIds.length > 0) {
-		allPoolIds.forEach(poolID => {
-			tokens.add(getToken0Id(poolID));
-			tokens.add(getToken1Id(poolID));
-		});
-	}
-
-	return tokens;
-};
-
-export const getAllPositionIDsInPool = (
-	poolId: PoolID,
-	positionIdsList: PositionID[],
-): Buffer[] => {
-	const result: Buffer[] = [];
-	positionIdsList.forEach(positionId => {
-		if (getPoolIDFromPositionID(positionId).equals(poolId)) {
-			result.push(positionId);
-		}
-	});
-	return result;
-};
-
-
-export const getPool = async (
-	methodContext,
-	stores: NamedRegistry,
-	poolID: PoolID,
-): Promise<PoolsStoreData> => {
-	const poolsStore = stores.get(PoolsStore);
-	const poolStoreData = await poolsStore.getKey(methodContext, [poolID]);
-	return poolStoreData;
-};
-
-export const getCurrentSqrtPrice = async (
-	methodContext: MethodContext,
-	stores: NamedRegistry,
-	poolID: PoolID,
-	priceDirection: boolean,
-): Promise<Q96> => {
-	const pools = await getPool(methodContext, stores, poolID);
-	if (pools == null) {
-		throw new Error();
-	}
-	const q96SqrtPrice = bytesToQ96(pools.sqrtPrice);
-	if (priceDirection) {
-		return q96SqrtPrice;
-	}
-	return invQ96(q96SqrtPrice);
-};
