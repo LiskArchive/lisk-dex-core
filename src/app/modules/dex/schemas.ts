@@ -491,7 +491,10 @@ export const getAllTokenIdsRequestSchema = {
 	type: 'object',
 	required: ['stores'],
 	properties: {
-		stores: NamedRegistry
+		stores: {
+			dataType:'object',
+			fieldNumber: 1,
+		}
 	},
 	
 };
