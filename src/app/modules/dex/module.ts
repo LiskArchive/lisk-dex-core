@@ -218,6 +218,11 @@ export class DexModule extends BaseModule {
 					request: getAllTickIDsInPoolRequestSchema,
 					response: getAllTickIDsInPoolRsponseSchema,
 				},
+				{
+					name: this.endpoint.getAllTokenIDs.name,
+					request: getAllTokenIdsRequestSchema,
+					response: getAllTokenIdsResponseSchema,
+				}
 			],
 			commands: this.commands.map(command => ({
 				name: command.name,

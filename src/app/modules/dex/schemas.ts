@@ -539,6 +539,21 @@ export const getPoolIDFromTickIDRequestSchema = {
 	properties: {
 		tickID: {
 			dataType: 'bytes',
+			stores: {
+				dataType: 'object',
+				fieldNumber: 1,
+			}
+		},
+	}
+}
+
+export const getAllTokenIdsResponseSchema = {
+	$id: 'dex/getAllTokenIds',
+	type: 'object',
+	required: ['tokens'],
+	properties: {
+		tokens: {
+			type: 'set',
 			fieldNumber: 1,
 		}
 	},
@@ -640,3 +655,4 @@ export const getLSKPriceRequestSchema = {
 		}
 	}
 }
+
