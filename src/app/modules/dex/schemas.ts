@@ -20,7 +20,6 @@ import {
 	NUM_BYTES_TICK_ID,
 } from './constants';
 import { PoolsStore } from './stores';
-import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 
 export const settingsSchema = {
 	$id: '/dex/settings',
