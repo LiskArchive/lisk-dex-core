@@ -695,3 +695,27 @@ export const getPoolIDFromTickIDResponseSchema = {
         }
     },
 };
+
+export const getPositionIndexResquestSchema = {
+    $id: 'dex/getPositionIndex',
+    type: 'object',
+    required: ['positionId'],
+    properties: {
+        positionId: {
+            dataType: 'bytes',
+            fieldNumber: 1,
+        }
+    },
+};
+
+export const getPositionIndexResponseSchema = {
+    $id: 'dex/getPositionIndex',
+    type: 'object',
+    required: ['positionIndex'],
+    properties: {
+        positionIndex: {
+            dataType: 'unit32',
+            fieldNumber: 1,
+        }
+    },
+};

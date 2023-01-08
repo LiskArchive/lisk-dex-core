@@ -27,7 +27,6 @@ import {
 import {
 	NUM_BYTES_ADDRESS,
 	NUM_BYTES_TOKEN_ID,
-	NUM_BYTES_POSITION_ID,
 	MODULE_ID_DEX,
 	NUM_BYTES_POOL_ID,
 	MAX_TICK,
@@ -80,13 +79,6 @@ export const getToken0Id = (poolId: PoolID): TokenID => poolId.slice(0, NUM_BYTE
 export const getToken1Id = (poolId: PoolID): TokenID =>
 	poolId.slice(NUM_BYTES_TOKEN_ID, 2 * NUM_BYTES_TOKEN_ID + 1);
 
-
-export const getPositionIndex = (positionId: PositionID): number => {
-	const _buffer: Buffer = positionId.slice(2 * NUM_BYTES_POSITION_ID, NUM_BYTES_ADDRESS);
-	const _hexBuffer: string = _buffer.toString('hex');
-
-	return uint32beInv(_hexBuffer);
-};
 
 export const transferToPool = async (
 	tokenMethod: TokenMethod,
