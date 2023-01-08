@@ -13,6 +13,7 @@
  */
 
 import { BaseEndpoint, MethodContext } from 'lisk-sdk';
+import { NUM_BYTES_POOL_ID } from './constants';
 import { PoolsStore } from './stores';
 import { PoolID } from './types';
 
@@ -29,4 +30,6 @@ export class DexEndpoint extends BaseEndpoint {
 			}
 			return poolIds;
 	}
+
+    public async getPoolIDFromTickID(tickID: Buffer) { tickID.slice(0, NUM_BYTES_POOL_ID) }
 }
