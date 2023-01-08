@@ -41,7 +41,7 @@ import { CollectFeesCommand } from './commands/collectFees';
 import { RemoveLiquidityFailedEvent } from './events/removeLiquidityFailed';
 import { RemoveLiquidityEvent } from './events/removeLiquidity';
 import { RemoveLiquidityCommand } from './commands/removeLiquidity';
-import { getAllPoolIdsRequestSchema, getAllPoolIdsResponseSchema } from './schemas';
+import { getAllPoolIdsRequestSchema, getAllPoolIdsResponseSchema, getFeeTierResponseSchema, getFeeTierResquestSchema } from './schemas';
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
@@ -88,11 +88,18 @@ export class DexModule extends BaseModule {
 	public metadata(): ModuleMetadata {
 		return {
 			name: this.name,
-			endpoints: [{
+			endpoints: [
+			{
 				name: this.endpoint.getAllPoolIDs.name,
 				request: getAllPoolIdsRequestSchema,
 				response: getAllPoolIdsResponseSchema,
-			}],
+			},
+			{
+				name: this.endpoint.getFeeTier.name,
+				request: getFeeTierResquestSchema,
+				response: getFeeTierResponseSchema,
+			},
+		],
 			commands: this.commands.map(command => ({
 				name: command.name,
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

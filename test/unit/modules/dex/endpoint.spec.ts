@@ -53,6 +53,7 @@ describe('dex: offChainEndpointFunctions', () => {
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
 	const dexModule = new DexModule();
+	const feeTier = Number('0x00000c8');
 
 	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
@@ -207,6 +208,10 @@ describe('dex: offChainEndpointFunctions', () => {
 					Buffer.from('000000000000000000000001000000000101643130', 'hex'),
 				);
 			});
+		});
+
+		it('should return the feeTier from the poolID', () => {
+			expect(endpoint.getFeeTier(poolId)).toEqual(feeTier);
 		});
 	});
 });

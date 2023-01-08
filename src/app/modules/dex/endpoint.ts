@@ -15,6 +15,7 @@
 import { BaseEndpoint, MethodContext } from 'lisk-sdk';
 import { PoolsStore } from './stores';
 import { PoolID } from './types';
+import { uint32beInv } from './utils/bigEndian';
 
 export class DexEndpoint extends BaseEndpoint {
 
@@ -29,4 +30,11 @@ export class DexEndpoint extends BaseEndpoint {
 			}
 			return poolIds;
 	}
+
+    public getFeeTier (poolId: PoolID): number {
+        const _buffer: Buffer = poolId.slice(-4);
+        const _hexBuffer: string = _buffer.toString('hex');
+    
+        return uint32beInv(_hexBuffer);
+    };
 }
