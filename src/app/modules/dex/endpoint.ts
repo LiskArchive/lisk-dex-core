@@ -16,8 +16,9 @@ import { BaseEndpoint, MethodContext, TokenMethod } from 'lisk-sdk';
 import { MODULE_ID_DEX } from './constants';
 import { NUM_BYTES_POOL_ID } from './constants';
 import { PoolsStore } from './stores';
-import { PoolID } from './types';
+import { PoolID, PositionID } from './types';
 import { getToken0Id, poolIdToAddress } from './utils/auxiliaryFunctions';
+import { NUM_BYTES_ADDRESS, NUM_BYTES_POSITION_ID } from './constants';
 import { uint32beInv } from './utils/bigEndian';
 
 export class DexEndpoint extends BaseEndpoint {
@@ -52,4 +53,10 @@ export class DexEndpoint extends BaseEndpoint {
     };
 
     public getPoolIDFromTickID(tickID: Buffer) { return tickID.slice(0, NUM_BYTES_POOL_ID) }
+
+    public getPositionIndex(positionId: PositionID): number {
+        const _buffer: Buffer = positionId.slice(-(2 * (NUM_BYTES_POSITION_ID - NUM_BYTES_ADDRESS)));
+        const _hexBuffer: string = _buffer.toString('hex');
+        return uint32beInv(_hexBuffer);
+    };
 }

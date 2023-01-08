@@ -118,13 +118,6 @@ export const getToken1Id = (poolId: PoolID): TokenID =>
 	poolId.slice(NUM_BYTES_TOKEN_ID, 2 * NUM_BYTES_TOKEN_ID);
 
 
-export const getPositionIndex = (positionId: PositionID): number => {
-	const _buffer: Buffer = positionId.slice(-8);
-	const _hexBuffer: string = _buffer.toString('hex');
-
-	return uint32beInv(_hexBuffer);
-};
-
 export const transferToPool = async (
 	tokenMethod: TokenMethod,
 	methodContext,

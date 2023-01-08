@@ -41,6 +41,7 @@ import { CollectFeesCommand } from './commands/collectFees';
 import { RemoveLiquidityFailedEvent } from './events/removeLiquidityFailed';
 import { RemoveLiquidityEvent } from './events/removeLiquidity';
 import { RemoveLiquidityCommand } from './commands/removeLiquidity';
+<<<<<<< HEAD
 import { SwapFailedEvent } from './events/swapFailed';
 import { SwappedEvent } from './events/swapped';
 import {
@@ -52,6 +53,9 @@ import {
 	getFeeTierResquestSchema,
 	getFeeTierResponseSchema
 } from './schemas';
+=======
+import { getAllPoolIdsRequestSchema, getAllPoolIdsResponseSchema, getPositionIndexResponseSchema, ggetPositionIndexResquestSchema } from './schemas';
+>>>>>>> b6e9fa3 (added getPositionIndex)
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
@@ -100,6 +104,7 @@ export class DexModule extends BaseModule {
 
 	public metadata(): ModuleMetadata {
 		return {
+<<<<<<< HEAD
 			stores: [],
 			endpoints: [
 				{
@@ -123,6 +128,22 @@ export class DexModule extends BaseModule {
 					response: getPoolIDFromTickIDRequestSchema,
 				}
 			],
+=======
+			name: this.name,
+			endpoints: [
+			{
+				name: this.endpoint.getAllPoolIDs.name,
+				request: getAllPoolIdsRequestSchema,
+				response: getAllPoolIdsResponseSchema,
+			},
+			{
+				name: this.endpoint.getPositionIndex.name,
+				request: ggetPositionIndexResquestSchema,
+				response: getPositionIndexResponseSchema,
+			},
+
+		],
+>>>>>>> b6e9fa3 (added getPositionIndex)
 			commands: this.commands.map(command => ({
 				name: command.name,
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
