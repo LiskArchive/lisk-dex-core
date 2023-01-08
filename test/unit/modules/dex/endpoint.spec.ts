@@ -225,5 +225,11 @@ describe('dex: offChainEndpointFunctions', () => {
 		it('should return the feeTier from the poolID', () => {
 			expect(endpoint.getFeeTier(poolId)).toEqual(feeTier);
 		});
+
+		it('getPoolIDFromTickID', () => {
+			expect(
+				endpoint.getPoolIDFromTickID(Buffer.from('000000010000000001016431308000000a', 'hex')),
+			).toStrictEqual(Buffer.from('00000001000000000101643130800000', 'hex'));
+		});
 	});
 });

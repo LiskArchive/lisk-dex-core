@@ -671,3 +671,27 @@ export const getFeeTierResponseSchema = {
         },
     },
 };
+
+export const getPoolIDFromTickIDRequestSchema = {
+    $id: 'dex/getPoolIDFromTickID',
+    type: 'object',
+    required: ['tickID'],
+    properties: {
+        tickID: {
+            dataType: 'bytes',
+            fieldNumber: 1,
+        }
+    },
+};
+
+export const getPoolIDFromTickIDResponseSchema = {
+    $id: 'dex/getPoolIDFromTickID',
+    type: 'object',
+    required: ['poolId'],
+    properties: {
+        poolId: {
+            dataType: 'bytes',
+            fieldNumber: 1,
+        }
+    },
+};
