@@ -31,5 +31,5 @@ export class DexEndpoint extends BaseEndpoint {
 			return poolIds;
 	}
 
-    public async getPoolIDFromTickID(tickID: Buffer) { tickID.slice(0, NUM_BYTES_POOL_ID) }
+    public getPoolIDFromTickID(tickID: Buffer) { return tickID.slice(0, NUM_BYTES_POOL_ID) }
 }
