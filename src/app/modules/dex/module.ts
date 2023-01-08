@@ -43,7 +43,7 @@ import { RemoveLiquidityEvent } from './events/removeLiquidity';
 import { RemoveLiquidityCommand } from './commands/removeLiquidity';
 import { SwapFailedEvent } from './events/swapFailed';
 import { SwappedEvent } from './events/swapped';
-import { getAllPoolIdsRequestSchema, getAllPoolIdsResponseSchema, getToken1AmountRequestSchema, getToken1AmountResponseSchema } from './schemas';
+import { getAllPoolIdsRequestSchema, getAllPoolIdsResponseSchema, getToken0AmountRequestSchema, getToken0AmountResponseSchema } from './schemas';
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
@@ -100,10 +100,10 @@ export class DexModule extends BaseModule {
 					response: getAllPoolIdsResponseSchema,
 				},
 				{
-					name: this.endpoint.getToken1Amount.name,
-					request: getToken1AmountRequestSchema,
-					response: getToken1AmountResponseSchema,
-				},
+					name: this.endpoint.getToken0Amount.name,
+					request: getToken0AmountRequestSchema,
+					response: getToken0AmountResponseSchema,
+				}
 			],
 			commands: this.commands.map(command => ({
 				name: command.name,

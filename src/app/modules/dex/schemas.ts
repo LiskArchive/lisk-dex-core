@@ -473,7 +473,7 @@ export const getAllPoolIdsRequestSchema = {
 	properties: {
 		poolStore: PoolsStore
 	},
-	
+
 };
 
 export const getAllPoolIdsResponseSchema = {
@@ -481,12 +481,12 @@ export const getAllPoolIdsResponseSchema = {
 	type: 'object',
 	required: ['PoolID'],
 	properties: {
-		PoolID:Buffer
-	}
+		PoolID: Buffer
+	},
 };
 
-export const getToken1AmountResponseSchema = {
-	$id: 'dex/getToken1Amount',
+export const getToken0AmountResponseSchema = {
+	$id: 'dex/getToken0Amount',
 	type: 'object',
 	required: ['poolID'],
 	properties: {
@@ -497,10 +497,10 @@ export const getToken1AmountResponseSchema = {
 	}
 }
 
-export const getToken1AmountRequestSchema = {
-	$id: 'dex/getToken1Amount',
+export const getToken0AmountRequestSchema = {
+	$id: 'dex/getToken0Amount',
 	type: 'object',
-	required: ['token1Amount'],
+	required: ['token0Amount'],
 	properties: {
 		Token1Amount: {
 			dataType: 'uint64',

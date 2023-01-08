@@ -16,29 +16,29 @@ import { BaseEndpoint, MethodContext, TokenMethod } from 'lisk-sdk';
 import { MODULE_ID_DEX } from './constants';
 import { PoolsStore } from './stores';
 import { PoolID } from './types';
-import { getToken1Id, poolIdToAddress } from './utils/auxiliaryFunctions';
+import { getToken0Id, poolIdToAddress } from './utils/auxiliaryFunctions';
 
 export class DexEndpoint extends BaseEndpoint {
 
-    public async getAllPoolIDs(	methodContext: MethodContext,
-		poolStore: PoolsStore): Promise<PoolID[]>{
-			const poolIds: PoolID[] = [];
-			const allPoolIds = await poolStore.getAll(methodContext);
-			if (allPoolIds && allPoolIds.length){
-				allPoolIds.forEach(poolId => {
-					poolIds.push(poolId.key);
-				});
-			}
-			return poolIds;
-	}
+    public async getAllPoolIDs(methodContext: MethodContext,
+        poolStore: PoolsStore): Promise<PoolID[]> {
+        const poolIds: PoolID[] = [];
+        const allPoolIds = await poolStore.getAll(methodContext);
+        if (allPoolIds && allPoolIds.length) {
+            allPoolIds.forEach(poolId => {
+                poolIds.push(poolId.key);
+            });
+        }
+        return poolIds;
+    }
 
-    public async getToken1Amount(
+    public async getToken0Amount(
         tokenMethod: TokenMethod,
         methodContext: MethodContext,
         poolId: PoolID,
-    ): Promise<bigint>{
+    ): Promise<bigint> {
         const address = poolIdToAddress(poolId);
-        const tokenId = getToken1Id(poolId);
+        const tokenId = getToken0Id(poolId);
         return tokenMethod.getLockedAmount(methodContext, address, tokenId, MODULE_ID_DEX.toString());
     };
 }
