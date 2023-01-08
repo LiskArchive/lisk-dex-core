@@ -103,7 +103,12 @@ export class DexModule extends BaseModule {
 					name: this.endpoint.getToken0Amount.name,
 					request: getToken0AmountRequestSchema,
 					response: getToken0AmountResponseSchema,
-				}
+				},
+				{
+					name: this.endpoint.getFeeTier.name,
+					request: getFeeTierResquestSchema,
+					response: getFeeTierResponseSchema,
+				},
 			],
 			commands: this.commands.map(command => ({
 				name: command.name,
