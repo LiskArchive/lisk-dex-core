@@ -208,5 +208,11 @@ describe('dex: offChainEndpointFunctions', () => {
 				);
 			});
 		});
+
+		it('getToken1Amount', async () => {
+			await endpoint.getToken1Amount(tokenMethod, methodContext, poolId).then(res => {
+				expect(res).toBe(BigInt(5));
+			});
+		});
 	});
 });

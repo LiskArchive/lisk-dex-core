@@ -12,9 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseEndpoint, MethodContext } from 'lisk-sdk';
+import { BaseEndpoint, MethodContext, TokenMethod } from 'lisk-sdk';
+import { MODULE_ID_DEX } from './constants';
 import { PoolsStore } from './stores';
 import { PoolID } from './types';
+import { getToken1Id, poolIdToAddress } from './utils/auxiliaryFunctions';
 
 export class DexEndpoint extends BaseEndpoint {
 
@@ -29,4 +31,14 @@ export class DexEndpoint extends BaseEndpoint {
 			}
 			return poolIds;
 	}
+
+    public async getToken1Amount(
+        tokenMethod: TokenMethod,
+        methodContext: MethodContext,
+        poolId: PoolID,
+    ): Promise<bigint>{
+        const address = poolIdToAddress(poolId);
+        const tokenId = getToken1Id(poolId);
+        return tokenMethod.getLockedAmount(methodContext, address, tokenId, MODULE_ID_DEX.toString());
+    };
 }
