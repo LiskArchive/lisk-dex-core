@@ -647,3 +647,27 @@ export const getToken0AmountRequestSchema = {
         }
     }
 }
+
+export const getFeeTierResquestSchema = {
+    $id: 'dex/getFeeTier',
+    type: 'object',
+    required: ['poolId'],
+    properties: {
+        poolId: {
+            dataType: 'bytes',
+            fieldNumber: 1,
+        },
+    },
+};
+
+export const getFeeTierResponseSchema = {
+    $id: 'dex/getFeeTier',
+    type: 'object',
+    required: ['feeTier'],
+    properties: {
+        feeTier: {
+            dataType: 'uint32',
+            fieldNumber: 1,
+        },
+    },
+};

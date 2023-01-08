@@ -17,6 +17,7 @@ import { MODULE_ID_DEX } from './constants';
 import { PoolsStore } from './stores';
 import { PoolID } from './types';
 import { getToken1Id, poolIdToAddress, getToken0Id } from './utils/auxiliaryFunctions';
+import { uint32beInv } from './utils/bigEndian';
 
 export class DexEndpoint extends BaseEndpoint {
 
@@ -50,5 +51,12 @@ export class DexEndpoint extends BaseEndpoint {
         const address = poolIdToAddress(poolId);
         const tokenId = getToken0Id(poolId);
         return tokenMethod.getLockedAmount(methodContext, address, tokenId, MODULE_ID_DEX.toString());
+    };
+
+    public getFeeTier(poolId: PoolID): number {
+        const _buffer: Buffer = poolId.slice(-4);
+        const _hexBuffer: string = _buffer.toString('hex');
+
+        return uint32beInv(_hexBuffer);
     };
 }

@@ -63,6 +63,8 @@ import {
 	getToken1AmountResponseSchema,
 	getToken0AmountRequestSchema,
 	getToken0AmountResponseSchema,
+	getFeeTierResponseSchema,
+	getFeeTierResquestSchema
 } from './schemas';
 
 export class DexModule extends BaseModule {
@@ -146,7 +148,12 @@ export class DexModule extends BaseModule {
 					name: this.endpoint.getToken0Amount.name,
 					request: getToken0AmountRequestSchema,
 					response: getToken0AmountResponseSchema,
-				}
+				},
+				{
+					name: this.endpoint.getFeeTier.name,
+					request: getFeeTierResquestSchema,
+					response: getFeeTierResponseSchema,
+				},
 			],
 			commands: this.commands.map(command => ({
 				name: command.name,
