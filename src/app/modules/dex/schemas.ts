@@ -484,3 +484,27 @@ export const getAllPoolIdsResponseSchema = {
 		PoolID:Buffer
 	},
 };
+
+export const getToken0AmountResponseSchema = {
+	$id: 'dex/getToken0Amount',
+	type: 'object',
+	required: ['poolID'],
+	properties: {
+		poolID: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		}
+	}
+}
+
+export const getToken0AmountRequestSchema = {
+	$id: 'dex/getToken0Amount',
+	type: 'object',
+	required: ['token0Amount'],
+	properties: {
+		Token1Amount: {
+			dataType: 'uint64',
+			fieldNumber: 1,
+		}
+	}
+}
