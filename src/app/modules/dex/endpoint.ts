@@ -13,8 +13,10 @@
  */
 
 import { BaseEndpoint, MethodContext } from 'lisk-sdk';
+import { NUM_BYTES_ADDRESS, NUM_BYTES_POSITION_ID } from './constants';
 import { PoolsStore } from './stores';
-import { PoolID } from './types';
+import { PoolID, PositionID } from './types';
+import { uint32beInv } from './utils/bigEndian';
 
 export class DexEndpoint extends BaseEndpoint {
 
@@ -29,4 +31,10 @@ export class DexEndpoint extends BaseEndpoint {
 			}
 			return poolIds;
 	}
+
+    public getPositionIndex(positionId: PositionID): number{
+        const _buffer: Buffer = positionId.slice(-(2 * (NUM_BYTES_POSITION_ID-NUM_BYTES_ADDRESS)));
+        const _hexBuffer: string = _buffer.toString('hex');   
+        return uint32beInv(_hexBuffer);
+    };
 }

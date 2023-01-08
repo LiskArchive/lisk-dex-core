@@ -208,5 +208,9 @@ describe('dex: offChainEndpointFunctions', () => {
 				);
 			});
 		});
+
+		it('getPositionIndex', () => {
+			expect(endpoint.getPositionIndex(positionId)).toBe(1);
+		});
 	});
 });

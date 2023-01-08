@@ -484,3 +484,27 @@ export const getAllPoolIdsResponseSchema = {
 		PoolID:Buffer
 	},
 };
+
+export const ggetPositionIndexResquestSchema = {
+	$id: 'dex/getPositionIndex',
+	type: 'object',
+	required: ['positionId'],
+	properties: {
+		positionId: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		}
+	},
+};
+
+export const getPositionIndexResponseSchema = {
+	$id: 'dex/getPositionIndex',
+	type: 'object',
+	required: ['positionIndex'],
+	properties: {
+		positionIndex: {
+			dataType: 'unit32',
+			fieldNumber: 1,
+		}
+	},
+};
