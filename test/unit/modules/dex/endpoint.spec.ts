@@ -108,11 +108,11 @@ describe('dex: offChainEndpointFunctions', () => {
 
 	const dexGlobalStoreData: DexGlobalStoreData = {
 		positionCounter: BigInt(15),
-		collectableLSKFees: BigInt(10),
 		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
 		incentivizedPools: [{ poolId, multiplier: 10 }],
 		totalIncentivesMultiplier: 1,
 	};
+
 	const positionsStoreData: PositionsStoreData = {
 		tickLower: -10,
 		tickUpper: 10,
@@ -120,6 +120,7 @@ describe('dex: offChainEndpointFunctions', () => {
 		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(0))),
 		ownerAddress: senderAddress,
+		incentivesPerLiquidityLast: q96ToBytes(numberToQ96(BigInt(0))),
 	};
 
 	const settingStoreData: SettingsStoreData = {
@@ -219,5 +220,10 @@ describe('dex: offChainEndpointFunctions', () => {
 				expect(endpoint.getFeeTier(poolId)).toEqual(feeTier);
 			});
 		});
+	});
+	it('getPoolIDFromTickID', () => {
+		expect(
+			endpoint.getPoolIDFromTickID(Buffer.from('000000010000000001016431308000000a', 'hex')),
+		).toStrictEqual(Buffer.from('00000001000000000101643130800000', 'hex'));
 	});
 });

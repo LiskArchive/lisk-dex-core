@@ -14,6 +14,7 @@
 
 import { BaseEndpoint, MethodContext, TokenMethod } from 'lisk-sdk';
 import { MODULE_ID_DEX } from './constants';
+import { NUM_BYTES_POOL_ID } from './constants';
 import { PoolsStore } from './stores';
 import { PoolID } from './types';
 import { getToken0Id, poolIdToAddress } from './utils/auxiliaryFunctions';
@@ -49,4 +50,6 @@ export class DexEndpoint extends BaseEndpoint {
 
         return uint32beInv(_hexBuffer);
     };
+
+    public async getPoolIDFromTickID(tickID: Buffer) { tickID.slice(0, NUM_BYTES_POOL_ID) }
 }

@@ -43,7 +43,15 @@ import { RemoveLiquidityEvent } from './events/removeLiquidity';
 import { RemoveLiquidityCommand } from './commands/removeLiquidity';
 import { SwapFailedEvent } from './events/swapFailed';
 import { SwappedEvent } from './events/swapped';
-import { getAllPoolIdsRequestSchema, getAllPoolIdsResponseSchema, getToken0AmountRequestSchema, getToken0AmountResponseSchema } from './schemas';
+import {
+	getAllPoolIdsRequestSchema,
+	getAllPoolIdsResponseSchema,
+	getToken0AmountRequestSchema,
+	getToken0AmountResponseSchema,
+	getPoolIDFromTickIDRequestSchema,
+	getFeeTierResquestSchema,
+	getFeeTierResponseSchema
+} from './schemas';
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
@@ -92,7 +100,7 @@ export class DexModule extends BaseModule {
 
 	public metadata(): ModuleMetadata {
 		return {
-			name: this.name,
+			stores: [],
 			endpoints: [
 				{
 					name: this.endpoint.getAllPoolIDs.name,
@@ -109,6 +117,11 @@ export class DexModule extends BaseModule {
 					request: getFeeTierResquestSchema,
 					response: getFeeTierResponseSchema,
 				},
+				{
+					name: this.endpoint.getPoolIDFromTickID.name,
+					request: getPoolIDFromTickIDRequestSchema,
+					response: getPoolIDFromTickIDRequestSchema,
+				}
 			],
 			commands: this.commands.map(command => ({
 				name: command.name,

@@ -516,7 +516,7 @@ export const getFeeTierResquestSchema = {
 		poolId: {
 			dataType: 'bytes',
 			fieldNumber: 1,
-		}
+		},
 	},
 };
 
@@ -527,6 +527,30 @@ export const getFeeTierResponseSchema = {
 	properties: {
 		feeTier: {
 			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+	},
+};
+
+export const getPoolIDFromTickIDRequestSchema = {
+	$id: 'dex/getPoolIDFromTickID',
+	type: 'object',
+	required: ['tickID'],
+	properties: {
+		tickID: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		}
+	},
+};
+
+export const getPoolIDFromTickIDResponseSchema = {
+	$id: 'dex/getPoolIDFromTickID',
+	type: 'object',
+	required: ['poolId'],
+	properties: {
+		poolId: {
+			dataType: 'bytes',
 			fieldNumber: 1,
 		}
 	},
