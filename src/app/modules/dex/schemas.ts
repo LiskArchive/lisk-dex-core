@@ -610,12 +610,36 @@ export const getToken1AmountResponseSchema = {
             fieldNumber: 1,
         }
     }
+};
+
+export const getToken0AmountResponseSchema = {
+    $id: 'dex/getToken0Amount',
+    type: 'object',
+    required: ['poolID'],
+    properties: {
+        poolID: {
+            dataType: 'bytes',
+            fieldNumber: 1,
+        }
+    }
 }
 
 export const getToken1AmountRequestSchema = {
     $id: 'dex/getToken1Amount',
     type: 'object',
     required: ['token1Amount'],
+    properties: {
+        Token1Amount: {
+            dataType: 'uint64',
+            fieldNumber: 1,
+        }
+    }
+}
+
+export const getToken0AmountRequestSchema = {
+    $id: 'dex/getToken0Amount',
+    type: 'object',
+    required: ['token0Amount'],
     properties: {
         Token1Amount: {
             dataType: 'uint64',

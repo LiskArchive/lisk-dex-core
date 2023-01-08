@@ -77,7 +77,7 @@ describe('dex: offChainEndpointFunctions', () => {
 	const getAvailableBalanceMock = jest.fn().mockReturnValue(BigInt(250));
 	const lockedAmountMock = jest.fn().mockReturnValue(BigInt(5));
 
-	
+
 
 	const poolsStoreData: PoolsStoreData = {
 		liquidity: BigInt(5),
@@ -198,9 +198,9 @@ describe('dex: offChainEndpointFunctions', () => {
 			tokenMethod.unlock = unlockMock;
 			tokenMethod.getAvailableBalance = getAvailableBalanceMock.mockReturnValue(BigInt(250));
 			tokenMethod.getLockedAmount = lockedAmountMock.mockReturnValue(BigInt(5));
-			
+
 		});
-		
+
 		it('getAllPoolIDs', async () => {
 			await endpoint.getAllPoolIDs(methodContext, dexModule.stores.get(PoolsStore)).then(res => {
 				expect(res[0]).toStrictEqual(
@@ -211,6 +211,12 @@ describe('dex: offChainEndpointFunctions', () => {
 
 		it('getToken1Amount', async () => {
 			await endpoint.getToken1Amount(tokenMethod, methodContext, poolId).then(res => {
+				expect(res).toBe(BigInt(5));
+			});
+		});
+
+		it('getToken0Amount', async () => {
+			await endpoint.getToken0Amount(tokenMethod, methodContext, poolId).then(res => {
 				expect(res).toBe(BigInt(5));
 			});
 		});

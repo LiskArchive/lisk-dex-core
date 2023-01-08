@@ -56,7 +56,14 @@ import { priceTicksStoreSchema } from './stores/priceTicksStore';
 import { settingsStoreSchema } from './stores/settingsStore';
 import { SwapFailedEvent } from './events/swapFailed';
 import { SwappedEvent } from './events/swapped';
-import { getAllPoolIdsRequestSchema, getAllPoolIdsResponseSchema, getToken1AmountRequestSchema, getToken1AmountResponseSchema } from './schemas';
+import {
+	getAllPoolIdsRequestSchema,
+	getAllPoolIdsResponseSchema,
+	getToken1AmountRequestSchema,
+	getToken1AmountResponseSchema,
+	getToken0AmountRequestSchema,
+	getToken0AmountResponseSchema,
+} from './schemas';
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
@@ -135,6 +142,11 @@ export class DexModule extends BaseModule {
 					request: getToken1AmountRequestSchema,
 					response: getToken1AmountResponseSchema,
 				},
+				{
+					name: this.endpoint.getToken0Amount.name,
+					request: getToken0AmountRequestSchema,
+					response: getToken0AmountResponseSchema,
+				}
 			],
 			commands: this.commands.map(command => ({
 				name: command.name,
