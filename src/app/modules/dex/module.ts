@@ -56,7 +56,7 @@ import { priceTicksStoreSchema } from './stores/priceTicksStore';
 import { settingsStoreSchema } from './stores/settingsStore';
 import { SwapFailedEvent } from './events/swapFailed';
 import { SwappedEvent } from './events/swapped';
-import { getAllPoolIdsRequestSchema, getAllPoolIdsResponseSchema } from './schemas';
+import { getAllPoolIdsRequestSchema, getAllPoolIdsResponseSchema, getToken1AmountRequestSchema, getToken1AmountResponseSchema } from './schemas';
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
@@ -124,11 +124,18 @@ export class DexModule extends BaseModule {
 					data: settingsStoreSchema,
 				},
 			],
-			endpoints: [{
-				name: this.endpoint.getAllPoolIDs.name,
-				request: getAllPoolIdsRequestSchema,
-				response: getAllPoolIdsResponseSchema,
-			}],
+			endpoints: [
+				{
+					name: this.endpoint.getAllPoolIDs.name,
+					request: getAllPoolIdsRequestSchema,
+					response: getAllPoolIdsResponseSchema,
+				},
+				{
+					name: this.endpoint.getToken1Amount.name,
+					request: getToken1AmountRequestSchema,
+					response: getToken1AmountResponseSchema,
+				},
+			],
 			commands: this.commands.map(command => ({
 				name: command.name,
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
