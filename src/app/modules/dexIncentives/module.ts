@@ -105,7 +105,7 @@ export class DexIncentivesModule extends BaseModule {
 			TOKEN_ID_DEX_NATIVE,
 			BLOCK_INCENTIVE_LIQUIDITY_PROVIDERS,
 		);
-		const liquidityIncentive = getLiquidityIncentivesAtHeight(context.header.height);
+		// const liquidityIncentive = getLiquidityIncentivesAtHeight(context.header.height);
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
 		const { validators } = await this._validatorsMethod.getValidatorsParams(methodContext);
