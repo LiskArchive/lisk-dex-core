@@ -31,7 +31,7 @@ import {
 } from './constants';
 
 import { DexIncentivesEndpoint } from './endpoint';
-import { GeneratorIncentiveMintedEvent, validatorIncentivesPayout } from './events';
+import { validatorIncentivesPayout } from './events';
 
 import { DexIncentivesMethod } from './method';
 import {
@@ -55,7 +55,6 @@ export class DexIncentivesModule extends BaseModule {
 			validatorIncentivesPayout,
 			new validatorIncentivesPayout(this.name),
 		);
-		this.events.register(GeneratorIncentiveMintedEvent, new GeneratorIncentiveMintedEvent(this.name));
 	}
 
 	public metadata(): ModuleMetadata {
@@ -106,13 +105,13 @@ export class DexIncentivesModule extends BaseModule {
 		const liquidityIncentive = getLiquidityIncentivesAtHeight(context.header.height);
 		await this._tokenMethod.mint(
 			methodContext,
-			ADDRESS_TRADER_INCENTIVES,
+			ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
 			TOKEN_ID_DEX_NATIVE,
 			liquidityIncentive,
 		);
 		await this._tokenMethod.lock(
 			methodContext,
-			ADDRESS_TRADER_INCENTIVES,
+			ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
 			MODULE_NAME_DEX,
 			TOKEN_ID_DEX_NATIVE,
 			liquidityIncentive,
