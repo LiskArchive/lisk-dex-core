@@ -56,6 +56,10 @@ import {
 	getTickWithPoolIdAndTickValueResponseSchema,
 	getTickWithTickIdRequestSchema,
 	getTickWithTickIdResponseSchema,
+	getLSKPriceRequestSchema,
+	getLSKPriceResponseSchema,
+	getTVLRequestSchema,
+	getTVLResponseSchema,
 } from './schemas';
 
 export class DexModule extends BaseModule {
@@ -174,6 +178,16 @@ export class DexModule extends BaseModule {
 					name: this.endpoint.getTickWithPoolIdAndTickValue.name,
 					request: getTickWithPoolIdAndTickValueRequestSchema,
 					response: getTickWithPoolIdAndTickValueResponseSchema,
+				},
+				{
+					name: this.endpoint.getLSKPrice.name,
+					request: getLSKPriceRequestSchema,
+					response: getLSKPriceResponseSchema,
+				},
+				{
+					name: this.endpoint.getTVL.name,
+					request: getTVLRequestSchema,
+					response: getTVLResponseSchema,
 				},
 			],
 			commands: this.commands.map(command => ({

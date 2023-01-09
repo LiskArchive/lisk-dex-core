@@ -884,3 +884,77 @@ export const getToken0AmountRequestSchema = {
 	}
 }
 
+
+export const getLSKPriceResponseSchema = {
+	$id: 'dex/getLSKPrice',
+	type: 'object',
+	required: ['tokenMethod','methodContext','stores','tokenId'],
+	properties: {
+		tokenMethod: {
+			dataType: 'object',
+			fieldNumber: 1,
+		},
+		methodContext: {
+			dataType: 'object',
+			fieldNumber: 2,
+		},
+		stores: {
+			dataType: 'object',
+			fieldNumber: 3,
+		},
+		tokenId: {
+			dataType: 'bytes',
+			fieldNumber: 4,
+		},
+
+	}
+}
+
+export const getLSKPriceRequestSchema = {
+	$id: 'dex/getLSKPrice',
+	type: 'object',
+	required: ['lskPrice'],
+	properties: {
+		lskPrice: {
+			dataType: 'uint64',
+			fieldNumber: 1,
+		}
+	}
+}
+
+export const getTVLResponseSchema = {
+	$id: 'dex/getTVL',
+	type: 'object',
+	required: ['tokenMethod', 'methodContext', 'stores', 'poolId'],
+	properties: {
+		tokenMethod: {
+			dataType: 'object',
+			fieldNumber: 1,
+		},
+		methodContext: {
+			dataType: 'object',
+			fieldNumber: 2,
+		},
+		stores: {
+			dataType: 'object',
+			fieldNumber: 3,
+		},
+		poolId: {
+			dataType: 'bytes',
+			fieldNumber: 4,
+		},
+
+	}
+}
+
+export const getTVLRequestSchema = {
+	$id: 'dex/getTVL',
+	type: 'object',
+	required: ['tvl'],
+	properties: {
+		tvl: {
+			dataType: 'uint64',
+			fieldNumber: 1,
+		}
+	}
+}

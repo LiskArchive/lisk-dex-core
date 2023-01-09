@@ -112,3 +112,13 @@ export interface InteroperabilityMethod {
 }
 
 export type TickID = Buffer;
+
+export type routeInterface = {
+	path: TokenID[];
+	endVertex: TokenID;
+};
+
+export type AdjacentEdgesInterface = {
+	edge: Buffer;
+	vertex: Buffer;
+};

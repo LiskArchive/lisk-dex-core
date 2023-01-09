@@ -19,9 +19,9 @@ import { NUM_BYTES_ADDRESS, NUM_BYTES_POSITION_ID } from './constants';
 import { PoolsStore, PriceTicksStore } from './stores';
 import { PoolID, PositionID, Q96, TickID, TokenID } from './types';
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
-import { getPoolIDFromPositionID, getToken0Id, getToken1Id, poolIdToAddress } from './utils/auxiliaryFunctions';
+import { computeExceptionalRoute, computeRegularRoute, getCredibleDirectPrice, getPoolIDFromPositionID, getToken0Id, getToken1Id, poolIdToAddress } from './utils/auxiliaryFunctions';
 import { PoolsStoreData } from './stores/poolsStore';
-import { addQ96, bytesToQ96, divQ96, invQ96, mulQ96, roundDownQ96 } from './utils/q96';
+import { addQ96, bytesToQ96, divQ96, invQ96, roundDownQ96, mulQ96 } from './utils/q96';
 import { DexGlobalStore, DexGlobalStoreData } from './stores/dexGlobalStore';
 import { PositionsStore, PositionsStoreData } from './stores/positionsStore';
 import { PriceTicksStoreData, tickToBytes } from './stores/priceTicksStore';
@@ -184,12 +184,12 @@ export class DexEndpoint extends BaseEndpoint {
         return uint32beInv(_hexBuffer);
     };
 
-	export const getTVL = async (
+	public async getTVL(
 		tokenMethod: TokenMethod,
 		methodContext: MethodContext,
 		stores: NamedRegistry,
 		poolId: PoolID,
-	): Promise<bigint> => {
+	): Promise<bigint>{
 		const pool = await this.getPool(methodContext, stores, poolId);
 		const token1Amount = await this.getToken1Amount(tokenMethod, methodContext, poolId);
 		const token0Amount = await this.getToken0Amount(tokenMethod, methodContext, poolId);
@@ -216,13 +216,53 @@ export class DexEndpoint extends BaseEndpoint {
 		}
 	
 		const value0Q96 = mulQ96(
-			await getLSKPrice(tokenMethod, methodContext, stores, token0Id),
+			await this.getLSKPrice(tokenMethod, methodContext, stores, token0Id),
 			BigInt(token0Amount),
 		);
 		const value1Q96 = mulQ96(
-			await getLSKPrice(tokenMethod, methodContext, stores, token1Id),
+			await this.getLSKPrice(tokenMethod, methodContext, stores, token1Id),
 			BigInt(token1Amount),
 		);
 		return roundDownQ96(addQ96(value0Q96, value1Q96));
+	};
+
+	public async getLSKPrice(
+		tokenMethod: TokenMethod,
+		methodContext: MethodContext,
+		stores: NamedRegistry,
+		tokenId: TokenID,
+	): Promise<bigint>{
+		let tokenRoute = await computeRegularRoute(methodContext, stores, tokenId, TOKEN_ID_LSK);
+		let price = BigInt(1);
+		
+		if (tokenRoute.length === 0) {
+			tokenRoute = await computeExceptionalRoute(methodContext, stores, tokenId, TOKEN_ID_LSK);
+		}
+		if (tokenRoute.length === 0) {
+			throw new Error('No swap route between LSK and the given token');
+		}
+	
+		let tokenIn = tokenRoute[0];
+		
+		for (const rt of tokenRoute) {
+			const credibleDirectPrice = await getCredibleDirectPrice(
+				tokenMethod,
+				methodContext,
+				stores,
+				tokenIn,
+				rt,
+			);
+	
+			const tokenIDArrays = [tokenIn, rt];
+			const [tokenID0,tokenID1] = tokenIDArrays.sort();
+					
+			if (tokenIn.equals(tokenID0) && rt.equals(tokenID1)) {
+				price = mulQ96(BigInt(1), credibleDirectPrice);
+			} else if(tokenIn.equals(tokenID1) && rt.equals(tokenID0)) {
+				price = divQ96(BigInt(1), credibleDirectPrice);
+			}
+			tokenIn = rt;
+		}
+		return price;
 	};
 }
