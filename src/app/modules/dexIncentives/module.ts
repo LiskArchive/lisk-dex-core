@@ -21,6 +21,7 @@ import {
 	RandomMethod,
 	TokenMethod,
 	ValidatorsMethod,
+	PoSMethod
 } from 'lisk-sdk';
 import {
 	ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
@@ -45,6 +46,7 @@ export class DexIncentivesModule extends BaseModule {
 	public _randomMethod!: RandomMethod;
 	public _validatorsMethod!: ValidatorsMethod;
 	public _feeMethod!: FeeMethod;
+	public _posMethod!: PoSMethod;
 
 	public commands = [];
 
@@ -76,12 +78,14 @@ export class DexIncentivesModule extends BaseModule {
 		tokenMethod: TokenMethod,
 		validatorsMethod: ValidatorsMethod,
 		randomMethod: RandomMethod,
-		feeMethod: FeeMethod
+		feeMethod: FeeMethod,
+		posMethod: PoSMethod
 	) {
 		this._tokenMethod = tokenMethod;
 		this._validatorsMethod = validatorsMethod;
 		this._randomMethod = randomMethod;
 		this._feeMethod = feeMethod;
+		this._posMethod = posMethod;
 	}
 
 	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
@@ -111,6 +115,7 @@ export class DexIncentivesModule extends BaseModule {
 				validators,
 				methodContext,
 				this._tokenMethod,
+				this._posMethod,
 				this.events
 			);
 		}

@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { TokenMethod } from 'lisk-sdk';
+import { PoSMethod, TokenMethod } from 'lisk-sdk';
 import { MODULE_NAME_DEX } from '../../dex/constants';
 import { divQ96, mulQ96, numberToQ96, roundDownQ96 } from '../../dex/utils/q96';
 import {
@@ -28,6 +28,7 @@ export const transferAllValidatorLSKIncentives = async (
 	validators,
 	methodContext,
 	tokenMethod: TokenMethod,
+	posMethod: PoSMethod,
 	events
 ) => {
 	let availableIncentives = await tokenMethod.getLockedAmount(
@@ -56,6 +57,7 @@ export const transferAllValidatorLSKIncentives = async (
 				await transferValidatorIncentives(
 					methodContext,
 					tokenMethod,
+					posMethod,
 					ADDRESS_VALIDATOR_INCENTIVES,
 					BigInt(standByShare),
 					events
@@ -70,6 +72,7 @@ export const transferAllValidatorLSKIncentives = async (
 				await transferValidatorIncentives(
 					methodContext,
 					tokenMethod,
+					posMethod,
 					ADDRESS_VALIDATOR_INCENTIVES,
 					share,
 					events
@@ -90,6 +93,7 @@ export const transferAllValidatorLSKIncentives = async (
 export const transferValidatorIncentives = async (
 	methodContext,
 	tokenMethod: TokenMethod,
+	posMethod: PoSMethod,
 	validatorAddress: Address,
 	amount: bigint,
 	events
@@ -101,6 +105,7 @@ export const transferValidatorIncentives = async (
 		TOKEN_ID_LSK,
 		amount
 	);
+	posMethod.updateSharedRewards(methodContext, validatorAddress, TOKEN_ID_LSK, amount);
 	events.get(validatorIncentivesPayout).add(
 		methodContext,
 		{
