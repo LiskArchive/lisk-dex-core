@@ -20,7 +20,7 @@ import {
 	NUM_BYTES_TICK_ID,
 } from './constants';
 
-export const settingsSchema = {
+export const globalDataSchema = {
 	$id: '/dex/settings',
 	type: 'object',
 	required: [
@@ -325,6 +325,42 @@ export const createPoolSchema = {
 			fieldNumber: 6,
 		},
 	},
+};
+
+export const priceTickSchema = {
+	"type": "object",
+	"required": [
+		"liquidityNet",
+		"liquidityGross",
+		"feeGrowthOutside0",
+		"feeGrowthOutside1",
+		"incentivesPerLiquidityOutside"
+	],
+	"properties": {
+		"liquidityNet": {
+			"dataType": "sint64",
+			"fieldNumber": 1
+		},
+		"liquidityGross": {
+			"dataType": "uint64",
+			"fieldNumber": 2
+		},
+		"feeGrowthOutside0": {
+			"dataType": "bytes",
+			"maxLength": MAX_NUM_BYTES_Q96,
+			"fieldNumber": 3
+		},
+		"feeGrowthOutside1": {
+			"dataType": "bytes",
+			"maxLength": MAX_NUM_BYTES_Q96,
+			"fieldNumber": 4
+		},
+		"incentivesPerLiquidityOutside": {
+			"dataType": "bytes",
+			"maxLength": MAX_NUM_BYTES_Q96,
+			"fieldNumber": 5
+		}
+	}
 };
 
 export const createPositionSchema = {
