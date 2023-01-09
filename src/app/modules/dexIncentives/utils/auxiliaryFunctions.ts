@@ -48,7 +48,7 @@ export const transferAllValidatorLSKIncentives = async (
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 		let totalWeight = BigInt(0);
-		const standByShare = availableIncentives / BigInt(validators.length);
+		const standByShare = Math.floor(Number(availableIncentives / BigInt(validators.length)));
 		await validators.forEach(async validator => {
 			totalWeight += validator.bftWeight;
 			if (validator.bftWeight === BigInt(0)) {
