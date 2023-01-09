@@ -14,14 +14,14 @@
 
 import { BaseEndpoint, MethodContext, TokenMethod } from 'lisk-sdk';
 
-import { MODULE_ID_DEX, NUM_BYTES_POOL_ID } from './constants';
+import { MODULE_ID_DEX, NUM_BYTES_POOL_ID, TOKEN_ID_LSK } from './constants';
 import { NUM_BYTES_ADDRESS, NUM_BYTES_POSITION_ID } from './constants';
 import { PoolsStore, PriceTicksStore } from './stores';
 import { PoolID, PositionID, Q96, TickID, TokenID } from './types';
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { getPoolIDFromPositionID, getToken0Id, getToken1Id, poolIdToAddress } from './utils/auxiliaryFunctions';
 import { PoolsStoreData } from './stores/poolsStore';
-import { bytesToQ96, invQ96 } from './utils/q96';
+import { addQ96, bytesToQ96, divQ96, invQ96, mulQ96, roundDownQ96 } from './utils/q96';
 import { DexGlobalStore, DexGlobalStoreData } from './stores/dexGlobalStore';
 import { PositionsStore, PositionsStoreData } from './stores/positionsStore';
 import { PriceTicksStoreData, tickToBytes } from './stores/priceTicksStore';
@@ -146,9 +146,7 @@ export class DexEndpoint extends BaseEndpoint {
 			throw new Error('No tick with the specified poolId and tickValue');
 		} else {
 			return priceTicksStoreData;
-		}  
-
-    
+		}      
 	}
 
 	public async getToken1Amount(
@@ -185,4 +183,46 @@ export class DexEndpoint extends BaseEndpoint {
         const _hexBuffer: string = _buffer.toString('hex');   
         return uint32beInv(_hexBuffer);
     };
+
+	export const getTVL = async (
+		tokenMethod: TokenMethod,
+		methodContext: MethodContext,
+		stores: NamedRegistry,
+		poolId: PoolID,
+	): Promise<bigint> => {
+		const pool = await this.getPool(methodContext, stores, poolId);
+		const token1Amount = await this.getToken1Amount(tokenMethod, methodContext, poolId);
+		const token0Amount = await this.getToken0Amount(tokenMethod, methodContext, poolId);
+		const token0Id = getToken0Id(poolId);
+		const token1Id = getToken1Id(poolId);
+	
+		if (getToken0Id(poolId).equals(TOKEN_ID_LSK)) {
+			const token1ValueQ96 = divQ96(
+				divQ96(BigInt(token1Amount), bytesToQ96(pool.sqrtPrice)),
+				bytesToQ96(pool.sqrtPrice),
+			);
+			return (
+				roundDownQ96(token1ValueQ96) + (await this.getToken0Amount(tokenMethod, methodContext, poolId))
+			);
+		}
+		if (getToken1Id(poolId).equals(TOKEN_ID_LSK)) {
+			const token0ValueQ96 = mulQ96(
+				mulQ96(BigInt(token0Amount), bytesToQ96(pool.sqrtPrice)),
+				bytesToQ96(pool.sqrtPrice),
+			);
+			return (
+				roundDownQ96(token0ValueQ96) + (await this.getToken1Amount(tokenMethod, methodContext, poolId))
+			);
+		}
+	
+		const value0Q96 = mulQ96(
+			await getLSKPrice(tokenMethod, methodContext, stores, token0Id),
+			BigInt(token0Amount),
+		);
+		const value1Q96 = mulQ96(
+			await getLSKPrice(tokenMethod, methodContext, stores, token1Id),
+			BigInt(token1Amount),
+		);
+		return roundDownQ96(addQ96(value0Q96, value1Q96));
+	};
 }
