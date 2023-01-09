@@ -54,6 +54,7 @@ describe('dex: offChainEndpointFunctions', () => {
 	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
 	const dexModule = new DexModule();
 	const feeTier = Number('0x00000c8');
+	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
 
 	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
@@ -150,8 +151,12 @@ describe('dex: offChainEndpointFunctions', () => {
 				[senderAddress, getPoolIDFromPositionID(positionId)],
 				poolsStoreData,
 			);
-			await poolsStore.set(methodContext, getPoolIDFromPositionID(positionId), poolsStoreData);
 
+
+			await poolsStore.setKey(methodContext, [poolId], poolsStoreData);
+			await poolsStore.setKey(methodContext, [poolIdLSK], poolsStoreData);
+			await poolsStore.set(methodContext, poolIdLSK, poolsStoreData);
+			await poolsStore.set(methodContext, getPoolIDFromPositionID(positionId), poolsStoreData);
 			await priceTicksStore.setKey(
 				methodContext,
 				[getPoolIDFromPositionID(positionId), tickToBytes(positionsStoreData.tickLower)],

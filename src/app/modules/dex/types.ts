@@ -103,3 +103,8 @@ export type PoolsGraph = {
 	vertices: Set<TokenID>;
 	edges: Set<PoolID>;
 };
+
+export type routeInterface = {
+	path: TokenID[];
+	endVertex: TokenID;
+};

@@ -67,7 +67,21 @@ import {
 	getFeeTierResquestSchema,
 	getPoolIDFromTickIDRequestSchema,
 	getPositionIndexResponseSchema,
-	getPositionIndexResquestSchema
+	getPositionIndexResquestSchema,
+	getAllPositionIDsInPoolRequestSchema,
+	getAllPositionIDsInPoolResponseSchema,
+	getCurrentSqrtPriceRequestSchema,
+	getCurrentSqrtPriceResponseSchema,
+	getDexGlobalDataRequestSchema,
+	getDexGlobalDataResponseSchema,
+	getPoolRequestSchema,
+	getPoolResponseSchema,
+	getTickWithPoolIdAndTickValueRequestSchema,
+	getTickWithPoolIdAndTickValueResponseSchema,
+	getTickWithTickIdRequestSchema,
+	getTickWithTickIdResponseSchema,
+	getLSKPriceRequestSchema,
+	getLSKPriceResponseSchema,
 } from './schemas';
 
 export class DexModule extends BaseModule {
@@ -166,6 +180,51 @@ export class DexModule extends BaseModule {
 					name: this.endpoint.getPositionIndex.name,
 					request: getPositionIndexResquestSchema,
 					response: getPositionIndexResponseSchema,
+				},
+				{
+					name: this.endpoint.getAllTokenIDs.name,
+					request: getAllPoolIdsRequestSchema,
+					response: getAllPoolIdsResponseSchema,
+				},
+				{
+					name: this.endpoint.getAllPositionIDsInPool.name,
+					request: getAllPositionIDsInPoolRequestSchema,
+					response: getAllPositionIDsInPoolResponseSchema,
+				},
+				{
+					name: this.endpoint.getPool.name,
+					request: getPoolResponseSchema,
+					response: getPoolRequestSchema,
+				},
+				{
+					name: this.endpoint.getCurrentSqrtPrice.name,
+					request: getCurrentSqrtPriceRequestSchema,
+					response: getCurrentSqrtPriceResponseSchema,
+				},
+				{
+					name: this.endpoint.getDexGlobalData.name,
+					request: getDexGlobalDataRequestSchema,
+					response: getDexGlobalDataResponseSchema,
+				},
+				{
+					name: this.endpoint.getPosition.name,
+					request: getDexGlobalDataRequestSchema,
+					response: getDexGlobalDataResponseSchema,
+				},
+				{
+					name: this.endpoint.getTickWithTickId.name,
+					request: getTickWithTickIdRequestSchema,
+					response: getTickWithTickIdResponseSchema,
+				},
+				{
+					name: this.endpoint.getTickWithPoolIdAndTickValue.name,
+					request: getTickWithPoolIdAndTickValueRequestSchema,
+					response: getTickWithPoolIdAndTickValueResponseSchema,
+				},
+				{
+					name: this.endpoint.getLSKPrice.name,
+					request: getLSKPriceRequestSchema,
+					response: getLSKPriceResponseSchema,
 				},
 			],
 			commands: this.commands.map(command => ({

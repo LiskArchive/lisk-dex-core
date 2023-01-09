@@ -719,3 +719,245 @@ export const getPositionIndexResponseSchema = {
         }
     },
 };
+
+export const getAllPositionIDsInPoolRequestSchema = {
+    $id: 'dex/getAllPositionIDs',
+    type: 'object',
+    required: ['poolId', 'positionIdsList'],
+    properties: {
+        poolId: {
+            dataType: 'buffer',
+            fieldNumber: 1,
+        },
+        positionIdsList: {
+            type: 'array',
+            fieldNumber: 1,
+            items: {
+                type: 'object',
+                required: ['positionID'],
+                properties: {
+                    positionID: {
+                        dataType: 'bytes',
+                        fieldNumber: 1,
+                    },
+                },
+            },
+        },
+    },
+};
+
+export const getAllPositionIDsInPoolResponseSchema = {
+    $id: 'dex/getAllPositionIDs',
+    type: 'object',
+    required: ['positionIdsList'],
+    properties: {
+        positionIdsList: {
+            type: 'array',
+            fieldNumber: 1,
+            items: {
+                type: 'object',
+                required: ['positionID'],
+                properties: {
+                    positionID: {
+                        dataType: 'bytes',
+                        fieldNumber: 1,
+                    },
+                },
+            },
+        },
+    },
+};
+
+export const getCurrentSqrtPriceRequestSchema = {
+    $id: 'dex/getCurrentSqrtPrice',
+    type: 'object',
+    required: ['stores', 'poolID', 'priceDirection'],
+    properties: {
+        stores: {
+            dataType: 'object',
+            fieldNumber: 1,
+        },
+        poolID: {
+            dataType: 'bytes',
+            fieldNumber: 2,
+        },
+        priceDirection: {
+            dataType: 'boolean',
+            fieldNumber: 3,
+        },
+    },
+};
+
+export const getCurrentSqrtPriceResponseSchema = {
+    $id: 'dex/getCurrentSqrtPrice',
+    type: 'object',
+    required: ['currentSqrtPrice'],
+    properties: {
+        currentSqrtPrice: {
+            dataType: 'uint64',
+            fieldNumber: 1,
+        },
+    },
+};
+
+export const getDexGlobalDataRequestSchema = {
+    $id: 'dex/getDexGlobalData',
+    type: 'object',
+    required: ['stores'],
+    properties: {
+        stores: {
+            dataType: 'object',
+            fieldNumber: 1,
+        },
+    },
+};
+
+export const getDexGlobalDataResponseSchema = {
+    $id: 'dex/getDexGlobalData',
+    type: 'object',
+    required: ['dexGlobalData'],
+    properties: {
+        dexGlobalData: {
+            dataType: 'object',
+            fieldNumber: 1,
+        },
+    },
+};
+
+export const getPoolResponseSchema = {
+    $id: 'dex/getPool',
+    type: 'object',
+    required: ['stores', 'poolID'],
+    properties: {
+        stores: {
+            dataType: 'object',
+            fieldNumber: 1,
+        },
+        poolID: {
+            dataType: 'bytes',
+            fieldNumber: 2,
+        },
+    },
+};
+
+export const getPoolRequestSchema = {
+    $id: 'dex/getPool',
+    type: 'object',
+    required: ['stores', 'poolID'],
+    properties: {
+        stores: {
+            dataType: 'object',
+            fieldNumber: 1,
+        },
+        poolID: {
+            dataType: 'bytes',
+            fieldNumber: 2,
+        },
+    },
+};
+
+export const getTickWithPoolIdAndTickValueRequestSchema = {
+    $id: 'dex/getTickWithPoolIdAndTickValue',
+    type: 'object',
+    required: ['stores', 'poolId', 'tickValue'],
+    properties: {
+        stores: {
+            dataType: 'object',
+            fieldNumber: 1,
+        },
+        poolId: {
+            dataType: 'bytes',
+            fieldNumber: 2,
+        },
+        tickValue: {
+            dataType: 'unit32',
+            fieldNumber: 3,
+        },
+    },
+};
+
+export const getTickWithPoolIdAndTickValueResponseSchema = {
+    $id: 'dex/getTickWithPoolIdAndTickValue',
+    type: 'object',
+    required: ['priceTicksStoreData'],
+    properties: {
+        priceTicksStoreData: {
+            dataType: 'object',
+            fieldNumber: 1,
+        },
+    },
+};
+
+export const getTickWithTickIdRequestSchema = {
+    $id: 'dex/getTickWithTickId',
+    type: 'object',
+    required: ['stores', 'tickIDs'],
+    properties: {
+        stores: {
+            dataType: 'object',
+            fieldNumber: 1,
+        },
+        tickIDs: {
+            type: 'array',
+            fieldNumber: 2,
+            items: {
+                type: 'object',
+                required: ['tickId'],
+                properties: {
+                    positionID: {
+                        dataType: 'bytes',
+                        fieldNumber: 1,
+                    },
+                },
+            },
+        },
+    },
+};
+
+export const getTickWithTickIdResponseSchema = {
+    $id: 'dex/getTickWithTickId',
+    type: 'object',
+    required: ['priceTicksStoreData'],
+    properties: {
+        priceTicksStoreData: {
+            dataType: 'object',
+            fieldNumber: 1,
+        },
+    },
+};
+
+export const getLSKPriceResponseSchema = {
+    $id: 'dex/getLSKPrice',
+    type: 'object',
+    required: ['tokenMethod', 'methodContext', 'stores', 'tokenId'],
+    properties: {
+        tokenMethod: {
+            dataType: 'object',
+            fieldNumber: 1,
+        },
+        methodContext: {
+            dataType: 'object',
+            fieldNumber: 2,
+        },
+        stores: {
+            dataType: 'object',
+            fieldNumber: 3,
+        },
+        tokenId: {
+            dataType: 'bytes',
+            fieldNumber: 4,
+        },
+    },
+};
+
+export const getLSKPriceRequestSchema = {
+    $id: 'dex/getLSKPrice',
+    type: 'object',
+    required: ['lskPrice'],
+    properties: {
+        lskPrice: {
+            dataType: 'uint64',
+            fieldNumber: 1,
+        },
+    },
+};
