@@ -53,6 +53,7 @@ describe('dex: offChainEndpointFunctions', () => {
 	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
 	const dexModule = new DexModule();
 	const feeTier = Number('0x00000c8');
+	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
 
 	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
@@ -147,8 +148,12 @@ describe('dex: offChainEndpointFunctions', () => {
 				[senderAddress, getPoolIDFromPositionID(positionId)],
 				poolsStoreData,
 			);
-			await poolsStore.set(methodContext, getPoolIDFromPositionID(positionId), poolsStoreData);
+			
 
+			await poolsStore.setKey(methodContext, [poolId], poolsStoreData);
+			await poolsStore.setKey(methodContext, [poolIdLSK], poolsStoreData);
+			await poolsStore.set(methodContext, poolIdLSK, poolsStoreData);
+			await poolsStore.set(methodContext, getPoolIDFromPositionID(positionId), poolsStoreData);
 			await priceTicksStore.setKey(
 				methodContext,
 				[getPoolIDFromPositionID(positionId), tickToBytes(positionsStoreData.tickLower)],
@@ -305,6 +310,22 @@ describe('dex: offChainEndpointFunctions', () => {
 			);
 			expect(tickWithPoolIdAndTickValue).not.toBeNull();
 			expect(tickWithPoolIdAndTickValue.liquidityNet).toBe(BigInt(5));
+		});
+
+		it('getLSKPrice', async () => {
+			const result = Buffer.alloc(4);
+			const feeTier = q96ToBytes(BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings.feeTier, 0)))
+			await poolsStore.setKey(methodContext, [getPoolIDFromPositionID(positionId),positionId,feeTier], poolsStoreData);
+			await poolsStore.setKey(methodContext, [poolIdLSK,poolIdLSK,feeTier], poolsStoreData);
+			await poolsStore.setKey(methodContext, [poolIdLSK,positionId,feeTier], poolsStoreData);
+			
+			const res = await endpoint.getLSKPrice(
+				tokenMethod,
+				methodContext,
+				dexModule.stores,
+				getPoolIDFromPositionID(positionId),				
+			);
+			expect(res).toBe(BigInt(1))
 		});
 	});
 });
