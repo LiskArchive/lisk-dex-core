@@ -945,11 +945,11 @@ export const computeExceptionalRoute = async (
 	while (routes.length > 0) {
 		const routeElement = routes.shift();
 		if (routeElement != null) {
-			if (routeElement?.endVertex.equals(tokenOut)) {
+			if (routeElement.endVertex.equals(tokenOut)) {
 				routeElement.path.push(tokenOut);
 				return routeElement.path;
 			}
-			const adjacent = await getAdjacent(methodContext, stores, routeElement?.endVertex);
+			const adjacent = await getAdjacent(methodContext, stores, routeElement.endVertex);
 			adjacent.forEach(adjacentEdge => {
 				if (visited.includes(adjacentEdge.vertex)) {
 					if (routeElement != null) {
