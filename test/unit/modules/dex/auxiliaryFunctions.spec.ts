@@ -74,6 +74,7 @@ import {
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
+import { getLSKPrice, getTVL } from '../../../../src/app/modules/dex/utils/offChainEndpoints';
 
 describe('dex:auxiliaryFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
@@ -181,6 +182,7 @@ describe('dex:auxiliaryFunctions', () => {
 				[senderAddress, getPoolIDFromPositionID(positionId)],
 				poolsStoreData,
 			);
+			
 
 			await poolsStore.setKey(methodContext, [poolId], poolsStoreData);
 			await poolsStore.setKey(methodContext, [poolIdLSK], poolsStoreData);
@@ -560,5 +562,33 @@ describe('dex:auxiliaryFunctions', () => {
 			expect(tickWithPoolIdAndTickValue).not.toBeNull();
 			expect(tickWithPoolIdAndTickValue.liquidityNet).toBe(BigInt(5));
 		});
+
+
+		it('getTVL', async () => {
+			const res = await getTVL(
+				tokenMethod,
+				methodContext,
+				dexModule.stores,
+				getPoolIDFromPositionID(positionId),				
+			);
+			expect(res).toBe(BigInt(5))
+		});
+
+		it('getLSKPrice', async () => {
+			const result = Buffer.alloc(4);
+			const feeTier = q96ToBytes(BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings.feeTier, 0)))
+			await poolsStore.setKey(methodContext, [getPoolIDFromPositionID(positionId),positionId,feeTier], poolsStoreData);
+			await poolsStore.setKey(methodContext, [poolIdLSK,poolIdLSK,feeTier], poolsStoreData);
+			await poolsStore.setKey(methodContext, [poolIdLSK,positionId,feeTier], poolsStoreData);
+			
+			const res = await getLSKPrice(
+				tokenMethod,
+				methodContext,
+				dexModule.stores,
+				getPoolIDFromPositionID(positionId),				
+			);
+			expect(res).toBe(BigInt(1))
+		});
+		
 	});
 });

@@ -329,7 +329,7 @@ export const getLSKPrice = async (
 ): Promise<bigint> => {
 	let tokenRoute = await computeRegularRoute(methodContext, stores, tokenId, TOKEN_ID_LSK);
 	let price = BigInt(1);
-
+	
 	if (tokenRoute.length === 0) {
 		tokenRoute = await computeExceptionalRoute(methodContext, stores, tokenId, TOKEN_ID_LSK);
 	}
@@ -338,6 +338,7 @@ export const getLSKPrice = async (
 	}
 
 	let tokenIn = tokenRoute[0];
+	
 	for (const rt of tokenRoute) {
 		const credibleDirectPrice = await getCredibleDirectPrice(
 			tokenMethod,
@@ -346,10 +347,14 @@ export const getLSKPrice = async (
 			tokenIn,
 			rt,
 		);
-		if (tokenIn < rt) {
-			price = mulQ96(price, credibleDirectPrice);
-		} else {
-			price = divQ96(price, credibleDirectPrice);
+
+		const tokenIDArrays = [tokenIn, rt];
+		const [tokenID0,tokenID1] = tokenIDArrays.sort();
+				
+		if (tokenIn.equals(tokenID0) && rt.equals(tokenID1)) {
+			price = mulQ96(BigInt(1), credibleDirectPrice);
+		} else if(tokenIn.equals(tokenID1) && rt.equals(tokenID0)) {
+			price = divQ96(BigInt(1), credibleDirectPrice);
 		}
 		tokenIn = rt;
 	}
