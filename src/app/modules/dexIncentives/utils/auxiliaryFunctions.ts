@@ -15,7 +15,7 @@
 
 import { TokenMethod } from 'lisk-sdk';
 import { MODULE_NAME_DEX } from '../../dex/constants';
-import { divQ96, mulQ96, roundDownQ96 } from '../../dex/utils/q96';
+import { divQ96, mulQ96, numberToQ96, roundDownQ96 } from '../../dex/utils/q96';
 import {
 	ADDRESS_VALIDATOR_INCENTIVES,
 	TOKEN_ID_LSK,
@@ -29,7 +29,7 @@ export const transferAllValidatorLSKIncentives = async (
 	methodContext,
 	tokenMethod: TokenMethod,
 ) => {
-	const availableIncentives = await tokenMethod.getLockedAmount(
+	let availableIncentives = await tokenMethod.getLockedAmount(
 		methodContext,
 		ADDRESS_VALIDATOR_INCENTIVES,
 		TOKEN_ID_LSK,
@@ -52,29 +52,31 @@ export const transferAllValidatorLSKIncentives = async (
 		await validators.forEach(async validator => {
 			totalWeight += validator.bftWeight;
 			if (validator.bftWeight === BigInt(0)) {
-				await tokenMethod.transfer(
+				await transferValidatorIncentives(
 					methodContext,
+					tokenMethod,
 					ADDRESS_VALIDATOR_INCENTIVES,
-					validator,
-					TOKEN_ID_LSK,
-					standByShare
+					standByShare,
+
 				);
+				availableIncentives -= BigInt(standByShare);
 			}
 		});
-		const incentivePerBFTWeight = divQ96(availableIncentives, totalWeight);
+		const incentivePerBFTWeight = divQ96(numberToQ96(availableIncentives), numberToQ96(totalWeight));
 		await validators.forEach(async validator => {
 			if (validator.bftWeight !== BigInt(0)) {
-				const share = roundDownQ96(mulQ96(incentivePerBFTWeight, validator.bftWeight));
-				await tokenMethod.transfer(
+				const share = roundDownQ96(mulQ96(incentivePerBFTWeight, numberToQ96(validator.bftWeight)));
+				await transferValidatorIncentives(
 					methodContext,
+					tokenMethod,
 					ADDRESS_VALIDATOR_INCENTIVES,
-					validator,
-					TOKEN_ID_LSK,
-					share
+					share,
+
 				);
+				availableIncentives -= share;
 			}
 		});
-		tokenMethod.unlock(
+		tokenMethod.lock(
 			methodContext,
 			ADDRESS_VALIDATOR_INCENTIVES,
 			MODULE_NAME_DEX,
