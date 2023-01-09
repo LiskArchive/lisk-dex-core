@@ -41,7 +41,22 @@ import { CollectFeesCommand } from './commands/collectFees';
 import { RemoveLiquidityFailedEvent } from './events/removeLiquidityFailed';
 import { RemoveLiquidityEvent } from './events/removeLiquidity';
 import { RemoveLiquidityCommand } from './commands/removeLiquidity';
-import { getAllPoolIdsRequestSchema, getAllPoolIdsResponseSchema, getToken0AmountRequestSchema, getToken0AmountResponseSchema } from './schemas';
+import {
+	getAllPoolIdsRequestSchema,
+	getAllPoolIdsResponseSchema, getToken0AmountRequestSchema, getToken0AmountResponseSchema, getFeeTierResponseSchema, getFeeTierResquestSchema, getPoolIDFromTickIDRequestSchema, getPositionIndexResponseSchema, ggetPositionIndexResquestSchema,
+	getAllPositionIDsInPoolRequestSchema,
+	getAllPositionIDsInPoolResponseSchema,
+	getCurrentSqrtPriceRequestSchema,
+	getCurrentSqrtPriceResponseSchema,
+	getDexGlobalDataRequestSchema,
+	getDexGlobalDataResponseSchema,
+	getPoolRequestSchema,
+	getPoolResponseSchema,
+	getTickWithPoolIdAndTickValueRequestSchema,
+	getTickWithPoolIdAndTickValueResponseSchema,
+	getTickWithTickIdRequestSchema,
+	getTickWithTickIdResponseSchema,
+} from './schemas';
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
@@ -89,17 +104,74 @@ export class DexModule extends BaseModule {
 		return {
 			name: this.name,
 			endpoints: [
-			{
-				name: this.endpoint.getAllPoolIDs.name,
-				request: getAllPoolIdsRequestSchema,
-				response: getAllPoolIdsResponseSchema,
-			},
-			{
-				name: this.endpoint.getToken0Amount.name,
-				request: getToken0AmountRequestSchema,
-				response: getToken0AmountResponseSchema,
-			}
-		],
+				{
+					name: this.endpoint.getAllPoolIDs.name,
+					request: getAllPoolIdsRequestSchema,
+					response: getAllPoolIdsResponseSchema,
+				},
+				{
+					name: this.endpoint.getToken0Amount.name,
+					request: getToken0AmountRequestSchema,
+					response: getToken0AmountResponseSchema,
+				}
+				,
+				{
+					name: this.endpoint.getFeeTier.name,
+					request: getFeeTierResquestSchema,
+					response: getFeeTierResponseSchema,
+				},
+				{
+					name: this.endpoint.getPoolIDFromTickID.name,
+					request: getPoolIDFromTickIDRequestSchema,
+					response: getPoolIDFromTickIDRequestSchema,
+				}
+				,
+				{
+					name: this.endpoint.getPositionIndex.name,
+					request: ggetPositionIndexResquestSchema,
+					response: getPositionIndexResponseSchema,
+				},
+				{
+					name: this.endpoint.getAllTokenIDs.name,
+					request: getAllPoolIdsRequestSchema,
+					response: getAllPoolIdsResponseSchema,
+				},
+				{
+					name: this.endpoint.getAllPositionIDsInPool.name,
+					request: getAllPositionIDsInPoolRequestSchema,
+					response: getAllPositionIDsInPoolResponseSchema,
+				},
+				{
+					name: this.endpoint.getPool.name,
+					request: getPoolResponseSchema,
+					response: getPoolRequestSchema,
+				},
+				{
+					name: this.endpoint.getCurrentSqrtPrice.name,
+					request: getCurrentSqrtPriceRequestSchema,
+					response: getCurrentSqrtPriceResponseSchema,
+				},
+				{
+					name: this.endpoint.getDexGlobalData.name,
+					request: getDexGlobalDataRequestSchema,
+					response: getDexGlobalDataResponseSchema,
+				},
+				{
+					name: this.endpoint.getPosition.name,
+					request: getDexGlobalDataRequestSchema,
+					response: getDexGlobalDataResponseSchema,
+				},
+				{
+					name: this.endpoint.getTickWithTickId.name,
+					request: getTickWithTickIdRequestSchema,
+					response: getTickWithTickIdResponseSchema,
+				},
+				{
+					name: this.endpoint.getTickWithPoolIdAndTickValue.name,
+					request: getTickWithPoolIdAndTickValueRequestSchema,
+					response: getTickWithPoolIdAndTickValueResponseSchema,
+				},
+			],
 			commands: this.commands.map(command => ({
 				name: command.name,
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

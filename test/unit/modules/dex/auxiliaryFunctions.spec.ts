@@ -23,7 +23,6 @@ import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_
 import {
 	getToken0Id,
 	getToken1Id,
-	getFeeTier,
 	getPoolIDFromPositionID,
 	createPool,
 	computePoolID,
@@ -67,7 +66,6 @@ describe('dex:auxiliaryFunctions', () => {
 	const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
-	const feeTier = Number('0x00000c8');
 	const sqrtPrice: bigint = numberToQ96(BigInt(1));
 	const dexModule = new DexModule();
 
@@ -208,9 +206,6 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 		it('should get Token1Id from poolID', () => {
 			expect(getToken1Id(poolId)).toEqual(token1Id);
-		});
-		it('should return the feeTier from the poolID', () => {
-			expect(getFeeTier(poolId)).toEqual(feeTier);
 		});
 
 		it('should transfer and lock using the tokenMethod', async () => {
@@ -396,9 +391,9 @@ describe('dex:auxiliaryFunctions', () => {
 				}),
 			).toBeUndefined();
 		});
+
 		it('priceToTick', () => {
 			expect(priceToTick(tickToPrice(-735247))).toEqual(-735247);
 		});
-
 	});
 });
