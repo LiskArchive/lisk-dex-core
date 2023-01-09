@@ -23,7 +23,7 @@ import {
 	createGenesisBlockContext,
 	createBlockHeaderWithDefaults,
 	createBlockContext,
-} from '../../../../node_modules/lisk-framework/dist-node/testing';
+} from 'lisk-framework/dist-node/testing';
 import { DexIncentivesMethod } from '../../../../src/app/modules/dexIncentives/method';
 
 interface Validator {
@@ -45,6 +45,7 @@ describe('DexIncentivesModule', () => {
 		tokenModule = new TokenModule();
 		validatorModule = new ValidatorsModule();
 		randomModule = new RandomModule();
+		feeModule = new FeeModule();
 
 		tokenModule.method.mint = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.lock = jest.fn().mockImplementation(async () => Promise.resolve());
