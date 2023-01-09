@@ -107,7 +107,12 @@ export class DexIncentivesModule extends BaseModule {
 		const { validators } = await this._validatorsMethod.getValidatorsParams(methodContext);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 		if (header.height % validators.length === 0) {
-			await transferAllValidatorLSKIncentives(validators, methodContext, this._tokenMethod);
+			await transferAllValidatorLSKIncentives(
+				validators,
+				methodContext,
+				this._tokenMethod,
+				this.events
+			);
 		}
 	}
 }

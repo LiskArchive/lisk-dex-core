@@ -17,7 +17,7 @@ import { BaseEvent } from 'lisk-sdk';
 import { DexIncentivesModule } from '../../../../src/app/modules/dexIncentives/module';
 
 import {
-	ValidatorTradeIncentivesPayoutEvent,
+	validatorIncentivesPayout,
 } from '../../../../src/app/modules/dexIncentives/events';
 
 describe('DexIncentivesModule:events', () => {
@@ -28,6 +28,6 @@ describe('DexIncentivesModule:events', () => {
 	});
 
 	it('events should be registered and inherit from BaseEvent', () => {
-		expect(dexIncentivesModule.events.get(ValidatorTradeIncentivesPayoutEvent)).toBeInstanceOf(BaseEvent);
+		expect(dexIncentivesModule.events.get(validatorIncentivesPayout)).toBeInstanceOf(BaseEvent);
 	});
 });

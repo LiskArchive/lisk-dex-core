@@ -28,6 +28,7 @@ export const transferAllValidatorLSKIncentives = async (
 	validators,
 	methodContext,
 	tokenMethod: TokenMethod,
+	events
 ) => {
 	let availableIncentives = await tokenMethod.getLockedAmount(
 		methodContext,
@@ -56,8 +57,8 @@ export const transferAllValidatorLSKIncentives = async (
 					methodContext,
 					tokenMethod,
 					ADDRESS_VALIDATOR_INCENTIVES,
-					standByShare,
-
+					BigInt(standByShare),
+					events
 				);
 				availableIncentives -= BigInt(standByShare);
 			}
@@ -71,7 +72,7 @@ export const transferAllValidatorLSKIncentives = async (
 					tokenMethod,
 					ADDRESS_VALIDATOR_INCENTIVES,
 					share,
-
+					events
 				);
 				availableIncentives -= share;
 			}

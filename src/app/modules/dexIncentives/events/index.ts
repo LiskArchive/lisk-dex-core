@@ -1,1 +1,1 @@
-export * from './validatorTradeIncentivesPayout';
+export * from './validatorIncentivesPayout';
