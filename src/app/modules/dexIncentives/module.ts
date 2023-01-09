@@ -36,7 +36,7 @@ import { validatorIncentivesPayout } from './events';
 import { DexIncentivesMethod } from './method';
 import {
 	transferAllValidatorLSKIncentives,
-	getLiquidityIncentivesAtHeight
+	// getLiquidityIncentivesAtHeight
 } from './utils/auxiliaryFunctions';
 
 export class DexIncentivesModule extends BaseModule {
