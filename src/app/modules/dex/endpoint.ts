@@ -37,9 +37,10 @@ import {
 } from './utils/auxiliaryFunctions';
 import { PoolsStoreData } from './stores/poolsStore';
 import { addQ96, bytesToQ96, divQ96, invQ96, roundDownQ96, mulQ96 } from './utils/q96';
+import { PriceTicksStore } from './stores';
 import { DexGlobalStore, DexGlobalStoreData } from './stores/dexGlobalStore';
 import { PositionsStore, PositionsStoreData } from './stores/positionsStore';
-import { PriceTicksStore, PriceTicksStoreData, tickToBytes } from './stores/priceTicksStore';
+import { PriceTicksStoreData, tickToBytes } from './stores/priceTicksStore';
 import { uint32beInv } from './utils/bigEndian';
 import { getCredibleDirectPrice } from './utils/tokenEcnomicsFunctions';
 
@@ -292,4 +293,44 @@ export class DexEndpoint extends BaseEndpoint {
         });
         return result;
     }
+
+    public async getLSKPrice(
+        tokenMethod: TokenMethod,
+        methodContext: MethodContext,
+        stores: NamedRegistry,
+        tokenId: TokenID,
+    ): Promise<bigint> {
+        let tokenRoute = await computeRegularRoute(methodContext, stores, tokenId, TOKEN_ID_LSK);
+        let price = BigInt(1);
+
+        if (tokenRoute.length === 0) {
+            tokenRoute = await computeExceptionalRoute(methodContext, stores, tokenId, TOKEN_ID_LSK);
+        }
+        if (tokenRoute.length === 0) {
+            throw new Error('No swap route between LSK and the given token');
+        }
+
+        let tokenIn = tokenRoute[0];
+
+        for (const rt of tokenRoute) {
+            const credibleDirectPrice = await getCredibleDirectPrice(
+                tokenMethod,
+                methodContext,
+                stores,
+                tokenIn,
+                rt,
+            );
+
+            const tokenIDArrays = [tokenIn, rt];
+            const [tokenID0, tokenID1] = tokenIDArrays.sort();
+
+            if (tokenIn.equals(tokenID0) && rt.equals(tokenID1)) {
+                price = mulQ96(BigInt(1), credibleDirectPrice);
+            } else if (tokenIn.equals(tokenID1) && rt.equals(tokenID0)) {
+                price = divQ96(BigInt(1), credibleDirectPrice);
+            }
+            tokenIn = rt;
+        }
+        return price;
+    };
 }

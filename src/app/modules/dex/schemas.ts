@@ -556,7 +556,7 @@ export const getPoolIDFromTickIDResponseSchema = {
 	},
 };
 
-export const ggetPositionIndexResquestSchema = {
+export const getPositionIndexResquestSchema = {
 	$id: 'dex/getPositionIndex',
 	type: 'object',
 	required: ['positionId'],
@@ -577,5 +577,66 @@ export const getPositionIndexResponseSchema = {
 			dataType: 'unit32',
 			fieldNumber: 1,
 		}
-	},
+	}
 };
+
+export const getToken1AmountResponseSchema = {
+	$id: 'dex/getToken1Amount',
+	type: 'object',
+	required: ['poolID'],
+	properties: {
+		poolID: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		}
+	}
+}
+
+export const getToken1AmountRequestSchema = {
+	$id: 'dex/getToken1Amount',
+	type: 'object',
+	required: ['token1Amount'],
+	properties: {
+		Token1Amount: {
+			dataType: 'uint64',
+			fieldNumber: 1,
+		}
+	}
+}
+
+export const getLSKPriceResponseSchema = {
+	$id: 'dex/getLSKPrice',
+	type: 'object',
+	required: ['tokenMethod', 'methodContext', 'stores', 'tokenId'],
+	properties: {
+		tokenMethod: {
+			dataType: 'object',
+			fieldNumber: 1,
+		},
+		methodContext: {
+			dataType: 'object',
+			fieldNumber: 2,
+		},
+		stores: {
+			dataType: 'object',
+			fieldNumber: 3,
+		},
+		tokenId: {
+			dataType: 'bytes',
+			fieldNumber: 4,
+		},
+
+	}
+}
+
+export const getLSKPriceRequestSchema = {
+	$id: 'dex/getLSKPrice',
+	type: 'object',
+	required: ['lskPrice'],
+	properties: {
+		lskPrice: {
+			dataType: 'uint64',
+			fieldNumber: 1,
+		}
+	}
+}
