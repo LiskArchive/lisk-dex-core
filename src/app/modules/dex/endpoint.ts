@@ -13,10 +13,16 @@
  */
 
 import { BaseEndpoint, MethodContext, TokenMethod } from 'lisk-sdk';
-import { MODULE_ID_DEX, NUM_BYTES_POOL_ID, NUM_BYTES_POSITION_ID, NUM_BYTES_ADDRESS } from './constants';
-import { PoolsStore } from './stores';
-import { PoolID, PositionID } from './types';
-import { getToken1Id, poolIdToAddress, getToken0Id } from './utils/auxiliaryFunctions';
+import { MODULE_ID_DEX, NUM_BYTES_POOL_ID, NUM_BYTES_POSITION_ID, NUM_BYTES_ADDRESS, TOKEN_ID_LSK } from './constants';
+import { PoolsStore, PriceTicksStore } from './stores';
+import { PoolID, PositionID, Q96, TickID, TokenID } from './types';
+import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
+import { getPoolIDFromPositionID, getToken0Id, getToken1Id, poolIdToAddress } from './utils/auxiliaryFunctions';
+import { PoolsStoreData } from './stores/poolsStore';
+import { addQ96, bytesToQ96, divQ96, invQ96, mulQ96, roundDownQ96 } from './utils/q96';
+import { DexGlobalStore, DexGlobalStoreData } from './stores/dexGlobalStore';
+import { PositionsStore, PositionsStoreData } from './stores/positionsStore';
+import { PriceTicksStoreData, tickToBytes } from './stores/priceTicksStore';
 import { uint32beInv } from './utils/bigEndian';
 
 export class DexEndpoint extends BaseEndpoint {
@@ -31,6 +37,107 @@ export class DexEndpoint extends BaseEndpoint {
             });
         }
         return poolIds;
+    }
+
+    public async getAllTokenIDs(methodContext: MethodContext, poolStore: PoolsStore): Promise<Set<TokenID>> {
+        const tokens = new Set<TokenID>();
+        const allPoolIds = await this.getAllPoolIDs(methodContext, poolStore);
+        if (allPoolIds != null && allPoolIds.length > 0) {
+            allPoolIds.forEach(poolID => {
+                tokens.add(getToken0Id(poolID));
+                tokens.add(getToken1Id(poolID));
+            });
+        }
+        return tokens;
+    }
+
+    public getAllPositionIDsInPool(poolId: PoolID, positionIdsList: PositionID[]): Buffer[] {
+        const result: Buffer[] = [];
+        positionIdsList.forEach(positionId => {
+            if (getPoolIDFromPositionID(positionId).equals(poolId)) {
+                result.push(positionId);
+            }
+        });
+        return result;
+    }
+
+    public async getPool(
+        methodContext,
+        stores: NamedRegistry,
+        poolID: PoolID,
+    ): Promise<PoolsStoreData> {
+        const poolsStore = stores.get(PoolsStore);
+        const poolStoreData = await poolsStore.getKey(methodContext, [poolID]);
+        return poolStoreData;
+    }
+
+    public async getCurrentSqrtPrice(
+        methodContext: MethodContext,
+        stores: NamedRegistry,
+        poolID: PoolID,
+        priceDirection: boolean,
+    ): Promise<Q96> {
+        const pools = await this.getPool(methodContext, stores, poolID);
+        if (pools == null) {
+            throw new Error();
+        }
+        const q96SqrtPrice = bytesToQ96(pools.sqrtPrice);
+        if (priceDirection) {
+            return q96SqrtPrice;
+        }
+        return invQ96(q96SqrtPrice);
+    }
+
+    public async getDexGlobalData(
+        methodContext: MethodContext,
+        stores: NamedRegistry,
+    ): Promise<DexGlobalStoreData> {
+        const dexGlobalStore = stores.get(DexGlobalStore);
+        return dexGlobalStore.get(methodContext, Buffer.from([]));
+    }
+
+    public async getPosition(
+        methodContext: MethodContext,
+        stores: NamedRegistry,
+        positionID: PositionID,
+        positionIdsList: PositionID[],
+    ): Promise<PositionsStoreData> {
+        if (positionIdsList.includes(positionID)) {
+            throw new Error();
+        }
+        const positionsStore = stores.get(PositionsStore);
+        const positionStoreData = await positionsStore.get(methodContext, positionID);
+        return positionStoreData;
+    }
+
+    public async getTickWithTickId(
+        methodContext: MethodContext,
+        stores: NamedRegistry,
+        tickId: TickID[],
+    ): Promise<PriceTicksStoreData> {
+        const priceTicksStore = stores.get(PriceTicksStore);
+        const priceTicksStoreData = await priceTicksStore.getKey(methodContext, tickId);
+        if (priceTicksStoreData == null) {
+            throw new Error('No tick with the specified poolId');
+        } else {
+            return priceTicksStoreData;
+        }
+    }
+
+    public async getTickWithPoolIdAndTickValue(
+        methodContext: MethodContext,
+        stores: NamedRegistry,
+        poolId: PoolID,
+        tickValue: number,
+    ): Promise<PriceTicksStoreData> {
+        const priceTicksStore = stores.get(PriceTicksStore);
+        const key = poolId.toLocaleString() + tickToBytes(tickValue).toLocaleString();
+        const priceTicksStoreData = await priceTicksStore.get(methodContext, Buffer.from(key, 'hex'));
+        if (priceTicksStoreData == null) {
+            throw new Error('No tick with the specified poolId and tickValue');
+        } else {
+            return priceTicksStoreData;
+        }
     }
 
     public async getToken1Amount(
