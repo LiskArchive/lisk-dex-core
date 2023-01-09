@@ -24,7 +24,6 @@ import {
 } from 'lisk-sdk';
 import {
 	ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
-	ADDRESS_TRADER_INCENTIVES,
 	BLOCK_INCENTIVE_LIQUIDITY_PROVIDERS,
 	MODULE_NAME_DEX,
 	TOKEN_ID_DEX_NATIVE,
@@ -103,19 +102,6 @@ export class DexIncentivesModule extends BaseModule {
 			BLOCK_INCENTIVE_LIQUIDITY_PROVIDERS,
 		);
 		const liquidityIncentive = getLiquidityIncentivesAtHeight(context.header.height);
-		await this._tokenMethod.mint(
-			methodContext,
-			ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
-			TOKEN_ID_DEX_NATIVE,
-			liquidityIncentive,
-		);
-		await this._tokenMethod.lock(
-			methodContext,
-			ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
-			MODULE_NAME_DEX,
-			TOKEN_ID_DEX_NATIVE,
-			liquidityIncentive,
-		);
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
 		const { validators } = await this._validatorsMethod.getValidatorsParams(methodContext);

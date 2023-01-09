@@ -51,7 +51,6 @@ export const ADDRESS_VALIDATOR_INCENTIVES = Buffer.from(sha256('validatorIncenti
 	NUM_BYTES_ADDRESS,
 );
 
-export const VALIDATORS_LSK_INCENTIVE_PART = 200000; // The portion of LSK swap fees that are paid to the validators, in parts-per-million.
 export const TOKEN_ID_DEX_NATIVE = Buffer.from(hexToBytes('0x0000000100000001')); // Token ID of the native token of DEX sidechain.
 export const TOKEN_ID_LSK = Buffer.from(hexToBytes('0x0000000100000000')); // Token ID of the LSK token.
 export const BLOCK_INCENTIVE_LIQUIDITY_PROVIDERS = BigInt('90000000'); // Amount of liquidity provider incentives per block, in DEX native token.

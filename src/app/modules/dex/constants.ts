@@ -20,6 +20,7 @@ export const MAX_UINT_32 = 4294967295;
 export const MAX_UINT_64 = BigInt('18446744073709551615');
 
 // DEX Module Constants
+export const VALIDATORS_LSK_INCENTIVE_PART = 200000; // The portion of LSK swap fees that are paid to the validators, in parts-per-million.
 export const MODULE_ID_DEX = Buffer.from('0000', 'hex'); // TBA	ID of the DEX module (bytes)
 export const MODULE_NAME_DEX = 'dex';
 export const NFT_COLLECTION_DEX = Buffer.from('0000', 'hex'); // The collection of the NFTs created for every position. (bytes)
