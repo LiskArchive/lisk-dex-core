@@ -25,7 +25,6 @@ import {
 } from 'lisk-sdk';
 import {
 	ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
-	BLOCK_INCENTIVE_LIQUIDITY_PROVIDERS,
 	MODULE_NAME_DEX,
 	TOKEN_ID_DEX_NATIVE,
 } from './constants';
