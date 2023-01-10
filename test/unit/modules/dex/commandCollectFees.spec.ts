@@ -12,138 +12,258 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { TokenModule, Transaction, ValidatorsModule, VerifyStatus } from 'lisk-framework';
+import { codec, Transaction, cryptography, testing } from 'lisk-sdk';
+import { TokenMethod, VerifyStatus } from 'lisk-framework';
+import { loggerMock } from 'lisk-framework/dist-node/testing/mocks';
+import { EventQueue } from 'lisk-framework/dist-node/state_machine';
+import {
+	createMethodContext,
+	MethodContext,
+} from 'lisk-framework/dist-node/state_machine/method_context';
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
-import { testing } from 'lisk-sdk';
 import { DexModule } from '../../../../src/app/modules';
-import { defaultConfig } from '../../../../src/app/modules/dex/constants';
-import { createPoolSchema } from '../../../../src/app/modules/dex/schemas';
-import { SettingsStore } from '../../../../src/app/modules/dex/stores';
+import { CollectFeesCommand } from '../../../../src/app/modules/dex/commands/collectFees';
+import { collectFeesSchema } from '../../../../src/app/modules/dex/schemas';
 import {
 	DexGlobalStore,
-	DexGlobalStoreData,
-} from '../../../../src/app/modules/dex/stores/dexGlobalStore';
-import { PoolsStore, PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
-import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
+	PoolsStore,
+	PositionsStore,
+	PriceTicksStore,
+} from '../../../../src/app/modules/dex/stores';
+import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
+import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
+import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
+import {
+	PriceTicksStoreData,
+	tickToBytes,
+} from '../../../../src/app/modules/dex/stores/priceTicksStore';
 import { Address, PoolID, PositionID } from '../../../../src/app/modules/dex/types';
 import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
-import { q96ToBytes, numberToQ96 } from '../../../../src/app/modules/dex/utils/q96';
-import {
-	createPoolFixtures,
-	createRandomPoolFixturesGenerator,
-} from './fixtures/createPoolFixture';
-import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
+import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
+import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
+import { InMemoryPrefixedStateDB } from './inMemoryPrefixedStateDB';
 
-const { createTransactionContext } = testing;
+const { createBlockContext, createBlockHeaderWithDefaults, createTransactionContext } = testing;
+const { utils } = cryptography;
 
 const skipOnCI = process.env.CI ? describe.skip : describe;
 
-describe('dex:command:createPool', () => {
-	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
-	let dexModule: DexModule;
-	let tokenModule: TokenModule;
-	let validatorModule: ValidatorsModule;
+describe('dex:command:collectFees', () => {
+	describe('dex:command:collectFees', () => {
+		const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
+		let command: CollectFeesCommand;
+		let stateStore: PrefixedStateReadWriter;
+		let methodContext: MethodContext;
+		const contextStore = new Map();
 
-	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
-	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
-	let command;
+		const dexModule = new DexModule();
+		const senderAddress: Address = Buffer.from('00000000000000000', 'hex');
+		const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
 
-	const poolsStoreData: PoolsStoreData = {
-		liquidity: BigInt(5),
-		sqrtPrice: q96ToBytes(BigInt(1)),
-		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
-		heightIncentivesUpdate: 5,
-		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
-		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(6))),
-		tickSpacing: 1,
-	};
+		const transferMock = jest.fn();
+		const unLockMock = jest.fn();
+		const getAvailableBalance = jest.fn().mockReturnValue(BigInt(250));
 
-	const dexGlobalStoreData: DexGlobalStoreData = {
-		positionCounter: BigInt(10),
-		collectableLSKFees: BigInt(10),
-		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
-		incentivizedPools: [{ poolId, multiplier: 10 }],
-		totalIncentivesMultiplier: 1,
-	};
+		const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
+		let poolsStore: PoolsStore;
+		let priceTicksStore: PriceTicksStore;
+		let dexGlobalStore: DexGlobalStore;
+		let positionsStore: PositionsStore;
 
-	const settingStoreData: SettingsStoreData = {
-		protocolFeeAddress: Buffer.from('0000000000000000', 'hex'),
-		protocolFeePart: 10,
-		validatorsLSKRewardsPart: 5,
-		poolCreationSettings: {
-			feeTier: 100,
-			tickSpacing: 1,
-		},
-	};
-
-	beforeEach(() => {
-		dexModule = new DexModule();
-		tokenModule = new TokenModule();
-		validatorModule = new ValidatorsModule();
-
-		tokenModule.method.mint = jest.fn().mockImplementation(async () => Promise.resolve());
-		tokenModule.method.lock = jest.fn().mockImplementation(async () => Promise.resolve());
-		tokenModule.method.unlock = jest.fn().mockImplementation(async () => Promise.resolve());
-		tokenModule.method.transfer = jest.fn().mockImplementation(async () => Promise.resolve());
-		tokenModule.method.getLockedAmount = jest.fn().mockResolvedValue(BigInt(1000));
-		dexModule.addDependencies(tokenModule.method, validatorModule.method);
-		command = dexModule.commands.find(e => e.name === 'createPool');
-		command.init({ moduleConfig: defaultConfig, tokenMethod: tokenModule.method });
-	});
-
-	describe('verify', () => {
-		it.each(createPoolFixtures)('%s', async (...args) => {
-			const [_desc, input, err] = args;
-			const context = createTransactionContext({
-				transaction: new Transaction(input as any),
-			});
-
-			const result = await command.verify(context.createCommandVerifyContext(createPoolSchema));
-
-			if (err === false) {
-				expect(result.error?.message).not.toBeDefined();
-				expect(result.status).toEqual(VerifyStatus.OK);
-			} else {
-				expect(result.error?.message).toBe(err);
-				expect(result.status).toEqual(VerifyStatus.FAIL);
-			}
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+		methodContext = createMethodContext({
+			stateStore,
+			eventQueue: new EventQueue(0),
+			contextStore,
 		});
-	});
 
-	describe('execute', () => {
-		let context: ReturnType<typeof createTransactionContext>;
-		const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+		const poolsStoreData: PoolsStoreData = {
+			liquidity: BigInt(5),
+			sqrtPrice: q96ToBytes(BigInt('327099227039063106')),
+			incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+			heightIncentivesUpdate: 5,
+			feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
+			feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(6))),
+			tickSpacing: 1,
+		};
+
+		const priceTicksStoreDataTickLower: PriceTicksStoreData = {
+			liquidityNet: BigInt(5),
+			liquidityGross: BigInt(5),
+			feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(8))),
+			feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(5))),
+			incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(2))),
+		};
+
+		const priceTicksStoreDataTickUpper: PriceTicksStoreData = {
+			liquidityNet: BigInt(5),
+			liquidityGross: BigInt(5),
+			feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(4))),
+			feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(3))),
+			incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(3))),
+		};
+
+		const dexGlobalStoreData: DexGlobalStoreData = {
+			positionCounter: BigInt(10),
+			collectableLSKFees: BigInt(10),
+			poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
+			incentivizedPools: [{ poolId, multiplier: 10 }],
+			totalIncentivesMultiplier: 1,
+		};
+		const positionsStoreData: PositionsStoreData = {
+			tickLower: -8,
+			tickUpper: -5,
+			liquidity: BigInt(15),
+			feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(3))),
+			feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(1))),
+			ownerAddress: senderAddress,
+		};
+
 		beforeEach(async () => {
-			context = createTransactionContext({
-				stateStore,
-				transaction: new Transaction(createPoolFixtures[0][1] as any),
-			});
+			command = new CollectFeesCommand(dexModule.stores, dexModule.events);
 
-			const poolsStore = dexModule.stores.get(PoolsStore);
-			const dexGlobalStore = dexModule.stores.get(DexGlobalStore);
-			const settingsStore = dexModule.stores.get(SettingsStore);
+			poolsStore = dexModule.stores.get(PoolsStore);
+			priceTicksStore = dexModule.stores.get(PriceTicksStore);
+			dexGlobalStore = dexModule.stores.get(DexGlobalStore);
+			positionsStore = dexModule.stores.get(PositionsStore);
 
-			await dexGlobalStore.set(stateStore, Buffer.alloc(0), dexGlobalStoreData);
-			await settingsStore.set(stateStore, Buffer.alloc(0), settingStoreData);
+			await dexGlobalStore.set(methodContext, positionId, dexGlobalStoreData);
+			await dexGlobalStore.set(methodContext, Buffer.alloc(0), dexGlobalStoreData);
+			await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData);
+
 			await poolsStore.setKey(
-				stateStore,
+				methodContext,
 				[senderAddress, getPoolIDFromPositionID(positionId)],
 				poolsStoreData,
 			);
-			await poolsStore.set(stateStore, getPoolIDFromPositionID(positionId), poolsStoreData);
+			await poolsStore.set(methodContext, getPoolIDFromPositionID(positionId), poolsStoreData);
+			await priceTicksStore.setKey(
+				methodContext,
+				[getPoolIDFromPositionID(positionId), tickToBytes(positionsStoreData.tickLower)],
+				priceTicksStoreDataTickLower,
+			);
+			await priceTicksStore.setKey(
+				methodContext,
+				[getPoolIDFromPositionID(positionId), tickToBytes(positionsStoreData.tickUpper)],
+				priceTicksStoreDataTickUpper,
+			);
+			await priceTicksStore.setKey(
+				methodContext,
+				[
+					getPoolIDFromPositionID(positionId),
+					q96ToBytes(tickToPrice(positionsStoreData.tickLower)),
+				],
+				priceTicksStoreDataTickLower,
+			);
+			await priceTicksStore.setKey(
+				methodContext,
+				[
+					getPoolIDFromPositionID(positionId),
+					q96ToBytes(tickToPrice(positionsStoreData.tickUpper)),
+				],
+				priceTicksStoreDataTickUpper,
+			);
+
+			await positionsStore.set(methodContext, positionId, positionsStoreData);
+			await positionsStore.setKey(methodContext, [senderAddress, positionId], positionsStoreData);
+
+			tokenMethod.transfer = transferMock;
+			tokenMethod.unlock = unLockMock;
+			tokenMethod.getAvailableBalance = getAvailableBalance.mockReturnValue(BigInt(250));
+
+			command.init({
+				tokenMethod,
+			});
 		});
 
-		it(`should call token methods and emit events`, async () => {
-			await command.execute(context.createCommandExecuteContext(createPoolSchema));
-			expect(dexModule._tokenMethod.lock).toHaveBeenCalledTimes(2);
-			expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(4);
+		describe('verify', () => {
+			it('should be successful when all the parameters are correct', async () => {
+				const context = createTransactionContext({
+					transaction: new Transaction({
+						module: 'dex',
+						command: 'collectFees',
+						fee: BigInt(5000000),
+						nonce: BigInt(0),
+						senderPublicKey: senderAddress,
+						params: codec.encode(collectFeesSchema, {
+							positions: new Array(0),
+						}),
+						signatures: [utils.getRandomBytes(64)],
+					}),
+				});
 
-			const events = context.eventQueue.getEvents();
-			const poolCreatedEvents = events.filter(e => e.toObject().name === 'poolCreated');
-			const positionCreatedEvents = events.filter(e => e.toObject().name === 'positionCreated');
+				const result = await command.verify(context.createCommandVerifyContext(collectFeesSchema));
 
-			expect(poolCreatedEvents).toHaveLength(1);
-			expect(positionCreatedEvents).toHaveLength(1);
+				expect(result.error?.message).not.toBeDefined();
+				expect(result.status).toEqual(VerifyStatus.OK);
+			});
+
+			it('should fail when positions size is more than MAX_NUM_POSITIONS_FEE_COLLECTION', async () => {
+				const context = createTransactionContext({
+					transaction: new Transaction({
+						module: 'dex',
+						command: 'collectFees',
+						fee: BigInt(5000000),
+						nonce: BigInt(0),
+						senderPublicKey: senderAddress,
+						params: codec.encode(collectFeesSchema, {
+							positions: new Array(500).fill({ positionID: Buffer.from('0000000100', 'hex') }),
+						}),
+						signatures: [utils.getRandomBytes(64)],
+					}),
+				});
+				const result = await command.verify(context.createCommandVerifyContext(collectFeesSchema));
+				expect(result.error?.message).toBe('Please enter the correct positions');
+				expect(result.status).toEqual(VerifyStatus.FAIL);
+			});
+		});
+
+		describe('execute', () => {
+			const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
+			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+			const blockAfterExecuteContext = createBlockContext({
+				header: blockHeader,
+			}).getBlockAfterExecuteContext();
+			methodContext = createMethodContext({
+				contextStore,
+				stateStore,
+				eventQueue: blockAfterExecuteContext.eventQueue,
+			});
+			it('should collect Fees ', async () => {
+				await expect(
+					command.execute({
+						stateStore,
+						contextStore,
+						chainID: utils.getRandomBytes(32),
+						params: {
+							positions: [positionId],
+						},
+						logger: loggerMock,
+						header: blockHeader,
+						eventQueue: blockAfterExecuteContext.eventQueue,
+						getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+						getMethodContext: () => methodContext,
+						assets: { getAsset: jest.fn() },
+						transaction: new Transaction({
+							module: 'dex',
+							command: 'collectFees',
+							fee: BigInt(5000000),
+							nonce: BigInt(0),
+							senderPublicKey: senderAddress,
+							params: codec.encode(collectFeesSchema, {
+								positions: [positionId],
+							}),
+							signatures: [utils.getRandomBytes(64)],
+						}),
+					}),
+				).resolves.toBeUndefined();
+				expect(tokenMethod.transfer).toHaveBeenCalledTimes(1);
+				const events = blockAfterExecuteContext.eventQueue.getEvents();
+				const validatorFeesIncentivesCollectedEvent = events.filter(
+					e => e.toObject().name === 'feesIncentivesCollectedEvent',
+				);
+				expect(validatorFeesIncentivesCollectedEvent).toHaveLength(0);
+			});
 		});
 
 		skipOnCI('stress test for checking the event emission and the time taken', () => {
@@ -152,21 +272,51 @@ describe('dex:command:createPool', () => {
 				const testarray = Array.from({ length: 10000 });
 				await Promise.all(testarray.map(() => stress()));
 			})();
-
 			function stress() {
-				it(`should emit poolCreatedEvent and positionCreatedEvent for every iteration`, async () => {
-					context = createTransactionContext({
-						stateStore,
-						transaction: new Transaction(createRandomPoolFixturesGenerator()[0][1] as any),
-					});
-					await command.execute(context.createCommandExecuteContext(createPoolSchema));
-					expect(dexModule._tokenMethod.lock).toHaveBeenCalledTimes(2);
-					expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(4);
-					const events = context.eventQueue.getEvents();
-					const poolCreatedEvents = events.filter(e => e.toObject().name === 'poolCreated');
-					const positionCreatedEvents = events.filter(e => e.toObject().name === 'positionCreated');
-					expect(poolCreatedEvents).toHaveLength(1);
-					expect(positionCreatedEvents).toHaveLength(1);
+				const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
+				const blockContext = createBlockContext({
+					header: blockHeader,
+				});
+
+				const stressTestMethodContext = createMethodContext({
+					stateStore,
+					contextStore,
+					eventQueue: blockContext.eventQueue,
+				});
+				it('should collect fees stress tests', async () => {
+					await expect(
+						command.execute({
+							stateStore,
+							contextStore,
+							chainID: utils.getRandomBytes(32),
+							params: {
+								positions: [positionId],
+							},
+							logger: loggerMock,
+							header: blockHeader,
+							eventQueue: blockContext.eventQueue,
+							getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+							getMethodContext: () => stressTestMethodContext,
+							assets: { getAsset: jest.fn() },
+							transaction: new Transaction({
+								module: 'dex',
+								command: 'collectFees',
+								fee: BigInt(5000000),
+								nonce: BigInt(0),
+								senderPublicKey: senderAddress,
+								params: codec.encode(collectFeesSchema, {
+									positions: [positionId],
+								}),
+								signatures: [utils.getRandomBytes(64)],
+							}),
+						}),
+					).resolves.toBeUndefined();
+					expect(tokenMethod.transfer).toHaveBeenCalledTimes(1);
+					const events = blockContext.eventQueue.getEvents();
+					const validatorFeesIncentivesCollectedEvent = events.filter(
+						e => e.toObject().name === 'feesIncentivesCollected',
+					);
+					expect(validatorFeesIncentivesCollectedEvent).toHaveLength(1);
 				});
 			}
 		});
