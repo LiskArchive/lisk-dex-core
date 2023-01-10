@@ -36,7 +36,7 @@ import { validatorIncentivesPayout } from './events';
 import { DexIncentivesMethod } from './method';
 import {
 	transferAllValidatorLSKIncentives,
-	// getLiquidityIncentivesAtHeight
+	getLiquidityIncentivesAtHeight
 } from './utils/auxiliaryFunctions';
 
 export class DexIncentivesModule extends BaseModule {
@@ -92,6 +92,8 @@ export class DexIncentivesModule extends BaseModule {
 		const methodContext = context.getMethodContext();
 		const { header } = context;
 
+		const liquidityIncentive = getLiquidityIncentivesAtHeight(context.header.height);
+
 		await this._tokenMethod.mint(
 			methodContext,
 			ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
@@ -105,7 +107,6 @@ export class DexIncentivesModule extends BaseModule {
 			TOKEN_ID_DEX_NATIVE,
 			BLOCK_INCENTIVE_LIQUIDITY_PROVIDERS,
 		);
-		// const liquidityIncentive = getLiquidityIncentivesAtHeight(context.header.height);
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
 		const { validators } = await this._validatorsMethod.getValidatorsParams(methodContext);
