@@ -98,14 +98,14 @@ export class DexIncentivesModule extends BaseModule {
 			methodContext,
 			ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
 			TOKEN_ID_DEX_NATIVE,
-			BLOCK_INCENTIVE_LIQUIDITY_PROVIDERS,
+			liquidityIncentive,
 		);
 		await this._tokenMethod.lock(
 			methodContext,
 			ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
 			MODULE_NAME_DEX,
 			TOKEN_ID_DEX_NATIVE,
-			BLOCK_INCENTIVE_LIQUIDITY_PROVIDERS,
+			liquidityIncentive,
 		);
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
