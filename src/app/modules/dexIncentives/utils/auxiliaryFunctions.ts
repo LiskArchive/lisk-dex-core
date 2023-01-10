@@ -58,7 +58,7 @@ export const transferAllValidatorLSKIncentives = async (
 					methodContext,
 					tokenMethod,
 					posMethod,
-					ADDRESS_VALIDATOR_INCENTIVES,
+					validator.address,
 					BigInt(standByShare),
 					events
 				);
@@ -73,7 +73,7 @@ export const transferAllValidatorLSKIncentives = async (
 					methodContext,
 					tokenMethod,
 					posMethod,
-					ADDRESS_VALIDATOR_INCENTIVES,
+					validator.address,
 					share,
 					events
 				);
