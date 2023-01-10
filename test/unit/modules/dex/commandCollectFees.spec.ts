@@ -90,7 +90,7 @@ describe('dex:command:collectFees', () => {
 			liquidityGross: BigInt(5),
 			feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(8))),
 			feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(5))),
-			incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(0))),
+			incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(2))),
 		};
 
 		const priceTicksStoreDataTickUpper: PriceTicksStoreData = {
@@ -98,7 +98,7 @@ describe('dex:command:collectFees', () => {
 			liquidityGross: BigInt(5),
 			feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(4))),
 			feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(3))),
-			incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(0))),
+			incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(3))),
 		};
 
 		const dexGlobalStoreData: DexGlobalStoreData = {
