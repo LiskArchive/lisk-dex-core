@@ -1,3 +1,5 @@
+![image](https://user-images.githubusercontent.com/121556982/211871559-8d7ba9d1-32f5-4c73-aede-54352c5ef28e.png)
+
 # Getting Started with Lisk Blockchain Client
 
 This project was bootstrapped with [Lisk SDK](https://github.com/LiskHQ/lisk-sdk)
