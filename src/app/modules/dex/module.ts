@@ -43,7 +43,7 @@ import { RemoveLiquidityEvent } from './events/removeLiquidity';
 import { RemoveLiquidityCommand } from './commands/removeLiquidity';
 import {
 	getAllPoolIdsRequestSchema,
-	getAllPoolIdsResponseSchema, getToken1AmountRequestSchema, getToken1AmountResponseSchema, getToken0AmountRequestSchema, getToken0AmountResponseSchema, getFeeTierResponseSchema, getFeeTierResquestSchema, getPoolIDFromTickIDRequestSchema, getPositionIndexResponseSchema, ggetPositionIndexResquestSchema,
+	getAllPoolIdsResponseSchema, getToken1AmountRequestSchema, getToken1AmountResponseSchema, getToken0AmountRequestSchema, getToken0AmountResponseSchema, getFeeTierResponseSchema, getFeeTierResquestSchema, getPoolIDFromTickIDRequestSchema, getPositionIndexResponseSchema, ggetPositionIndexResquestSchema, getAllTokenIdsRequestSchema, getAllTokenIdsResponseSchema,
 	getAllPositionIDsInPoolRequestSchema,
 	getAllPositionIDsInPoolResponseSchema,
 	getCurrentSqrtPriceRequestSchema,
@@ -140,8 +140,8 @@ export class DexModule extends BaseModule {
 				},
 				{
 					name: this.endpoint.getAllTokenIDs.name,
-					request: getAllPoolIdsRequestSchema,
-					response: getAllPoolIdsResponseSchema,
+					request: getAllTokenIdsRequestSchema,
+					response: getAllTokenIdsResponseSchema,
 				},
 				{
 					name: this.endpoint.getAllPositionIDsInPool.name,
