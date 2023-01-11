@@ -41,7 +41,7 @@ import { CollectFeesCommand } from './commands/collectFees';
 import { RemoveLiquidityFailedEvent } from './events/removeLiquidityFailed';
 import { RemoveLiquidityEvent } from './events/removeLiquidity';
 import { RemoveLiquidityCommand } from './commands/removeLiquidity';
-import { getAllPoolIdsRequestSchema, getAllPoolIdsResponseSchema, getAllPositionIDsInPoolRequestSchema, getAllPositionIDsInPoolResponseSchema, getPoolRequestSchema, getPoolResponseSchema } from './schemas';
+import { getAllPoolIdsRequestSchema, getAllPoolIdsResponseSchema, getAllTokenIdsRequestSchema, getAllTokenIdsResponseSchema, getAllPositionIDsInPoolRequestSchema, getAllPositionIDsInPoolResponseSchema, getPoolRequestSchema, getPoolResponseSchema } from './schemas';
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
@@ -96,8 +96,8 @@ export class DexModule extends BaseModule {
 			},
 			{
 				name: this.endpoint.getAllTokenIDs.name,
-				request: getAllPoolIdsRequestSchema,
-				response: getAllPoolIdsResponseSchema,
+				request: getAllTokenIdsRequestSchema,
+				response: getAllTokenIdsResponseSchema,
 			},
 			{
 				name: this.endpoint.getAllPositionIDsInPool.name,
