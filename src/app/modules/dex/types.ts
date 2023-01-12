@@ -110,3 +110,24 @@ export interface InteroperabilityMethod {
 	terminateChain(methodContext: MethodContext, chainID: Buffer): Promise<void>;
 	getChannel(methodContext: MethodContext, chainID: Buffer): Promise<{ messageFeeTokenID: Buffer }>;
 }
+
+export type routeInterface = {
+	path: TokenID[];
+	endVertex: TokenID;
+};
+
+export type TickID = Buffer;
+export type PoolsGraph = {
+	vertices: Set<TokenID>;
+	edges: Set<PoolID>;
+};
+
+export type AdjacentEdgesInterface = {
+	edge: Buffer;
+	vertex: Buffer;
+};
+
+export type feesInterface = {
+	in: bigint;
+	out: bigint;
+};
