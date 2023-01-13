@@ -831,12 +831,11 @@ export const updateIncentivizedPools = async (
 	const dexGlobalStoreData = await getDexGlobalData(methodContext, stores);
 
 	for (const incentivizedPool of dexGlobalStoreData.incentivizedPools) {
-		await updateIncentivizedPools(
+		await updatePoolIncentives(
 			methodContext,
 			stores,
 			incentivizedPool.poolId,
-			multiplier,
-			currentHeight,
+			Number(currentHeight),
 		);
 	}
 	dexGlobalStoreData.incentivizedPools.forEach((incentivizedPools, index) => {
