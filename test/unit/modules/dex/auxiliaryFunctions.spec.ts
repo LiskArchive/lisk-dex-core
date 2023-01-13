@@ -574,7 +574,7 @@ describe('dex:auxiliaryFunctions', () => {
 				multiplier,
 				BigInt(currentHeight)
 			);
-			expect(dexGlobalStoreData.totalIncentivesMultiplier).toEqual(totalIncentivesMultiplier + 10);
+			expect(dexGlobalStoreData.totalIncentivesMultiplier).toEqual(totalIncentivesMultiplier);
 			expect(dexGlobalStoreData.incentivizedPools.length).toEqual(incentivizedPoolsLength);
 		})
 	});
