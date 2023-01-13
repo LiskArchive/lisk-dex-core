@@ -24,7 +24,7 @@ import {
   getPool,
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
-import { Address, PoolID, PositionID } from '../../../../src/app/modules/dex/types';
+import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
 import { DexModule } from '../../../../src/app/modules';
