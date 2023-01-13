@@ -112,6 +112,10 @@ describe('dex:auxiliaryFunctions', () => {
 	const unlockMock = jest.fn();
 	const getAvailableBalanceMock = jest.fn().mockReturnValue(BigInt(250));
 	const getLockedAmountMock = jest.fn().mockReturnValue(BigInt(5));
+<<<<<<< HEAD
+=======
+
+>>>>>>> da971bb (added schemas and module)
 	const settings = {
 		feeTiers: [100],
 	};
@@ -481,11 +485,7 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('getAdjacent', async () => {
-			const res = await getAdjacent(
-				methodContext,
-				dexModule.stores,
-				token0Id,
-			);
+			const res = await getAdjacent(methodContext, dexModule.stores, token0Id);
 			expect(res).not.toBeNull();
 		});
 

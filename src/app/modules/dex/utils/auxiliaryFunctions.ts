@@ -67,7 +67,6 @@ import {
 	Address,
 	TokenID,
 	Q96,
-	TickID,
 	routeInterface,
 	AdjacentEdgesInterface,
 } from '../types';
@@ -105,6 +104,7 @@ import { PositionsStoreData } from '../stores/positionsStore';
 import { updatePoolIncentives } from './tokenEcnomicsFunctions';
 import { DexEndpoint } from '../endpoint';
 import { DexModule } from '../module';
+import { MAX_SINT32 } from '@liskhq/lisk-validator';
 
 const { utils } = cryptography;
 
@@ -119,7 +119,6 @@ export const getToken0Id = (poolId: PoolID): TokenID => poolId.slice(0, NUM_BYTE
 
 export const getToken1Id = (poolId: PoolID): TokenID =>
 	poolId.slice(NUM_BYTES_TOKEN_ID, 2 * NUM_BYTES_TOKEN_ID);
-
 
 export const transferToPool = async (
 	tokenMethod: TokenMethod,
@@ -1277,12 +1276,14 @@ export const getCredibleDirectPrice = async (
 	tokenID1: TokenID,
 ): Promise<bigint> => {
 	const directPools: Buffer[] = [];
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	const settings = (await endpoint.getDexGlobalData(methodContext, stores)).poolCreationSettings;
+	const allpoolIDs = await endpoint.getAllPoolIDs(methodContext, stores.get(PoolsStore));
 
-	const settings = (await getDexGlobalData(methodContext, stores)).poolCreationSettings;
-	const allpoolIDs = await getAllPoolIDs(methodContext, stores.get(PoolsStore));
-
-	const tokenIDArrays = [tokenID0, tokenID1].sort();
-	const concatedTokenIDs = Buffer.concat(tokenIDArrays);
+	const tokenIDArrays = [tokenID0, tokenID1];
+	[tokenID0, tokenID1] = tokenIDArrays.sort();
+	const concatedTokenIDs = Buffer.concat([tokenID0, tokenID1]);
 
 	settings.forEach(setting => {
 		const tokenIDAndSettingsArray = [concatedTokenIDs, q96ToBytes(numberToQ96(setting.feeTier))];
@@ -1504,4 +1505,5 @@ export const getCredibleDirectPrice = async (
 		} else {
 			return priceTicksStoreData;
 		}
-	};
+	}
+}

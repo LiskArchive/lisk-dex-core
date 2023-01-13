@@ -15,6 +15,7 @@
  */
 
 import { BaseEndpoint, ModuleEndpointContext, TokenMethod } from 'lisk-sdk';
+import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 
 import {
     MODULE_ID_DEX,
@@ -33,7 +34,7 @@ import {
     getPoolIDFromPositionID,
     getToken0Id,
     getToken1Id,
-    poolIdToAddress,
+    poolIdToAddress
 } from './utils/auxiliaryFunctions';
 import { PoolsStoreData } from './stores/poolsStore';
 import { addQ96, bytesToQ96, divQ96, invQ96, roundDownQ96, mulQ96 } from './utils/q96';
@@ -160,6 +161,36 @@ export class DexEndpoint extends BaseEndpoint {
         return tokenMethod.getLockedAmount(methodContext, address, tokenId, MODULE_ID_DEX.toString());
     }
 
+    public async getTickWithTickId(
+        methodContext: ModuleEndpointContext,
+        stores: NamedRegistry,
+        tickId: TickID[],
+    ): Promise<PriceTicksStoreData> {
+        const priceTicksStore = stores.get(PriceTicksStore);
+        const priceTicksStoreData = await priceTicksStore.getKey(methodContext, tickId);
+        if (priceTicksStoreData == null) {
+            throw new Error('No tick with the specified poolId');
+        } else {
+            return priceTicksStoreData;
+        }
+    }
+
+    public async getTickWithPoolIdAndTickValue(
+        methodContext: ModuleEndpointContext,
+        stores: NamedRegistry,
+        poolId: PoolID,
+        tickValue: number,
+    ): Promise<PriceTicksStoreData> {
+        const priceTicksStore = stores.get(PriceTicksStore);
+        const key = poolId.toLocaleString() + tickToBytes(tickValue).toLocaleString();
+        const priceTicksStoreData = await priceTicksStore.get(methodContext, Buffer.from(key, 'hex'));
+        if (priceTicksStoreData == null) {
+            throw new Error('No tick with the specified poolId and tickValue');
+        } else {
+            return priceTicksStoreData;
+        }
+    }
+
     public async getToken0Amount(
         tokenMethod: TokenMethod,
         methodContext: ModuleEndpointContext,
@@ -190,9 +221,10 @@ export class DexEndpoint extends BaseEndpoint {
     public async getTVL(
         tokenMethod: TokenMethod,
         methodContext: ModuleEndpointContext,
+        stores: NamedRegistry,
         poolId: PoolID,
     ): Promise<bigint> {
-        const pool = await this.getPool(methodContext, poolId);
+        const pool = await this.getPool(methodContext, stores, poolId);
         const token1Amount = await this.getToken1Amount(tokenMethod, methodContext, poolId);
         const token0Amount = await this.getToken0Amount(tokenMethod, methodContext, poolId);
         const token0Id = getToken0Id(poolId);
@@ -220,11 +252,11 @@ export class DexEndpoint extends BaseEndpoint {
         }
 
         const value0Q96 = mulQ96(
-            await this.getLSKPrice(tokenMethod, methodContext, token0Id),
+            await this.getLSKPrice(tokenMethod, methodContext, stores, token0Id),
             BigInt(token0Amount),
         );
         const value1Q96 = mulQ96(
-            await this.getLSKPrice(tokenMethod, methodContext, token1Id),
+            await this.getLSKPrice(tokenMethod, methodContext, stores, token1Id),
             BigInt(token1Amount),
         );
         return roundDownQ96(addQ96(value0Q96, value1Q96));
@@ -232,71 +264,7 @@ export class DexEndpoint extends BaseEndpoint {
 
     public async getLSKPrice(
         tokenMethod: TokenMethod,
-        methodContext,
-        tokenId: TokenID,
-    ): Promise<bigint> {
-        let tokenRoute = await computeRegularRoute(methodContext, this.stores, tokenId, TOKEN_ID_LSK);
-        let price = BigInt(1);
-
-        if (tokenRoute.length === 0) {
-            tokenRoute = await computeExceptionalRoute(methodContext, this.stores, tokenId, TOKEN_ID_LSK);
-        }
-        if (tokenRoute.length === 0) {
-            throw new Error('No swap route between LSK and the given token');
-        }
-
-        let tokenIn = tokenRoute[0];
-
-        for (const rt of tokenRoute) {
-            const credibleDirectPrice = await getCredibleDirectPrice(
-                tokenMethod,
-                methodContext,
-                this.stores,
-                tokenIn,
-                rt,
-            );
-
-            const tokenIDArrays = [tokenIn, rt];
-            // eslint-disable-next-line @typescript-eslint/require-array-sort-compare
-            const [tokenID0, tokenID1] = tokenIDArrays.sort();
-
-            if (tokenIn.equals(tokenID0) && rt.equals(tokenID1)) {
-                price = mulQ96(BigInt(1), credibleDirectPrice);
-            } else if (tokenIn.equals(tokenID1) && rt.equals(tokenID0)) {
-                price = divQ96(BigInt(1), credibleDirectPrice);
-            }
-            tokenIn = rt;
-        }
-        return price;
-    }
-
-    public async getAllTicks(methodContext): Promise<TickID[]> {
-        const tickIds: Buffer[] = [];
-        const priceTicksStore = this.stores.get(PriceTicksStore);
-        const allTickIds = await priceTicksStore.getAll(methodContext);
-        allTickIds.forEach(tickId => {
-            tickIds.push(tickId.key);
-        });
-        return tickIds;
-    }
-
-    public async getAllTickIDsInPool(
         methodContext: ModuleEndpointContext,
-        poolId: PoolID,
-    ): Promise<TickID[]> {
-        const result: Buffer[] = [];
-        const allTicks = await this.getAllTicks(methodContext);
-        allTicks.forEach(tickID => {
-            if (this.getPoolIDFromTickID(tickID).equals(poolId)) {
-                result.push(tickID);
-            }
-        });
-        return result;
-    }
-
-    public async getLSKPrice(
-        tokenMethod: TokenMethod,
-        methodContext: MethodContext,
         stores: NamedRegistry,
         tokenId: TokenID,
     ): Promise<bigint> {
@@ -332,5 +300,30 @@ export class DexEndpoint extends BaseEndpoint {
             tokenIn = rt;
         }
         return price;
-    };
+    }
+
+    public async getAllTicks(methodContext: ModuleEndpointContext, stores: NamedRegistry): Promise<TickID[]> {
+        const tickIds: Buffer[] = [];
+        const priceTicksStore = stores.get(PriceTicksStore);
+        const allTickIds = await priceTicksStore.getAll(methodContext);
+        allTickIds.forEach(tickId => {
+            tickIds.push(tickId.key);
+        });
+        return tickIds;
+    }
+
+    public async getAllTickIDsInPool(
+        methodContext: ModuleEndpointContext,
+        stores: NamedRegistry,
+        poolId: PoolID,
+    ): Promise<TickID[]> {
+        const result: Buffer[] = [];
+        const allTicks = await this.getAllTicks(methodContext, stores);
+        allTicks.forEach(tickID => {
+            if (this.getPoolIDFromTickID(tickID).equals(poolId)) {
+                result.push(tickID);
+            }
+        });
+        return result;
+    }
 }

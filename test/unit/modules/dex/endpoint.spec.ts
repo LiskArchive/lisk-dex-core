@@ -152,7 +152,10 @@ describe('dex: offChainEndpointFunctions', () => {
 				[senderAddress, getPoolIDFromPositionID(positionId)],
 				poolsStoreData,
 			);
+<<<<<<< HEAD
 
+=======
+>>>>>>> da971bb (added schemas and module)
 
 			await poolsStore.setKey(methodContext, [poolId], poolsStoreData);
 			await poolsStore.setKey(methodContext, [poolIdLSK], poolsStoreData);
@@ -297,8 +300,14 @@ describe('dex: offChainEndpointFunctions', () => {
 
 		it('getLSKPrice', async () => {
 			const result = Buffer.alloc(4);
-			const feeTier = q96ToBytes(BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings.feeTier, 0)))
-			await poolsStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), positionId, feeTier], poolsStoreData);
+			const feeTier = q96ToBytes(
+				BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings.feeTier, 0)),
+			);
+			await poolsStore.setKey(
+				methodContext,
+				[getPoolIDFromPositionID(positionId), positionId, feeTier],
+				poolsStoreData,
+			);
 			await poolsStore.setKey(methodContext, [poolIdLSK, poolIdLSK, feeTier], poolsStoreData);
 			await poolsStore.setKey(methodContext, [poolIdLSK, positionId, feeTier], poolsStoreData);
 
@@ -308,7 +317,39 @@ describe('dex: offChainEndpointFunctions', () => {
 				dexModule.stores,
 				getPoolIDFromPositionID(positionId),
 			);
-			expect(res).toBe(BigInt(1))
+			expect(res).toBe(BigInt(1));
+		});
+
+		it('getTVL', async () => {
+			const res = await endpoint.getTVL(
+				tokenMethod,
+				methodContext,
+				dexModule.stores,
+				getPoolIDFromPositionID(positionId),
+			);
+			expect(res).toBe(BigInt(5));
+		});
+
+		it('getAllTicks', async () => {
+			await endpoint.getAllTicks(methodContext, dexModule.stores).then(res => {
+				expect(res).not.toBeNull();
+			});
+		});
+
+		it('getAllTickIDsInPool', async () => {
+			const key = Buffer.from('000000010000000001016431308000000a', 'hex');
+			const allTickIDsInPool = await endpoint.getAllTickIDsInPool(
+				methodContext,
+				dexModule.stores,
+				endpoint.getPoolIDFromTickID(key),
+			);
+			let ifKeyExists = false;
+			allTickIDsInPool.forEach(tickIdInPool => {
+				if (tickIdInPool.equals(key)) {
+					ifKeyExists = true;
+				}
+			});
+			expect(ifKeyExists).toBe(true);
 		});
 	});
 	it('getPoolIDFromTickID', () => {
