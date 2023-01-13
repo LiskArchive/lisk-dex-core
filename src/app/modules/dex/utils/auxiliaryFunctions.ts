@@ -933,18 +933,13 @@ export const swap = async (
 		}
 
 		const currentTick = priceToTick(poolSqrtPriceQ96);
-		const priceTickStoreData = getTickWithPoolIdAndTickValue(
-			methodContext,
-			stores,
-			poolID,
-			currentTick,
-		);
-		if (zeroToOne && priceTickStoreData !== null && poolSqrtPriceQ96 === tickToPrice(currentTick)) {
+
+		if (zeroToOne && poolSqrtPriceQ96 === tickToPrice(currentTick)) {
 			await crossTick(methodContext, stores, q96ToBytes(BigInt(currentTick)), false, currentHeight);
 			numCrossedTicks += 1;
 		}
 
-		if (zeroToOne) {
+		if (zeroToOne == true) {
 			nextTick = currentTick;
 		} else {
 			nextTick = currentTick;
@@ -1105,11 +1100,11 @@ export const computeExceptionalRoute = async (
 	while (routes.length > 0) {
 		const routeElement = routes.shift();
 		if (routeElement != null) {
-			if (routeElement?.endVertex.equals(tokenOut)) {
+			if (routeElement.endVertex.equals(tokenOut)) {
 				routeElement.path.push(tokenOut);
 				return routeElement.path;
 			}
-			const adjacent = await getAdjacent(methodContext, stores, routeElement?.endVertex);
+			const adjacent = await getAdjacent(methodContext, stores, routeElement.endVertex);
 			adjacent.forEach(adjacentEdge => {
 				if (visited.includes(adjacentEdge.vertex)) {
 					if (routeElement != null) {
@@ -1134,7 +1129,7 @@ export const swapWithin = (
 	const zeroToOne: boolean = sqrtCurrentPrice >= sqrtTargetPrice;
 	let amountIn = BigInt(0);
 	let amountOut = BigInt(0);
-	let sqrtUpdatedPrice = BigInt(0);
+	let sqrtUpdatedPrice;
 
 	if (exactInput) {
 		if (zeroToOne) {
@@ -1182,7 +1177,7 @@ export const crossTick = async (
 	await updatePoolIncentives(methodContext, stores, poolId, currentHeight);
 	const poolStoreData = await getPool(methodContext, stores, poolId);
 	const priceTickStoreData = await getTickWithTickId(methodContext, stores, [tickId]);
-	if (leftToRight) {
+	if (leftToRight == true) {
 		poolStoreData.liquidity += priceTickStoreData.liquidityNet;
 	} else {
 		poolStoreData.liquidity += priceTickStoreData.liquidityNet;
