@@ -575,7 +575,7 @@ describe('dex:auxiliaryFunctions', () => {
 				BigInt(currentHeight)
 			);
 			expect(dexGlobalStoreData.totalIncentivesMultiplier).toEqual(totalIncentivesMultiplier + 10);
-			expect(dexGlobalStoreData.incentivizedPools.length()).toEqual(incentivizedPoolsLength);
+			expect(dexGlobalStoreData.incentivizedPools.length).toEqual(incentivizedPoolsLength);
 		})
 	});
 });
