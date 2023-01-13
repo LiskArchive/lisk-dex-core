@@ -563,7 +563,7 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('updateIncentivizedPools', async () => {
-			const incentivizedPoolsLength = dexGlobalStoreData.incentivizedPools.length();
+			const incentivizedPoolsLength = dexGlobalStoreData.incentivizedPools.length;
 			const totalIncentivesMultiplier = dexGlobalStoreData.totalIncentivesMultiplier;
 			const multiplier = 20;
 			const currentHeight = 100;
@@ -575,7 +575,7 @@ describe('dex:auxiliaryFunctions', () => {
 				BigInt(currentHeight)
 			);
 			expect(dexGlobalStoreData.totalIncentivesMultiplier).toEqual(totalIncentivesMultiplier + 10);
-			expect(dexGlobalStoreData.incentivizedPools.length()).toEqual(incentivizedPoolsLength);
+			expect(dexGlobalStoreData.incentivizedPools.length).toEqual(incentivizedPoolsLength);
 		})
 	});
 });
