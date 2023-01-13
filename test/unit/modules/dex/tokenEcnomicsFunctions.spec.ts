@@ -200,7 +200,8 @@ describe('dex:tokenEcnomicsFunctions', () => {
     });
 
     it('Test updatePoolIncentives', async () => {
-      const currentHeight = 100;
+      const pool = await getPool(methodContext, dexModule.stores, poolId);
+      const currentHeight = pool.heightIncentivesUpdate - 10;
       const newIncentivesPerLiquidity = await computeNewIncentivesPerLiquidity(
         methodContext,
         dexModule.stores,
@@ -213,7 +214,6 @@ describe('dex:tokenEcnomicsFunctions', () => {
         poolId,
         currentHeight
       );
-      const pool = await getPool(methodContext, dexModule.stores, poolId);
       expect(pool.incentivesPerLiquidityAccumulator).toEqual(newIncentivesPerLiquidity);
       expect(pool.heightIncentivesUpdate).toEqual(currentHeight.valueOf());
     })
