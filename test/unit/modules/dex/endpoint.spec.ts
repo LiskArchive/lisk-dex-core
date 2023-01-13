@@ -148,7 +148,6 @@ describe('dex: offChainEndpointFunctions', () => {
 				[senderAddress, getPoolIDFromPositionID(positionId)],
 				poolsStoreData,
 			);
-			
 
 			await poolsStore.setKey(methodContext, [poolId], poolsStoreData);
 			await poolsStore.setKey(methodContext, [poolIdLSK], poolsStoreData);
@@ -314,18 +313,24 @@ describe('dex: offChainEndpointFunctions', () => {
 
 		it('getLSKPrice', async () => {
 			const result = Buffer.alloc(4);
-			const feeTier = q96ToBytes(BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings.feeTier, 0)))
-			await poolsStore.setKey(methodContext, [getPoolIDFromPositionID(positionId),positionId,feeTier], poolsStoreData);
-			await poolsStore.setKey(methodContext, [poolIdLSK,poolIdLSK,feeTier], poolsStoreData);
-			await poolsStore.setKey(methodContext, [poolIdLSK,positionId,feeTier], poolsStoreData);
-			
+			const feeTier = q96ToBytes(
+				BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings.feeTier, 0)),
+			);
+			await poolsStore.setKey(
+				methodContext,
+				[getPoolIDFromPositionID(positionId), positionId, feeTier],
+				poolsStoreData,
+			);
+			await poolsStore.setKey(methodContext, [poolIdLSK, poolIdLSK, feeTier], poolsStoreData);
+			await poolsStore.setKey(methodContext, [poolIdLSK, positionId, feeTier], poolsStoreData);
+
 			const res = await endpoint.getLSKPrice(
 				tokenMethod,
 				methodContext,
 				dexModule.stores,
-				getPoolIDFromPositionID(positionId),				
+				getPoolIDFromPositionID(positionId),
 			);
-			expect(res).toBe(BigInt(1))
+			expect(res).toBe(BigInt(1));
 		});
 
 		it('getTVL', async () => {
@@ -333,9 +338,9 @@ describe('dex: offChainEndpointFunctions', () => {
 				tokenMethod,
 				methodContext,
 				dexModule.stores,
-				getPoolIDFromPositionID(positionId),				
+				getPoolIDFromPositionID(positionId),
 			);
-			expect(res).toBe(BigInt(5))
+			expect(res).toBe(BigInt(5));
 		});
 
 		it('getAllTicks', async () => {
@@ -359,6 +364,5 @@ describe('dex: offChainEndpointFunctions', () => {
 			});
 			expect(ifKeyExists).toBe(true);
 		});
-
 	});
 });

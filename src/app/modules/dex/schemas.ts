@@ -490,7 +490,7 @@ export const getAllTokenIdsRequestSchema = {
 	required: ['stores'],
 	properties: {
 		stores: {
-			dataType:'object',
+			dataType: 'object',
 			fieldNumber: 1,
 		},
 	},
@@ -774,7 +774,7 @@ export const ggetPositionIndexResquestSchema = {
 		positionId: {
 			dataType: 'bytes',
 			fieldNumber: 1,
-		}
+		},
 	},
 };
 
@@ -786,7 +786,7 @@ export const getPositionIndexResponseSchema = {
 		positionIndex: {
 			dataType: 'unit32',
 			fieldNumber: 1,
-		}
+		},
 	},
 };
 
@@ -798,7 +798,7 @@ export const getPoolIDFromTickIDRequestSchema = {
 		tickID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
-		}
+		},
 	},
 };
 
@@ -810,7 +810,7 @@ export const getPoolIDFromTickIDResponseSchema = {
 		poolId: {
 			dataType: 'bytes',
 			fieldNumber: 1,
-		}
+		},
 	},
 };
 
@@ -822,7 +822,7 @@ export const getFeeTierResquestSchema = {
 		poolId: {
 			dataType: 'bytes',
 			fieldNumber: 1,
-		}
+		},
 	},
 };
 
@@ -834,8 +834,8 @@ export const getFeeTierResponseSchema = {
 		feeTier: {
 			dataType: 'uint32',
 			fieldNumber: 1,
-		}
-	}
+		},
+	},
 };
 
 export const getToken1AmountResponseSchema = {
@@ -846,9 +846,9 @@ export const getToken1AmountResponseSchema = {
 		poolID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
-		}
-	}
-}
+		},
+	},
+};
 
 export const getToken1AmountRequestSchema = {
 	$id: 'dex/getToken1Amount',
@@ -858,9 +858,9 @@ export const getToken1AmountRequestSchema = {
 		Token1Amount: {
 			dataType: 'uint64',
 			fieldNumber: 1,
-		}
-	}
-}
+		},
+	},
+};
 
 export const getToken0AmountResponseSchema = {
 	$id: 'dex/getToken0Amount',
@@ -870,9 +870,9 @@ export const getToken0AmountResponseSchema = {
 		poolID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
-		}
-	}
-}
+		},
+	},
+};
 
 export const getToken0AmountRequestSchema = {
 	$id: 'dex/getToken0Amount',
@@ -882,15 +882,14 @@ export const getToken0AmountRequestSchema = {
 		Token1Amount: {
 			dataType: 'uint64',
 			fieldNumber: 1,
-		}
-	}
-}
-
+		},
+	},
+};
 
 export const getLSKPriceResponseSchema = {
 	$id: 'dex/getLSKPrice',
 	type: 'object',
-	required: ['tokenMethod','methodContext','stores','tokenId'],
+	required: ['tokenMethod', 'methodContext', 'stores', 'tokenId'],
 	properties: {
 		tokenMethod: {
 			dataType: 'object',
@@ -908,9 +907,8 @@ export const getLSKPriceResponseSchema = {
 			dataType: 'bytes',
 			fieldNumber: 4,
 		},
-
-	}
-}
+	},
+};
 
 export const getLSKPriceRequestSchema = {
 	$id: 'dex/getLSKPrice',
@@ -920,9 +918,9 @@ export const getLSKPriceRequestSchema = {
 		lskPrice: {
 			dataType: 'uint64',
 			fieldNumber: 1,
-		}
-	}
-}
+		},
+	},
+};
 
 export const getTVLResponseSchema = {
 	$id: 'dex/getTVL',
@@ -945,9 +943,8 @@ export const getTVLResponseSchema = {
 			dataType: 'bytes',
 			fieldNumber: 4,
 		},
-
-	}
-}
+	},
+};
 
 export const getTVLRequestSchema = {
 	$id: 'dex/getTVL',
@@ -957,6 +954,86 @@ export const getTVLRequestSchema = {
 		tvl: {
 			dataType: 'uint64',
 			fieldNumber: 1,
-		}
-	}
-}
+		},
+	},
+};
+
+export const getAllTicksRequestSchema = {
+	$id: 'dex/getAllTicks',
+	type: 'object',
+	required: ['methodContext', 'stores', 'poolId'],
+	properties: {
+		methodContext: {
+			dataType: 'object',
+			fieldNumber: 1,
+		},
+		stores: {
+			dataType: 'object',
+			fieldNumber: 2,
+		},
+	},
+};
+
+export const getAllTicksResponseSchema = {
+	$id: 'dex/getAllTicks',
+	type: 'object',
+	required: ['tickIDs'],
+	properties: {
+		tickIDs: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['tickId'],
+				properties: {
+					positionID: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+				},
+			},
+		},
+	},
+};
+
+export const getAllTickIDsInPoolRequestSchema = {
+	$id: 'dex/getAllTickIDsInPool',
+	type: 'object',
+	required: ['methodContext', 'stores', 'poolId'],
+	properties: {
+		methodContext: {
+			dataType: 'object',
+			fieldNumber: 1,
+		},
+		stores: {
+			dataType: 'object',
+			fieldNumber: 2,
+		},
+		poolId: {
+			dataType: 'bytes',
+			fieldNumber: 3,
+		},
+	},
+};
+
+export const getAllTickIDsInPoolRsponseSchema = {
+	$id: 'dex/getAllTickIDsInPool',
+	type: 'object',
+	required: ['tickIDs'],
+	properties: {
+		tickIDs: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['tickId'],
+				properties: {
+					positionID: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+				},
+			},
+		},
+	},
+};

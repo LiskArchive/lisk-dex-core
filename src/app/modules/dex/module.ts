@@ -43,7 +43,18 @@ import { RemoveLiquidityEvent } from './events/removeLiquidity';
 import { RemoveLiquidityCommand } from './commands/removeLiquidity';
 import {
 	getAllPoolIdsRequestSchema,
-	getAllPoolIdsResponseSchema, getToken1AmountRequestSchema, getToken1AmountResponseSchema, getToken0AmountRequestSchema, getToken0AmountResponseSchema, getFeeTierResponseSchema, getFeeTierResquestSchema, getPoolIDFromTickIDRequestSchema, getPositionIndexResponseSchema, ggetPositionIndexResquestSchema, getAllTokenIdsRequestSchema, getAllTokenIdsResponseSchema,
+	getAllPoolIdsResponseSchema,
+	getToken1AmountRequestSchema,
+	getToken1AmountResponseSchema,
+	getToken0AmountRequestSchema,
+	getToken0AmountResponseSchema,
+	getFeeTierResponseSchema,
+	getFeeTierResquestSchema,
+	getPoolIDFromTickIDRequestSchema,
+	getPositionIndexResponseSchema,
+	ggetPositionIndexResquestSchema,
+	getAllTokenIdsRequestSchema,
+	getAllTokenIdsResponseSchema,
 	getAllPositionIDsInPoolRequestSchema,
 	getAllPositionIDsInPoolResponseSchema,
 	getCurrentSqrtPriceRequestSchema,
@@ -60,6 +71,10 @@ import {
 	getLSKPriceResponseSchema,
 	getTVLRequestSchema,
 	getTVLResponseSchema,
+	getAllTicksRequestSchema,
+	getAllTicksResponseSchema,
+	getAllTickIDsInPoolRequestSchema,
+	getAllTickIDsInPoolRsponseSchema,
 } from './schemas';
 
 export class DexModule extends BaseModule {
@@ -132,8 +147,7 @@ export class DexModule extends BaseModule {
 					name: this.endpoint.getPoolIDFromTickID.name,
 					request: getPoolIDFromTickIDRequestSchema,
 					response: getPoolIDFromTickIDRequestSchema,
-				}
-				,
+				},
 				{
 					name: this.endpoint.getPositionIndex.name,
 					request: ggetPositionIndexResquestSchema,
@@ -188,6 +202,16 @@ export class DexModule extends BaseModule {
 					name: this.endpoint.getTVL.name,
 					request: getTVLRequestSchema,
 					response: getTVLResponseSchema,
+				},
+				{
+					name: this.endpoint.getAllTicks.name,
+					request: getAllTicksRequestSchema,
+					response: getAllTicksResponseSchema,
+				},
+				{
+					name: this.endpoint.getAllTickIDsInPool.name,
+					request: getAllTickIDsInPoolRequestSchema,
+					response: getAllTickIDsInPoolRsponseSchema,
 				},
 			],
 			commands: this.commands.map(command => ({
