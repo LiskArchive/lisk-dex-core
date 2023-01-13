@@ -38,6 +38,7 @@ import {
 	transferPoolToPool,
 	transferToProtocolFeeAccount,
 	updatePosition,
+	poolExists
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
@@ -388,8 +389,19 @@ describe('dex:auxiliaryFunctions', () => {
 				}),
 			).toBeUndefined();
 		});
+
 		it('priceToTick', () => {
 			expect(priceToTick(tickToPrice(-735247))).toEqual(-735247);
 		});
+
+		it('poolExists', async () => {
+			const poolExistResult = await poolExists(
+				methodContext,
+				poolsStore,
+				poolId
+			);
+			const exists = await poolsStore.has(methodContext, poolId);
+			expect(poolExistResult).toEqual(exists);
+		})
 	});
 });
