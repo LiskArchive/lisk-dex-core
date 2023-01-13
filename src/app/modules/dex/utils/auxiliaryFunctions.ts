@@ -940,9 +940,9 @@ export const swap = async (
 		}
 
 		if (zeroToOne == true) {
-			nextTick = currentTick;
+			nextTick = stores.get(PriceTicksStore).getPrevTick;
 		} else {
-			nextTick = currentTick;
+			nextTick = stores.get(PriceTicksStore).getNextTick;
 		}
 
 		const sqrtNextTickPriceQ96 = tickToPrice(nextTick);
@@ -1026,7 +1026,7 @@ export const computeCurrentPrice = async (
 	// eslint-disable-next-line @typescript-eslint/no-misused-promises
 	for (const poolId of swapRoute) {
 		const pool = await getPool(methodContext, stores, poolId);
-		if (getPool(methodContext, stores, poolId) == null) {
+		if (await getPool(methodContext, stores, poolId) == null) {
 			throw new Error('Not a valid pool');
 		}
 		if (tokenInPool.equals(getToken0Id(poolId))) {
@@ -1180,7 +1180,7 @@ export const crossTick = async (
 	if (leftToRight == true) {
 		poolStoreData.liquidity += priceTickStoreData.liquidityNet;
 	} else {
-		poolStoreData.liquidity += priceTickStoreData.liquidityNet;
+		poolStoreData.liquidity -= priceTickStoreData.liquidityNet;
 	}
 	const feeGrowthGlobal0Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal0);
 	const feeGrowthOutside0Q96 = bytesToQ96(priceTickStoreData.feeGrowthOutside0);
