@@ -114,7 +114,7 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 		});
 	}
 
-	public async getNextTick(context: StoreGetter, keys: Buffer[]){
+	public async getNextTick(context: StoreGetter, keys: Buffer[]) {
 		const key = Buffer.concat(keys);
 		let nextTick;
 		let nextflag;
@@ -123,20 +123,20 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			lte: Buffer.alloc(16, 255),
 			reverse: false,
 		});
-		for(let i  = 0; i<allKeys.length; i++){
-			if(nextflag){
+		for (let i = 0; i < allKeys.length; i++) {
+			if (nextflag) {
 				nextTick = allKeys[i].key;
-				break; 
+				break;
 			}
-			if(allKeys[i].key.equals(key)){
+			if (allKeys[i].key.equals(key)) {
 				nextflag = true;
 			}
 		}
-		return this.getKey(context,[nextTick]);	
-			
+		return this.getKey(context, [nextTick]);
+
 	}
 
-	public async getPrevTick(context: StoreGetter, keys: Buffer[]){
+	public async getPrevTick(context: StoreGetter, keys: Buffer[]) {
 		const key = Buffer.concat(keys);
 		let prevTick;
 		let prevflag;
@@ -145,16 +145,15 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			lte: Buffer.alloc(16, 255),
 			reverse: false,
 		});
-		for(let i  = 0; i<allKeys.length; i++){						
-			if(allKeys[i].key.equals(key)){
+		for (let i = 0; i < allKeys.length; i++) {
+			if (allKeys[i].key.equals(key)) {
 				prevflag = true;
-			}
-			if(prevflag==true){				
-				break; 
+			} if (prevflag) {
+				break;
 			}
 			prevTick = allKeys[i].key;
 		}
-		return this.getKey(context,[prevTick]);	
+		return this.getKey(context, [prevTick]);
 	}
 
 
