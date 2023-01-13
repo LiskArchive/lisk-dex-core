@@ -31,7 +31,6 @@ import {
 import {
 	NUM_BYTES_ADDRESS,
 	NUM_BYTES_TOKEN_ID,
-	NUM_BYTES_POSITION_ID,
 	MODULE_ID_DEX,
 	NUM_BYTES_POOL_ID,
 	MAX_TICK,
@@ -52,9 +51,7 @@ import {
 	MODULE_NAME_DEX,
 } from '../constants';
 
-import { uint32beInv } from './bigEndian';
-
-import { PoolID, PositionID, Address, TokenID, Q96 } from '../types';
+import { PoolID, PositionID, Address, TokenID, Q96, routeInterface, AdjacentEdgesInterface } from '../types';
 
 import {
 	subQ96,
@@ -71,6 +68,10 @@ import { FeesIncentivesCollectedEvent, PositionUpdateFailedEvent } from '../even
 import { tickToBytes } from '../stores/priceTicksStore';
 import { ADDRESS_VALIDATOR_REWARDS_POOL } from '../../dexRewards/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
+import { DexEndpoint } from '../endpoint';
+import { DexModule } from '../module';
+import { MAX_SINT32 } from '@liskhq/lisk-validator';
+
 
 const { utils } = cryptography;
 
@@ -86,19 +87,6 @@ export const getToken0Id = (poolId: PoolID): TokenID => poolId.slice(0, NUM_BYTE
 export const getToken1Id = (poolId: PoolID): TokenID =>
 	poolId.slice(NUM_BYTES_TOKEN_ID, 2 * NUM_BYTES_TOKEN_ID);
 
-export const getFeeTier = (poolId: PoolID): number => {
-	const _buffer: Buffer = poolId.slice(-4);
-	const _hexBuffer: string = _buffer.toString('hex');
-
-	return uint32beInv(_hexBuffer);
-};
-
-export const getPositionIndex = (positionId: PositionID): number => {
-	const _buffer: Buffer = positionId.slice(2 * NUM_BYTES_POSITION_ID, NUM_BYTES_ADDRESS);
-	const _hexBuffer: string = _buffer.toString('hex');
-
-	return uint32beInv(_hexBuffer);
-};
 
 export const transferToPool = async (
 	tokenMethod: TokenMethod,
@@ -386,6 +374,8 @@ export const createPool = async (
 	const poolStoreValue = {
 		liquidity: BigInt(0),
 		sqrtPrice: q96ToBytes(initialSqrtPrice),
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+		heightIncentivesUpdate: 0,
 		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(0))),
 		protocolFees0: numberToQ96(BigInt(0)),
@@ -427,6 +417,7 @@ export const createPosition = async (
 			liquidityGross: BigInt(0),
 			feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(0))),
 			feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(0))),
+			incentivesPerLiquidityOutside: q96ToBytes(BigInt(0)),
 		};
 		if (bytesToQ96(currentPool.sqrtPrice) >= tickToPrice(tickLower)) {
 			tickStoreValue.feeGrowthOutside0 = currentPool.feeGrowthGlobal0;
@@ -442,6 +433,7 @@ export const createPosition = async (
 			liquidityGross: BigInt(0),
 			feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(0))),
 			feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(0))),
+			incentivesPerLiquidityOutside: q96ToBytes(BigInt(0)),
 		};
 		if (bytesToQ96(currentPool.sqrtPrice) >= tickToPrice(tickUpper)) {
 			tickStoreValue.feeGrowthOutside0 = currentPool.feeGrowthGlobal0;
@@ -765,4 +757,165 @@ export const updatePosition = async (
 	}
 
 	return [amount0, amount1];
+};
+
+export const getAdjacent = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	vertex: TokenID,
+): Promise<AdjacentEdgesInterface[]> => {
+	const result: AdjacentEdgesInterface[] = [];
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	const poolIDs = await endpoint.getAllPoolIDs(methodContext, stores.get(PoolsStore));
+	poolIDs.forEach(edge => {
+		if (getToken0Id(edge).equals(vertex)) {
+			result.push({ edge, vertex: getToken1Id(edge) });
+		} else if (getToken1Id(edge).equals(vertex)) {
+			result.push({ edge, vertex: getToken0Id(edge) });
+		}
+	});
+	return result;
+};
+
+export const computeRegularRoute = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	tokenIn: TokenID,
+	tokenOut: TokenID,
+): Promise<TokenID[]> => {
+	let lskAdjacent = await getAdjacent(methodContext, stores, TOKEN_ID_LSK);
+	let tokenInFlag = false;
+	let tokenOutFlag = false;
+
+	lskAdjacent.forEach(lskAdjacentEdge => {
+		if (lskAdjacentEdge.edge.equals(tokenIn)) {
+			tokenInFlag = true;
+		}
+		if (lskAdjacentEdge.edge.equals(tokenOut)) {
+			tokenOutFlag = true;
+		}
+	});
+
+	if (tokenInFlag && tokenOutFlag) {
+		return [tokenIn, TOKEN_ID_LSK, tokenOut];
+	}
+
+	tokenOutFlag = false;
+	lskAdjacent = await getAdjacent(methodContext, stores, tokenIn);
+
+	lskAdjacent.forEach(lskAdjacentEdge => {
+		if (lskAdjacentEdge.edge.equals(tokenOut)) {
+			tokenOutFlag = true;
+		}
+	});
+
+	if (tokenOutFlag) {
+		return [tokenIn, tokenOut];
+	}
+	return [];
+};
+
+
+export const computeExceptionalRoute = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	tokenIn: TokenID,
+	tokenOut: TokenID,
+): Promise<TokenID[]> => {
+	const routes: routeInterface[] = [
+		{
+			path: [],
+			endVertex: tokenIn,
+		},
+	];
+	const visited = [tokenIn];
+	while (routes.length > 0) {
+		const routeElement = routes.shift();
+		if (routeElement != null) {
+			if (routeElement.endVertex.equals(tokenOut)) {
+				routeElement.path.push(tokenOut);
+				return routeElement.path;
+			}
+			const adjacent = await getAdjacent(methodContext, stores, routeElement.endVertex);
+			adjacent.forEach(adjacentEdge => {
+				if (visited.includes(adjacentEdge.vertex)) {
+					if (routeElement != null) {
+						routeElement.path.push(adjacentEdge.edge);
+						routes.push({ path: routeElement.path, endVertex: adjacentEdge.vertex });
+						visited.push(adjacentEdge.vertex);
+					}
+				}
+			});
+		}
+	}
+	return [];
+};
+
+
+
+export const getCredibleDirectPrice = async (
+	tokenMethod: TokenMethod,
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	tokenID0: TokenID,
+	tokenID1: TokenID,
+): Promise<bigint> => {
+	const directPools: Buffer[] = [];
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	const settings = (await endpoint.getDexGlobalData(methodContext, stores)).poolCreationSettings;
+	const allpoolIDs = await endpoint.getAllPoolIDs(methodContext, stores.get(PoolsStore));
+	
+	const tokenIDArrays = [tokenID0, tokenID1];
+	[tokenID0,tokenID1] = tokenIDArrays.sort();
+	const concatedTokenIDs = Buffer.concat([tokenID0,tokenID1]);
+
+	settings.forEach(setting => {
+		const result = Buffer.alloc(4);
+		const tokenIDAndSettingsArray = [
+			concatedTokenIDs,
+			q96ToBytes(BigInt(result.writeUInt32BE(setting.feeTier, 0))),
+		];
+		const potentialPoolId: Buffer = Buffer.concat(tokenIDAndSettingsArray);
+		allpoolIDs.forEach(poolId => {
+			if (poolId.equals(potentialPoolId)) {
+				directPools.push(potentialPoolId);
+			}
+		});
+	});
+
+	if (directPools.length === 0) {
+		console.log(allpoolIDs)
+		throw new Error('No direct pool between given tokens');
+	}
+
+	const token1ValuesLocked: bigint[] = [];
+
+	for (const directPool of directPools) {
+		const pool = await endpoint.getPool(methodContext, stores, directPool);
+		const token0Amount = await endpoint.getToken0Amount(tokenMethod, methodContext, directPool);
+		const token0ValueQ96 = mulQ96(
+			mulQ96(numberToQ96(token0Amount), bytesToQ96(pool.sqrtPrice)),
+			bytesToQ96(pool.sqrtPrice),
+		);
+		token1ValuesLocked.push(
+			roundDownQ96(token0ValueQ96) +
+				(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
+		);
+	}
+
+	let minToken1ValueLocked = BigInt(MAX_SINT32);
+	let minToken1ValueLockedIndex = 0;
+	token1ValuesLocked.forEach((token1ValueLocked, index) => {
+		if (token1ValueLocked > minToken1ValueLocked) {
+			minToken1ValueLocked = token1ValueLocked;
+			minToken1ValueLockedIndex = index;
+		}
+	});
+
+	const poolSqrtPrice = (
+		await endpoint.getPool(methodContext, stores, directPools[minToken1ValueLockedIndex])
+	).sqrtPrice;
+	return mulQ96(bytesToQ96(poolSqrtPrice), bytesToQ96(poolSqrtPrice));
 };
