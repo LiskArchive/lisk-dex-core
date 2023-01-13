@@ -199,9 +199,9 @@ describe('dex:tokenEcnomicsFunctions', () => {
       tokenMethod.getLockedAmount = getLockedAmountMock.mockReturnValue(BigInt(5));
     });
 
-    it('Test updatePoolIncentives', async () => {
+    it('updatePoolIncentives', async () => {
       const pool = await getPool(methodContext, dexModule.stores, poolId);
-      const currentHeight = pool.heightIncentivesUpdate - 10;
+      const currentHeight = pool.heightIncentivesUpdate + 10;
       const newIncentivesPerLiquidity = await computeNewIncentivesPerLiquidity(
         methodContext,
         dexModule.stores,
