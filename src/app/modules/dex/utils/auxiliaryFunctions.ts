@@ -1261,15 +1261,15 @@ export const getCredibleDirectPrice = async (
 		);
 		token1ValuesLocked.push(
 			roundDownQ96(token0ValueQ96) +
-				(await getToken1Amount(tokenMethod, methodContext, directPool)),
+			(await getToken1Amount(tokenMethod, methodContext, directPool)),
 		);
 	}
 
 	let maxToken1ValueLocked = BigInt(MAX_SINT32);
 	let maxToken1ValueLockedIndex = 0;
 	token1ValuesLocked.forEach((token1ValueLocked, index) => {
-		if (token1ValueLocked > maxToken1ValueLocked ) {
-			maxToken1ValueLocked  = token1ValueLocked;
+		if (token1ValueLocked > maxToken1ValueLocked) {
+			maxToken1ValueLocked = token1ValueLocked;
 			maxToken1ValueLockedIndex = index;
 		}
 	});
