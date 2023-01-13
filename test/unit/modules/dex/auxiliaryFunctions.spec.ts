@@ -52,6 +52,7 @@ import {
 	getTickWithTickId,
 	getDexGlobalData,
 	getTickWithPoolIdAndTickValue,
+	updateIncentivizedPools
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
@@ -560,5 +561,21 @@ describe('dex:auxiliaryFunctions', () => {
 			expect(tickWithPoolIdAndTickValue).not.toBeNull();
 			expect(tickWithPoolIdAndTickValue.liquidityNet).toBe(BigInt(5));
 		});
+
+		it('updateIncentivizedPools', async () => {
+			const incentivizedPoolsLength = dexGlobalStoreData.incentivizedPools.length();
+			const totalIncentivesMultiplier = dexGlobalStoreData.totalIncentivesMultiplier;
+			const multiplier = 20;
+			const currentHeight = 100;
+			await updateIncentivizedPools(
+				methodContext,
+				dexModule.stores,
+				poolId,
+				multiplier,
+				BigInt(currentHeight)
+			);
+			expect(dexGlobalStoreData.totalIncentivesMultiplier).toEqual(totalIncentivesMultiplier + 10);
+			expect(dexGlobalStoreData.incentivizedPools.length()).toEqual(incentivizedPoolsLength);
+		})
 	});
 });
