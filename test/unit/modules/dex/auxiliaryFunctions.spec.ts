@@ -52,6 +52,7 @@ import {
 	computeExceptionalRoute,
 	computeRegularRoute,
 	getAdjacent,
+	poolExists
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
@@ -270,7 +271,7 @@ describe('dex:auxiliaryFunctions', () => {
 
 		it('should return 0 as POOL_CREATION_SUCCESS', async () => {
 			expect(
-				await createPool(settings, methodContext, poolsStore, token0Id, token1Id, 0, sqrtPrice, 10),
+				await createPool(settings, methodContext, poolsStore, token0Id, token1Id, 0, sqrtPrice),
 			).toBe(0);
 		});
 
@@ -472,6 +473,7 @@ describe('dex:auxiliaryFunctions', () => {
 				}),
 			).toBeUndefined();
 		});
+
 		it('priceToTick', () => {
 			expect(priceToTick(tickToPrice(-735247))).toBe(-735247);
 		});
@@ -587,7 +589,7 @@ describe('dex:auxiliaryFunctions', () => {
 		it('computeExceptionalRoute should return route with tokenID', async () => {
 			expect(
 				(
-					await computeExceptionalRoute(moduleEndpointContext, dexModule.stores, token0Id, token0Id)
+					await computeExceptionalRoute(methodContext, dexModule.stores, token0Id, token0Id)
 				)[0],
 			).toStrictEqual(Buffer.from('0000000000000000', 'hex'));
 		});
@@ -614,5 +616,15 @@ describe('dex:auxiliaryFunctions', () => {
 				expect(res.toString()).toBe('79267784519130042428790663800');
 			});
 		});
+
+		it('poolExists', async () => {
+			const poolExistResult = await poolExists(
+				methodContext,
+				poolsStore,
+				poolId
+			);
+			const exists = await poolsStore.has(methodContext, poolId);
+			expect(poolExistResult).toEqual(exists);
+		})
 	});
 });

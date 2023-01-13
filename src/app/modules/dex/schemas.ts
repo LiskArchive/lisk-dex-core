@@ -21,7 +21,6 @@ import {
 } from './constants';
 import { PoolsStore } from './stores';
 
-<<<<<<< HEAD
 export const poolsSchema = {
     $id: '/dex/pools',
     "type": "object",
@@ -174,64 +173,6 @@ export const settingsSchema = {
             },
         },
     },
-=======
-export const globalDataSchema = {
-	$id: '/dex/settings',
-	type: "object",
-	required: [
-		"positionCounter",
-		"poolCreationSettings",
-		"incentivizedPools",
-		"totalIncentivesMultiplier"
-	],
-	properties: {
-		positionCounter: {
-			dataType: "uint64",
-			fieldNumber: 1
-		},
-		poolCreationSettings: {
-			type: "array",
-			fieldNumber: 2,
-			items: {
-				type: "object",
-				required: ["feeTier", "tickSpacing"],
-				properties: {
-					feeTier: {
-						dataType: "uint32",
-						fieldNumber: 1
-					},
-					tickSpacing: {
-						dataType: "uint32",
-						fieldNumber: 2
-					}
-				}
-			}
-		},
-		incentivizedPools: {
-			type: "array",
-			fieldNumber: 3,
-			items: {
-				type: "object",
-				required: ["poolId", "multiplier"],
-				properties: {
-					poolId: {
-						dataType: "bytes",
-						length: NUM_BYTES_POOL_ID,
-						fieldNumber: 1
-					},
-					multiplier: {
-						dataType: "uint32",
-						fieldNumber: 2
-					}
-				}
-			}
-		},
-		totalIncentivesMultiplier: {
-			dataType: "uint32",
-			fieldNumber: 4
-		}
-	}
->>>>>>> 9668154 (refactor: fix globalDataSchema)
 };
 
 export const genesisDEXSchema = {
