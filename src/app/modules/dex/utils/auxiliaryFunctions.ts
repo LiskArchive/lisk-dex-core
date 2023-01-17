@@ -98,7 +98,7 @@ import { PoolsStoreData } from '../stores/poolsStore';
 
 const { utils } = cryptography;
 
-import { MAX_SINT32 } from '@liskhq/lisk-validator';
+import { MIN_SINT32 } from '@liskhq/lisk-validator';
 import { updatePoolIncentives } from './tokenEcnomicsFunctions';
 
 const abs = (x: bigint) => (x < BigInt(0) ? -x : x);
@@ -1261,21 +1261,21 @@ export const getCredibleDirectPrice = async (
 		);
 		token1ValuesLocked.push(
 			roundDownQ96(token0ValueQ96) +
-				(await getToken1Amount(tokenMethod, methodContext, directPool)),
+			(await getToken1Amount(tokenMethod, methodContext, directPool)),
 		);
 	}
 
-	let minToken1ValueLocked = BigInt(MAX_SINT32);
-	let minToken1ValueLockedIndex = 0;
+	let maxToken1ValueLocked = BigInt(MIN_SINT32);
+	let maxToken1ValueLockedIndex = 0;
 	token1ValuesLocked.forEach((token1ValueLocked, index) => {
-		if (token1ValueLocked > minToken1ValueLocked) {
-			minToken1ValueLocked = token1ValueLocked;
-			minToken1ValueLockedIndex = index;
+		if (token1ValueLocked > maxToken1ValueLocked) {
+			maxToken1ValueLocked = token1ValueLocked;
+			maxToken1ValueLockedIndex = index;
 		}
 	});
 
 	const poolSqrtPrice = (
-		await getPool(methodContext, stores, directPools[minToken1ValueLockedIndex])
+		await getPool(methodContext, stores, directPools[maxToken1ValueLockedIndex])
 	).sqrtPrice;
 	return mulQ96(bytesToQ96(poolSqrtPrice), bytesToQ96(poolSqrtPrice));
 };
