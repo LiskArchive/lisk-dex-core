@@ -55,8 +55,8 @@ export const computeNewIncentivesPerLiquidity = async (
 		totalIncentives,
 		poolMultiplier,
 		BigInt(dexGlobalStoreData.totalIncentivesMultiplier),
-	);
-	const incentivesPerLiquidity = divQ96(numberToQ96(incentives), numberToQ96(pool.liquidity));
+	)
+	const incentivesPerLiquidity = divQ96(incentives, numberToQ96(pool.liquidity));
 	const currentIncentivesPerLiquidity = bytesToQ96(pool.incentivesPerLiquidityAccumulator);
 	return addQ96(incentivesPerLiquidity, currentIncentivesPerLiquidity);
 };
