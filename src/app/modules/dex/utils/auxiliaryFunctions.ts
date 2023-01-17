@@ -52,6 +52,7 @@ import {
 	MAX_NUMBER_CROSSED_TICKS,
 	FEE_TIER_PARTITION,
 	VALIDATORS_LSK_INCENTIVE_PART,
+	MAX_SINT32
 } from '../constants';
 
 import { uint32beInv } from './bigEndian';
@@ -98,7 +99,7 @@ import { PoolsStoreData } from '../stores/poolsStore';
 
 const { utils } = cryptography;
 
-import { MAX_SINT32 } from '@liskhq/lisk-validator';
+import { MIN_SINT32 } from '@liskhq/lisk-validator';
 import { updatePoolIncentives } from './tokenEcnomicsFunctions';
 
 const abs = (x: bigint) => (x < BigInt(0) ? -x : x);
