@@ -24,6 +24,7 @@ export const MAX_LENGTH_METADATA_TITLE = 124; // The maximal allowed length for 
 export const MAX_LENGTH_METADATA_AUTHOR = 200; // The maximal allowed length for data in the `author` property in proposal metadata, in bytes.
 export const MAX_LENGTH_METADATA_SUMMARY = 500; // The maximal allowed length for `summary` property of proposal metadata, in bytes.
 export const MAX_LENGTH_METADATA_LINK = 200; // The maximal allowed length for `discussionsTo` property of proposal metadata, in bytes.
+export const MAX_NUM_RECORDED_VOTES = 100;
 export const LENGTH_PROPOSAL_ID = 4; // The number of bytes of a proposal ID.
 export const LENGTH_POOL_ID = 20; // The number of bytes of a DEX pool ID.
 export const LENGTH_ADDRESS = 20; // The number of bytes of an address.

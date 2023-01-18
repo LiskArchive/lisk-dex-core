@@ -11,8 +11,18 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { codec } from '@liskhq/lisk-codec';
 
-import { BaseCommand, BaseModule, GenesisBlockExecuteContext, ModuleMetadata, PoSMethod, TokenMethod } from 'lisk-sdk';
+import {
+	BaseCommand,
+	BaseModule,
+	GenesisBlockExecuteContext,
+	ModuleMetadata,
+	PoSMethod,
+	TokenMethod
+} from 'lisk-sdk';
+import { NUM_BYTES_POOL_ID } from '../dex/constants';
+import { AmountBelowMinEvent } from '../dex/events';
 
 import { DexGovernanceEndpoint } from './endpoint';
 import {
@@ -24,7 +34,27 @@ import {
 } from './events';
 
 import { DexGovernanceMethod } from './method';
+import {
+	indexSchema,
+	proposalSchema,
+	genesisDEXGovernanceSchema
+} from './schemas';
 import { IndexStore, ProposalsStore, VotesStore } from './stores';
+import {
+	Proposal,
+	Vote,
+	GenesisDEXGovernanceData
+} from './types';
+import {
+	PROPOSAL_TYPE_INCENTIVIZATION,
+	PROPOSAL_TYPE_UNIVERSAL,
+	MAX_NUM_RECORDED_VOTES,
+	DECISION_YES,
+	DECISION_NO,
+	DECISION_PASS,
+	VOTE_DURATION,
+	QUORUM_DURATION
+} from './constants';
 
 export class DexGovernanceModule extends BaseModule {
 	public endpoint = new DexGovernanceEndpoint(this.stores, this.offchainStores);
@@ -67,19 +97,187 @@ export class DexGovernanceModule extends BaseModule {
 		this._posMethod = posMethod;
 	}
 
+	public hasEnded(index: number, currentHeight: number, duration: Number, context: GenesisBlockExecuteContext,) {
+		if (index < 0) return true;
+		const assetBytes = context.assets.getAsset(this.name);
+		if (!assetBytes) {
+			return;
+		}
+		const genesisData = codec.decode<GenesisDEXGovernanceData>(genesisDEXGovernanceSchema, assetBytes);
+		const proposalsStore: Proposal[] = genesisData.proposalsStore;
+		if (!proposalsStore[index]) return false;
+		return (currentHeight - proposalsStore[index].creationHeight) >= duration;
+	}
+
 	public async initGenesisState(
+		context: GenesisBlockExecuteContext,
+	) {
+		this.verifyGenesisBlock(context);
+
+		const assetBytes = context.assets.getAsset(this.name);
+		if (!assetBytes) {
+			return;
+		}
+		const genesisData = codec.decode<GenesisDEXGovernanceData>(genesisDEXGovernanceSchema, assetBytes);
+		const proposalsStore: Proposal[] = genesisData.proposalsStore;
+		const votesStore: Vote[] = genesisData.votesStore;
+		const height = context.header.height;
+
+		// initialize proposals subsotre and compute values for index substore
+		proposalsStore.forEach((proposal, index) => {
+			proposalsStore[index] = {
+				creationHeight: proposal.creationHeight,
+				votesYes: proposal.votesYes,
+				votesNo: proposal.votesNo,
+				votesPass: proposal.votesPass,
+				type: proposal.type,
+				content: proposal.content,
+				status: proposal.status
+			};
+		});
+
+		// initialize votes substore
+		for (const [voteId, votes] of votesStore.entries()) {
+			votesStore[voteId] = {
+				...votes
+			}
+		}
+
+		// initialize index substore
+		let nextoutcomeCheckIndex = 0;
+		let nextQuorumCheckIndex = 0;
+		const newestIndex = ProposalsStore.length - 1;
+		for (let i = 0; i < proposalsStore.length; i++) {
+			// proposals substore is already initialized
+			if (!this.hasEnded(i, height, VOTE_DURATION, context)) {
+				nextoutcomeCheckIndex = i;
+				break;
+			}
+		}
+
+		for (let i = 0; i < proposalsStore.length; i++) {
+			if (!this.hasEnded(i, height, QUORUM_DURATION, context)) {
+				nextQuorumCheckIndex = i;
+				break;
+			}
+		}
+
+		const indexStore = {
+			newestIndex: newestIndex,
+			nextOutcomeCheckIndex: nextoutcomeCheckIndex,
+			nextQuorumCheckIndex: nextQuorumCheckIndex
+		};
+	}
+
+	public verifyGenesisBlock(
 		context: GenesisBlockExecuteContext
 	) {
-		const genesisData;
-		const proposalsStore: ProposalsStore = genesisData.proposalsStore;
-		const votesStore: VotesStore = genesisData.votesStore;
+		const assetBytes = context.assets.getAsset(this.name);
+		if (!assetBytes) {
+			return;
+		}
+		const genesisData = codec.decode<GenesisDEXGovernanceData>(genesisDEXGovernanceSchema, assetBytes);
+		const proposalsStore: Proposal[] = genesisData.proposalsStore;
+		const votesStore: Vote[] = genesisData.votesStore;
 		const height: Number = context.header.height;
 
 		// creation heights can not decrease in the array
-		const previousCreationHeight = 0;
-	}
+		let previousCreationHeight = 0;
+		for (let i = 0; i < proposalsStore.length; i += 1) {
+			if (proposalsStore[i].creationHeight < previousCreationHeight) {
+				throw new Error("Proposals must be indexed in the creation order");
+			}
+			previousCreationHeight = proposalsStore[i].creationHeight;
+		}
+		for (let i = 0; i < proposalsStore.length; i += 1) {
+			if (proposalsStore[i].creationHeight >= height) {
+				throw new Error("Proposal can not be created in the future");
+			}
+			if (proposalsStore[i].type > 1) {
+				throw new Error("Invalid proposal type");
+			}
+			if (proposalsStore[i].type === PROPOSAL_TYPE_INCENTIVIZATION && proposalsStore[i].content.poolID.length !== NUM_BYTES_POOL_ID) {
+				throw new Error("Incentivization proposal must contain a valid pool ID");
+			}
+			if (proposalsStore[i].type === PROPOSAL_TYPE_UNIVERSAL) {
+				if (proposalsStore[i].content.text.length === 0) {
+					throw new Error("Proposal text can not be empty for universal proposal");
+				}
+				if (proposalsStore[i].content.poolID.length !== 0 || proposalsStore[i].content.multiplier !== 0) {
+					throw new Error("For universal proposals, pool ID must be empty and multiplier must be set to 0");
+				}
+			}
+			if (proposalsStore[i].status > 3) {
+				throw new Error("Invalid proposal status");
+			}
+		}
 
-	public verifyGenesisBlock() {
+		// checks for votesStore
+		for (let i = 0; i < votesStore.length; i += 1) {
+			const exist = votesStore.find((votes) => {
+				if (votes.address === votesStore[i].address) {
+					return true;
+				}
+				return false;
+			});
+			if (exist) {
+				throw new Error("All addresses in votes store must be unique");
+			}
+		}
 
+		for (const [voteId, votes] of votesStore.entries()) {
+			votes.voteInfos.forEach((voteInfo) => {
+				if (voteInfo.proposalIndex >= proposalsStore.length) {
+					throw new Error("Vote info references incorrect proposal index");
+				}
+				if (voteInfo.decision > 2) {
+					throw new Error("Incorrect vote decision");
+				}
+			});
+		}
+
+		// check vote calculation for the proposals with recorded votes
+		const firstWithRecordedVotes = Math.max(0, proposalsStore.length - MAX_NUM_RECORDED_VOTES);
+		const votesYes = {};
+		const votesNo = {};
+		const votesPass = {};
+
+		for (let index = firstWithRecordedVotes; index < proposalsStore.length; index += 1) {
+			votesYes[index] = BigInt(0);
+			votesNo[index] = BigInt(0);
+			votesPass[index] = BigInt(0);
+		}
+
+		for (const [voteId, votesEntry] of votesStore.entries()) {
+			votesStore[voteId].voteInfos.forEach((voteInfo) => {
+				if (voteInfo.proposalIndex >= firstWithRecordedVotes && voteInfo.proposalIndex < proposalsStore.length) {
+					const index = voteInfo.proposalIndex;
+					const decision = voteInfo.decision;
+					const amount = voteInfo.amount;
+					switch (decision) {
+						case DECISION_YES:
+							votesYes[index] += amount;
+							break;
+						case DECISION_NO:
+							votesNo[index] += amount;
+							break;
+						case DECISION_PASS:
+							votesPass[index] += amount;
+							break;
+						default:
+							break;
+					}
+				}
+			})
+		}
+
+		for (let index = firstWithRecordedVotes; index < proposalsStore.length; index += 1) {
+			if (proposalsStore[index].votesYes !== votesYes[index]
+				|| proposalsStore[index].votesNo !== votesNo[index]
+				|| proposalsStore[index].votesPass !== votesPass[index]
+			) {
+				throw new Error("Incorrect vote data about the proposals with recorded votes");
+			}
+		}
 	}
 }

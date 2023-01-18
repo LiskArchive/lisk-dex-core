@@ -35,15 +35,21 @@ export interface Proposal {
 }
 
 export interface Vote {
-	voteInfos: {
+	address: Buffer,
+	voteInfos: [{
 		proposalIndex: number;
 		decision: number;
 		amount: bigint;
-	};
+	}];
 }
 
 export interface Index {
 	newestIndex: number;
 	nextOutcomeCheckIndex: number;
 	nextQuorumCheckIndex: number;
+}
+
+export interface GenesisDEXGovernanceData {
+	proposalsStore: Proposal[],
+	votesStore: Vote[]
 }

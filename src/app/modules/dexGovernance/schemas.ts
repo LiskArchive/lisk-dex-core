@@ -161,6 +161,7 @@ export const indexSchema = {
 };
 
 export const genesisDEXGovernanceSchema = {
+	$id: '/dexGovernance/genesisDEXGovernance',
 	type: 'object',
 	required: ['proposalsStore', 'votesStore'],
 	properties: {
