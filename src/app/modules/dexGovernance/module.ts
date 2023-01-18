@@ -41,7 +41,6 @@ import {
 	Proposal,
 	Vote,
 	GenesisDEXGovernanceData,
-	Index
 } from './types';
 import {
 	PROPOSAL_TYPE_INCENTIVIZATION,
