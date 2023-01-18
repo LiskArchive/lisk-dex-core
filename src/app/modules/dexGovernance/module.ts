@@ -22,7 +22,6 @@ import {
 	TokenMethod
 } from 'lisk-sdk';
 import { NUM_BYTES_POOL_ID } from '../dex/constants';
-import { AmountBelowMinEvent } from '../dex/events';
 
 import { DexGovernanceEndpoint } from './endpoint';
 import {
@@ -35,15 +34,14 @@ import {
 
 import { DexGovernanceMethod } from './method';
 import {
-	indexSchema,
-	proposalSchema,
 	genesisDEXGovernanceSchema
 } from './schemas';
 import { IndexStore, ProposalsStore, VotesStore } from './stores';
 import {
 	Proposal,
 	Vote,
-	GenesisDEXGovernanceData
+	GenesisDEXGovernanceData,
+	Index
 } from './types';
 import {
 	PROPOSAL_TYPE_INCENTIVIZATION,
