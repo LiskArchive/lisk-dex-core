@@ -1230,8 +1230,7 @@ export const getCredibleDirectPrice = async (
 	const settings = (await getDexGlobalData(methodContext, stores)).poolCreationSettings;
 	const allpoolIDs = await getAllPoolIDs(methodContext, stores.get(PoolsStore));
 
-	const tokenIDArrays = [tokenID0, tokenID1];
-	tokenIDArrays.sort(((a, b) => (a < b ? -1 : 1)))
+	const tokenIDArrays = [tokenID0, tokenID1].sort();
 	const concatedTokenIDs = Buffer.concat(tokenIDArrays);
 
 	settings.forEach(setting => {
