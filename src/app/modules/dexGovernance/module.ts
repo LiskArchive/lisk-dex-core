@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseCommand, BaseModule, ModuleMetadata, PoSMethod, TokenMethod } from 'lisk-sdk';
+import { BaseCommand, BaseModule, GenesisBlockExecuteContext, ModuleMetadata, PoSMethod, TokenMethod } from 'lisk-sdk';
 
 import { DexGovernanceEndpoint } from './endpoint';
 import {
@@ -65,5 +65,21 @@ export class DexGovernanceModule extends BaseModule {
 	public addDependencies(tokenMethod: TokenMethod, posMethod: PoSMethod) {
 		this._tokenMethod = tokenMethod;
 		this._posMethod = posMethod;
+	}
+
+	public async initGenesisState(
+		context: GenesisBlockExecuteContext
+	) {
+		const genesisData;
+		const proposalsStore: ProposalsStore = genesisData.proposalsStore;
+		const votesStore: VotesStore = genesisData.votesStore;
+		const height: Number = context.header.height;
+
+		// creation heights can not decrease in the array
+		const previousCreationHeight = 0;
+	}
+
+	public verifyGenesisBlock() {
+
 	}
 }
