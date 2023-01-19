@@ -483,7 +483,6 @@ export const getAllPoolIdsResponseSchema = {
 		PoolID: Buffer,
 	},
 };
-<<<<<<< HEAD
 
 export const getAllTokenIdsRequestSchema = {
 	$id: 'dex/getAllTokenIds',
@@ -519,5 +518,3 @@ export const getAllTokenIdsResponseSchema = {
 		}
 	},
 };
-=======
->>>>>>> c31ddf58b7a1fd539e28f1d9c2fe65c025af4ece

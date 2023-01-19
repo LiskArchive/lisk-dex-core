@@ -15,7 +15,6 @@
 import { BaseEndpoint, ModuleEndpointContext } from 'lisk-sdk';
 import { PoolsStore } from './stores';
 import { PoolID, TokenID } from './types';
-import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { getToken0Id, getToken1Id } from './utils/auxiliaryFunctions';
 
 export class DexEndpoint extends BaseEndpoint {
