@@ -111,21 +111,14 @@ export class DexGovernanceModule extends BaseModule {
 	public async initGenesisState(context: GenesisBlockExecuteContext) {
 		this.verifyGenesisBlock(context);
 
-		const assetBytes = context.assets.getAsset(this.name);
-		if (!assetBytes) {
-			return;
-		}
-		const genesisData = codec.decode<GenesisDEXGovernanceData>(
-			genesisDEXGovernanceSchema,
-			assetBytes,
-		);
-		const proposalsStore: Proposal[] = genesisData.proposalsStore;
-		const votesStore: Vote[] = genesisData.votesStore;
+		// const proposalsStore: Proposal[] = genesisData.proposalsStore;
+		// const votesStore: Vote[] = genesisData.votesStore;
+		const proposalsStore = this.stores.get(ProposalsStore);
 		const indexStore: IndexStore = this.stores.get(IndexStore);
 		const height = context.header.height;
 
 		// initialize proposals subsotre and compute values for index substore
-		proposalsStore.forEach((proposal, index) => {
+		for (const [index, proposal] of proposalsStore.entries()) {
 			proposalsStore[index] = {
 				creationHeight: proposal.creationHeight,
 				votesYes: proposal.votesYes,
@@ -135,7 +128,7 @@ export class DexGovernanceModule extends BaseModule {
 				content: proposal.content,
 				status: proposal.status,
 			};
-		});
+		}
 
 		// initialize votes substore
 		for (const [voteId, votes] of votesStore.entries()) {

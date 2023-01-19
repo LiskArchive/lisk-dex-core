@@ -12,7 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseModule, PoSModule, TokenModule } from 'lisk-sdk';
+import {
+	BaseModule,
+	PoSModule,
+	TokenModule,
+	GenesisBlockExecuteContext
+} from 'lisk-sdk';
+
+import { createMethodContext } from 'lisk-framework/dist-node/state_machine';
 
 import { DexGovernanceModule } from '../../../../src/app/modules/dexGovernance/module';
 import { DexGovernanceEndpoint } from '../../../../src/app/modules/dexGovernance/endpoint';
@@ -25,11 +32,13 @@ describe('DexGovernanceModule', () => {
 	let dexGovernanceModule: DexGovernanceModule;
 	let tokenModule: TokenModule;
 	let posModule: PoSModule;
+	let genesisBlockExecuteContext: GenesisBlockExecuteContext;
 
 	beforeEach(() => {
 		dexGovernanceModule = new DexGovernanceModule();
 		tokenModule = new TokenModule();
 		posModule = new PoSModule();
+		genesisBlockExecuteContext = createMethodContext({})
 
 		tokenModule.method.mint = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.lock = jest.fn().mockImplementation(async () => Promise.resolve());
@@ -57,6 +66,14 @@ describe('DexGovernanceModule', () => {
 		it('should expose method', () => {
 			expect(dexGovernanceModule).toHaveProperty('method');
 			expect(dexGovernanceModule.method).toBeInstanceOf(DexGovernanceMethod);
+		});
+
+		it('initGenesisState', async () => {
+
+		});
+
+		it('verifyGenesisBlock', () => {
+
 		});
 	});
 });
