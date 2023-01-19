@@ -24,6 +24,14 @@ export class ProposalsStore extends BaseStore<Proposal> {
 		return this.get(context, key);
 	}
 
+	public async getAll(context: StoreGetter) {
+		return this.iterate(context, {
+			gte: Buffer.alloc(16, 0),
+			lte: Buffer.alloc(16, 255),
+			reverse: true,
+		});
+	}
+
 	public async hasKey(context: StoreGetter, keys: Buffer[]): Promise<boolean> {
 		const key = Buffer.concat(keys);
 		return this.has(context, key);

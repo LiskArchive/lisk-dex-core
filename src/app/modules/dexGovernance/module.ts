@@ -113,12 +113,12 @@ export class DexGovernanceModule extends BaseModule {
 
 		// const proposalsStore: Proposal[] = genesisData.proposalsStore;
 		// const votesStore: Vote[] = genesisData.votesStore;
-		const proposalsStore = this.stores.get(ProposalsStore);
+		const proposalsStore: Proposals[] = this.stores.getAll(ProposalsStore);
 		const indexStore: IndexStore = this.stores.get(IndexStore);
 		const height = context.header.height;
 
 		// initialize proposals subsotre and compute values for index substore
-		for (const [index, proposal] of proposalsStore.entries()) {
+		for (const [index, proposal] of proposalsStore.iterate()) {
 			proposalsStore[index] = {
 				creationHeight: proposal.creationHeight,
 				votesYes: proposal.votesYes,
