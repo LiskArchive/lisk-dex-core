@@ -28,7 +28,7 @@ export const swapWithin = (
 	const zeroToOne: boolean = sqrtCurrentPrice >= sqrtTargetPrice;
 	let amountIn = BigInt(0);
 	let amountOut = BigInt(0);
-	let sqrtUpdatedPrice = BigInt(0);
+	let sqrtUpdatedPrice;
 
 	if (exactInput) {
 		if (zeroToOne) {
