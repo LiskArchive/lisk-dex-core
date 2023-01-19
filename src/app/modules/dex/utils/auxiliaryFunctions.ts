@@ -770,5 +770,3 @@ export const updatePosition = async (
 
 	return [amount0, amount1];
 };
-
-

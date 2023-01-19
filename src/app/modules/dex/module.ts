@@ -88,11 +88,13 @@ export class DexModule extends BaseModule {
 	public metadata(): ModuleMetadata {
 		return {
 			name: this.name,
-			endpoints: [{
-				name: this.endpoint.getAllPoolIDs.name,
-				request: getAllPoolIdsRequestSchema,
-				response: getAllPoolIdsResponseSchema,
-			}],
+			endpoints: [
+				{
+					name: this.endpoint.getAllPoolIDs.name,
+					request: getAllPoolIdsRequestSchema,
+					response: getAllPoolIdsResponseSchema,
+				},
+			],
 			commands: this.commands.map(command => ({
 				name: command.name,
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

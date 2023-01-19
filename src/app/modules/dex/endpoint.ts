@@ -12,21 +12,20 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseEndpoint, MethodContext } from 'lisk-sdk';
+import { BaseEndpoint, ModuleEndpointContext } from 'lisk-sdk';
 import { PoolsStore } from './stores';
 import { PoolID } from './types';
 
 export class DexEndpoint extends BaseEndpoint {
-
-    public async getAllPoolIDs(	methodContext: MethodContext,
-		poolStore: PoolsStore): Promise<PoolID[]>{
-			const poolIds: PoolID[] = [];
-			const allPoolIds = await poolStore.getAll(methodContext);
-			if (allPoolIds && allPoolIds.length){
-				allPoolIds.forEach(poolId => {
-					poolIds.push(poolId.key);
-				});
-			}
-			return poolIds;
+	public async getAllPoolIDs(methodContext: ModuleEndpointContext): Promise<PoolID[]> {
+		const poolStore = this.stores.get(PoolsStore);
+		const store = await poolStore.getAll(methodContext);
+		const poolIds: PoolID[] = [];
+		if (store && store.length) {
+			store.forEach(poolId => {
+				poolIds.push(poolId.key);
+			});
+		}
+		return poolIds;
 	}
 }
