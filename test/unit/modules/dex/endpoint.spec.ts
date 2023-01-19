@@ -47,7 +47,6 @@ import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStor
 import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import { DexEndpoint } from '../../../../src/app/modules/dex/endpoint';
 
-
 describe('dex: offChainEndpointFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
@@ -76,8 +75,6 @@ describe('dex: offChainEndpointFunctions', () => {
 	const unlockMock = jest.fn();
 	const getAvailableBalanceMock = jest.fn().mockReturnValue(BigInt(250));
 	const lockedAmountMock = jest.fn().mockReturnValue(BigInt(5));
-
-	
 
 	const poolsStoreData: PoolsStoreData = {
 		liquidity: BigInt(5),
@@ -198,9 +195,8 @@ describe('dex: offChainEndpointFunctions', () => {
 			tokenMethod.unlock = unlockMock;
 			tokenMethod.getAvailableBalance = getAvailableBalanceMock.mockReturnValue(BigInt(250));
 			tokenMethod.getLockedAmount = lockedAmountMock.mockReturnValue(BigInt(5));
-			
 		});
-		
+
 		it('getAllPoolIDs', async () => {
 			await endpoint.getAllPoolIDs(methodContext, dexModule.stores.get(PoolsStore)).then(res => {
 				expect(res[0]).toStrictEqual(
@@ -214,6 +210,5 @@ describe('dex: offChainEndpointFunctions', () => {
 				expect(res.size).toBeGreaterThan(0);
 			});
 		});
-
 	});
 });

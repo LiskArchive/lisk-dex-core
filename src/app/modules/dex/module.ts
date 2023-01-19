@@ -89,6 +89,7 @@ export class DexModule extends BaseModule {
 		return {
 			name: this.name,
 			endpoints: [
+<<<<<<< HEAD
 			{
 				name: this.endpoint.getAllPoolIDs.name,
 				request: getAllPoolIdsRequestSchema,
@@ -100,6 +101,14 @@ export class DexModule extends BaseModule {
 				response: getAllTokenIdsResponseSchema,
 			}
 		],
+=======
+				{
+					name: this.endpoint.getAllPoolIDs.name,
+					request: getAllPoolIdsRequestSchema,
+					response: getAllPoolIdsResponseSchema,
+				},
+			],
+>>>>>>> c31ddf58b7a1fd539e28f1d9c2fe65c025af4ece
 			commands: this.commands.map(command => ({
 				name: command.name,
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
