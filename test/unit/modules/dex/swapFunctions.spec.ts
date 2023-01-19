@@ -32,19 +32,19 @@ describe('dex:auxiliaryFunctions', () => {
     const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
     const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
     const methodContext: MethodContext = createMethodContext({
-		contextStore: new Map(),
-		stateStore,
-		eventQueue: new EventQueue(0),
-	});
+        contextStore: new Map(),
+        stateStore,
+        eventQueue: new EventQueue(0),
+    });
 
     describe('constructor', () => {
         beforeEach(async () => {
-			
-		});
+
+        });
         it('raiseSwapException', () => {
-			raiseSwapException(dexModule.events,methodContext,1,token0Id,token1Id,senderAddress)
+            raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress)
             const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed')
             expect(swapFailedEvent.length).toBe(1)
-		});
+        });
     })
 })
