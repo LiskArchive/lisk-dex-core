@@ -586,9 +586,8 @@ export const getAllPoolIdsRequestSchema = {
     type: 'object',
     required: ['poolStore'],
     properties: {
-        poolStore: PoolsStore
+        poolStore: PoolsStore,
     },
-
 };
 
 export const getAllPoolIdsResponseSchema = {
