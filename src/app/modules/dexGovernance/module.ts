@@ -19,7 +19,7 @@ import {
 	GenesisBlockExecuteContext,
 	ModuleMetadata,
 	PoSMethod,
-	TokenMethod
+	TokenMethod,
 } from 'lisk-sdk';
 import { NUM_BYTES_POOL_ID } from '../dex/constants';
 
@@ -33,15 +33,9 @@ import {
 } from './events';
 
 import { DexGovernanceMethod } from './method';
-import {
-	genesisDEXGovernanceSchema
-} from './schemas';
+import { genesisDEXGovernanceSchema } from './schemas';
 import { IndexStore, ProposalsStore, VotesStore } from './stores';
-import {
-	Proposal,
-	Vote,
-	GenesisDEXGovernanceData,
-} from './types';
+import { Proposal, Vote, GenesisDEXGovernanceData } from './types';
 import {
 	PROPOSAL_TYPE_INCENTIVIZATION,
 	PROPOSAL_TYPE_UNIVERSAL,
@@ -50,7 +44,7 @@ import {
 	DECISION_NO,
 	DECISION_PASS,
 	VOTE_DURATION,
-	QUORUM_DURATION
+	QUORUM_DURATION,
 } from './constants';
 
 export class DexGovernanceModule extends BaseModule {
@@ -94,30 +88,40 @@ export class DexGovernanceModule extends BaseModule {
 		this._posMethod = posMethod;
 	}
 
-	public hasEnded(index: number, currentHeight: number, duration: Number, context: GenesisBlockExecuteContext,) {
+	public hasEnded(
+		index: number,
+		currentHeight: number,
+		duration: Number,
+		context: GenesisBlockExecuteContext,
+	) {
 		if (index < 0) return true;
 		const assetBytes = context.assets.getAsset(this.name);
 		if (!assetBytes) {
 			return;
 		}
-		const genesisData = codec.decode<GenesisDEXGovernanceData>(genesisDEXGovernanceSchema, assetBytes);
+		const genesisData = codec.decode<GenesisDEXGovernanceData>(
+			genesisDEXGovernanceSchema,
+			assetBytes,
+		);
 		const proposalsStore: Proposal[] = genesisData.proposalsStore;
 		if (!proposalsStore[index]) return false;
-		return (currentHeight - proposalsStore[index].creationHeight) >= duration;
+		return currentHeight - proposalsStore[index].creationHeight >= duration;
 	}
 
-	public async initGenesisState(
-		context: GenesisBlockExecuteContext,
-	) {
+	public async initGenesisState(context: GenesisBlockExecuteContext) {
 		this.verifyGenesisBlock(context);
 
 		const assetBytes = context.assets.getAsset(this.name);
 		if (!assetBytes) {
 			return;
 		}
-		const genesisData = codec.decode<GenesisDEXGovernanceData>(genesisDEXGovernanceSchema, assetBytes);
+		const genesisData = codec.decode<GenesisDEXGovernanceData>(
+			genesisDEXGovernanceSchema,
+			assetBytes,
+		);
 		const proposalsStore: Proposal[] = genesisData.proposalsStore;
 		const votesStore: Vote[] = genesisData.votesStore;
+		const indexStore: IndexStore = this.stores.get(IndexStore);
 		const height = context.header.height;
 
 		// initialize proposals subsotre and compute values for index substore
@@ -129,15 +133,15 @@ export class DexGovernanceModule extends BaseModule {
 				votesPass: proposal.votesPass,
 				type: proposal.type,
 				content: proposal.content,
-				status: proposal.status
+				status: proposal.status,
 			};
 		});
 
 		// initialize votes substore
 		for (const [voteId, votes] of votesStore.entries()) {
 			votesStore[voteId] = {
-				...votes
-			}
+				...votes,
+			};
 		}
 
 		// initialize index substore
@@ -159,21 +163,24 @@ export class DexGovernanceModule extends BaseModule {
 			}
 		}
 
-		const indexStore = {
+		const indexStoreData = {
 			newestIndex: newestIndex,
 			nextOutcomeCheckIndex: nextoutcomeCheckIndex,
-			nextQuorumCheckIndex: nextQuorumCheckIndex
+			nextQuorumCheckIndex: nextQuorumCheckIndex,
 		};
+
+		await indexStore.set(context, Buffer.alloc(0), indexStoreData);
 	}
 
-	public verifyGenesisBlock(
-		context: GenesisBlockExecuteContext
-	) {
+	public verifyGenesisBlock(context: GenesisBlockExecuteContext) {
 		const assetBytes = context.assets.getAsset(this.name);
 		if (!assetBytes) {
 			return;
 		}
-		const genesisData = codec.decode<GenesisDEXGovernanceData>(genesisDEXGovernanceSchema, assetBytes);
+		const genesisData = codec.decode<GenesisDEXGovernanceData>(
+			genesisDEXGovernanceSchema,
+			assetBytes,
+		);
 		const proposalsStore: Proposal[] = genesisData.proposalsStore;
 		const votesStore: Vote[] = genesisData.votesStore;
 		const height: Number = context.header.height;
@@ -182,56 +189,64 @@ export class DexGovernanceModule extends BaseModule {
 		let previousCreationHeight = 0;
 		for (let i = 0; i < proposalsStore.length; i += 1) {
 			if (proposalsStore[i].creationHeight < previousCreationHeight) {
-				throw new Error("Proposals must be indexed in the creation order");
+				throw new Error('Proposals must be indexed in the creation order');
 			}
 			previousCreationHeight = proposalsStore[i].creationHeight;
 		}
 		for (let i = 0; i < proposalsStore.length; i += 1) {
 			if (proposalsStore[i].creationHeight >= height) {
-				throw new Error("Proposal can not be created in the future");
+				throw new Error('Proposal can not be created in the future');
 			}
 			if (proposalsStore[i].type > 1) {
-				throw new Error("Invalid proposal type");
+				throw new Error('Invalid proposal type');
 			}
-			if (proposalsStore[i].type === PROPOSAL_TYPE_INCENTIVIZATION && proposalsStore[i].content.poolID.length !== NUM_BYTES_POOL_ID) {
-				throw new Error("Incentivization proposal must contain a valid pool ID");
+			if (
+				proposalsStore[i].type === PROPOSAL_TYPE_INCENTIVIZATION &&
+				proposalsStore[i].content.poolID.length !== NUM_BYTES_POOL_ID
+			) {
+				throw new Error('Incentivization proposal must contain a valid pool ID');
 			}
 			if (proposalsStore[i].type === PROPOSAL_TYPE_UNIVERSAL) {
 				if (proposalsStore[i].content.text.length === 0) {
-					throw new Error("Proposal text can not be empty for universal proposal");
+					throw new Error('Proposal text can not be empty for universal proposal');
 				}
-				if (proposalsStore[i].content.poolID.length !== 0 || proposalsStore[i].content.multiplier !== 0) {
-					throw new Error("For universal proposals, pool ID must be empty and multiplier must be set to 0");
+				if (
+					proposalsStore[i].content.poolID.length !== 0 ||
+					proposalsStore[i].content.multiplier !== 0
+				) {
+					throw new Error(
+						'For universal proposals, pool ID must be empty and multiplier must be set to 0',
+					);
 				}
 			}
 			if (proposalsStore[i].status > 3) {
-				throw new Error("Invalid proposal status");
+				throw new Error('Invalid proposal status');
 			}
 		}
 
 		// checks for votesStore
 		for (let i = 0; i < votesStore.length; i += 1) {
-			const exist = votesStore.find((votes) => {
+			const exist = votesStore.find(votes => {
 				if (votes.address === votesStore[i].address) {
 					return true;
 				}
 				return false;
 			});
 			if (exist) {
-				throw new Error("All addresses in votes store must be unique");
+				throw new Error('All addresses in votes store must be unique');
 			}
 		}
 
-		for (const [voteId, votes] of votesStore.entries()) {
-			votes.voteInfos.forEach((voteInfo) => {
+		votesStore.forEach((votes) => {
+			votes.voteInfos.forEach(voteInfo => {
 				if (voteInfo.proposalIndex >= proposalsStore.length) {
-					throw new Error("Vote info references incorrect proposal index");
+					throw new Error('Vote info references incorrect proposal index');
 				}
 				if (voteInfo.decision > 2) {
-					throw new Error("Incorrect vote decision");
+					throw new Error('Incorrect vote decision');
 				}
 			});
-		}
+		})
 
 		// check vote calculation for the proposals with recorded votes
 		const firstWithRecordedVotes = Math.max(0, proposalsStore.length - MAX_NUM_RECORDED_VOTES);
@@ -245,9 +260,12 @@ export class DexGovernanceModule extends BaseModule {
 			votesPass[index] = BigInt(0);
 		}
 
-		for (const [voteId, votesEntry] of votesStore.entries()) {
-			votesStore[voteId].voteInfos.forEach((voteInfo) => {
-				if (voteInfo.proposalIndex >= firstWithRecordedVotes && voteInfo.proposalIndex < proposalsStore.length) {
+		votesStore.forEach((votes) => {
+			votes.voteInfos.forEach(voteInfo => {
+				if (
+					voteInfo.proposalIndex >= firstWithRecordedVotes &&
+					voteInfo.proposalIndex < proposalsStore.length
+				) {
 					const index = voteInfo.proposalIndex;
 					const decision = voteInfo.decision;
 					const amount = voteInfo.amount;
@@ -265,15 +283,16 @@ export class DexGovernanceModule extends BaseModule {
 							break;
 					}
 				}
-			})
-		}
+			});
+		})
 
 		for (let index = firstWithRecordedVotes; index < proposalsStore.length; index += 1) {
-			if (proposalsStore[index].votesYes !== votesYes[index]
-				|| proposalsStore[index].votesNo !== votesNo[index]
-				|| proposalsStore[index].votesPass !== votesPass[index]
+			if (
+				proposalsStore[index].votesYes !== votesYes[index] ||
+				proposalsStore[index].votesNo !== votesNo[index] ||
+				proposalsStore[index].votesPass !== votesPass[index]
 			) {
-				throw new Error("Incorrect vote data about the proposals with recorded votes");
+				throw new Error('Incorrect vote data about the proposals with recorded votes');
 			}
 		}
 	}
