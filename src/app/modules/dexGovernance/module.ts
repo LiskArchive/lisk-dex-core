@@ -113,13 +113,16 @@ export class DexGovernanceModule extends BaseModule {
 
 		// const proposalsStore: Proposal[] = genesisData.proposalsStore;
 		// const votesStore: Vote[] = genesisData.votesStore;
-		const proposals = await this.stores.get(ProposalsStore).getAll(context);
+		const proposalsStore = await this.stores.get(ProposalsStore);
+		const votesStore = await this.stores.get(VotesStore);
+		const proposalsData = await proposalsStore.getAll(context);
+		const votesData = await votesStore.getAll(context);
 		const indexStore: IndexStore = this.stores.get(IndexStore);
 		const height = context.header.height;
 
 		// initialize proposals subsotre and compute values for index substore
-		for (const [index, proposal] of proposals.entries()) {
-			const newProposal = {
+		for (const [index, proposal] of proposalsData.entries()) {
+			proposalsStore.set(context, Buffer.alloc(index), {
 				creationHeight: proposal.value.creationHeight,
 				votesYes: proposal.value.votesYes,
 				votesNo: proposal.value.votesNo,
@@ -127,30 +130,21 @@ export class DexGovernanceModule extends BaseModule {
 				type: proposal.value.type,
 				content: proposal.value.content,
 				status: proposal.value.status,
-			};
-			proposals[index] = {
-				creationHeight: proposal.value.creationHeight,
-				votesYes: proposal.value.votesYes,
-				votesNo: proposal.value.votesNo,
-				votesPass: proposal.value.votesPass,
-				type: proposal.value.type,
-				content: proposal.value.content,
-				status: proposal.value.status,
-			};
+			});
 		}
 
 		// initialize votes substore
-		for (const [voteId, votes] of votesStore.entries()) {
-			votesStore[voteId] = {
-				...votes,
-			};
+		for (const [voteId, votes] of votesData.entries()) {
+			votesStore.set(context, Buffer.alloc(voteId), {
+				...votes.value
+			})
 		}
 
 		// initialize index substore
 		let nextoutcomeCheckIndex = 0;
 		let nextQuorumCheckIndex = 0;
-		const newestIndex = ProposalsStore.length - 1;
-		for (let i = 0; i < proposalsStore.length; i++) {
+		const newestIndex = proposalsData.length - 1;
+		for (let i = 0; i < proposalsData.length; i++) {
 			// proposals substore is already initialized
 			if (!this.hasEnded(i, height, VOTE_DURATION, context)) {
 				nextoutcomeCheckIndex = i;
@@ -158,7 +152,7 @@ export class DexGovernanceModule extends BaseModule {
 			}
 		}
 
-		for (let i = 0; i < proposalsStore.length; i++) {
+		for (let i = 0; i < proposalsData.length; i++) {
 			if (!this.hasEnded(i, height, QUORUM_DURATION, context)) {
 				nextQuorumCheckIndex = i;
 				break;
