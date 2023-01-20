@@ -17,6 +17,7 @@ import { PoolsStore } from './stores';
 import { PoolID, PositionID, TokenID } from './types';
 import { getPoolIDFromPositionID, getToken0Id, getToken1Id } from './utils/auxiliaryFunctions';
 import { PoolsStoreData } from './stores/poolsStore';
+import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 
 export class DexEndpoint extends BaseEndpoint {
 	public async getAllPoolIDs(methodContext: ModuleEndpointContext): Promise<PoolID[]> {
@@ -57,13 +58,12 @@ export class DexEndpoint extends BaseEndpoint {
     };
 
     public async getPool (
-        methodContext,
-        stores: NamedRegistry,
+        methodContext: ModuleEndpointContext,
         poolID: PoolID,
     ): Promise<PoolsStoreData>{
-        const poolsStore = stores.get(PoolsStore);
-        const poolStoreData = await poolsStore.getKey(methodContext, [poolID]);
-        return poolStoreData;
+        const poolsStore = this.stores.get(PoolsStore);
+		const key = await poolsStore.getKey(methodContext,[poolID]);
+        return key;
     };
 
 

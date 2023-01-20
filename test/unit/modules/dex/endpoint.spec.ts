@@ -228,7 +228,7 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getPool', async () => {
-			await endpoint.getPool(methodContext, dexModule.stores, getPoolIDFromPositionID(positionId)).then(
+			await endpoint.getPool(moduleEndpointContext, getPoolIDFromPositionID(positionId)).then(
 				res => {
 					expect(res).not.toBeNull();
 					expect(res.liquidity).toBe(BigInt(5));
