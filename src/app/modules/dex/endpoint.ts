@@ -105,7 +105,9 @@ export class DexEndpoint extends BaseEndpoint {
         return invQ96(q96SqrtPrice);
     }
 
-    public async getDexGlobalData(methodContext: ModuleEndpointContext): Promise<DexGlobalStoreData> {
+    public async getDexGlobalData(
+        methodContext: ModuleEndpointContext,
+    ): Promise<DexGlobalStoreData> {
         const dexGlobalStore = this.stores.get(DexGlobalStore);
         return dexGlobalStore.get(methodContext, Buffer.from([]));
     }
