@@ -399,6 +399,5 @@ describe('dex:auxiliaryFunctions', () => {
 		it('priceToTick', () => {
 			expect(priceToTick(tickToPrice(-735247))).toEqual(-735247);
 		});
-
 	});
 });
