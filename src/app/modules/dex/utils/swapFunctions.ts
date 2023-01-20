@@ -227,7 +227,7 @@ export const getOptimalSwapPool = async (
 	for (const pool of candidatePools) {
 		if (exactIn) {
 			try {
-				const amountOut = await dryRunSwapExactIn(
+				const amountOut = (await dryRunSwapExactIn(
 					methodContext,
 					stores,
 					tokenIn,
@@ -235,14 +235,14 @@ export const getOptimalSwapPool = async (
 					tokenOut,
 					BigInt(0),
 					[pool],
-				)[1];
+				))[1];
 				computedAmounts.push(amountOut);
 			} catch (error) {
 				continue;
 			}
 		} else {
 			try {
-				const amountIn = await dryRunSwapExactOut(
+				const amountIn = (await dryRunSwapExactOut(
 					methodContext,
 					stores,
 					tokenIn,
@@ -250,7 +250,7 @@ export const getOptimalSwapPool = async (
 					tokenOut,
 					amount,
 					[pool],
-				)[0];
+				))[0];
 				computedAmounts.push(amountIn);
 			} catch (error) {
 				continue;
