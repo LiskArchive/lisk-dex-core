@@ -472,9 +472,8 @@ export const getAllPoolIdsRequestSchema = {
 	type: 'object',
 	required: ['poolStore'],
 	properties: {
-		poolStore: PoolsStore
+		poolStore: PoolsStore,
 	},
-	
 };
 
 export const getAllPoolIdsResponseSchema = {
@@ -482,7 +481,7 @@ export const getAllPoolIdsResponseSchema = {
 	type: 'object',
 	required: ['PoolID'],
 	properties: {
-		PoolID:Buffer
+		PoolID: Buffer,
 	},
 };
 

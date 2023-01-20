@@ -12,10 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseEndpoint, MethodContext } from 'lisk-sdk';
+import { BaseEndpoint, ModuleEndpointContext } from 'lisk-sdk';
 import { PoolsStore } from './stores';
 import { PoolID, PositionID, Q96, TokenID } from './types';
-import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { getPoolIDFromPositionID, getToken0Id, getToken1Id } from './utils/auxiliaryFunctions';
 import { PoolsStoreData } from './stores/poolsStore';
 import { bytesToQ96, invQ96 } from './utils/q96';
@@ -23,35 +22,29 @@ import { DexGlobalStore, DexGlobalStoreData } from './stores/dexGlobalStore';
 import { PositionsStore, PositionsStoreData } from './stores/positionsStore';
 
 export class DexEndpoint extends BaseEndpoint {
-
-    public async getAllPoolIDs(	methodContext: MethodContext,
-		poolStore: PoolsStore): Promise<PoolID[]>{
-			const poolIds: PoolID[] = [];
-			const allPoolIds = await poolStore.getAll(methodContext);
-			if (allPoolIds && allPoolIds.length){
-				allPoolIds.forEach(poolId => {
-					poolIds.push(poolId.key);
-				});
-			}
-			return poolIds;
+	public async getAllPoolIDs(methodContext: ModuleEndpointContext): Promise<PoolID[]> {
+		const poolStore = this.stores.get(PoolsStore);
+		const store = await poolStore.getAll(methodContext);
+		const poolIds: PoolID[] = [];
+		if (store && store.length) {
+			store.forEach(poolId => {
+				poolIds.push(poolId.key);
+			});
+		}
+		return poolIds;
 	}
 
-    public async getAllTokenIDs (
-        methodContext: MethodContext,
-        stores: NamedRegistry,
-    ): Promise<Set<TokenID>>{
-        const tokens = new Set<TokenID>();
-        const allPoolIds = await this.getAllPoolIDs(methodContext, stores.get(PoolsStore));
-    
-        if (allPoolIds != null && allPoolIds.length > 0) {
-            allPoolIds.forEach(poolID => {
-                tokens.add(getToken0Id(poolID));
-                tokens.add(getToken1Id(poolID));
-            });
-        }
-    
-        return tokens;
-    };
+	public async getAllTokenIDs(methodContext: ModuleEndpointContext): Promise<Set<TokenID>> {
+		const tokens = new Set<TokenID>();
+		const allPoolIds = await this.getAllPoolIDs(methodContext);
+		if (allPoolIds != null && allPoolIds.length > 0) {
+			allPoolIds.forEach(poolID => {
+				tokens.add(getToken0Id(poolID));
+				tokens.add(getToken1Id(poolID));
+			});
+		}
+		return tokens;
+	}
 
     public getAllPositionIDsInPool(
         poolId: PoolID,
@@ -67,22 +60,20 @@ export class DexEndpoint extends BaseEndpoint {
     };
 
     public async getPool (
-        methodContext,
-        stores: NamedRegistry,
+        methodContext: ModuleEndpointContext,
         poolID: PoolID,
     ): Promise<PoolsStoreData>{
-        const poolsStore = stores.get(PoolsStore);
-        const poolStoreData = await poolsStore.getKey(methodContext, [poolID]);
-        return poolStoreData;
+        const poolsStore = this.stores.get(PoolsStore);
+		const key = await poolsStore.getKey(methodContext,[poolID]);
+        return key;
     };
 
     public async getCurrentSqrtPrice(
-        methodContext: MethodContext,
-        stores: NamedRegistry,
+		methodContext: ModuleEndpointContext,
         poolID: PoolID,
         priceDirection: boolean,
     ): Promise<Q96>{
-        const pools = await this.getPool(methodContext, stores, poolID);
+        const pools = await this.getPool(methodContext, poolID);
         if (pools == null) {
             throw new Error();
         }
@@ -94,10 +85,9 @@ export class DexEndpoint extends BaseEndpoint {
     };
 
     public async getDexGlobalData (
-        methodContext: MethodContext,
-        stores: NamedRegistry,
+        methodContext: ModuleEndpointContext,
     ): Promise<DexGlobalStoreData>{
-        const dexGlobalStore = stores.get(DexGlobalStore);
+        const dexGlobalStore = this.stores.get(DexGlobalStore);
         return dexGlobalStore.get(methodContext, Buffer.from([]));
     };
 
