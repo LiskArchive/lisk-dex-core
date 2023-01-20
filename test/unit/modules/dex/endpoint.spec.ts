@@ -261,7 +261,7 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getTickWithTickId', async () => {
-			const tickWithTickID = await endpoint.getTickWithTickId(methodContext, dexModule.stores, [
+			const tickWithTickID = await endpoint.getTickWithTickId(methodContext, [
 				getPoolIDFromPositionID(positionId),
 				tickToBytes(positionsStoreData.tickLower),
 			]);
@@ -272,7 +272,6 @@ describe('dex: offChainEndpointFunctions', () => {
 		it('getTickWithPoolIdAndTickValue', async () => {
 			const tickWithPoolIdAndTickValue = await endpoint.getTickWithPoolIdAndTickValue(
 				methodContext,
-				dexModule.stores,
 				getPoolIDFromPositionID(positionId),
 				5,
 			);
