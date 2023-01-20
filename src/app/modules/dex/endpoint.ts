@@ -92,15 +92,14 @@ export class DexEndpoint extends BaseEndpoint {
     };
 
     public async getPosition(
-        methodContext: MethodContext,
-        stores: NamedRegistry,
+		methodContext: ModuleEndpointContext,
         positionID: PositionID,
         positionIdsList: PositionID[],
     ): Promise<PositionsStoreData>{
         if (positionIdsList.includes(positionID)) {
             throw new Error();
         }
-        const positionsStore = stores.get(PositionsStore);
+        const positionsStore = this.stores.get(PositionsStore);
         const positionStoreData = await positionsStore.get(methodContext, positionID);
         return positionStoreData;
     };
