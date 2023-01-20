@@ -215,7 +215,7 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getAllTokenIDs', async () => {
-			await endpoint.getAllTokenIDs(methodContext, dexModule.stores).then(res => {
+			await endpoint.getAllTokenIDs(moduleEndpointContext).then(res => {
 				expect(res.size).toBeGreaterThan(0);
 			});
 		});
