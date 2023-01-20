@@ -249,7 +249,7 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getDexGlobalData', async () => {
-			await endpoint.getDexGlobalData(methodContext, dexModule.stores).then(res => {
+			await endpoint.getDexGlobalData(moduleEndpointContext).then(res => {
 				expect(res).not.toBeNull();
 				expect(res.positionCounter).toBe(BigInt(15));
 				expect(res.collectableLSKFees).toBe(BigInt(10));
