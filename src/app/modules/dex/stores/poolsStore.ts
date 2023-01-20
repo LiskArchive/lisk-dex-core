@@ -75,7 +75,7 @@ export const poolsStoreSchema = {
 export class PoolsStore extends BaseStore<PoolsStoreData> {
 	public schema = poolsStoreSchema;
 
-	public async getKey(context: StoreGetter, keys: Buffer[]): Promise<PoolsStoreData> {
+	public async getKey(context: ImmutableStoreGetter, keys: Buffer[]): Promise<PoolsStoreData> {
 		const key = Buffer.concat(keys);
 		return this.get(context, key);
 	}

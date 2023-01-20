@@ -370,4 +370,13 @@ describe('dex: offChainEndpointFunctions', () => {
 		it('getPositionIndex', () => {
 			expect(endpoint.getPositionIndex(positionId)).toBe(1);
 		});
+
+		it('getPool', async () => {
+			await endpoint.getPool(moduleEndpointContext, getPoolIDFromPositionID(positionId)).then(
+				res => {
+					expect(res).not.toBeNull();
+					expect(res.liquidity).toBe(BigInt(5));
+				},
+			);
+		});
 	});

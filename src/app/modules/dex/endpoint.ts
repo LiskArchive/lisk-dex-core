@@ -44,6 +44,7 @@ import { PositionsStore, PositionsStoreData } from './stores/positionsStore';
 import { PriceTicksStoreData, tickToBytes } from './stores/priceTicksStore';
 import { uint32beInv } from './utils/bigEndian';
 import { getCredibleDirectPrice } from './utils/tokenEcnomicsFunctions';
+import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 
 export class DexEndpoint extends BaseEndpoint {
     public async getAllPoolIDs(methodContext): Promise<PoolID[]> {
