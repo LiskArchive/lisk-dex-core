@@ -28,7 +28,7 @@ import { Address, PoolID, PositionID } from '../../../../src/app/modules/dex/typ
 
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
-import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
+
 import {
 	createMethodContext,
 	EventQueue,
@@ -46,6 +46,8 @@ import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settin
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import { DexEndpoint } from '../../../../src/app/modules/dex/endpoint';
+import { createTransientModuleEndpointContext } from '../../../context/createContext';
+import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 
 describe('dex: offChainEndpointFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
@@ -56,8 +58,17 @@ describe('dex: offChainEndpointFunctions', () => {
 	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
 
 	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
+	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
-	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
+	//const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
+
+	let stateStore: PrefixedStateReadWriter;
+	stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+
+	const moduleEndpointContext = createTransientModuleEndpointContext({
+		stateStore,
+		params: { address: INVALID_ADDRESS },
+	});
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
@@ -212,7 +223,7 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getAllPoolIDs', async () => {
-			await endpoint.getAllPoolIDs(methodContext, dexModule.stores.get(PoolsStore)).then(res => {
+			await endpoint.getAllPoolIDs(moduleEndpointContext).then(res => {
 				expect(res[0]).toStrictEqual(
 					Buffer.from('000000000000000000000001000000000101643130', 'hex'),
 				);
