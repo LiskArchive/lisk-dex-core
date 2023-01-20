@@ -46,7 +46,6 @@ import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settin
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import { DexEndpoint } from '../../../../src/app/modules/dex/endpoint';
-import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 
 describe('dex: offChainEndpointFunctions', () => {
@@ -57,17 +56,11 @@ describe('dex: offChainEndpointFunctions', () => {
 	const feeTier = Number('0x00000c8');
 	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
 
-	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
 	//const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
 
 	let stateStore: PrefixedStateReadWriter;
 	stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-
-	const moduleEndpointContext = createTransientModuleEndpointContext({
-		stateStore,
-		params: { address: INVALID_ADDRESS },
-	});
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
