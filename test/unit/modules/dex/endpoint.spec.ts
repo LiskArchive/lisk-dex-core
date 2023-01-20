@@ -46,6 +46,7 @@ import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settin
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import { DexEndpoint } from '../../../../src/app/modules/dex/endpoint';
+import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 
 describe('dex: offChainEndpointFunctions', () => {
@@ -56,6 +57,7 @@ describe('dex: offChainEndpointFunctions', () => {
 	const feeTier = Number('0x00000c8');
 	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
 
+	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
 	//const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
 
@@ -66,6 +68,11 @@ describe('dex: offChainEndpointFunctions', () => {
 		contextStore: new Map(),
 		stateStore,
 		eventQueue: new EventQueue(0),
+	});
+
+	const moduleEndpointContext = createTransientModuleEndpointContext({
+		stateStore,
+		params: { address: INVALID_ADDRESS },
 	});
 
 	let poolsStore: PoolsStore;
@@ -247,7 +254,7 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getDexGlobalData', async () => {
-			await endpoint.getDexGlobalData(methodContext, dexModule.stores).then(res => {
+			await endpoint.getDexGlobalData(moduleEndpointContext).then(res => {
 				expect(res).not.toBeNull();
 				expect(res.positionCounter).toBe(BigInt(15));
 				expect(res.collectableLSKFees).toBe(BigInt(10));
@@ -260,7 +267,7 @@ describe('dex: offChainEndpointFunctions', () => {
 			await positionsStore.set(methodContext, newPositionId, positionsStoreData);
 			await positionsStore.setKey(methodContext, [newPositionId], positionsStoreData);
 			await endpoint
-				.getPosition(methodContext, dexModule.stores, newPositionId, positionIdsList)
+				.getPosition(moduleEndpointContext, newPositionId, positionIdsList)
 				.then(res => {
 					expect(res).not.toBeNull();
 				});
