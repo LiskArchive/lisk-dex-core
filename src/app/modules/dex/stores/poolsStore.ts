@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseStore, StoreGetter } from 'lisk-sdk';
+import { BaseStore, ImmutableStoreGetter, StoreGetter } from 'lisk-sdk';
 import { MAX_NUM_BYTES_Q96 } from '../constants';
 
 export interface PoolsStoreData {
@@ -75,7 +75,7 @@ export const poolsStoreSchema = {
 export class PoolsStore extends BaseStore<PoolsStoreData> {
 	public schema = poolsStoreSchema;
 
-	public async getKey(context: StoreGetter, keys: Buffer[]): Promise<PoolsStoreData> {
+	public async getKey(context: ImmutableStoreGetter, keys: Buffer[]): Promise<PoolsStoreData> {
 		const key = Buffer.concat(keys);
 		return this.get(context, key);
 	}
@@ -90,7 +90,7 @@ export class PoolsStore extends BaseStore<PoolsStoreData> {
 		await this.set(context, key, value);
 	}
 
-	public async getAll(context: StoreGetter) {
+	public async getAll(context: ImmutableStoreGetter) {
 		return this.iterate(context, {
 			gte: Buffer.alloc(16, 0),
 			lte: Buffer.alloc(16, 255),
