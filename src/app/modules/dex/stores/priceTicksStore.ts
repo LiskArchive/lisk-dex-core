@@ -148,7 +148,8 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 		for(let i  = 0; i<allKeys.length; i++){						
 			if(allKeys[i].key.equals(key)){
 				prevflag = true;
-			}if(prevflag){				
+			}
+			if(prevflag){				
 				break; 
 			}
 			prevTick = allKeys[i].key;
