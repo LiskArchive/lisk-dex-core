@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseEndpoint, MethodContext, TokenMethod } from 'lisk-sdk';
+import { BaseEndpoint, MethodContext, TokenMethod, ModuleEndpointContext } from 'lisk-sdk';
 import { MODULE_ID_DEX, NUM_BYTES_POOL_ID, NUM_BYTES_POSITION_ID, NUM_BYTES_ADDRESS, TOKEN_ID_LSK } from './constants';
 import { PoolsStore, PriceTicksStore } from './stores';
 import { PoolID, PositionID, Q96, TickID, TokenID } from './types';
@@ -90,10 +90,9 @@ export class DexEndpoint extends BaseEndpoint {
     }
 
     public async getDexGlobalData(
-        methodContext: MethodContext,
-        stores: NamedRegistry,
+        methodContext: ModuleEndpointContext,
     ): Promise<DexGlobalStoreData> {
-        const dexGlobalStore = stores.get(DexGlobalStore);
+        const dexGlobalStore = this.stores.get(DexGlobalStore);
         return dexGlobalStore.get(methodContext, Buffer.from([]));
     }
 
