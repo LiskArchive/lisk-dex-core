@@ -151,7 +151,7 @@ export class SwapExactInCommand extends BaseCommand {
         for (const swapRt of swapRoute) {
 			const currentTokenIn = tokens[-1];
 			let zeroToOne = false;
-			let IdOut = tokenIdIn;
+			let IdOut;
 			if (getToken0Id(swapRt).equals(currentTokenIn.id)) {
 				zeroToOne = true;
 				IdOut = getToken1Id(swapRt);

@@ -113,4 +113,47 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			reverse: true,
 		});
 	}
+
+	public async getNextTick(context: StoreGetter, keys: Buffer[]){
+		const key = Buffer.concat(keys);
+		let nextTick;
+		let nextflag;
+		const allKeys = await this.iterate(context, {
+			gte: Buffer.alloc(16, 0),
+			lte: Buffer.alloc(16, 255),
+			reverse: false,
+		});
+		for(let i  = 0; i<allKeys.length; i++){
+			if(nextflag){
+				nextTick = allKeys[i].key;
+				break; 
+			}
+			if(allKeys[i].key.equals(key)){
+				nextflag = true;
+			}
+		}
+		return this.getKey(context,[nextTick]);	
+			
+	}
+
+	public async getPrevTick(context: StoreGetter, keys: Buffer[]){
+		const key = Buffer.concat(keys);
+		let prevTick;
+		let prevflag;
+		const allKeys = await this.iterate(context, {
+			gte: Buffer.alloc(16, 0),
+			lte: Buffer.alloc(16, 255),
+			reverse: false,
+		});
+		for(let i  = 0; i<allKeys.length; i++){						
+			if(allKeys[i].key.equals(key)){
+				prevflag = true;
+			}if(prevflag){				
+				break; 
+			}
+			prevTick = allKeys[i].key;
+		}
+		return this.getKey(context,[prevTick]);	
+	}
+
 }

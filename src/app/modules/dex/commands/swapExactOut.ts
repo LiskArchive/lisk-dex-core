@@ -154,7 +154,7 @@ export class SwapExactOutCommand extends BaseCommand {
         for (const inverseSwapRt of inverseSwapRoute) {
             const currentTokenOut = tokens[-1];
 			let zeroToOne= false;
-			let IdIn = tokenIdIn;
+			let IdIn;
 			if (getToken1Id(inverseSwapRt).equals(currentTokenOut.id)) {
 				zeroToOne = true;
 				IdIn = getToken0Id(inverseSwapRt);

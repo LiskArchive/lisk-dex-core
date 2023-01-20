@@ -935,21 +935,15 @@ export const swap = async (
 		}
 
 		const currentTick = priceToTick(poolSqrtPriceQ96);
-		const priceTickStoreData = getTickWithPoolIdAndTickValue(
-			methodContext,
-			stores,
-			poolID,
-			currentTick,
-		);
-		if (zeroToOne && priceTickStoreData !== null && poolSqrtPriceQ96 === tickToPrice(currentTick)) {
+		if (zeroToOne && poolSqrtPriceQ96 === tickToPrice(currentTick)) {
 			await crossTick(methodContext, stores, q96ToBytes(BigInt(currentTick)), false, currentHeight);
 			numCrossedTicks += 1;
 		}
 
 		if (zeroToOne) {
-			nextTick = currentTick;
+			nextTick = stores.get(PriceTicksStore).getPrevTick;
 		} else {
-			nextTick = currentTick;
+			nextTick = stores.get(PriceTicksStore).getNextTick;
 		}
 
 		const sqrtNextTickPriceQ96 = tickToPrice(nextTick);
@@ -1033,9 +1027,9 @@ export const computeCurrentPrice = async (
 	// eslint-disable-next-line @typescript-eslint/no-misused-promises
 	for (const poolId of swapRoute) {
 		const pool = await getPool(methodContext, stores, poolId);
-		if (getPool(methodContext, stores, poolId) == null) {
+		await getPool(methodContext, stores, poolId).catch(()=>{
 			throw new Error('Not a valid pool');
-		}
+		})
 		if (tokenInPool.equals(getToken0Id(poolId))) {
 			price = mulQ96(price, bytesToQ96(pool.sqrtPrice));
 			tokenInPool = getToken1Id(poolId);
@@ -1107,11 +1101,11 @@ export const computeExceptionalRoute = async (
 	while (routes.length > 0) {
 		const routeElement = routes.shift();
 		if (routeElement != null) {
-			if (routeElement?.endVertex.equals(tokenOut)) {
+			if (routeElement.endVertex.equals(tokenOut)) {
 				routeElement.path.push(tokenOut);
 				return routeElement.path;
 			}
-			const adjacent = await getAdjacent(methodContext, stores, routeElement?.endVertex);
+			const adjacent = await getAdjacent(methodContext, stores, routeElement.endVertex);
 			adjacent.forEach(adjacentEdge => {
 				if (visited.includes(adjacentEdge.vertex)) {
 					if (routeElement != null) {
@@ -1136,7 +1130,7 @@ export const swapWithin = (
 	const zeroToOne: boolean = sqrtCurrentPrice >= sqrtTargetPrice;
 	let amountIn = BigInt(0);
 	let amountOut = BigInt(0);
-	let sqrtUpdatedPrice = BigInt(0);
+	let sqrtUpdatedPrice;
 
 	if (exactInput) {
 		if (zeroToOne) {
@@ -1184,10 +1178,11 @@ export const crossTick = async (
 	await updatePoolIncentives(methodContext, stores, poolId, currentHeight);
 	const poolStoreData = await getPool(methodContext, stores, poolId);
 	const priceTickStoreData = await getTickWithTickId(methodContext, stores, [tickId]);
+
 	if (leftToRight) {
 		poolStoreData.liquidity += priceTickStoreData.liquidityNet;
 	} else {
-		poolStoreData.liquidity += priceTickStoreData.liquidityNet;
+		poolStoreData.liquidity -= priceTickStoreData.liquidityNet;
 	}
 	const feeGrowthGlobal0Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal0);
 	const feeGrowthOutside0Q96 = bytesToQ96(priceTickStoreData.feeGrowthOutside0);

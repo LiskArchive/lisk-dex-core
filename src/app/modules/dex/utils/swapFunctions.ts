@@ -43,7 +43,7 @@ export const swapWithin = (
 	const zeroToOne: boolean = sqrtCurrentPrice >= sqrtTargetPrice;
 	let amountIn = BigInt(0);
 	let amountOut = BigInt(0);
-	let sqrtUpdatedPrice = BigInt(0);
+	let sqrtUpdatedPrice;
 
 	if (exactInput) {
 		if (zeroToOne) {
@@ -94,7 +94,7 @@ export const crossTick = async (
 	if (leftToRight) {
 		poolStoreData.liquidity += priceTickStoreData.liquidityNet;
 	} else {
-		poolStoreData.liquidity += priceTickStoreData.liquidityNet;
+		poolStoreData.liquidity -= priceTickStoreData.liquidityNet;
 	}
 	const feeGrowthGlobal0Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal0);
 	const feeGrowthOutside0Q96 = bytesToQ96(priceTickStoreData.feeGrowthOutside0);
@@ -227,7 +227,7 @@ export const getOptimalSwapPool = async (
 	for (const pool of candidatePools) {
 		if (exactIn) {
 			try {
-				const amountOut = dryRunSwapExactIn(
+				const amountOut = await dryRunSwapExactIn(
 					methodContext,
 					stores,
 					tokenIn,
@@ -242,7 +242,7 @@ export const getOptimalSwapPool = async (
 			}
 		} else {
 			try {
-				const amountIn = dryRunSwapExactOut(
+				const amountIn = await dryRunSwapExactOut(
 					methodContext,
 					stores,
 					tokenIn,

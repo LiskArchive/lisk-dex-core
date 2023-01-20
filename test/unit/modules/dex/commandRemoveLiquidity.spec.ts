@@ -29,7 +29,7 @@ import { removeLiquiditySchema } from '../../../../src/app/modules/dex/schemas';
 import { PoolsStore, PositionsStore } from '../../../../src/app/modules/dex/stores';
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
-import { Address, PositionID } from '../../../../src/app/modules/dex/types';
+import { Address, PoolID, PositionID } from '../../../../src/app/modules/dex/types';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import {
@@ -53,6 +53,7 @@ const {
 const { utils } = cryptography;
 
 describe('dex:command:removeLiquidity', () => {
+	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 	let command: RemoveLiquidityCommand;
 	let stateStore: PrefixedStateReadWriter;
 	let methodContext: MethodContext;
@@ -83,6 +84,8 @@ describe('dex:command:removeLiquidity', () => {
 	const poolsStoreData: PoolsStoreData = {
 		liquidity: BigInt(5),
 		sqrtPrice: q96ToBytes(BigInt('327099227039063106')),
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+		heightIncentivesUpdate: 5,
 		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
 		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(6))),
 		tickSpacing: 1,
@@ -93,6 +96,7 @@ describe('dex:command:removeLiquidity', () => {
 		liquidityGross: BigInt(5),
 		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(8))),
 		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(5))),
+		incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(2))),
 	};
 
 	const priceTicksStoreDataTickUpper: PriceTicksStoreData = {
@@ -100,11 +104,15 @@ describe('dex:command:removeLiquidity', () => {
 		liquidityGross: BigInt(5),
 		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(4))),
 		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(3))),
+		incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(3))),
 	};
 
 	const dexGlobalStoreData: DexGlobalStoreData = {
 		positionCounter: BigInt(10),
 		collectableLSKFees: BigInt(10),
+		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
+		incentivizedPools: [{ poolId, multiplier: 10 }],
+		totalIncentivesMultiplier: 1,
 	};
 	const positionsStoreData: PositionsStoreData = {
 		tickLower: -8,
