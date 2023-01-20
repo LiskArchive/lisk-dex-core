@@ -214,7 +214,7 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getAllPoolIDs', async () => {
-			await endpoint.getAllPoolIDs(moduleEndpointContext, poolsStore).then(res => {
+			await endpoint.getAllPoolIDs(methodContext, poolsStore).then(res => {
 				expect(res[0]).toStrictEqual(
 					Buffer.from('000000000000000000000001000000000101643130', 'hex'),
 				);
@@ -224,6 +224,12 @@ describe('dex: offChainEndpointFunctions', () => {
 		it('getToken1Amount', async () => {
 			await endpoint.getToken1Amount(tokenMethod, methodContext, poolId).then(res => {
 				expect(res).toBe(BigInt(5));
+			});
+		});
+
+		it('getAllTokenIDs', async () => {
+			await endpoint.getAllTokenIDs(methodContext, poolsStore).then(res => {
+				expect(res.size).toBeGreaterThan(0);
 			});
 		});
 
