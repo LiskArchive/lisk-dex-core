@@ -84,10 +84,9 @@ export class DexEndpoint extends BaseEndpoint {
     };
 
     public async getDexGlobalData (
-        methodContext: MethodContext,
-        stores: NamedRegistry,
+        methodContext: ModuleEndpointContext,
     ): Promise<DexGlobalStoreData>{
-        const dexGlobalStore = stores.get(DexGlobalStore);
+        const dexGlobalStore = this.stores.get(DexGlobalStore);
         return dexGlobalStore.get(methodContext, Buffer.from([]));
     };
 
