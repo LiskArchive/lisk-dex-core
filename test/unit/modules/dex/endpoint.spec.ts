@@ -379,4 +379,36 @@ describe('dex: offChainEndpointFunctions', () => {
 				},
 			);
 		});
+
+		it('getCurrentSqrtPrice', async () => {
+			expect(
+				(
+					await endpoint.getCurrentSqrtPrice(
+						moduleEndpointContext,
+						getPoolIDFromPositionID(positionId),
+						false,
+					)
+				).toString(),
+			).toBe('79208358939348018173455069823');
+		});
+
+		it('getDexGlobalData', async () => {
+			await endpoint.getDexGlobalData(methodContext, dexModule.stores).then(res => {
+				expect(res).not.toBeNull();
+				expect(res.positionCounter).toBe(BigInt(15));
+				expect(res.collectableLSKFees).toBe(BigInt(10));
+			});
+		});
+
+		it('getPosition', async () => {
+			const positionIdsList = [positionId];
+			const newPositionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
+			await positionsStore.set(methodContext, newPositionId, positionsStoreData);
+			await positionsStore.setKey(methodContext, [newPositionId], positionsStoreData);
+			await endpoint.getPosition(moduleEndpointContext, newPositionId, positionIdsList).then(res => {
+				expect(res).not.toBeNull();
+			});
+		});
+
 	});
+});
