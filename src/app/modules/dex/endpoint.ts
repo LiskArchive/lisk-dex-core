@@ -119,10 +119,9 @@ export class DexEndpoint extends BaseEndpoint {
 
 	public async getTickWithTickId(
 		methodContext: MethodContext,
-		stores: NamedRegistry,
 		tickId: TickID[],
 	): Promise<PriceTicksStoreData> {
-		const priceTicksStore = stores.get(PriceTicksStore);
+		const priceTicksStore = this.stores.get(PriceTicksStore);
 		const priceTicksStoreData = await priceTicksStore.getKey(methodContext, tickId);
 		if (priceTicksStoreData == null) {
 			throw new Error('No tick with the specified poolId');
@@ -133,11 +132,10 @@ export class DexEndpoint extends BaseEndpoint {
 
 	public async getTickWithPoolIdAndTickValue(
 		methodContext: MethodContext,
-		stores: NamedRegistry,
 		poolId: PoolID,
 		tickValue: number,
 	): Promise<PriceTicksStoreData> {
-		const priceTicksStore = stores.get(PriceTicksStore);
+		const priceTicksStore = this.stores.get(PriceTicksStore);
 		const key = poolId.toLocaleString() + tickToBytes(tickValue).toLocaleString();
 		const priceTicksStoreData = await priceTicksStore.get(methodContext, Buffer.from(key, 'hex'));
 		if (priceTicksStoreData == null) {
