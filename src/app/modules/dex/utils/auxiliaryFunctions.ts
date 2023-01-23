@@ -1027,7 +1027,7 @@ export const computeCurrentPrice = async (
 	// eslint-disable-next-line @typescript-eslint/no-misused-promises
 	for (const poolId of swapRoute) {
 		const pool = await getPool(methodContext, stores, poolId);
-		await getPool(methodContext, stores, poolId).catch(()=>{
+		await getPool(methodContext, stores, poolId).catch(() => {
 			throw new Error('Not a valid pool');
 		})
 		if (tokenInPool.equals(getToken0Id(poolId))) {
@@ -1263,7 +1263,7 @@ export const getCredibleDirectPrice = async (
 		);
 		token1ValuesLocked.push(
 			roundDownQ96(token0ValueQ96) +
-				(await getToken1Amount(tokenMethod, methodContext, directPool)),
+			(await getToken1Amount(tokenMethod, methodContext, directPool)),
 		);
 	}
 

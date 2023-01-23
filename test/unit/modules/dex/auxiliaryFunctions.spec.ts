@@ -53,6 +53,7 @@ import {
 	getDexGlobalData,
 	getTickWithPoolIdAndTickValue,
 	getAdjacent,
+	computeCurrentPrice,
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
@@ -460,7 +461,7 @@ describe('dex:auxiliaryFunctions', () => {
 			});
 		});
 
-		
+
 
 		it('addPoolCreationSettings', async () => {
 			await expect(
@@ -479,7 +480,7 @@ describe('dex:auxiliaryFunctions', () => {
 			expect(getPositionIndex(positionId)).toBe(1);
 		});
 
-		
+
 
 		it('getAllPoolIDs', async () => {
 			await getAllPoolIDs(methodContext, dexModule.stores.get(PoolsStore)).then(res => {
@@ -573,11 +574,7 @@ describe('dex:auxiliaryFunctions', () => {
 			).then(res => {
 				expect(res.toString()).toBe('79267784519130042428790663800');
 			});
-		}); 
+		});
 
-
-
-		
-		
 	});
 });
