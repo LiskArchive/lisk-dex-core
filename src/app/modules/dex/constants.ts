@@ -37,38 +37,22 @@ export const NFT_COLLECTION_DEX = Buffer.from('0x0000'); // The collection of th
 export const NUM_BYTES_POOL_ID = 16; // The number of bytes of a pool ID. (uint32)
 export const NUM_BYTES_TICK_ID = 20; // The number of bytes of a price tick ID. (uint32)
 export const NUM_BYTES_POSITION_ID = 24; // The number of bytes of a position ID. (uint32)
-<<<<<<< HEAD
 export const MAX_NUMBER_CROSSED_TICKS = 0; // TBA	Maximum number of price ticks to be crossed by a single swap. (uint32)
 export const MAX_HOPS_SWAP = 0; // TBA	Maximum number of different pools that a complete swap can interact with. (uint32)
 export const MAX_NUM_POSITIONS_FEE_COLLECTION = 0; // TBD	The maximum number of positions for which it is possible to collect fees in one transaction. (uint32)
 export const TOKEN_ID_FEE_DEX = Buffer.from('0x000'); // The ID of the token used for fees. This defines the type of token in which the additional fees for pool creation and position creation are paid. (bytes)
 export const POOL_CREATION_FEE = BigInt(0); // This amount of tokens is transferred to the protocol fee account when creating a new pool. (uint64) (configurable)
 export const POSITION_CREATION_FEE = 0; // This amount of tokens is transferred to the protocol fee account when creating a new position. (uint64) (configurable)
-=======
-export const MAX_NUMBER_CROSSED_TICKS = 100; // TBA	Maximum number of price ticks to be crossed by a single swap. (uint32)
-export const MAX_HOPS_SWAP = 5; // TBA	Maximum number of different pools that a complete swap can interact with. (uint32)
-export const MAX_NUM_POSITIONS_FEE_COLLECTION = 100; // TBD	The maximum number of positions for which it is possible to collect fees in one transaction. (uint32)
-export const TOKEN_ID_FEE_DEX = Buffer.from('0000', 'hex'); // The ID of the token used for fees. This defines the type of token in which the additional fees for pool creation and position creation are paid. (bytes)
-export const POOL_CREATION_FEE = BigInt(1000000000); // This amount of tokens is transferred to the protocol fee account when creating a new pool. (uint64) (configurable)
-export const POSITION_CREATION_FEE = BigInt(50000000); // This amount of tokens is transferred to the protocol fee account when creating a new position. (uint64) (configurable)
->>>>>>> 8f629d4 (modify: rreset intial value of dex constants)
 
 // Token Module Constants
 export const CHAIN_ID_ALIAS_NATIVE = Buffer.from('0x0000') // chainID value of a native token.
 export const NUM_BYTES_TOKEN_ID = 8 // The number of bytes of a token ID. (uint32)
 
 // DEX Module Store
-<<<<<<< HEAD
-export const STORE_PREFIX_POOL = Buffer.from(hexToBytes('0x0000')) // Store prefix of the pools substore.
-export const STORE_PREFIX_PRICE_TICK = Buffer.from(hexToBytes('0x8000')) // Store prefix of the price ticks substore.
-export const STORE_PREFIX_POSITION = Buffer.from(hexToBytes('0xc000')) // Store prefix of the positions substore.
-export const STORE_PREFIX_SETTINGS = Buffer.from(hexToBytes('0xe000')) // Store prefix of the protocol settings substore.
-=======
 export const STORE_PREFIX_POOLS = Buffer.from('0000', 'hex'); // Store prefix of the pools substore.
 export const STORE_PREFIX_PRICE_TICK = Buffer.from('8000', 'hex'); // Store prefix of the price ticks substore.
 export const STORE_PREFIX_POSITIONS = Buffer.from('c000', 'hex'); // Store prefix of the positions substore.
 export const STORE_PREFIX_SETTINGS = Buffer.from('e000', 'hex'); // Store prefix of the protocol settings substore.
->>>>>>> 383932e (refactor: clean up dex module)
 
 // DEX Module Command IDs and Names
 export const COMMAND_ID_SWAP_EXACT_INPUT = Buffer.from('0x0000') // Command ID of swap exact input command.
@@ -85,8 +69,8 @@ export const COMMAND_ID_COLLECT_FEES = Buffer.from('0x0007') // Command ID of co
 export const MIN_TICK = -887272; // The minimum possible tick value as a sint32.
 export const MAX_TICK = 887272; // The maximum possible tick value as a sint32.
 export const LOG_MAX_TICK = 19;
-export const MIN_SQRT_RATIO = BigInt(4295128735); // Todo: check with devs	The minimum possible price value in the Q96 representation.
-export const MAX_SQRT_RATIO = BigInt('1461446704550679960896629428549052887957817041882'); // Todo: check with devs	The maximum possible price value in the Q96 representation.
+export const MIN_SQRT_RATIO = BigInt(4295128738); // Todo: check with devs	The minimum possible price value in the Q96 representation.
+export const MAX_SQRT_RATIO = BigInt('1461446703529909599612049957420313862569572983184'); // Todo: check with devs	The maximum possible price value in the Q96 representation.
 export const PRICE_VALUE_FOR_BIT_POSITION_IN_Q96: Q96[] = [
 	BigInt('79224201403219477170569942573'),
 	BigInt('79220240490215316061937756560'),
