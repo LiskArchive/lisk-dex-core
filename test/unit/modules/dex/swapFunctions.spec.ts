@@ -245,7 +245,7 @@ describe('dex:swapFunctions', () => {
       ); // exceptionalRoute.length = 0;
 
       let resultTokenIds: TokenID[] = [];
-      let bestRoute: Buffer[];
+      let bestRoute: Buffer[] = [];
       if (regularRoute.length === 0 && exceptionalRoute.length === 0) {
         resultTokenIds = [] as TokenID[];
       }
