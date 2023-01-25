@@ -408,7 +408,6 @@ describe('dex:auxiliaryFunctions', () => {
 
 	it('addPoolCreationSettings', async () => {
 		const tickSpacing = 10;
-		console.log("feeTier: ", feeTier);
 		await addPoolCreationSettings(
 			methodContext,
 			dexModule.stores,
