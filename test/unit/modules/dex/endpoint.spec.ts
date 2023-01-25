@@ -410,5 +410,47 @@ describe('dex: offChainEndpointFunctions', () => {
 			});
 		});
 
+		it('getTickWithTickId', async () => {
+			const tickWithTickID = await endpoint.getTickWithTickId(moduleEndpointContext, [
+				getPoolIDFromPositionID(positionId),
+				tickToBytes(positionsStoreData.tickLower),
+			]);
+			expect(tickWithTickID).not.toBeNull();
+			expect(tickWithTickID.liquidityNet).toBe(BigInt(5));
+		});
+
+		it('getTickWithPoolIdAndTickValue', async () => {
+			const tickWithPoolIdAndTickValue = await endpoint.getTickWithPoolIdAndTickValue(
+				moduleEndpointContext,
+				getPoolIDFromPositionID(positionId),
+				5,
+			);
+			expect(tickWithPoolIdAndTickValue).not.toBeNull();
+			expect(tickWithPoolIdAndTickValue.liquidityNet).toBe(BigInt(5));
+		});
+
+		it('getLSKPrice', async () => {
+			const result = Buffer.alloc(4);
+			const feeTier = q96ToBytes(BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings.feeTier, 0)))
+			await poolsStore.setKey(methodContext, [getPoolIDFromPositionID(positionId), positionId, feeTier], poolsStoreData);
+			await poolsStore.setKey(methodContext, [poolIdLSK, poolIdLSK, feeTier], poolsStoreData);
+			await poolsStore.setKey(methodContext, [poolIdLSK, positionId, feeTier], poolsStoreData);
+
+			const res = await endpoint.getLSKPrice(
+				tokenMethod,
+				moduleEndpointContext,
+				getPoolIDFromPositionID(positionId),
+			);
+			expect(res).toBe(BigInt(1))
+		});
+
+		it('getTVL', async () => {
+			const res = await endpoint.getTVL(
+				tokenMethod,
+				moduleEndpointContext,
+				getPoolIDFromPositionID(positionId),
+			);
+			expect(res).toBe(BigInt(5))
+		});
 	});
 });
