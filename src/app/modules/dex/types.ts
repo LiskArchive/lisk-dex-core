@@ -95,4 +95,11 @@ export interface InteroperabilityMethod {
 export type AdjacentEdgesInterface = {
 	edge: Buffer;
 	vertex: Buffer;
+}
+//Swap Types
+
+//PoolsGraph for Swap types
+export type PoolsGraph = {
+	vertices: Set<TokenID>;
+	edges: Set<PoolID>;
 };
