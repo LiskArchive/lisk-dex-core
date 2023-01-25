@@ -41,6 +41,7 @@ import { CollectFeesCommand } from './commands/collectFees';
 import { RemoveLiquidityFailedEvent } from './events/removeLiquidityFailed';
 import { RemoveLiquidityEvent } from './events/removeLiquidity';
 import { RemoveLiquidityCommand } from './commands/removeLiquidity';
+import { SwappedEvent } from './events/swapped';
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
@@ -82,6 +83,7 @@ export class DexModule extends BaseModule {
 		this.events.register(FeesIncentivesCollectedEvent, new FeesIncentivesCollectedEvent(this.name));
 		this.events.register(RemoveLiquidityEvent, new RemoveLiquidityEvent(this.name));
 		this.events.register(RemoveLiquidityFailedEvent, new RemoveLiquidityFailedEvent(this.name));
+		this.events.register(SwappedEvent, new SwappedEvent(this.name));
 	}
 
 	public metadata(): ModuleMetadata {
