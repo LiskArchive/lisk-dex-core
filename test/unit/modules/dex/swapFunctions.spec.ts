@@ -46,5 +46,12 @@ describe('dex:auxiliaryFunctions', () => {
             const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed')
             expect(swapFailedEvent.length).toBe(1)
         });
+
+        it('swapWithin', () => {
+            const [sqrtUpdatedPrice, amountIn, amountOut] = swapWithin(sqrtCurrentPrice, sqrtTargetPrice, liquidity, amountRemaining, exactInput)
+            expect(sqrtUpdatedPrice).toBe(BigInt(10))
+            expect(amountIn).toBe(BigInt(1))
+            expect(amountOut).toBe(BigInt(792281625142643375935439503360))
+        });
     })
 })
