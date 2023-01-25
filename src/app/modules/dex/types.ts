@@ -110,3 +110,12 @@ export interface InteroperabilityMethod {
 	terminateChain(methodContext: MethodContext, chainID: Buffer): Promise<void>;
 	getChannel(methodContext: MethodContext, chainID: Buffer): Promise<{ messageFeeTokenID: Buffer }>;
 }
+
+//Swap Types
+export type TickID = Buffer; //TickID for Swap types
+
+//PoolsGraph for Swap types
+export type PoolsGraph = {
+	vertices: Set<TokenID>;
+	edges: Set<PoolID>;
+};
