@@ -21,6 +21,7 @@ import { PoolsStore, PriceTicksStore } from '../stores';
 import { PoolID, PositionID, Q96, TickID, TokenID } from '../types';
 import {
 	computeCollectableFees,
+	computeCollectableIncentives,
 	computeCurrentPrice,
 	computeExceptionalRoute,
 	computeRegularRoute,
@@ -47,6 +48,7 @@ import {
 } from '../constants';
 import { PositionsStore, PositionsStoreData } from '../stores/positionsStore';
 import { PriceTicksStoreData, tickToBytes } from '../stores/priceTicksStore';
+import { computeNewIncentivesPerLiquidity } from './tokenEcnomicsFunctions';
 
 export const getAllTokenIDs = async (
 	methodContext: MethodContext,
@@ -402,6 +404,7 @@ export const getTVL = async (
 export const getCollectableFeesAndIncentives = async (
 	methodContext: MethodContext,
 	stores: NamedRegistry,
+	tokenMethod: TokenMethod,
 	positionId: PositionID
 ) => {
 	const positionsStore = stores.get(PositionsStore);
@@ -414,13 +417,20 @@ export const getCollectableFeesAndIncentives = async (
 	const [
 		collectableFees0,
 		collectableFees1,
-		feeGrowthInside0,
-		feeGrowthInside1
 	] = await computeCollectableFees(
 		stores,
 		methodContext,
 		positionId
 	);
 
-	const poolId = await getPoolIDFromPositionID(positionId);
+	const dexGlobalStore = stores.get(DexGlobalStore);
+	const [collectableIncentives] = await computeCollectableIncentives(
+		dexGlobalStore,
+		tokenMethod,
+		methodContext,
+		positionId,
+		collectableFees0,
+		collectableFees1
+	);
+	return [collectableFees0, collectableFees1, collectableIncentives];
 }
