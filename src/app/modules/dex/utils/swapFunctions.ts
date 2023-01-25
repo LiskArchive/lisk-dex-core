@@ -16,7 +16,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { computeNextPrice, getAmount0Delta, getAmount1Delta } from "./utils/math";
+import { computeNextPrice, getAmount0Delta, getAmount1Delta } from "./math";
 
 export const swapWithin = (
 	sqrtCurrentPrice: bigint,
