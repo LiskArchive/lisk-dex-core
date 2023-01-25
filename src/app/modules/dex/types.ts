@@ -117,6 +117,7 @@ export type routeInterface = {
 };
 
 export type TickID = Buffer;
+
 export type PoolsGraph = {
 	vertices: Set<TokenID>;
 	edges: Set<PoolID>;
@@ -131,3 +132,4 @@ export type feesInterface = {
 	in: bigint;
 	out: bigint;
 };
+//Swap Types
