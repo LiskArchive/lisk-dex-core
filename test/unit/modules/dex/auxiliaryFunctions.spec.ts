@@ -38,7 +38,8 @@ import {
 	transferPoolToPool,
 	transferToProtocolFeeAccount,
 	updatePosition,
-	poolExists
+	poolExists,
+	addPoolCreationSettings
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
@@ -404,4 +405,24 @@ describe('dex:auxiliaryFunctions', () => {
 			expect(poolExistResult).toEqual(exists);
 		})
 	});
+
+	it('addPoolCreationSettings', async () => {
+		const tickSpacing = 10;
+		console.log("feeTier: ", feeTier);
+		await addPoolCreationSettings(
+			methodContext,
+			dexModule.stores,
+			feeTier,
+			tickSpacing
+		);
+
+		const settingGlobalStore = dexModule.stores.get(SettingsStore);
+		const settingGlobalStoreData = await settingGlobalStore.get(methodContext, Buffer.alloc(0));
+		settingGlobalStoreData.poolCreationSettings.feeTier = feeTier;
+		settingGlobalStoreData.poolCreationSettings.tickSpacing = tickSpacing;
+		settingGlobalStore.set(methodContext, Buffer.alloc(0), settingGlobalStoreData);
+		console.log("settingGlobalStoreData: ", settingGlobalStoreData);
+
+		expect(settingGlobalStoreData.poolCreationSettings.feeTier).toEqual(feeTier);
+	})
 });
