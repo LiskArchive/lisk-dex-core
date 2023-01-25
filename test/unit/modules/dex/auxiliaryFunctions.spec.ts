@@ -52,7 +52,7 @@ import {
 	getTickWithTickId,
 	getDexGlobalData,
 	getTickWithPoolIdAndTickValue,
-	updateIncentivizedPools
+	updateIncentivizedPools,
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
@@ -572,10 +572,10 @@ describe('dex:auxiliaryFunctions', () => {
 				dexModule.stores,
 				poolId,
 				multiplier,
-				BigInt(currentHeight)
+				BigInt(currentHeight),
 			);
 			expect(dexGlobalStoreData.totalIncentivesMultiplier).toEqual(totalIncentivesMultiplier);
 			expect(dexGlobalStoreData.incentivizedPools.length).toEqual(incentivizedPoolsLength);
-		})
+		});
 	});
 });

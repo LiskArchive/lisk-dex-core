@@ -89,7 +89,6 @@ describe('dex:command:createPool', () => {
 		command.init({ moduleConfig: defaultConfig, tokenMethod: tokenModule.method });
 	});
 
-	
 	describe('execute', () => {
 		let context: ReturnType<typeof createTransactionContext>;
 		const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
