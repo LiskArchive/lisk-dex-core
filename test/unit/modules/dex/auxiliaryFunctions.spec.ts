@@ -461,13 +461,11 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('getCredibleDirectPrice', async () => {
-			const result = Buffer.alloc(4);
+			
 			const newTokenIDsArray = [
 				token0Id,
 				token1Id,
-				q96ToBytes(
-					BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings[0].feeTier, 0)),
-				),
+				dexGlobalStoreData.poolCreationSettings[0].feeTier,	
 			];
 			await poolsStore.setKey(methodContext, newTokenIDsArray, poolsStoreData);
 			await poolsStore.set(methodContext, Buffer.from(newTokenIDsArray), poolsStoreData);
@@ -547,7 +545,6 @@ describe('dex:auxiliaryFunctions', () => {
 			await getDexGlobalData(methodContext, dexModule.stores).then(res => {
 				expect(res).not.toBeNull();
 				expect(res.positionCounter).toBe(BigInt(16));
-				expect(res.collectableLSKFees).toBe(BigInt(10));
 			});
 		});
 

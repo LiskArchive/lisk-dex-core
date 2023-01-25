@@ -988,12 +988,12 @@ export const swap = async (
 
 		const liquidityFeeInQ96 = mulDivQ96(
 			BigInt(feeIn),
-			BigInt(FEE_TIER_PARTITION - validatorFeePartIn),
+			BigInt(FEE_TIER_PARTITION - Number(validatorFeePartIn)),
 			BigInt(FEE_TIER_PARTITION),
 		);
 		const liquidityFeeOutQ96 = mulDivQ96(
 			BigInt(feeOut),
-			BigInt(FEE_TIER_PARTITION - validatorFeePartOut),
+			BigInt(FEE_TIER_PARTITION - Number(validatorFeePartOut)),
 			BigInt(FEE_TIER_PARTITION),
 		);
 
