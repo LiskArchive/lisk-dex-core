@@ -16,7 +16,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MethodContext, TokenMethod, cryptography } from 'lisk-sdk';
+import { MethodContext, TokenMethod, cryptography, ModuleEndpointContext } from 'lisk-sdk';
 
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 
@@ -766,14 +766,14 @@ export const updatePosition = async (
 };
 
 export const getAdjacent = async (
-	methodContext: MethodContext,
+	methodContext: ModuleEndpointContext,
 	stores: NamedRegistry,
 	vertex: TokenID,
 ): Promise<AdjacentEdgesInterface[]> => {
 	const result: AdjacentEdgesInterface[] = [];
 	const dexModule = new DexModule();
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
-	const poolIDs = await endpoint.getAllPoolIDs(methodContext, stores.get(PoolsStore));
+	const poolIDs = await endpoint.getAllPoolIDs(methodContext);
 	poolIDs.forEach(edge => {
 		if (getToken0Id(edge).equals(vertex)) {
 			result.push({ edge, vertex: getToken1Id(edge) });
@@ -785,7 +785,7 @@ export const getAdjacent = async (
 };
 
 export const computeRegularRoute = async (
-	methodContext: MethodContext,
+	methodContext: ModuleEndpointContext,
 	stores: NamedRegistry,
 	tokenIn: TokenID,
 	tokenOut: TokenID,
@@ -823,7 +823,7 @@ export const computeRegularRoute = async (
 };
 
 export const computeExceptionalRoute = async (
-	methodContext: MethodContext,
+	methodContext: ModuleEndpointContext,
 	stores: NamedRegistry,
 	tokenIn: TokenID,
 	tokenOut: TokenID,
@@ -859,7 +859,7 @@ export const computeExceptionalRoute = async (
 
 export const getCredibleDirectPrice = async (
 	tokenMethod: TokenMethod,
-	methodContext: MethodContext,
+	methodContext: ModuleEndpointContext,
 	stores: NamedRegistry,
 	tokenID0: TokenID,
 	tokenID1: TokenID,
@@ -867,8 +867,8 @@ export const getCredibleDirectPrice = async (
 	const directPools: Buffer[] = [];
 	const dexModule = new DexModule();
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
-	const settings = (await endpoint.getDexGlobalData(methodContext, stores)).poolCreationSettings;
-	const allpoolIDs = await endpoint.getAllPoolIDs(methodContext, stores.get(PoolsStore));
+	const settings = (await endpoint.getDexGlobalData(methodContext)).poolCreationSettings;
+	const allpoolIDs = await endpoint.getAllPoolIDs(methodContext);
 
 	const tokenIDArrays = [tokenID0, tokenID1];
 	[tokenID0, tokenID1] = tokenIDArrays.sort();
@@ -896,7 +896,7 @@ export const getCredibleDirectPrice = async (
 	const token1ValuesLocked: bigint[] = [];
 
 	for (const directPool of directPools) {
-		const pool = await endpoint.getPool(methodContext, stores, directPool);
+		const pool = await endpoint.getPool(methodContext, directPool);
 		const token0Amount = await endpoint.getToken0Amount(tokenMethod, methodContext, directPool);
 		const token0ValueQ96 = mulQ96(
 			mulQ96(numberToQ96(token0Amount), bytesToQ96(pool.sqrtPrice)),
@@ -918,7 +918,7 @@ export const getCredibleDirectPrice = async (
 	});
 
 	const poolSqrtPrice = (
-		await endpoint.getPool(methodContext, stores, directPools[minToken1ValueLockedIndex])
+		await endpoint.getPool(methodContext, directPools[minToken1ValueLockedIndex])
 	).sqrtPrice;
 	return mulQ96(bytesToQ96(poolSqrtPrice), bytesToQ96(poolSqrtPrice));
 };
