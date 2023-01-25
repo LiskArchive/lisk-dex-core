@@ -14,8 +14,10 @@
 
 import { MethodContext } from "lisk-sdk";
 import { SwapFailedEvent } from "../events/swapFailed";
-import { Address, TokenID } from "../types";
+import { Address, AdjacentEdgesInterface, TokenID } from "../types";
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
+import { PoolsStore } from "../stores";
+import { getToken0Id, getToken1Id } from "./auxiliaryFunctions";
 
 export const raiseSwapException = (
 	events: NamedRegistry,
@@ -36,4 +38,22 @@ export const raiseSwapException = (
 		[senderAddress],
 		true,
 	);
+};
+
+export const getAdjacent = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	vertex: TokenID,
+): Promise<AdjacentEdgesInterface[]> => {
+	const result: AdjacentEdgesInterface[] = [];
+	
+	const poolIDs = await endpoint.getAllPoolIDs(methodContext, stores.get(PoolsStore));
+	poolIDs.forEach(edge => {
+		if (getToken0Id(edge).equals(vertex)) {
+			result.push({ edge, vertex: getToken1Id(edge) });
+		} else if (getToken1Id(edge).equals(vertex)) {
+			result.push({ edge, vertex: getToken0Id(edge) });
+		}
+	});
+	return result;
 };
