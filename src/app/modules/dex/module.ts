@@ -41,8 +41,6 @@ import { CollectFeesCommand } from './commands/collectFees';
 import { RemoveLiquidityFailedEvent } from './events/removeLiquidityFailed';
 import { RemoveLiquidityEvent } from './events/removeLiquidity';
 import { RemoveLiquidityCommand } from './commands/removeLiquidity';
-import { SwapFailedEvent } from './events/swapFailed';
-import { SwappedEvent } from './events/swapped';
 import {
 	getAllPoolIdsRequestSchema,
 	getAllPoolIdsResponseSchema,
@@ -167,7 +165,7 @@ export class DexModule extends BaseModule {
 				},
 				{
 					name: this.endpoint.getPositionIndex.name,
-					request: getPositionIndexResquestSchema,
+					request: ggetPositionIndexResquestSchema,
 					response: getPositionIndexResponseSchema,
 				},
 				{
@@ -230,11 +228,6 @@ export class DexModule extends BaseModule {
 					request: getAllTickIDsInPoolRequestSchema,
 					response: getAllTickIDsInPoolRsponseSchema,
 				},
-				{
-					name: this.endpoint.getAllTokenIDs.name,
-					request: getAllTokenIdsRequestSchema,
-					response: getAllTokenIdsResponseSchema,
-				}
 			],
 			commands: this.commands.map(command => ({
 				name: command.name,

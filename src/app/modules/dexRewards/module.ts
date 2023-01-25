@@ -56,6 +56,7 @@ export class DexRewardsModule extends BaseModule {
 
 	public metadata(): ModuleMetadata {
 		return {
+			stores: [],
 			endpoints: [],
 			commands: this.commands.map((command: BaseCommand) => ({
 				name: command.name,
