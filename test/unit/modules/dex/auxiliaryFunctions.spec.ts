@@ -421,7 +421,6 @@ describe('dex:auxiliaryFunctions', () => {
 		settingGlobalStoreData.poolCreationSettings.feeTier = feeTier;
 		settingGlobalStoreData.poolCreationSettings.tickSpacing = tickSpacing;
 		settingGlobalStore.set(methodContext, Buffer.alloc(0), settingGlobalStoreData);
-		console.log("settingGlobalStoreData: ", settingGlobalStoreData);
 
 		expect(settingGlobalStoreData.poolCreationSettings.feeTier).toEqual(feeTier);
 	})
