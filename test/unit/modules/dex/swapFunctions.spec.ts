@@ -16,3 +16,28 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+
+import { swapWithin } from "../../../../src/app/modules/dex/swapFunctions";
+
+describe('dex:auxiliaryFunctions', () => {
+
+    const sqrtCurrentPrice = BigInt(5);
+	const sqrtTargetPrice =  BigInt(10);
+	const liquidity = BigInt(100);
+	const amountRemaining =  BigInt(90);
+	const exactInput = true;
+
+   
+
+    describe('constructor', () => {
+        beforeEach(async () => {
+
+		});
+        it('swapWithin', () => {
+			const [sqrtUpdatedPrice, amountIn, amountOut] = swapWithin(sqrtCurrentPrice,sqrtTargetPrice,liquidity,amountRemaining,exactInput)
+            expect(sqrtUpdatedPrice).toBe(BigInt(10))
+            expect(amountIn).toBe(BigInt(1))
+            expect(amountOut).toBe(BigInt(792281625142643375935439503360))
+		});
+    })
+})
