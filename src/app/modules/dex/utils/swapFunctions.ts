@@ -1,3 +1,7 @@
+/* eslint-disable import/no-cycle */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -46,7 +50,7 @@ export const getAdjacent = async (
 	vertex: TokenID,
 ): Promise<AdjacentEdgesInterface[]> => {
 	const result: AdjacentEdgesInterface[] = [];
-	
+
 	const poolIDs = await endpoint.getAllPoolIDs(methodContext, stores.get(PoolsStore));
 	poolIDs.forEach(edge => {
 		if (getToken0Id(edge).equals(vertex)) {
