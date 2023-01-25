@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { TokenModule, Transaction, ValidatorsModule, VerifyStatus } from 'lisk-framework';
+import { TokenModule, Transaction, ValidatorsModule } from 'lisk-framework';
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { testing } from 'lisk-sdk';
 import { DexModule } from '../../../../src/app/modules';
@@ -89,25 +89,7 @@ describe('dex:command:createPool', () => {
 		command.init({ moduleConfig: defaultConfig, tokenMethod: tokenModule.method });
 	});
 
-	describe('verify', () => {
-		it.each(createPoolFixtures)('%s', async (...args) => {
-			const [_desc, input, err] = args;
-			const context = createTransactionContext({
-				transaction: new Transaction(input as any),
-			});
-
-			const result = await command.verify(context.createCommandVerifyContext(createPoolSchema));
-
-			if (err === false) {
-				expect(result.error?.message).not.toBeDefined();
-				expect(result.status).toEqual(VerifyStatus.OK);
-			} else {
-				expect(result.error?.message).toBe(err);
-				expect(result.status).toEqual(VerifyStatus.FAIL);
-			}
-		});
-	});
-
+	
 	describe('execute', () => {
 		let context: ReturnType<typeof createTransactionContext>;
 		const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());

@@ -1230,13 +1230,13 @@ export const getCredibleDirectPrice = async (
 	const allpoolIDs = await getAllPoolIDs(methodContext, stores.get(PoolsStore));
 
 	const tokenIDArrays = [tokenID0, tokenID1];
+	tokenIDArrays.sort(((a, b) => (a < b ? -1 : 1)))
 	const concatedTokenIDs = Buffer.concat(tokenIDArrays);
 
 	settings.forEach(setting => {
-		const result = Buffer.alloc(4);
 		const tokenIDAndSettingsArray = [
 			concatedTokenIDs,
-			q96ToBytes(BigInt(result.writeUInt32BE(setting.feeTier, 0))),
+			setting.feeTier
 		];
 		const potentialPoolId: Buffer = Buffer.concat(tokenIDAndSettingsArray);
 		allpoolIDs.forEach(poolId => {
@@ -1265,17 +1265,17 @@ export const getCredibleDirectPrice = async (
 		);
 	}
 
-	let minToken1ValueLocked = BigInt(MAX_SINT32);
-	let minToken1ValueLockedIndex = 0;
+	let maxToken1ValueLocked = BigInt(MAX_SINT32);
+	let maxToken1ValueLockedIndex = 0;
 	token1ValuesLocked.forEach((token1ValueLocked, index) => {
-		if (token1ValueLocked > minToken1ValueLocked) {
-			minToken1ValueLocked = token1ValueLocked;
-			minToken1ValueLockedIndex = index;
+		if (token1ValueLocked > maxToken1ValueLocked ) {
+			maxToken1ValueLocked  = token1ValueLocked;
+			maxToken1ValueLockedIndex = index;
 		}
 	});
 
 	const poolSqrtPrice = (
-		await getPool(methodContext, stores, directPools[minToken1ValueLockedIndex])
+		await getPool(methodContext, stores, directPools[maxToken1ValueLockedIndex])
 	).sqrtPrice;
 	return mulQ96(bytesToQ96(poolSqrtPrice), bytesToQ96(poolSqrtPrice));
 };
