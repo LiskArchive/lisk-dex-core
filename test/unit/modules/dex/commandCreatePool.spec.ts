@@ -25,7 +25,7 @@ import {
 } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { PoolsStore, PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
-import { Address, PositionID } from '../../../../src/app/modules/dex/types';
+import { Address, PoolID, PositionID } from '../../../../src/app/modules/dex/types';
 import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import { q96ToBytes, numberToQ96 } from '../../../../src/app/modules/dex/utils/q96';
 import {
@@ -37,6 +37,7 @@ import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 const { createTransactionContext } = testing;
 
 describe('dex:command:createPool', () => {
+	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 	let dexModule: DexModule;
 	let tokenModule: TokenModule;
 	let validatorModule: ValidatorsModule;
@@ -48,6 +49,8 @@ describe('dex:command:createPool', () => {
 	const poolsStoreData: PoolsStoreData = {
 		liquidity: BigInt(5),
 		sqrtPrice: q96ToBytes(BigInt(1)),
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+		heightIncentivesUpdate: 5,
 		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
 		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(6))),
 		tickSpacing: 1,
@@ -56,6 +59,9 @@ describe('dex:command:createPool', () => {
 	const dexGlobalStoreData: DexGlobalStoreData = {
 		positionCounter: BigInt(10),
 		collectableLSKFees: BigInt(10),
+		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
+		incentivizedPools: [{ poolId, multiplier: 10 }],
+		totalIncentivesMultiplier: 1,
 	};
 
 	const settingStoreData: SettingsStoreData = {
