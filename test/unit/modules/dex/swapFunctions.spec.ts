@@ -17,7 +17,7 @@
  */
 
 
-import { swapWithin } from "../../../../src/app/modules/dex/swapFunctions";
+import { swapWithin } from "../../../../src/app/modules/dex/utils/swapFunctions";
 
 describe('dex:auxiliaryFunctions', () => {
 
