@@ -141,7 +141,6 @@ describe('dex:auxiliaryFunctions', () => {
 
 	const dexGlobalStoreData: DexGlobalStoreData = {
 		positionCounter: BigInt(15),
-		collectableLSKFees: BigInt(10),
 		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
 		incentivizedPools: [{ poolId, multiplier: 10 }],
 		totalIncentivesMultiplier: 1,
@@ -461,11 +460,10 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('getCredibleDirectPrice', async () => {
-			
 			const newTokenIDsArray = [
 				token0Id,
 				token1Id,
-				dexGlobalStoreData.poolCreationSettings[0].feeTier,	
+				dexGlobalStoreData.poolCreationSettings[0].feeTier,
 			];
 			await poolsStore.setKey(methodContext, newTokenIDsArray, poolsStoreData);
 			await poolsStore.set(methodContext, Buffer.from(newTokenIDsArray), poolsStoreData);
