@@ -103,7 +103,6 @@ describe('dex:command:collectFees', () => {
 
 		const dexGlobalStoreData: DexGlobalStoreData = {
 			positionCounter: BigInt(10),
-			collectableLSKFees: BigInt(10),
 			poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
 			incentivizedPools: [{ poolId, multiplier: 10 }],
 			totalIncentivesMultiplier: 1,
