@@ -91,3 +91,8 @@ export interface InteroperabilityMethod {
 	terminateChain(methodContext: MethodContext, chainID: Buffer): Promise<void>;
 	getChannel(methodContext: MethodContext, chainID: Buffer): Promise<{ messageFeeTokenID: Buffer }>;
 }
+
+export type AdjacentEdgesInterface = {
+	edge: Buffer;
+	vertex: Buffer;
+};
