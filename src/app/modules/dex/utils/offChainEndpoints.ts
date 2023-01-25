@@ -20,6 +20,7 @@ import { MethodContext, TokenMethod } from 'lisk-sdk';
 import { PoolsStore, PriceTicksStore } from '../stores';
 import { PoolID, PositionID, Q96, TickID, TokenID } from '../types';
 import {
+	computeCollectableFees,
 	computeCurrentPrice,
 	computeExceptionalRoute,
 	computeRegularRoute,
@@ -397,3 +398,29 @@ export const getTVL = async (
 	);
 	return roundDownQ96(addQ96(value0Q96, value1Q96));
 };
+
+export const getCollectableFeesAndIncentives = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	positionId: PositionID
+) => {
+	const positionsStore = stores.get(PositionsStore);
+	const positionStoreData = await positionsStore.get(methodContext, positionId);
+
+	if (!positionStoreData) {
+		throw new Error("The position is not registered!");
+	}
+
+	const [
+		collectableFees0,
+		collectableFees1,
+		feeGrowthInside0,
+		feeGrowthInside1
+	] = await computeCollectableFees(
+		stores,
+		methodContext,
+		positionId
+	);
+
+	const poolId = await getPoolIDFromPositionID(positionId);
+}
