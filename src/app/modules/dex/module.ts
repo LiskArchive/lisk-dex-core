@@ -55,6 +55,7 @@ import { positionsStoreSchema } from './stores/positionsStore';
 import { priceTicksStoreSchema } from './stores/priceTicksStore';
 import { settingsStoreSchema } from './stores/settingsStore';
 import { SwapFailedEvent } from './events/swapFailed';
+import { SwappedEvent } from './events/swapped';
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
@@ -95,6 +96,7 @@ export class DexModule extends BaseModule {
 		this.events.register(FeesIncentivesCollectedEvent, new FeesIncentivesCollectedEvent(DexModule.name));
 		this.events.register(RemoveLiquidityFailedEvent, new RemoveLiquidityFailedEvent(DexModule.name));
 		this.events.register(RemoveLiquidityEvent, new RemoveLiquidityEvent(DexModule.name));
+		this.events.register(SwappedEvent, new SwappedEvent(this.name));
 	}
 
 	public metadata(): ModuleMetadata {
