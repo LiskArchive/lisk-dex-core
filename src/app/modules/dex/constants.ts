@@ -109,10 +109,12 @@ export const defaultConfig = {
 };
 
 //Swap Constants
-export const ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES = sha256("liquidityProviderIncentivesAccount").slice(0,NUM_BYTES_ADDRESS);
+export const ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES = sha256(
+	'liquidityProviderIncentivesAccount',
+).slice(0, NUM_BYTES_ADDRESS);
 export const FEE_TIER_PARTITION = 1000000;
 export const ADDRESS_VALIDATOR_INCENTIVES = Buffer.from('0007', 'hex');
-             ADDRESS_VALIDATOR_INCENTIVES
+ADDRESS_VALIDATOR_INCENTIVES;
 export const VALIDATORS_LSK_INCENTIVE_PART = 200000;
 export enum SwapFailedReasons {
 	SWAP_FAILED_INVALID_ROUTE,

@@ -133,7 +133,6 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			}
 		}
 		return this.getKey(context, [nextTick]);
-
 	}
 
 	public async getPrevTick(context: StoreGetter, keys: Buffer[]) {
@@ -155,6 +154,4 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 		}
 		return this.getKey(context, [prevTick]);
 	}
-
-
 }

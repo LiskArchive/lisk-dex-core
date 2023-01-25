@@ -1027,7 +1027,7 @@ export const computeCurrentPrice = async (
 	// eslint-disable-next-line @typescript-eslint/no-misused-promises
 	for (const poolId of swapRoute) {
 		const pool = await getPool(methodContext, stores, poolId);
-		if (await getPool(methodContext, stores, poolId) == null) {
+		if ((await getPool(methodContext, stores, poolId)) == null) {
 			throw new Error('Not a valid pool');
 		}
 		if (tokenInPool.equals(getToken0Id(poolId))) {
@@ -1130,8 +1130,7 @@ export const swapWithin = (
 	const zeroToOne: boolean = sqrtCurrentPrice >= sqrtTargetPrice;
 	let amountIn = BigInt(0);
 	let amountOut = BigInt(0);
-	let sqrtUpdatedPrice;
-
+	let sqrtUpdatedPrice: bigint;
 	if (exactInput) {
 		if (zeroToOne) {
 			amountIn = getAmount0Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, true);
@@ -1234,10 +1233,7 @@ export const getCredibleDirectPrice = async (
 	const concatedTokenIDs = Buffer.concat(tokenIDArrays);
 
 	settings.forEach(setting => {
-		const tokenIDAndSettingsArray = [
-			concatedTokenIDs,
-			setting.feeTier
-		];
+		const tokenIDAndSettingsArray = [concatedTokenIDs, setting.feeTier];
 		const potentialPoolId: Buffer = Buffer.concat(tokenIDAndSettingsArray);
 		allpoolIDs.forEach(poolId => {
 			if (poolId.equals(potentialPoolId)) {
