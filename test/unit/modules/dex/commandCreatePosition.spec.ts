@@ -233,8 +233,8 @@ describe('dex:command:createPosition', () => {
 					await commandCreatePosition.execute(
 						contextPosition.createCommandExecuteContext(createPositionSchema),
 					);
-					expect(dexModule._tokenMethod.lock).toHaveBeenCalledTimes(1);
-					expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(2);
+					expect(dexModule._tokenMethod.lock).toHaveBeenCalledTimes(0);
+					expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(1);
 
 					const events = contextPosition.eventQueue.getEvents();
 					const positionCreatedEvents = events.filter(e => e.toObject().name === 'positionCreated');

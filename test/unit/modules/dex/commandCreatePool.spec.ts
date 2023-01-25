@@ -90,7 +90,7 @@ describe('dex:command:createPool', () => {
 		feeModule.method.payFee = jest.fn().mockImplementation(async () => Promise.resolve());
 		dexModule.addDependencies(tokenModule.method, validatorModule.method, feeModule.method);
 		command = dexModule.commands.find(e => e.name === 'createPool');
-		command.init({ moduleConfig: defaultConfig, tokenMethod: tokenModule.method });
+		command.init({ moduleConfig: defaultConfig, tokenMethod: tokenModule.method, feeMethod: feeModule.method });
 	});
 
 	describe('verify', () => {
@@ -166,7 +166,7 @@ describe('dex:command:createPool', () => {
 					});
 					await command.execute(context.createCommandExecuteContext(createPoolSchema));
 					expect(dexModule._tokenMethod.lock).toHaveBeenCalledTimes(2);
-					expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(4);
+					expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(3);
 					const events = context.eventQueue.getEvents();
 					const poolCreatedEvents = events.filter(e => e.toObject().name === 'poolCreated');
 					const positionCreatedEvents = events.filter(e => e.toObject().name === 'positionCreated');

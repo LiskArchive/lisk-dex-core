@@ -58,9 +58,10 @@ export class CreatePoolCommand extends BaseCommand {
 	private _tokenMethod!: TokenMethod;
 	private _feeMethod!: FeeMethod;
 
-	public init({ moduleConfig, tokenMethod }): void {
+	public init({ moduleConfig, tokenMethod, feeMethod }): void {
 		this._moduleConfig = moduleConfig;
 		this._tokenMethod = tokenMethod;
+		this._feeMethod = feeMethod;
 	}
 
 	public async verify(

@@ -37,10 +37,18 @@ import {
 	transferPoolToPool,
 	transferToProtocolFeeAccount,
 	updatePosition,
+<<<<<<< HEAD
 	getCredibleDirectPrice,
 	computeExceptionalRoute,
 	computeRegularRoute,
 	getAdjacent,
+=======
+	getLiquidityForAmount0,
+	getLiquidityForAmount1,
+	collectFeesAndIncentives,
+	transferToValidatorLSKPool,
+	getOwnerAddressOfPosition
+>>>>>>> 4e602c1 (feat: add unit test for getLiquidityForAmount1, getOwnerAddressOfPosition functions)
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
@@ -467,4 +475,69 @@ describe('dex:auxiliaryFunctions', () => {
 			});
 		});
 	});
+<<<<<<< HEAD
+=======
+
+	it('transferToValidatorLSKPool', async () => {
+		await transferToValidatorLSKPool(
+			tokenMethod,
+			methodContext,
+			senderAddress,
+			BigInt(1)
+		);
+
+		expect(tokenMethod.transfer).toHaveBeenCalled();
+	});
+
+	it('collectFeesAndIncentives', async () => {
+		await collectFeesAndIncentives(
+			dexModule.events,
+			dexModule.stores,
+			tokenMethod,
+			methodContext,
+			positionId
+		);
+		expect(tokenMethod.transfer).toHaveBeenCalled();
+	});
+
+	it('getLiquidityForAmount0', () => {
+		const lowerSqrtPrice = BigInt(10);
+		const upperSqrtPrice = BigInt(100);
+		const amount0 = BigInt(50);
+
+		const intermediate = mulDivQ96(lowerSqrtPrice, upperSqrtPrice, numberToQ96(BigInt(1)));
+		const result = mulDivQ96(
+			numberToQ96(amount0),
+			intermediate,
+			subQ96(upperSqrtPrice, lowerSqrtPrice)
+		);
+
+		const functionResult = getLiquidityForAmount0(lowerSqrtPrice, upperSqrtPrice, amount0);
+
+		expect(functionResult).toEqual(roundDownQ96(result));
+	});
+
+	it('getLiquidityForAmount1', () => {
+		const lowerSqrtPrice = BigInt(10);
+		const upperSqrtPrice = BigInt(100);
+		const amount1 = BigInt(50);
+
+		const result = mulDivQ96(numberToQ96(amount1), numberToQ96(BigInt(1)), subQ96(upperSqrtPrice, lowerSqrtPrice));
+
+		const functionResult = getLiquidityForAmount1(lowerSqrtPrice, upperSqrtPrice, amount1);
+
+		expect(functionResult).toEqual(roundDownQ96(result));
+	});
+
+	it('getOwnerAddressOfPosition', async () => {
+		const result = await getOwnerAddressOfPosition(
+			methodContext,
+			positionsStore,
+			positionId
+		);
+		const position = await positionsStore.get(methodContext, positionId);
+
+		expect(result).toEqual(position.ownerAddress);
+	})
+>>>>>>> 4e602c1 (feat: add unit test for getLiquidityForAmount1, getOwnerAddressOfPosition functions)
 });
