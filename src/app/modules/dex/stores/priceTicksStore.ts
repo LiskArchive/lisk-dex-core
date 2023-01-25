@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseStore, StoreGetter } from 'lisk-sdk';
+import { BaseStore, ImmutableStoreGetter, StoreGetter } from 'lisk-sdk';
 import { MAX_NUM_BYTES_Q96, MAX_TICK, MIN_TICK } from '../constants';
 
 export const tickToBytes = (tickValue: number): Buffer => {
@@ -39,12 +39,19 @@ export interface PriceTicksStoreData {
 	liquidityGross: bigint;
 	feeGrowthOutside0: Buffer;
 	feeGrowthOutside1: Buffer;
+	incentivesPerLiquidityOutside: Buffer;
 }
 
 export const priceTicksStoreSchema = {
 	$id: '/dex/store/priceTicks',
 	type: 'object',
-	required: ['liquidityNet', 'liquidityGross', 'feeGrowthOutside0', 'feeGrowthOutside1'],
+	required: [
+		'liquidityNet',
+		'liquidityGross',
+		'feeGrowthOutside0',
+		'feeGrowthOutside1',
+		'incentivesPerLiquidityOutside',
+	],
 	properties: {
 		liquidityNet: {
 			dataType: 'sint64',
@@ -64,13 +71,18 @@ export const priceTicksStoreSchema = {
 			maxLength: MAX_NUM_BYTES_Q96,
 			fieldNumber: 4,
 		},
+		incentivesPerLiquidityOutside: {
+			dataType: 'bytes',
+			maxLength: MAX_NUM_BYTES_Q96,
+			fieldNumber: 5,
+		},
 	},
 };
 
 export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 	public schema = priceTicksStoreSchema;
 
-	public async getKey(context: StoreGetter, keys: Buffer[]): Promise<PriceTicksStoreData> {
+	public async getKey(context: ImmutableStoreGetter, keys: Buffer[]): Promise<PriceTicksStoreData> {
 		const key = Buffer.concat(keys);
 		return this.get(context, key);
 	}
@@ -92,5 +104,13 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 	public async delKey(context: StoreGetter, keys: Buffer[]): Promise<void> {
 		const key = Buffer.concat(keys);
 		await this.del(context, key);
+	}
+
+	public async getAll(context: ImmutableStoreGetter) {
+		return this.iterate(context, {
+			gte: Buffer.alloc(16, 0),
+			lte: Buffer.alloc(16, 255),
+			reverse: true,
+		});
 	}
 }

@@ -12,7 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Q96 } from './types';
+
+import {Q96} from './types';
 
 export const NUM_BYTES_ADDRESS = 20; // The number of bytes of an address (uint32)
 export const MAX_NUM_BYTES_Q96 = 24; // The number of bytes of a fractional number stored in Q96 format (uint32)
@@ -106,3 +107,18 @@ export const defaultConfig = {
 		10000: 200,
 	},
 };
+
+//Swap Constants
+
+export enum SwapFailedReasons {
+	SWAP_FAILED_INVALID_ROUTE,
+	SWAP_FAILED_TOO_MANY_TICKS,
+	SWAP_FAILED_NOT_ENOUGH,
+	SWAP_FAILED_INVALID_LIMIT_PRICE,
+}
+
+export const FEE_TIER_PARTITION = 1000000;
+
+
+
+
