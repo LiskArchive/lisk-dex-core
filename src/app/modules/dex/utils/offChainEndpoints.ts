@@ -48,7 +48,6 @@ import {
 } from '../constants';
 import { PositionsStore, PositionsStoreData } from '../stores/positionsStore';
 import { PriceTicksStoreData, tickToBytes } from '../stores/priceTicksStore';
-import { computeNewIncentivesPerLiquidity } from './tokenEcnomicsFunctions';
 
 export const getAllTokenIDs = async (
 	methodContext: MethodContext,
