@@ -28,7 +28,7 @@ import { Address, PoolID, PositionID } from '../../../../src/app/modules/dex/typ
 
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
-import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
+
 import {
 	createMethodContext,
 	EventQueue,
@@ -46,17 +46,31 @@ import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settin
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import { DexEndpoint } from '../../../../src/app/modules/dex/endpoint';
+import { createTransientModuleEndpointContext } from '../../../context/createContext';
+import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 
 describe('dex: offChainEndpointFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
 	const dexModule = new DexModule();
+<<<<<<< HEAD
 	const feeTier = Number('0x00000c8');
 
 	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
+=======
+	const INVALID_ADDRESS = '1234';
+>>>>>>> 0ac0bad5e4292605be2f450396e5b80442d263ea
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
-	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
+	//const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
+
+	let stateStore: PrefixedStateReadWriter;
+	stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+	
+	const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { address: INVALID_ADDRESS },
+			});
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
@@ -199,7 +213,7 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getAllPoolIDs', async () => {
-			await endpoint.getAllPoolIDs(methodContext, dexModule.stores.get(PoolsStore)).then(res => {
+			await endpoint.getAllPoolIDs(moduleEndpointContext).then(res => {
 				expect(res[0]).toStrictEqual(
 					Buffer.from('000000000000000000000001000000000101643130', 'hex'),
 				);
@@ -221,7 +235,7 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getAllTokenIDs', async () => {
-			await endpoint.getAllTokenIDs(methodContext, dexModule.stores).then(res => {
+			await endpoint.getAllTokenIDs(moduleEndpointContext).then(res => {
 				expect(res.size).toBeGreaterThan(0);
 			});
 		});
@@ -234,9 +248,8 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getPool', async () => {
-			await endpoint
-				.getPool(methodContext, dexModule.stores, getPoolIDFromPositionID(positionId))
-				.then(res => {
+			await endpoint.getPool(moduleEndpointContext, getPoolIDFromPositionID(positionId)).then(
+				res => {
 					expect(res).not.toBeNull();
 					expect(res.liquidity).toBe(BigInt(5));
 				});
@@ -246,8 +259,7 @@ describe('dex: offChainEndpointFunctions', () => {
 			expect(
 				(
 					await endpoint.getCurrentSqrtPrice(
-						methodContext,
-						dexModule.stores,
+						moduleEndpointContext,
 						getPoolIDFromPositionID(positionId),
 						false,
 					)
@@ -256,7 +268,7 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getDexGlobalData', async () => {
-			await endpoint.getDexGlobalData(methodContext, dexModule.stores).then(res => {
+			await endpoint.getDexGlobalData(moduleEndpointContext).then(res => {
 				expect(res).not.toBeNull();
 				expect(res.positionCounter).toBe(BigInt(15));
 				expect(res.collectableLSKFees).toBe(BigInt(10));
@@ -268,15 +280,13 @@ describe('dex: offChainEndpointFunctions', () => {
 			const newPositionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
 			await positionsStore.set(methodContext, newPositionId, positionsStoreData);
 			await positionsStore.setKey(methodContext, [newPositionId], positionsStoreData);
-			await endpoint
-				.getPosition(methodContext, dexModule.stores, newPositionId, positionIdsList)
-				.then(res => {
-					expect(res).not.toBeNull();
-				});
+			await endpoint.getPosition(moduleEndpointContext, newPositionId, positionIdsList).then(res => {
+				expect(res).not.toBeNull(); 
+			});
 		});
 
 		it('getTickWithTickId', async () => {
-			const tickWithTickID = await endpoint.getTickWithTickId(methodContext, dexModule.stores, [
+			const tickWithTickID = await endpoint.getTickWithTickId(moduleEndpointContext, [
 				getPoolIDFromPositionID(positionId),
 				tickToBytes(positionsStoreData.tickLower),
 			]);
@@ -286,8 +296,7 @@ describe('dex: offChainEndpointFunctions', () => {
 
 		it('getTickWithPoolIdAndTickValue', async () => {
 			const tickWithPoolIdAndTickValue = await endpoint.getTickWithPoolIdAndTickValue(
-				methodContext,
-				dexModule.stores,
+				moduleEndpointContext,
 				getPoolIDFromPositionID(positionId),
 				5,
 			);
