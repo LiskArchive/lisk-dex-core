@@ -1,6 +1,6 @@
 {
 	"system": {
-		"dataPath": "~/.lisk/pos-mainchain"
+		"dataPath": "~/.lisk/lisk-dex-core"
 	},
 	"rpc": {
 		"modes": ["ipc"]
