@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseModule, FeeModule, RandomModule, TokenModule, ValidatorsModule } from 'lisk-sdk';
+import { BaseModule, FeeModule, RandomModule, TokenModule, ValidatorsModule, PoSModule } from 'lisk-sdk';
 
 import { DexIncentivesModule } from '../../../../src/app/modules/dexIncentives/module';
 import { DexIncentivesEndpoint } from '../../../../src/app/modules/dexIncentives/endpoint';
@@ -39,6 +39,7 @@ describe('DexIncentivesModule', () => {
 	let validatorModule;
 	let randomModule: RandomModule;
 	let feeModule: FeeModule;
+	let posModule: PoSModule;
 
 	beforeEach(() => {
 		dexIncentivesModule = new DexIncentivesModule();
@@ -46,6 +47,7 @@ describe('DexIncentivesModule', () => {
 		validatorModule = new ValidatorsModule();
 		randomModule = new RandomModule();
 		feeModule = new FeeModule();
+		posModule = new PoSModule();
 
 		tokenModule.method.mint = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.lock = jest.fn().mockImplementation(async () => Promise.resolve());
@@ -73,7 +75,8 @@ describe('DexIncentivesModule', () => {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 			validatorModule.method,
 			randomModule.method,
-			feeModule.method
+			feeModule.method,
+			posModule.method
 		);
 	});
 

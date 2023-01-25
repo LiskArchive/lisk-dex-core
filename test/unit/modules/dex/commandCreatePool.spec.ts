@@ -140,7 +140,7 @@ describe('dex:command:createPool', () => {
 		it(`should call token methods and emit events`, async () => {
 			await command.execute(context.createCommandExecuteContext(createPoolSchema));
 			expect(dexModule._tokenMethod.lock).toHaveBeenCalledTimes(2);
-			expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(4);
+			expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(3);
 
 			const events = context.eventQueue.getEvents();
 			const poolCreatedEvents = events.filter(e => e.toObject().name === 'poolCreated');
