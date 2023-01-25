@@ -39,6 +39,10 @@ import {
 	PositionUpdateFailedEvent,
 } from './events';
 
+import { CreatePoolCommand } from './commands/createPool';
+import { PoolsStore, PositionsStore, PriceTicksStore, SettingsStore } from './stores';
+import { DexMethod } from './method';
+import { DexGlobalStore, dexGlobalStoreSchema } from './stores/dexGlobalStore';
 import { AddLiquidityCommand } from './commands/addLiquidity';
 import { CreatePositionCommand } from './commands/createPosition';
 import { CollectFeesCommand } from './commands/collectFees';
@@ -46,25 +50,10 @@ import { RemoveLiquidityCommand } from './commands/removeLiquidity';
 
 import { RemoveLiquidityFailedEvent } from './events/removeLiquidityFailed';
 import { RemoveLiquidityEvent } from './events/removeLiquidity';
-
-import {
-	CreatePoolCommand
-} from './commands/createPool';
-import {
-	PoolsStore,
-	PositionsStore,
-	PriceTicksStore,
-	SettingsStore
-} from './stores';
-import {
-	DexMethod
-} from './method';
-import {
-	DexGlobalStore
-} from './stores/dexGlobalStore';
-import {
-	CreatePositionCommand
-} from './commands/createPosition';
+import { poolsStoreSchema } from './stores/poolsStore';
+import { positionsStoreSchema } from './stores/positionsStore';
+import { priceTicksStoreSchema } from './stores/priceTicksStore';
+import { settingsStoreSchema } from './stores/settingsStore';
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
@@ -110,7 +99,28 @@ export class DexModule extends BaseModule {
 
 	public metadata(): ModuleMetadata {
 		return {
-			stores: [],
+			stores: [
+				{
+					key: 'DexGlobalStore',
+					data: dexGlobalStoreSchema,
+				},
+				{
+					key: 'PoolsStore',
+					data: poolsStoreSchema,
+				},
+				{
+					key: 'PositionsStore',
+					data: positionsStoreSchema,
+				},
+				{
+					key: 'PriceTicksStore',
+					data: priceTicksStoreSchema,
+				},
+				{
+					key: 'SettingsStore',
+					data: settingsStoreSchema,
+				},
+			],
 			endpoints: [],
 			commands: [],
 			events: [],
