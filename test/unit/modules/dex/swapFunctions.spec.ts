@@ -19,11 +19,11 @@
 import { createMethodContext, EventQueue } from "lisk-framework/dist-node/state_machine";
 import { MethodContext } from "lisk-framework/dist-node/state_machine/method_context";
 import { DexModule } from "../../../../src/app/modules";
-import { raiseSwapException } from "../../../../src/app/modules/dex/utils/swapFunctions";
+import { raiseSwapException, swapWithin } from "../../../../src/app/modules/dex/utils/swapFunctions";
 import { InMemoryPrefixedStateDB } from "./inMemoryPrefixedState";
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { Address, TokenID } from "../../../../src/app/modules/dex/types";
-import { swapWithin } from "../../../../src/app/modules/dex/swapFunctions";
+
 
 describe('dex:auxiliaryFunctions', () => {
     const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
