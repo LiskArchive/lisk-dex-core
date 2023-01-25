@@ -233,7 +233,7 @@ describe('dex:swapFunctions', () => {
             poolAmountIn,
             exactIn
           );
-          bestRoute.push(optimalPool);
+          bestRoute.concat(optimalPool);
           poolTokenIn = regularRouteRt;
           poolAmountIn = poolAmountout;
         }
