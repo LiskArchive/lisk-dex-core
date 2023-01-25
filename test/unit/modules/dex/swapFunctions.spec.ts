@@ -7,38 +7,9 @@ import {
   getOptimalSwapPool
 } from '../../../../src/app/modules/dex/utils/swapFunctions';
 import {
-  // getToken0Id,
-  // getToken1Id,
-  // getFeeTier,
   getPoolIDFromPositionID,
-  // createPool,
-  // computePoolID,
-  // createPosition,
-  // getNewPositionID,
-  // getFeeGrowthInside,
-  // getLiquidityForAmounts,
-  // checkPositionExistenceAndOwnership,
-  // computeCollectableFees,
-  // computeCollectableIncentives,
-  // transferToPool,
-  // transferPoolToPool,
-  // transferToProtocolFeeAccount,
-  // updatePosition,
-  // getToken1Amount,
-  // getToken0Amount,
-  // getPool,
-  // getAllTicks,
-  // addPoolCreationSettings,
-  // getCredibleDirectPrice,
-  // getProtocolSettings,
-  // getPositionIndex,
   computeExceptionalRoute,
   computeRegularRoute,
-  // getAllPoolIDs,
-  // getTickWithTickId,
-  // getDexGlobalData,
-  // getTickWithPoolIdAndTickValue,
-  // getAdjacent,
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
@@ -245,7 +216,7 @@ describe('dex:swapFunctions', () => {
       ); // exceptionalRoute.length = 0;
 
       let resultTokenIds: TokenID[] = [];
-      let bestRoute: Buffer[] = [];
+      let bestRoute = [] as Buffer[];
       if (regularRoute.length === 0 && exceptionalRoute.length === 0) {
         resultTokenIds = [] as TokenID[];
       }
