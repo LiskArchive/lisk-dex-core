@@ -16,7 +16,6 @@ import { NUM_BYTES_POOL_ID } from '../constants';
 
 export interface DexGlobalStoreData {
 	positionCounter: bigint;
-	collectableLSKFees: bigint;
 	poolCreationSettings;
 	incentivizedPools;
 	totalIncentivesMultiplier: number;
@@ -63,7 +62,7 @@ export const dexGlobalStoreSchema = {
 				properties: {
 					poolId: {
 						dataType: 'bytes',
-						maxLength: NUM_BYTES_POOL_ID,
+						minLength: NUM_BYTES_POOL_ID,
 						fieldNumber: 1,
 					},
 					multiplier: {
