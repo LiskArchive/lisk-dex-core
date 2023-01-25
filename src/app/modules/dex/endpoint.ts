@@ -172,11 +172,10 @@ export class DexEndpoint extends BaseEndpoint {
 
 	public async getTVL(
 		tokenMethod: TokenMethod,
-		methodContext: MethodContext,
-		stores: NamedRegistry,
+		methodContext: ModuleEndpointContext,
 		poolId: PoolID,
 	): Promise<bigint>{
-		const pool = await this.getPool(methodContext, stores, poolId);
+		const pool = await this.getPool(methodContext, poolId);
 		const token1Amount = await this.getToken1Amount(tokenMethod, methodContext, poolId);
 		const token0Amount = await this.getToken0Amount(tokenMethod, methodContext, poolId);
 		const token0Id = getToken0Id(poolId);
@@ -202,11 +201,11 @@ export class DexEndpoint extends BaseEndpoint {
 		}
 	
 		const value0Q96 = mulQ96(
-			await this.getLSKPrice(tokenMethod, methodContext, stores, token0Id),
+			await this.getLSKPrice(tokenMethod, methodContext, token0Id),
 			BigInt(token0Amount),
 		);
 		const value1Q96 = mulQ96(
-			await this.getLSKPrice(tokenMethod, methodContext, stores, token1Id),
+			await this.getLSKPrice(tokenMethod, methodContext, token1Id),
 			BigInt(token1Amount),
 		);
 		return roundDownQ96(addQ96(value0Q96, value1Q96));

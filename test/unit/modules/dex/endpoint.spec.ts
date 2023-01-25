@@ -335,8 +335,7 @@ describe('dex: offChainEndpointFunctions', () => {
 		it('getTVL', async () => {
 			const res = await endpoint.getTVL(
 				tokenMethod,
-				methodContext,
-				dexModule.stores,
+				moduleEndpointContext,
 				getPoolIDFromPositionID(positionId),				
 			);
 			expect(res).toBe(BigInt(5))
