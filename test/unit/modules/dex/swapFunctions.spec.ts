@@ -24,6 +24,8 @@ import { InMemoryPrefixedStateDB } from "./inMemoryPrefixedState";
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { Address, TokenID } from "../../../../src/app/modules/dex/types";
 
+// import { swapWithin } from "../../../../src/app/modules/dex/utils/swapFunctions";
+
 describe('dex:auxiliaryFunctions', () => {
     const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
     const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
