@@ -98,7 +98,7 @@ import { PoolsStoreData } from '../stores/poolsStore';
 
 const { utils } = cryptography;
 
-import { MAX_SINT32 } from '@liskhq/lisk-validator';
+import { MIN_SINT32 } from '@liskhq/lisk-validator';
 import { updatePoolIncentives } from './tokenEcnomicsFunctions';
 
 const abs = (x: bigint) => (x < BigInt(0) ? -x : x);
@@ -831,11 +831,12 @@ export const updateIncentivizedPools = async (
 	const dexGlobalStoreData = await getDexGlobalData(methodContext, stores);
 
 	for (const incentivizedPool of dexGlobalStoreData.incentivizedPools) {
-		await updatePoolIncentives(
+		await updateIncentivizedPools(
 			methodContext,
 			stores,
 			incentivizedPool.poolId,
-			Number(currentHeight),
+			multiplier,
+			currentHeight,
 		);
 	}
 	dexGlobalStoreData.incentivizedPools.forEach((incentivizedPools, index) => {
@@ -939,7 +940,7 @@ export const swap = async (
 			numCrossedTicks += 1;
 		}
 
-		if (zeroToOne == true) {
+		if (zeroToOne) {
 			nextTick = stores.get(PriceTicksStore).getPrevTick;
 		} else {
 			nextTick = stores.get(PriceTicksStore).getNextTick;
@@ -1129,7 +1130,7 @@ export const swapWithin = (
 	const zeroToOne: boolean = sqrtCurrentPrice >= sqrtTargetPrice;
 	let amountIn = BigInt(0);
 	let amountOut = BigInt(0);
-	let sqrtUpdatedPrice;
+	let sqrtUpdatedPrice= BigInt(0);
 
 	if (exactInput) {
 		if (zeroToOne) {
@@ -1177,7 +1178,7 @@ export const crossTick = async (
 	await updatePoolIncentives(methodContext, stores, poolId, currentHeight);
 	const poolStoreData = await getPool(methodContext, stores, poolId);
 	const priceTickStoreData = await getTickWithTickId(methodContext, stores, [tickId]);
-	if (leftToRight == true) {
+	if (leftToRight) {
 		poolStoreData.liquidity += priceTickStoreData.liquidityNet;
 	} else {
 		poolStoreData.liquidity -= priceTickStoreData.liquidityNet;
@@ -1229,8 +1230,7 @@ export const getCredibleDirectPrice = async (
 	const settings = (await getDexGlobalData(methodContext, stores)).poolCreationSettings;
 	const allpoolIDs = await getAllPoolIDs(methodContext, stores.get(PoolsStore));
 
-	const tokenIDArrays = [tokenID0, tokenID1];
-	tokenIDArrays.sort(((a, b) => (a < b ? -1 : 1)))
+	const tokenIDArrays = [tokenID0, tokenID1].sort((a, b) => (a < b ? -1 : 1));
 	const concatedTokenIDs = Buffer.concat(tokenIDArrays);
 
 	settings.forEach(setting => {
@@ -1261,15 +1261,15 @@ export const getCredibleDirectPrice = async (
 		);
 		token1ValuesLocked.push(
 			roundDownQ96(token0ValueQ96) +
-				(await getToken1Amount(tokenMethod, methodContext, directPool)),
+			(await getToken1Amount(tokenMethod, methodContext, directPool)),
 		);
 	}
 
-	let maxToken1ValueLocked = BigInt(MAX_SINT32);
+	let maxToken1ValueLocked = BigInt(MIN_SINT32);
 	let maxToken1ValueLockedIndex = 0;
 	token1ValuesLocked.forEach((token1ValueLocked, index) => {
-		if (token1ValueLocked > maxToken1ValueLocked ) {
-			maxToken1ValueLocked  = token1ValueLocked;
+		if (token1ValueLocked > maxToken1ValueLocked) {
+			maxToken1ValueLocked = token1ValueLocked;
 			maxToken1ValueLockedIndex = index;
 		}
 	});
