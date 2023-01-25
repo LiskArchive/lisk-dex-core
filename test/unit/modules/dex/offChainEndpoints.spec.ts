@@ -44,8 +44,15 @@ import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGl
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
-import { getAllPositionIDsInPool, getAllTickIDsInPool, getAllTokenIDs, getCurrentSqrtPrice, getPoolIDFromTickID } from '../../../../src/app/modules/dex/utils/offChainEndpoints';
-import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
+import {
+	getAllPositionIDsInPool,
+	getAllTickIDsInPool,
+	getAllTokenIDs,
+	getCurrentSqrtPrice,
+	getPoolIDFromTickID,
+	getCollectableFeesAndIncentives
+} from '../../../../src/app/modules/dex/utils/offChainEndpoints';
+import { computeCollectableFees, getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 describe('dex:offChainEndpointFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
@@ -193,9 +200,9 @@ describe('dex:offChainEndpointFunctions', () => {
 			tokenMethod.unlock = unlockMock;
 			tokenMethod.getAvailableBalance = getAvailableBalanceMock.mockReturnValue(BigInt(250));
 			tokenMethod.getLockedAmount = lockedAmountMock.mockReturnValue(BigInt(5));
-			
+
 		});
-		
+
 		it('getAllTokenIDs', async () => {
 			await getAllTokenIDs(methodContext, dexModule.stores).then(res => {
 				expect(res.size).toBeGreaterThan(0);
@@ -245,4 +252,21 @@ describe('dex:offChainEndpointFunctions', () => {
 			).toBe('79208358939348018173455069823');
 		});
 	});
+
+	it('getCollectableFeesAndIncentives', async () => {
+		const [collectableFee0] = await getCollectableFeesAndIncentives(
+			methodContext,
+			dexModule.stores,
+			tokenMethod,
+			positionId
+		);
+
+		const [checkCollectableFee0] = await computeCollectableFees(
+			dexModule.stores,
+			methodContext,
+			positionId
+		);
+
+		expect(collectableFee0).toEqual(checkCollectableFee0);
+	})
 });
