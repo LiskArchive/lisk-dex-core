@@ -201,10 +201,6 @@ export const computeRegularRoute = async (
 	let lskAdjacent = await getAdjacent(methodContext, stores, TOKEN_ID_LSK);
 	let tokenInFlag = false;
 	let tokenOutFlag = false;
-	console.log(lskAdjacent)
-	console.log(tokenIn)
-	console.log(tokenOut)
-	
 	lskAdjacent.forEach(lskAdjacentEdge => {
 		if (lskAdjacentEdge.edge.equals(tokenIn)) {
 			tokenInFlag = true;
