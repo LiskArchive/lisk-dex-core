@@ -19,7 +19,7 @@
 import { createMethodContext, EventQueue } from "lisk-framework/dist-node/state_machine";
 import { MethodContext } from "lisk-framework/dist-node/state_machine/method_context";
 import { DexModule } from "../../../../src/app/modules";
-import { computeCurrentPrice, computeRegularRoute, constructPoolsGraph, getAdjacent, getProtocolSettings, raiseSwapException, swapWithin, transferFeesFromPool } from "../../../../src/app/modules/dex/utils/swapFunctions";
+import { computeCurrentPrice, computeRegularRoute, constructPoolsGraph, getAdjacent, getProtocolSettings, raiseSwapException, swap, swapWithin, transferFeesFromPool } from "../../../../src/app/modules/dex/utils/swapFunctions";
 import { InMemoryPrefixedStateDB } from "./inMemoryPrefixedState";
 import { Address, PoolID, TokenID } from "../../../../src/app/modules/dex/types";
 import { createTransientModuleEndpointContext } from "../../../context/createContext";
@@ -44,6 +44,7 @@ describe('dex:swapFunctions', () => {
 	const amount = 0;
     const sqrtCurrentPrice = BigInt(5);
 	const sqrtTargetPrice =  BigInt(10);
+	const sqrtLimitPrice = BigInt(15);
 	const liquidity = BigInt(100);
 	const amountRemaining =  BigInt(90);
 	const exactInput = true;
@@ -170,6 +171,11 @@ describe('dex:swapFunctions', () => {
 			expect(
 				(await computeExceptionalRoute(moduleEndpointContext, dexModule.stores, token0Id, token0Id))[0],
 			).toStrictEqual(token0Id);
+		});
+
+		it('swap', async () => {
+			
+				console.log(await swap(moduleEndpointContext, methodContext, dexModule.stores, poolId, false, sqrtLimitPrice, BigInt(5), false, 10, token0Id, token1Id))
 		});
 
 		
