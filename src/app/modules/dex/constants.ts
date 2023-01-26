@@ -113,9 +113,10 @@ export const ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES = sha256(
 	'liquidityProviderIncentivesAccount',
 ).slice(0, NUM_BYTES_ADDRESS);
 export const FEE_TIER_PARTITION = 1000000;
-export const ADDRESS_VALIDATOR_INCENTIVES = Buffer.from('0007', 'hex');
-ADDRESS_VALIDATOR_INCENTIVES;
-export const VALIDATORS_LSK_INCENTIVE_PART = sha256('validatorIncentivesAccount').slice(0, 20);
+export const ADDRESS_VALIDATOR_INCENTIVES = sha256('validatorIncentivesAccount').slice(0, 20);
+export const VALIDATORS_LSK_INCENTIVE_PART = 20000;
+
+
 
 export enum SwapFailedReasons {
 	SWAP_FAILED_INVALID_ROUTE,
