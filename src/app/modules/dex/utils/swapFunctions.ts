@@ -12,15 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MethodContext, ModuleEndpointContext } from "lisk-sdk";
+import { MethodContext, ModuleEndpointContext, TokenMethod } from "lisk-sdk";
 import { SwapFailedEvent } from "../events/swapFailed";
 import { Address, AdjacentEdgesInterface, PoolID, PoolsGraph, TokenID } from "../types";
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
-import { getToken0Id, getToken1Id } from "./auxiliaryFunctions";
+import { getToken0Id, getToken1Id, transferFromPool } from "./auxiliaryFunctions";
 import { computeNextPrice, getAmount0Delta, getAmount1Delta } from "./math";
 import { DexModule } from "../module";
 import { DexEndpoint } from "../endpoint";
-import { bytesToQ96, invQ96, mulQ96 } from "./q96";
+import { bytesToQ96, invQ96, mulDivQ96, mulQ96, roundDownQ96 } from "./q96";
+import { ADDRESS_VALIDATOR_INCENTIVES, FEE_TIER_PARTITION, MODULE_NAME_DEX, TOKEN_ID_LSK, VALIDATORS_LSK_INCENTIVE_PART } from "../constants";
 
 export const swapWithin = (
 	sqrtCurrentPrice: bigint,
@@ -156,4 +157,30 @@ export const constructPoolsGraph = async (
 		edges.add(poolId);
 	});
 	return { vertices, edges };
+};
+
+export const transferFeesFromPool = (
+	tokenMethod: TokenMethod,
+	methodContext: MethodContext,
+	amount: number,
+	id: TokenID,
+	pool: PoolID,
+) => {
+	let validatorFee = BigInt(0);
+	if (id.equals(TOKEN_ID_LSK)) {
+		validatorFee = roundDownQ96(
+			mulDivQ96(BigInt(amount), BigInt(VALIDATORS_LSK_INCENTIVE_PART), BigInt(FEE_TIER_PARTITION)),
+		);
+	}
+	if (validatorFee > 0) {
+		transferFromPool(
+			tokenMethod,
+			methodContext,
+			pool,
+			ADDRESS_VALIDATOR_INCENTIVES,
+			id,
+			validatorFee,
+		)
+		tokenMethod.lock(methodContext, ADDRESS_VALIDATOR_INCENTIVES, MODULE_NAME_DEX, id, validatorFee);
+	}
 };

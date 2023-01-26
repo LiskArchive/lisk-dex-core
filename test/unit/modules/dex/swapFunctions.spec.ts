@@ -19,7 +19,7 @@
 import { createMethodContext, EventQueue } from "lisk-framework/dist-node/state_machine";
 import { MethodContext } from "lisk-framework/dist-node/state_machine/method_context";
 import { DexModule } from "../../../../src/app/modules";
-import { computeCurrentPrice, constructPoolsGraph, getAdjacent, raiseSwapException, swapWithin } from "../../../../src/app/modules/dex/utils/swapFunctions";
+import { computeCurrentPrice, constructPoolsGraph, getAdjacent, raiseSwapException, swapWithin, transferFeesFromPool } from "../../../../src/app/modules/dex/utils/swapFunctions";
 import { InMemoryPrefixedStateDB } from "./inMemoryPrefixedState";
 import { Address, PoolID, TokenID } from "../../../../src/app/modules/dex/types";
 import { createTransientModuleEndpointContext } from "../../../context/createContext";
@@ -28,13 +28,16 @@ import { numberToQ96, q96ToBytes } from "../../../../src/app/modules/dex/utils/q
 import { tickToPrice } from "../../../../src/app/modules/dex/utils/math";
 import { PoolsStore } from "../../../../src/app/modules/dex/stores";
 import { PoolsStoreData } from "../../../../src/app/modules/dex/stores/poolsStore";
+import { TOKEN_ID_LSK } from "../../../../src/app/modules/dexRewards/constants";
+import { TokenMethod } from "lisk-sdk";
 
 
-describe('dex:auxiliaryFunctions', () => {
+describe('dex:swapFunctions', () => {
     const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
     const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
     const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
     const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
+	const amount = 0;
     const sqrtCurrentPrice = BigInt(5);
 	const sqrtTargetPrice =  BigInt(10);
 	const liquidity = BigInt(100);
@@ -44,6 +47,11 @@ describe('dex:auxiliaryFunctions', () => {
     const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
     const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
     const INVALID_ADDRESS = '1234';
+	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
+	
+	const transferMock = jest.fn();
+	const lockMock = jest.fn();
+	const unlockMock = jest.fn();
 
     let poolsStore: PoolsStore;
 
@@ -79,6 +87,9 @@ describe('dex:auxiliaryFunctions', () => {
 				[poolId],
 				poolsStoreData,
 			);
+			tokenMethod.transfer = transferMock;
+			tokenMethod.lock = lockMock;
+			tokenMethod.unlock = unlockMock;
         })
         it('raiseSwapException', () => {
 			raiseSwapException(dexModule.events,methodContext,1,token0Id,token1Id,senderAddress)
@@ -114,6 +125,9 @@ describe('dex:auxiliaryFunctions', () => {
 			expect(edges.filter(edge => edge.equals(poolId))).toHaveLength(1)
 		});  
 
-		
+		it('transferFeesFromPool', () => {
+            expect(transferFeesFromPool(tokenMethod, methodContext, amount , TOKEN_ID_LSK, poolId)).toBeUndefined()
+		});  
+	
     })
 })

@@ -13,6 +13,7 @@
  */
 
 
+import { sha256 } from '../dexRewards/constants';
 import {Q96} from './types';
 
 export const NUM_BYTES_ADDRESS = 20; // The number of bytes of an address (uint32)
@@ -118,6 +119,16 @@ export enum SwapFailedReasons {
 }
 
 export const FEE_TIER_PARTITION = 1000000;
+
+export const ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES = sha256(
+	'liquidityProviderIncentivesAccount',
+).slice(0, NUM_BYTES_ADDRESS);
+
+export const ADDRESS_VALIDATOR_INCENTIVES = sha256(
+	'validatorIncentivesAccount',
+).slice(0, NUM_BYTES_ADDRESS)
+
+export const VALIDATORS_LSK_INCENTIVE_PART = 200000;
 
 
 
