@@ -19,7 +19,7 @@
 import { createMethodContext, EventQueue } from "lisk-framework/dist-node/state_machine";
 import { MethodContext } from "lisk-framework/dist-node/state_machine/method_context";
 import { DexModule } from "../../../../src/app/modules";
-import { computeCurrentPrice, constructPoolsGraph, getAdjacent, getProtocolSettings, raiseSwapException, swapWithin, transferFeesFromPool } from "../../../../src/app/modules/dex/utils/swapFunctions";
+import { computeCurrentPrice, computeRegularRoute, constructPoolsGraph, getAdjacent, getProtocolSettings, raiseSwapException, swapWithin, transferFeesFromPool } from "../../../../src/app/modules/dex/utils/swapFunctions";
 import { InMemoryPrefixedStateDB } from "./inMemoryPrefixedState";
 import { Address, PoolID, TokenID } from "../../../../src/app/modules/dex/types";
 import { createTransientModuleEndpointContext } from "../../../context/createContext";
@@ -33,8 +33,10 @@ import { TokenMethod } from "lisk-sdk";
 import { DexGlobalStoreData } from "../../../../src/app/modules/dex/stores/dexGlobalStore";
 
 
+
 describe('dex:swapFunctions', () => {
     const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
+	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
     const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
     const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
     const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
@@ -99,6 +101,7 @@ describe('dex:swapFunctions', () => {
 				[poolId],
 				poolsStoreData,
 			);
+			await poolsStore.setKey(methodContext, [poolIdLSK], poolsStoreData);
 
 			await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData);
 			
@@ -150,6 +153,12 @@ describe('dex:swapFunctions', () => {
 			expect(protocolSetting).toStrictEqual(dexGlobalStoreData)
 		});
 
+		it('computeRegularRoute ', async () => {
+			const adjacentToken = Buffer.from('0000000100000000', 'hex');			
+			const regularRoute  = await computeRegularRoute(moduleEndpointContext, dexModule.stores, adjacentToken, adjacentToken);
+			expect(regularRoute).toStrictEqual([adjacentToken,adjacentToken,adjacentToken])
+		});
 
+		
     })
 })

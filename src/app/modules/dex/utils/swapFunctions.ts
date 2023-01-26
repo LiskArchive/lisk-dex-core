@@ -191,3 +191,44 @@ export const getProtocolSettings = async (methodContext: ModuleEndpointContext, 
 	const dexGlobalStoreData = await endpoint.getDexGlobalData(methodContext);
 	return dexGlobalStoreData;
 };
+
+export const computeRegularRoute = async (
+	methodContext: ModuleEndpointContext,
+	stores: NamedRegistry,
+	tokenIn: TokenID,
+	tokenOut: TokenID,
+): Promise<TokenID[]> => {
+	let lskAdjacent = await getAdjacent(methodContext, stores, TOKEN_ID_LSK);
+	let tokenInFlag = false;
+	let tokenOutFlag = false;
+	console.log(lskAdjacent)
+	console.log(tokenIn)
+	console.log(tokenOut)
+	
+	lskAdjacent.forEach(lskAdjacentEdge => {
+		if (lskAdjacentEdge.edge.equals(tokenIn)) {
+			tokenInFlag = true;
+		}
+		if (lskAdjacentEdge.edge.equals(tokenOut)) {
+			tokenOutFlag = true;
+		}
+	});
+
+	if (tokenInFlag && tokenOutFlag) {
+		return [tokenIn, TOKEN_ID_LSK, tokenOut];
+	}
+
+	tokenOutFlag = false;
+	lskAdjacent = await getAdjacent(methodContext, stores, tokenIn);
+
+	lskAdjacent.forEach(lskAdjacentEdge => {
+		if (lskAdjacentEdge.edge.equals(tokenOut)) {
+			tokenOutFlag = true;
+		}
+	});
+
+	if (tokenOutFlag) {
+		return [tokenIn, tokenOut];
+	}
+	return [];
+};
