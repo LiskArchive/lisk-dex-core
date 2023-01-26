@@ -14,12 +14,13 @@
 
 import { MethodContext, ModuleEndpointContext } from "lisk-sdk";
 import { SwapFailedEvent } from "../events/swapFailed";
-import { Address, AdjacentEdgesInterface, TokenID } from "../types";
+import { Address, AdjacentEdgesInterface, PoolID, TokenID } from "../types";
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { getToken0Id, getToken1Id } from "./auxiliaryFunctions";
 import { computeNextPrice, getAmount0Delta, getAmount1Delta } from "./math";
 import { DexModule } from "../module";
 import { DexEndpoint } from "../endpoint";
+import { bytesToQ96, invQ96, mulQ96 } from "./q96";
 
 export const swapWithin = (
 	sqrtCurrentPrice: bigint,
@@ -106,4 +107,37 @@ export const getAdjacent = async (
 		}
 	});
 	return result;
+};
+
+export const computeCurrentPrice = async (
+	methodContext: ModuleEndpointContext,
+	stores: NamedRegistry,
+	tokenIn: TokenID,
+	tokenOut: TokenID,
+	swapRoute: PoolID[],
+): Promise<bigint> => {
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	let price = BigInt(1);
+	let tokenInPool = tokenIn;
+	// eslint-disable-next-line @typescript-eslint/no-misused-promises
+	for (const poolId of swapRoute) {
+		const pool = await endpoint.getPool(methodContext, poolId);
+		await endpoint.getPool(methodContext, poolId).catch(() => {
+			throw new Error('Not a valid pool');
+		})
+		if (tokenInPool.equals(getToken0Id(poolId))) {
+			price = mulQ96(price, bytesToQ96(pool.sqrtPrice));
+			tokenInPool = getToken1Id(poolId);
+		} else if (tokenInPool.equals(getToken1Id(poolId))) {
+			price = mulQ96(price, invQ96(bytesToQ96(pool.sqrtPrice)));
+			tokenInPool = getToken0Id(poolId);
+		} else {
+			throw new Error('Incorrect swap path for price computation');
+		}
+	}
+	if (!tokenInPool.equals(tokenOut)) {
+		throw new Error('Incorrect swap path for price computation');
+	}
+	return mulQ96(price, price);
 };

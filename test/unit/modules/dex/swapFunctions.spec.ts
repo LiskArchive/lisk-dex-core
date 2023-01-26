@@ -19,14 +19,19 @@
 import { createMethodContext, EventQueue } from "lisk-framework/dist-node/state_machine";
 import { MethodContext } from "lisk-framework/dist-node/state_machine/method_context";
 import { DexModule } from "../../../../src/app/modules";
-import { getAdjacent, raiseSwapException, swapWithin } from "../../../../src/app/modules/dex/utils/swapFunctions";
+import { computeCurrentPrice, getAdjacent, raiseSwapException, swapWithin } from "../../../../src/app/modules/dex/utils/swapFunctions";
 import { InMemoryPrefixedStateDB } from "./inMemoryPrefixedState";
-import { Address, TokenID } from "../../../../src/app/modules/dex/types";
+import { Address, PoolID, TokenID } from "../../../../src/app/modules/dex/types";
 import { createTransientModuleEndpointContext } from "../../../context/createContext";
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
+import { numberToQ96, q96ToBytes } from "../../../../src/app/modules/dex/utils/q96";
+import { tickToPrice } from "../../../../src/app/modules/dex/utils/math";
+import { PoolsStore } from "../../../../src/app/modules/dex/stores";
+import { PoolsStoreData } from "../../../../src/app/modules/dex/stores/poolsStore";
 
 
 describe('dex:auxiliaryFunctions', () => {
+    const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
     const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
     const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
     const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
@@ -40,6 +45,8 @@ describe('dex:auxiliaryFunctions', () => {
     const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
     const INVALID_ADDRESS = '1234';
 
+    let poolsStore: PoolsStore;
+
     const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
 		stateStore,
@@ -51,8 +58,28 @@ describe('dex:auxiliaryFunctions', () => {
 		params: { address: INVALID_ADDRESS },
 	});
 
+    const poolsStoreData: PoolsStoreData = {
+		liquidity: BigInt(5),
+		sqrtPrice: q96ToBytes(BigInt(tickToPrice(5))),
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+		heightIncentivesUpdate: 5,
+		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(0))),
+		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(0))),
+		tickSpacing: 1,
+	};
+
+
 
     describe('constructor', () => {
+
+        beforeEach(async () => {
+            poolsStore = dexModule.stores.get(PoolsStore);
+            await poolsStore.setKey(
+				methodContext,
+				[poolId],
+				poolsStoreData,
+			);
+        })
         it('raiseSwapException', () => {
 			raiseSwapException(dexModule.events,methodContext,1,token0Id,token1Id,senderAddress)
             const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed')
@@ -67,6 +94,12 @@ describe('dex:auxiliaryFunctions', () => {
         it('getAdjacent', () => {
 			const adjacent = getAdjacent(moduleEndpointContext, dexModule.stores, token0Id)
             expect(adjacent).not.toBeNull();
-		});        
+		});  
+              
+        it('computeCurrentPrice', async () => {
+            const swapRoute = [poolId]
+			const currentPrice = await computeCurrentPrice(moduleEndpointContext, dexModule.stores, token0Id, token1Id, swapRoute);
+            expect(currentPrice).not.toBeNull();
+		});  
     })
 })
