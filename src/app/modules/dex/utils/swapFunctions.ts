@@ -32,6 +32,7 @@ export const swapWithin = (
 	exactInput: boolean,
 ): [bigint, bigint, bigint] => {
 	const zeroToOne: boolean = sqrtCurrentPrice >= sqrtTargetPrice;
+	
 	let amountIn = BigInt(0);
 	let amountOut = BigInt(0);
 	let sqrtUpdatedPrice: bigint;
@@ -42,11 +43,14 @@ export const swapWithin = (
 		} else {
 			amountIn = getAmount1Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, true);
 		}
-	} else if (zeroToOne) {
-		amountOut = getAmount1Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, false);
-	} else {
-		amountOut = getAmount0Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, false);
+	}else {
+		if (zeroToOne){
+			amountOut = getAmount1Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, false);
+		}else{
+			amountOut = getAmount0Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, false);
+		}
 	}
+
 	if (
 		(exactInput && amountRemaining >= amountIn) ||
 		(!exactInput && amountRemaining >= amountOut)
@@ -369,6 +373,7 @@ export const crossTick = async (
 	}
 	const feeGrowthGlobal0Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal0);
 	const feeGrowthOutside0Q96 = bytesToQ96(priceTickStoreData.feeGrowthOutside0);
+	
 	priceTickStoreData.feeGrowthOutside0 = q96ToBytes(
 		subQ96(feeGrowthGlobal0Q96, feeGrowthOutside0Q96),
 	);
@@ -412,6 +417,7 @@ export const swap = async (
 	let amountIn: bigint;
 	let amountOut: bigint;
 	const poolStoreData = await endpoint.getPool(moduleEndpointContext, poolID);
+
 	if (
 		(zeroToOne && sqrtLimitPrice >= poolSqrtPriceQ96) ||
 		(!zeroToOne && sqrtLimitPrice <= poolSqrtPriceQ96)
@@ -419,17 +425,20 @@ export const swap = async (
 		return [BigInt(0), BigInt(0), BigInt(0), BigInt(0)];
 	}
 
-	while (amountRemaining !== BigInt(0) && poolSqrtPriceQ96 !== sqrtLimitPrice) {
+	while (amountRemaining !== BigInt(4) && poolSqrtPriceQ96 !== sqrtLimitPrice) {
 		if (numCrossedTicks >= MAX_NUMBER_CROSSED_TICKS) {
 			throw new Error('Crossed too many ticks');
 		}
 
 		const currentTick = priceToTick(poolSqrtPriceQ96);
+		q96ToBytes(BigInt(currentTick))
+		
 		if (zeroToOne && poolSqrtPriceQ96 === tickToPrice(currentTick)) {
 			await crossTick(moduleEndpointContext, methodContext, stores, q96ToBytes(BigInt(currentTick)), false, currentHeight);
 			numCrossedTicks += 1;
 		}
-
+		
+		
 		if (zeroToOne) {
 			nextTick = stores.get(PriceTicksStore).getPrevTick;
 		} else {
@@ -445,13 +454,15 @@ export const swap = async (
 		} else {
 			sqrtTargetPrice = sqrtNextTickPriceQ96;
 		}
+		
 		const firstFee = mulDivRoundUpQ96(
-			q96ToInt(amountRemaining),
+			amountRemaining,
 			BigInt(feeTier / 2),
 			BigInt(FEE_TIER_PARTITION),
 		);
+		
 		const amountRemainingTemp = amountRemaining - firstFee;
-
+		
 		const result = swapWithin(
 			poolSqrtPriceQ96,
 			sqrtTargetPrice,
@@ -463,11 +474,13 @@ export const swap = async (
 		const feeCoeff = divQ96(BigInt(feeTier / 2), BigInt(FEE_TIER_PARTITION - feeTier / 2));
 		const feeIn = roundUpQ96(mulQ96(q96ToInt(amountIn), feeCoeff));
 		const feeOut = roundUpQ96(mulQ96(q96ToInt(amountOut), feeCoeff));
+
 		if (exactInput) {
-			amountRemaining -= amountIn + feeIn;
+			amountRemaining -= (amountIn + feeIn);
 		} else {
-			amountRemaining -= amountOut + feeOut;
+			amountRemaining -= (amountOut + feeOut);
 		}
+		
 		amountTotalOut += amountOut + feeOut;
 		amountTotalIn += amountIn + feeIn;
 		totalFeesIn += feeIn;
@@ -500,6 +513,7 @@ export const swap = async (
 			await crossTick(moduleEndpointContext, methodContext, stores, nextTick, true, currentHeight);
 			numCrossedTicks += 1;
 		}
+		console.log(amountRemaining)
 	}
 	poolStoreData.sqrtPrice = q96ToBytes(poolSqrtPriceQ96);
 	return [amountTotalIn, amountTotalOut, totalFeesIn, totalFeesOut];

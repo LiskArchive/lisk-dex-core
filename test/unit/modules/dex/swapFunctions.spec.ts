@@ -24,14 +24,16 @@ import { InMemoryPrefixedStateDB } from "./inMemoryPrefixedState";
 import { Address, PoolID, TokenID } from "../../../../src/app/modules/dex/types";
 import { createTransientModuleEndpointContext } from "../../../context/createContext";
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
-import { numberToQ96, q96ToBytes } from "../../../../src/app/modules/dex/utils/q96";
-import { tickToPrice } from "../../../../src/app/modules/dex/utils/math";
-import { DexGlobalStore, PoolsStore } from "../../../../src/app/modules/dex/stores";
+import { bytesToQ96, numberToQ96, q96ToBytes } from "../../../../src/app/modules/dex/utils/q96";
+import { priceToTick, tickToPrice } from "../../../../src/app/modules/dex/utils/math";
+import { DexGlobalStore, PoolsStore, PriceTicksStore } from "../../../../src/app/modules/dex/stores";
 import { PoolsStoreData } from "../../../../src/app/modules/dex/stores/poolsStore";
 import { TOKEN_ID_LSK } from "../../../../src/app/modules/dexRewards/constants";
 import { TokenMethod } from "lisk-sdk";
 import { DexGlobalStoreData } from "../../../../src/app/modules/dex/stores/dexGlobalStore";
 import { computeExceptionalRoute } from "../../../../src/app/modules/dex/utils/auxiliaryFunctions";
+import { NUM_BYTES_POOL_ID } from "../../../../src/app/modules/dex/constants";
+import { PriceTicksStoreData } from "../../../../src/app/modules/dex/stores/priceTicksStore";
 
 
 
@@ -60,6 +62,7 @@ describe('dex:swapFunctions', () => {
 
     let poolsStore: PoolsStore;
 	let dexGlobalStore: DexGlobalStore;
+	let priceTicksStore: PriceTicksStore;
 
     const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
@@ -73,12 +76,12 @@ describe('dex:swapFunctions', () => {
 	});
 
     const poolsStoreData: PoolsStoreData = {
-		liquidity: BigInt(5),
+		liquidity: BigInt(5000),
 		sqrtPrice: q96ToBytes(BigInt(tickToPrice(5))),
-		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(10))),
 		heightIncentivesUpdate: 5,
-		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(0))),
-		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(0))),
+		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
+		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(10))),
 		tickSpacing: 1,
 	};
 
@@ -90,6 +93,14 @@ describe('dex:swapFunctions', () => {
 		totalIncentivesMultiplier: 1,
 	};
 
+	const priceTicksStoreDataTickUpper: PriceTicksStoreData = {
+		liquidityNet: BigInt(5),
+		liquidityGross: BigInt(5),
+		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(5))),
+		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(5))),
+		incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(3))),
+	};
+
 
 
     describe('constructor', () => {
@@ -97,6 +108,7 @@ describe('dex:swapFunctions', () => {
         beforeEach(async () => {
             poolsStore = dexModule.stores.get(PoolsStore);
 			dexGlobalStore = dexModule.stores.get(DexGlobalStore);
+			priceTicksStore = dexModule.stores.get(PriceTicksStore);
 
             await poolsStore.setKey(
 				methodContext,
@@ -174,8 +186,16 @@ describe('dex:swapFunctions', () => {
 		});
 
 		it('swap', async () => {
-			
-				console.log(await swap(moduleEndpointContext, methodContext, dexModule.stores, poolId, false, sqrtLimitPrice, BigInt(5), false, 10, token0Id, token1Id))
+				const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
+				const currentTickID = q96ToBytes(BigInt(currentTick));
+				await poolsStore.setKey(methodContext, [currentTickID.slice(0, NUM_BYTES_POOL_ID)], poolsStoreData);
+				await priceTicksStore.setKey(
+					methodContext,
+					[currentTickID],
+					priceTicksStoreDataTickUpper,
+				);
+				q96ToBytes(BigInt(currentTick))
+				console.log(await swap(moduleEndpointContext, methodContext, dexModule.stores, poolId, true, sqrtLimitPrice, BigInt(5), false, 10, token0Id, token1Id))
 		});
 
 		
