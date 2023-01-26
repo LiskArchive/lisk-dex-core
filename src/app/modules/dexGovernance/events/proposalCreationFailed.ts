@@ -14,7 +14,7 @@
 import { BaseEvent, EventQueuer } from 'lisk-sdk';
 
 export const enum ProposalCreationFailedEventReason {
-	CREATION_FAILED_TOO_MANY_LIVE,
+	CREATION_FAILED_LIMIT_RECORDED_VOTES,
 	CREATION_FAILED_NO_POOL,
 }
 
