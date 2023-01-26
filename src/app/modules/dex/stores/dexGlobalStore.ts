@@ -63,6 +63,7 @@ export const dexGlobalStoreSchema = {
 					poolId: {
 						dataType: 'bytes',
 						minLength: NUM_BYTES_POOL_ID,
+						maxLength: NUM_BYTES_POOL_ID,
 						fieldNumber: 1,
 					},
 					multiplier: {
