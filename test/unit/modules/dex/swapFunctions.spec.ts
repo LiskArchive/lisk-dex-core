@@ -31,6 +31,7 @@ import { PoolsStoreData } from "../../../../src/app/modules/dex/stores/poolsStor
 import { TOKEN_ID_LSK } from "../../../../src/app/modules/dexRewards/constants";
 import { TokenMethod } from "lisk-sdk";
 import { DexGlobalStoreData } from "../../../../src/app/modules/dex/stores/dexGlobalStore";
+import { computeExceptionalRoute } from "../../../../src/app/modules/dex/utils/auxiliaryFunctions";
 
 
 
@@ -157,6 +158,18 @@ describe('dex:swapFunctions', () => {
 			const adjacentToken = Buffer.from('0000000100000000', 'hex');			
 			const regularRoute  = await computeRegularRoute(moduleEndpointContext, dexModule.stores, adjacentToken, adjacentToken);
 			expect(regularRoute).toStrictEqual([adjacentToken,adjacentToken,adjacentToken])
+		});
+
+		it('computeExceptionalRoute should return 0', async () => {
+			expect(
+				await computeExceptionalRoute(moduleEndpointContext, dexModule.stores, token0Id, token1Id),
+			).toHaveLength(0);
+		});
+
+		it('computeExceptionalRoute should return route with tokenID', async () => {
+			expect(
+				(await computeExceptionalRoute(moduleEndpointContext, dexModule.stores, token0Id, token0Id))[0],
+			).toStrictEqual(token0Id);
 		});
 
 		
