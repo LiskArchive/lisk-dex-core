@@ -19,7 +19,7 @@
 import { createMethodContext, EventQueue } from "lisk-framework/dist-node/state_machine";
 import { MethodContext } from "lisk-framework/dist-node/state_machine/method_context";
 import { DexModule } from "../../../../src/app/modules";
-import { computeCurrentPrice, getAdjacent, raiseSwapException, swapWithin } from "../../../../src/app/modules/dex/utils/swapFunctions";
+import { computeCurrentPrice, constructPoolsGraph, getAdjacent, raiseSwapException, swapWithin } from "../../../../src/app/modules/dex/utils/swapFunctions";
 import { InMemoryPrefixedStateDB } from "./inMemoryPrefixedState";
 import { Address, PoolID, TokenID } from "../../../../src/app/modules/dex/types";
 import { createTransientModuleEndpointContext } from "../../../context/createContext";
@@ -100,6 +100,20 @@ describe('dex:auxiliaryFunctions', () => {
             const swapRoute = [poolId]
 			const currentPrice = await computeCurrentPrice(moduleEndpointContext, dexModule.stores, token0Id, token1Id, swapRoute);
             expect(currentPrice).not.toBeNull();
+		});
+		it('constructPoolsGraph', async () => {
+            const poolsGraph = await constructPoolsGraph(moduleEndpointContext, dexModule.stores);
+			const vertices:Buffer[] = [];
+			const edges:Buffer[] = [];
+
+			poolsGraph.vertices.forEach(e => {vertices.push(e)})
+			poolsGraph.edges.forEach(e => {edges.push(e)})
+			
+			expect(vertices.filter(vertex => vertex.equals(token0Id))).toHaveLength(1)
+			expect(vertices.filter(vertex => vertex.equals(token1Id))).toHaveLength(1)
+			expect(edges.filter(edge => edge.equals(poolId))).toHaveLength(1)
 		});  
+
+		
     })
 })
