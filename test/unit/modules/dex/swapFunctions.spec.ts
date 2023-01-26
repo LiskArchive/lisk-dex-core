@@ -3,16 +3,10 @@ import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/
 import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_machine';
 
 import {
-  getRoute,
-  getOptimalSwapPool
-} from '../../../../src/app/modules/dex/utils/swapFunctions';
-import {
-  getPoolIDFromPositionID,
-  computeExceptionalRoute,
-  computeRegularRoute,
+  getPoolIDFromPositionID
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
-import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
+import { Address, PoolID, PositionID } from '../../../../src/app/modules/dex/types';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
 import { DexModule } from '../../../../src/app/modules';
@@ -35,13 +29,9 @@ import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settin
 
 describe('dex:swapFunctions', () => {
   const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
-  const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
-  const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
   const poolIdLSK = Buffer.from('0000000100000000', 'hex');
   const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
   const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
-  // const feeTier = Number('0x00000c8');
-  // const sqrtPrice: bigint = numberToQ96(BigInt(1));
   const dexModule = new DexModule();
 
   const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
@@ -189,57 +179,5 @@ describe('dex:swapFunctions', () => {
       tokenMethod.getAvailableBalance = getAvailableBalanceMock.mockReturnValue(BigInt(250));
       tokenMethod.getLockedAmount = getLockedAmountMock.mockReturnValue(BigInt(5));
     });
-
-    it('getRoute', async () => {
-      const amount = BigInt(1000);
-      const exactIn = true;
-      const tokenIds: TokenID[] = await getRoute(
-        methodContext,
-        dexModule.stores,
-        token0Id,
-        token1Id,
-        amount,
-        exactIn
-      );
-      const regularRoute = await computeRegularRoute(
-        methodContext,
-        dexModule.stores,
-        token0Id,
-        token1Id
-      ); // regularRoute.length = 0
-
-      const exceptionalRoute = await computeExceptionalRoute(
-        methodContext,
-        dexModule.stores,
-        token0Id,
-        token1Id
-      ); // exceptionalRoute.length = 0;
-
-      let resultTokenIds: TokenID[] = [];
-      let bestRoute = [] as Buffer[];
-      if (regularRoute.length === 0 && exceptionalRoute.length === 0) {
-        resultTokenIds = [] as TokenID[];
-      }
-
-      if (regularRoute.length > 0) {
-        for (const regularRouteRt of regularRoute) {
-          let poolTokenIn = token0Id;
-          let poolAmountIn = amount;
-          const [optimalPool, poolAmountout] = await getOptimalSwapPool(
-            methodContext,
-            dexModule.stores,
-            poolTokenIn,
-            regularRouteRt,
-            poolAmountIn,
-            exactIn
-          );
-          bestRoute = bestRoute.concat(optimalPool);
-          poolTokenIn = regularRouteRt;
-          poolAmountIn = poolAmountout;
-        }
-        resultTokenIds = bestRoute;
-      }
-      expect(tokenIds.length).toBe(resultTokenIds.length);
-    })
   })
 })

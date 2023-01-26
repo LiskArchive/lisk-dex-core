@@ -18,16 +18,16 @@
 
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { MethodContext, TokenMethod } from "lisk-sdk";
-import { ADDRESS_VALIDATOR_INCENTIVES, FEE_TIER_PARTITION, MAX_HOPS_SWAP, MAX_UINT_64, NUM_BYTES_POOL_ID, TOKEN_ID_LSK, VALIDATORS_LSK_INCENTIVE_PART } from '../constants';
+import { ADDRESS_VALIDATOR_INCENTIVES, FEE_TIER_PARTITION, MAX_UINT_64, NUM_BYTES_POOL_ID, TOKEN_ID_LSK, VALIDATORS_LSK_INCENTIVE_PART } from '../constants';
 import { SwapFailedEvent } from '../events/swapFailed';
 import { PoolsStore } from '../stores';
 
 import { Address, AdjacentEdgesInterface, PoolID, PoolsGraph, TickID, TokenID } from "../types";
-import { computeExceptionalRoute, computeRegularRoute, getAllPoolIDs, getDexGlobalData, getPool, getTickWithTickId, getToken0Id, getToken1Id, transferFromPool } from './auxiliaryFunctions';
-import { computeNextPrice, getAmount0Delta, getAmount1Delta} from './math';
+import { getAllPoolIDs, getDexGlobalData, getPool, getTickWithTickId, getToken0Id, getToken1Id, transferFromPool } from './auxiliaryFunctions';
+import { computeNextPrice, getAmount0Delta, getAmount1Delta } from './math';
 import { dryRunSwapExactIn, dryRunSwapExactOut } from './offChainEndpoints';
 
-import { bytesToQ96,mulDivQ96, q96ToBytes, roundDownQ96, subQ96 } from './q96';
+import { bytesToQ96, mulDivQ96, q96ToBytes, roundDownQ96, subQ96 } from './q96';
 import { updatePoolIncentives } from './tokenEcnomicsFunctions';
 
 
@@ -261,7 +261,7 @@ export const getOptimalSwapPool = async (
 	let searchElement;
 	if (exactIn) {
 		searchElement = BigInt(Number.MIN_SAFE_INTEGER);
-		for (let i = 0; i < computedAmounts.length; i+=1) {
+		for (let i = 0; i < computedAmounts.length; i += 1) {
 			if (computedAmounts[i] > searchElement) {
 				searchindex = i;
 				searchElement = computedAmounts[i];
@@ -269,7 +269,7 @@ export const getOptimalSwapPool = async (
 		}
 	} else {
 		searchElement = MAX_UINT_64;
-		for (let i = 0; i < computedAmounts.length; i+=1) {
+		for (let i = 0; i < computedAmounts.length; i += 1) {
 			if (computedAmounts[i] < searchElement) {
 				searchindex = i;
 				searchElement = computedAmounts[i];
@@ -277,85 +277,4 @@ export const getOptimalSwapPool = async (
 		}
 	}
 	return [candidatePools[searchindex], searchElement];
-};
-
-export const getRoute = async (
-	methodContext: MethodContext,
-	stores: NamedRegistry,
-	tokenIn: TokenID,
-	tokenOut: TokenID,
-	amount: bigint,
-	exactIn: boolean,
-): Promise<TokenID[]> => {
-	let bestRoute: Buffer[] = [];
-	const regularRoute = await computeRegularRoute(methodContext, stores, tokenIn, tokenOut);
-	if (regularRoute.length > 0) {
-		if (exactIn) {
-			let poolTokenIn = tokenIn;
-			let poolAmountIn = amount;
-			for (const regularRouteRt of regularRoute) {
-				const [optimalPool, poolAmountOut] = await getOptimalSwapPool(
-					methodContext,
-					stores,
-					poolTokenIn,
-					regularRouteRt,
-					poolAmountIn,
-					exactIn,
-				);
-				bestRoute.push(optimalPool);
-				poolTokenIn = regularRouteRt;
-				poolAmountIn = poolAmountOut;
-			}
-		} else {
-			let poolTokenOut = tokenOut;
-			let poolAmountOut = amount;
-			for (let i = regularRoute.length - 1; i >= 0; i-=1) {
-				const [optimalPool, poolAmountIn] = await getOptimalSwapPool(
-					methodContext,
-					stores,
-					regularRoute[i],
-					poolTokenOut,
-					poolAmountOut,
-					exactIn,
-				);
-				bestRoute.push(optimalPool);
-				poolTokenOut = regularRoute[i];
-				poolAmountOut = poolAmountIn;
-			}
-			bestRoute = bestRoute.reverse();
-		}
-		return bestRoute;
-	}
-	const exceptionalRoute = await computeExceptionalRoute(methodContext, stores, tokenIn, tokenOut);
-	if (exceptionalRoute.length === 0 || exceptionalRoute.length > MAX_HOPS_SWAP) {
-		return [];
-	}
-	let poolTokenIn = tokenIn;
-	for (const exceptionalRt of exceptionalRoute) {
-		const candidatePools: Buffer[] = [];
-		const token0 = poolTokenIn.sort();
-		const token1 = exceptionalRt.sort();
-		const dexGlobalData = await getDexGlobalData(methodContext, stores);
-
-		for (const setting of dexGlobalData.poolCreationSettings) {
-			const feeTierBuffer = Buffer.alloc(4);
-			feeTierBuffer.writeInt8(setting.feeTier, 0);
-			const candidatePool = Buffer.concat([token0, token1, feeTierBuffer]);
-			candidatePools.push(candidatePool);
-		}
-
-		let maxLiquidity = BigInt(0);
-		let searchPool;
-		for (const candidatePool of candidatePools) {
-			const pool = await getPool(methodContext, stores, candidatePool);
-			if (pool.liquidity > maxLiquidity) {
-				maxLiquidity = pool.liquidity;
-				searchPool = candidatePool;
-			}
-		}
-		bestRoute.push(searchPool);
-		poolTokenIn = exceptionalRt;
-	}
-	
-	return bestRoute;
 };
