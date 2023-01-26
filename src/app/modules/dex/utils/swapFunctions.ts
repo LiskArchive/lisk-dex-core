@@ -184,3 +184,10 @@ export const transferFeesFromPool = (
 		tokenMethod.lock(methodContext, ADDRESS_VALIDATOR_INCENTIVES, MODULE_NAME_DEX, id, validatorFee);
 	}
 };
+
+export const getProtocolSettings = async (methodContext: ModuleEndpointContext, stores: NamedRegistry) => {
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	const dexGlobalStoreData = await endpoint.getDexGlobalData(methodContext);
+	return dexGlobalStoreData;
+};

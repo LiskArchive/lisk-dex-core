@@ -19,17 +19,18 @@
 import { createMethodContext, EventQueue } from "lisk-framework/dist-node/state_machine";
 import { MethodContext } from "lisk-framework/dist-node/state_machine/method_context";
 import { DexModule } from "../../../../src/app/modules";
-import { computeCurrentPrice, constructPoolsGraph, getAdjacent, raiseSwapException, swapWithin, transferFeesFromPool } from "../../../../src/app/modules/dex/utils/swapFunctions";
+import { computeCurrentPrice, constructPoolsGraph, getAdjacent, getProtocolSettings, raiseSwapException, swapWithin, transferFeesFromPool } from "../../../../src/app/modules/dex/utils/swapFunctions";
 import { InMemoryPrefixedStateDB } from "./inMemoryPrefixedState";
 import { Address, PoolID, TokenID } from "../../../../src/app/modules/dex/types";
 import { createTransientModuleEndpointContext } from "../../../context/createContext";
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 import { numberToQ96, q96ToBytes } from "../../../../src/app/modules/dex/utils/q96";
 import { tickToPrice } from "../../../../src/app/modules/dex/utils/math";
-import { PoolsStore } from "../../../../src/app/modules/dex/stores";
+import { DexGlobalStore, PoolsStore } from "../../../../src/app/modules/dex/stores";
 import { PoolsStoreData } from "../../../../src/app/modules/dex/stores/poolsStore";
 import { TOKEN_ID_LSK } from "../../../../src/app/modules/dexRewards/constants";
 import { TokenMethod } from "lisk-sdk";
+import { DexGlobalStoreData } from "../../../../src/app/modules/dex/stores/dexGlobalStore";
 
 
 describe('dex:swapFunctions', () => {
@@ -54,6 +55,7 @@ describe('dex:swapFunctions', () => {
 	const unlockMock = jest.fn();
 
     let poolsStore: PoolsStore;
+	let dexGlobalStore: DexGlobalStore;
 
     const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
@@ -76,17 +78,31 @@ describe('dex:swapFunctions', () => {
 		tickSpacing: 1,
 	};
 
+	const dexGlobalStoreData: DexGlobalStoreData = {
+		positionCounter: BigInt(15),
+		collectableLSKFees: BigInt(10),
+		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
+		incentivizedPools: [{ poolId, multiplier: 10 }],
+		totalIncentivesMultiplier: 1,
+	};
+
 
 
     describe('constructor', () => {
 
         beforeEach(async () => {
             poolsStore = dexModule.stores.get(PoolsStore);
+			dexGlobalStore = dexModule.stores.get(DexGlobalStore);
+
             await poolsStore.setKey(
 				methodContext,
 				[poolId],
 				poolsStoreData,
 			);
+
+			await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData);
+			
+
 			tokenMethod.transfer = transferMock;
 			tokenMethod.lock = lockMock;
 			tokenMethod.unlock = unlockMock;
@@ -127,7 +143,13 @@ describe('dex:swapFunctions', () => {
 
 		it('transferFeesFromPool', () => {
             expect(transferFeesFromPool(tokenMethod, methodContext, amount , TOKEN_ID_LSK, poolId)).toBeUndefined()
-		});  
-	
+		});
+		
+		it('transferFeesFromPool', async () => {
+            const protocolSetting  = await getProtocolSettings(moduleEndpointContext, dexModule.stores);
+			expect(protocolSetting).toStrictEqual(dexGlobalStoreData)
+		});
+
+
     })
 })
