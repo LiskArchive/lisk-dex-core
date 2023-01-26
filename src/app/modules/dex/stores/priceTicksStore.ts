@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseStore, ImmutableStoreGetter, StoreGetter } from 'lisk-sdk';
+import { BaseStore, ImmutableStoreGetter, ModuleEndpointContext, StoreGetter } from 'lisk-sdk';
 import { MAX_NUM_BYTES_Q96, MAX_TICK, MIN_TICK } from '../constants';
 
 export const tickToBytes = (tickValue: number): Buffer => {
@@ -132,18 +132,22 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 				nextflag = true;
 			}
 		}
+		if(nextflag==false){
+			throw new Error ("the specified current tick doesnot exist in the pool");
+		}
 		return this.getKey(context, [nextTick]);
 	}
 
-	public async getPrevTick(context: StoreGetter, keys: Buffer[]) {
+	public async getPrevTick(context: ModuleEndpointContext, keys: Buffer[]) {
 		const key = Buffer.concat(keys);
 		let prevTick;
-		let prevflag;
+		let prevflag = false;
 		const allKeys = await this.iterate(context, {
 			gte: Buffer.alloc(16, 0),
 			lte: Buffer.alloc(16, 255),
 			reverse: false,
 		});
+		
 		for (let i = 0; i < allKeys.length; i++) {
 			if (allKeys[i].key.equals(key)) {
 				prevflag = true;
@@ -153,6 +157,10 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			}
 			prevTick = allKeys[i].key;
 		}
-		return this.getKey(context, [prevTick]);
+		if(prevflag==false){
+			throw new Error ("the specified current tick doesnot exist in the pool");
+		}
+		const resKey = await this.getKey(context, [prevTick]); 
+		return resKey
 	}
 }

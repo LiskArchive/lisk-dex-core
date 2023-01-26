@@ -433,16 +433,17 @@ export const swap = async (
 		const currentTick = priceToTick(poolSqrtPriceQ96);
 		q96ToBytes(BigInt(currentTick))
 		
-		if (zeroToOne && poolSqrtPriceQ96 === tickToPrice(currentTick)) {
+		if (zeroToOne && poolSqrtPriceQ96 === tickToPrice(currentTick) && currentTick!=0) {
 			await crossTick(moduleEndpointContext, methodContext, stores, q96ToBytes(BigInt(currentTick)), false, currentHeight);
 			numCrossedTicks += 1;
 		}
+
 		
 		
 		if (zeroToOne) {
-			nextTick = stores.get(PriceTicksStore).getPrevTick;
+			nextTick = await stores.get(PriceTicksStore).getPrevTick(moduleEndpointContext,[q96ToBytes(BigInt(currentTick))]);
 		} else {
-			nextTick = stores.get(PriceTicksStore).getNextTick;
+			nextTick = await stores.get(PriceTicksStore).getPrevTick(moduleEndpointContext,[q96ToBytes(BigInt(currentTick))]);
 		}
 
 		const sqrtNextTickPriceQ96 = tickToPrice(nextTick);
@@ -513,7 +514,7 @@ export const swap = async (
 			await crossTick(moduleEndpointContext, methodContext, stores, nextTick, true, currentHeight);
 			numCrossedTicks += 1;
 		}
-		console.log(amountRemaining)
+		
 	}
 	poolStoreData.sqrtPrice = q96ToBytes(poolSqrtPriceQ96);
 	return [amountTotalIn, amountTotalOut, totalFeesIn, totalFeesOut];
