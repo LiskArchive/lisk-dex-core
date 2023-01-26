@@ -18,7 +18,7 @@
 
 import { MethodContext, ModuleEndpointContext } from "lisk-sdk";
 import { SwapFailedEvent } from "../events/swapFailed";
-import { Address, AdjacentEdgesInterface, PoolID, TokenID } from "../types";
+import { Address, AdjacentEdgesInterface, PoolID, PoolsGraph, TokenID } from "../types";
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { PoolsStore } from "../stores";
 import { getToken0Id, getToken1Id } from "./auxiliaryFunctions";
@@ -125,7 +125,6 @@ export const computeCurrentPrice = async (
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
 	let price = BigInt(1);
 	let tokenInPool = tokenIn;
-	// eslint-disable-next-line @typescript-eslint/no-misused-promises
 	for (const poolId of swapRoute) {
 		const pool = await endpoint.getPool(methodContext, dexModule.stores, poolId);
 		await endpoint.getPool(methodContext, dexModule.stores, poolId).catch(() => {
@@ -145,4 +144,21 @@ export const computeCurrentPrice = async (
 		throw new Error('Incorrect swap path for price computation');
 	}
 	return mulQ96(price, price);
+};
+
+export const constructPoolsGraph = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+): Promise<PoolsGraph> => {
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	const vertices = new Set<TokenID>();
+	const poolIDs = await endpoint.getAllPoolIDs(methodContext);
+	const edges = new Set<PoolID>();
+	poolIDs.forEach(poolId => {
+		vertices.add(getToken0Id(poolId));
+		vertices.add(getToken1Id(poolId));
+		edges.add(poolId);
+	});
+	return { vertices, edges };
 };
