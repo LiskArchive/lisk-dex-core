@@ -21,7 +21,6 @@ import {
 } from './constants';
 import { PoolsStore } from './stores';
 
-
 export const settingsSchema = {
 	$id: '/dex/settings',
 	type: 'object',
@@ -491,11 +490,10 @@ export const getAllTokenIdsRequestSchema = {
 	required: ['stores'],
 	properties: {
 		stores: {
-			dataType:'object',
+			dataType: 'object',
 			fieldNumber: 1,
-		}
+		},
 	},
-	
 };
 
 export const getAllTokenIdsResponseSchema = {
@@ -516,35 +514,24 @@ export const getAllTokenIdsResponseSchema = {
 					},
 				},
 			},
-		}
+		},
 	},
 };
 
 export const getAllPositionIDsInPoolRequestSchema = {
 	$id: 'dex/getAllPositionIDs',
 	type: 'object',
-	required: ['poolId','positionIdsList'],
+	required: ['poolId', 'positionIdsList'],
 	properties: {
 		poolId: {
-			dataType: 'buffer',
+			dataType: 'bytes',
 			fieldNumber: 1,
 		},
 		positionIdsList: {
 			type: 'array',
-			fieldNumber: 1,
-			items: {
-				type: 'object',
-				required: ['positionID'],
-				properties: {
-					positionID: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					},
-				},
-			},
-		}
+			fieldNumber: 2,
+		},
 	},
-	
 };
 
 export const getAllPositionIDsInPoolResponseSchema = {
@@ -565,59 +552,47 @@ export const getAllPositionIDsInPoolResponseSchema = {
 					},
 				},
 			},
-		}
+		},
 	},
 };
 
 export const getPoolResponseSchema = {
 	$id: 'dex/getPool',
 	type: 'object',
-	required: ['stores', 'poolID'],
+	required: ['poolsStoreData'],
 	properties: {
-		stores: {
-			dataType: 'object',
+		poolsStoreData: {
+			type: 'object',
 			fieldNumber: 1,
 		},
-		poolID:{
-			dataType: 'bytes',
-			fieldNumber: 2,
-		}
 	},
 };
 
 export const getPoolRequestSchema = {
 	$id: 'dex/getPool',
 	type: 'object',
-	required: ['stores', 'poolID'],
+	required: ['poolId'],
 	properties: {
-		stores: {
-			dataType: 'object',
+		poolId: {
+			dataType: 'bytes',
 			fieldNumber: 1,
 		},
-		poolID:{
-			dataType: 'bytes',
-			fieldNumber: 2,
-		}
 	},
 };
 
 export const getCurrentSqrtPriceRequestSchema = {
 	$id: 'dex/getCurrentSqrtPrice',
 	type: 'object',
-	required: ['stores', 'poolID', 'priceDirection'],
+	required: ['poolId', 'priceDirection'],
 	properties: {
-		stores: {
-			dataType: 'object',
-			fieldNumber: 1,
-		},
-		poolID: {
+		poolId: {
 			dataType: 'bytes',
-			fieldNumber: 2,
+			fieldNumber: 1,
 		},
 		priceDirection: {
 			dataType: 'boolean',
-			fieldNumber: 3,
-		}
+			fieldNumber: 2,
+		},
 	},
 };
 
@@ -629,7 +604,7 @@ export const getCurrentSqrtPriceResponseSchema = {
 		currentSqrtPrice: {
 			dataType: 'uint64',
 			fieldNumber: 1,
-		}
+		},
 	},
 };
 
@@ -653,6 +628,6 @@ export const getDexGlobalDataResponseSchema = {
 		dexGlobalData: {
 			dataType: 'object',
 			fieldNumber: 1,
-		}
+		},
 	},
 };
