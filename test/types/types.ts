@@ -16,7 +16,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Schema } from "lisk-sdk";
+import { Schema } from 'lisk-sdk';
 import { IterateOptions } from '@liskhq/lisk-db';
 
 export interface ImmutableSubStore {
