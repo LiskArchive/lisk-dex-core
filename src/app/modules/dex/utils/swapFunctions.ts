@@ -12,14 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MethodContext, ModuleEndpointContext } from "lisk-sdk";
-import { SwapFailedEvent } from "../events/swapFailed";
-import { Address, AdjacentEdgesInterface, TokenID } from "../types";
+import { MethodContext, ModuleEndpointContext } from 'lisk-sdk';
+import { SwapFailedEvent } from '../events/swapFailed';
+import { Address, AdjacentEdgesInterface, TokenID } from '../types';
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
-import { getToken0Id, getToken1Id } from "./auxiliaryFunctions";
-import { computeNextPrice, getAmount0Delta, getAmount1Delta } from "./math";
-import { DexModule } from "../module";
-import { DexEndpoint } from "../endpoint";
+import { getToken0Id, getToken1Id } from './auxiliaryFunctions';
+import { computeNextPrice, getAmount0Delta, getAmount1Delta } from './math';
+import { DexModule } from '../module';
+import { DexEndpoint } from '../endpoint';
 
 export const swapWithin = (
 	sqrtCurrentPrice: bigint,
