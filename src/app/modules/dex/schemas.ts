@@ -738,7 +738,7 @@ export const getPositionIndexResquestSchema = {
 		positionId: {
 			dataType: 'bytes',
 			fieldNumber: 1,
-		}
+		},
 	},
 };
 
@@ -750,6 +750,6 @@ export const getPositionIndexResponseSchema = {
 		positionIndex: {
 			dataType: 'unit32',
 			fieldNumber: 1,
-		}
+		},
 	},
 };

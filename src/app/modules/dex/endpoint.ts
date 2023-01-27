@@ -128,11 +128,11 @@ export class DexEndpoint extends BaseEndpoint {
 		}
 	}
 
-    public getPositionIndex(positionId: PositionID): number{
-        const _buffer: Buffer = positionId.slice(-(2 * (NUM_BYTES_POSITION_ID-NUM_BYTES_ADDRESS)));
-        const _hexBuffer: string = _buffer.toString('hex');   
-        return uint32beInv(_hexBuffer);
-    };
+	public getPositionIndex(positionId: PositionID): number {
+		const _buffer: Buffer = positionId.slice(-(2 * (NUM_BYTES_POSITION_ID - NUM_BYTES_ADDRESS)));
+		const _hexBuffer: string = _buffer.toString('hex');
+		return uint32beInv(_hexBuffer);
+	}
 	public async getCurrentSqrtPrice(methodContext: ModuleEndpointContext): Promise<Q96> {
 		validator.validate<{ poolId: Buffer; priceDirection: false }>(
 			getCurrentSqrtPriceRequestSchema,

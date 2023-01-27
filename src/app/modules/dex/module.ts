@@ -43,7 +43,7 @@ import { RemoveLiquidityEvent } from './events/removeLiquidity';
 import { RemoveLiquidityCommand } from './commands/removeLiquidity';
 import {
 	getAllPoolIdsRequestSchema,
-	getAllPoolIdsResponseSchema, 
+	getAllPoolIdsResponseSchema,
 	getAllPositionIDsInPoolRequestSchema,
 	getAllPositionIDsInPoolResponseSchema,
 	getAllTokenIdsRequestSchema,
