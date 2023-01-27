@@ -221,7 +221,7 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getAllPositionIDsInPool', () => {
-			const positionIDs = endpoint.getAllPositionIDsInPool(getPoolIDFromPositionID(positionId), [
+			const positionIDs = endpoint.getAllPositionIDsInPool(moduleEndpointContext, getPoolIDFromPositionID(positionId), [
 				positionId,
 		]);
 		expect(positionIDs.indexOf(positionId)).not.toBe(-1);

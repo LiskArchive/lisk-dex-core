@@ -526,7 +526,7 @@ export const getAllPositionIDsInPoolRequestSchema = {
 	required: ['poolId','positionIdsList'],
 	properties: {
 		poolId: {
-			dataType: 'buffer',
+			dataType: 'bytes',
 			fieldNumber: 1,
 		},
 		positionIdsList: {

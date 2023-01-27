@@ -13,9 +13,12 @@
  */
 
 import { BaseEndpoint, ModuleEndpointContext } from 'lisk-sdk';
+import { getAllPositionIDsInPoolRequestSchema } from './schemas';
 import { PoolsStore } from './stores';
 import { PoolID, PositionID, TokenID } from './types';
 import { getPoolIDFromPositionID, getToken0Id, getToken1Id } from './utils/auxiliaryFunctions';
+import { validator } from '@liskhq/lisk-validator';
+
 
 export class DexEndpoint extends BaseEndpoint {
 	public async getAllPoolIDs(methodContext: ModuleEndpointContext): Promise<PoolID[]> {
@@ -43,10 +46,12 @@ export class DexEndpoint extends BaseEndpoint {
 	}
 
     public getAllPositionIDsInPool(
+		methodContext: ModuleEndpointContext,
         poolId: PoolID,
         positionIdsList: PositionID[],
     ): Buffer[]{
-        const result: Buffer[] = [];
+        validator.validate<{ poolID: Buffer, positionIDsList:Buffer[] }>(getAllPositionIDsInPoolRequestSchema, methodContext.params);
+		const result: Buffer[] = [];
         positionIdsList.forEach(positionId => {
             if (getPoolIDFromPositionID(positionId).equals(poolId)) {
                 result.push(positionId);
