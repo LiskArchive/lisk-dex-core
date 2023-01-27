@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+<<<<<<< HEAD
 
 import { Q96 } from './types';
 
@@ -23,6 +24,9 @@ export const hexToBytes = (hex) => {
 		bytes.push(parseInt(hex.substr(c, 2), 16));
 	return bytes;
 }
+=======
+import { Q96 } from './types';
+>>>>>>> c64c454 (did the npm run format)
 
 export const MAX_NUM_BYTES_Q96 = 24; // The number of bytes of a fractional number stored in Q96 format (uint32)
 export const MAX_UINT_32 = 4294967295;
@@ -129,7 +133,3 @@ export enum SwapFailedReasons {
 }
 
 export const FEE_TIER_PARTITION = 1000000;
-
-
-
-

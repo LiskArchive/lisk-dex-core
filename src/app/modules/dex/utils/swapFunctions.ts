@@ -16,9 +16,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MethodContext, ModuleEndpointContext } from "lisk-sdk";
-import { SwapFailedEvent } from "../events/swapFailed";
-import { Address, AdjacentEdgesInterface, PoolID, PoolsGraph, TokenID } from "../types";
+import { MethodContext, ModuleEndpointContext } from 'lisk-sdk';
+import { SwapFailedEvent } from '../events/swapFailed';
+import { Address, AdjacentEdgesInterface, PoolID, PoolsGraph, TokenID } from '../types';
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { PoolsStore } from "../stores";
 import { getToken0Id, getToken1Id } from "./auxiliaryFunctions";
@@ -126,10 +126,10 @@ export const computeCurrentPrice = async (
 	let price = BigInt(1);
 	let tokenInPool = tokenIn;
 	for (const poolId of swapRoute) {
-		const pool = await endpoint.getPool(methodContext, dexModule.stores, poolId);
-		await endpoint.getPool(methodContext, dexModule.stores, poolId).catch(() => {
+		const pool = await endpoint.getPool(methodContext, poolId);
+		await endpoint.getPool(methodContext, poolId).catch(() => {
 			throw new Error('Not a valid pool');
-		})
+		});
 		if (tokenInPool.equals(getToken0Id(poolId))) {
 			price = mulQ96(price, bytesToQ96(pool.sqrtPrice));
 			tokenInPool = getToken1Id(poolId);

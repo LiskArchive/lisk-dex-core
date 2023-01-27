@@ -84,7 +84,18 @@ describe('dex:auxiliaryFunctions', () => {
 
 	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
+<<<<<<< HEAD
 	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
+=======
+
+	let stateStore: PrefixedStateReadWriter;
+	stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+
+	const moduleEndpointContext = createTransientModuleEndpointContext({
+		stateStore,
+		params: { address: INVALID_ADDRESS },
+	});
+>>>>>>> 38078b5 (did the npm run format)
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
@@ -579,7 +590,13 @@ describe('dex:auxiliaryFunctions', () => {
 
 		it('computeExceptionalRoute should return route with tokenID', async () => {
 			expect(
+<<<<<<< HEAD
 				(await computeExceptionalRoute(methodContext, dexModule.stores, token0Id, token0Id))[0],
+=======
+				(
+					await computeExceptionalRoute(moduleEndpointContext, dexModule.stores, token0Id, token0Id)
+				)[0],
+>>>>>>> 38078b5 (did the npm run format)
 			).toStrictEqual(Buffer.from('0000000000000000', 'hex'));
 		});
 

@@ -63,6 +63,14 @@ describe('dex: offChainEndpointFunctions', () => {
 
 	let stateStore: PrefixedStateReadWriter;
 	stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+<<<<<<< HEAD
+=======
+
+	const moduleEndpointContext = createTransientModuleEndpointContext({
+		stateStore,
+		params: { address: INVALID_ADDRESS },
+	});
+>>>>>>> 38078b5 (did the npm run format)
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
@@ -251,6 +259,40 @@ describe('dex: offChainEndpointFunctions', () => {
 
 		it('getPositionIndex', () => {
 			expect(endpoint.getPositionIndex(positionId)).toBe(1);
+		});
+
+		it('getAllTokenIDs', async () => {
+			await endpoint.getAllTokenIDs(moduleEndpointContext).then(res => {
+				expect(res.size).toBeGreaterThan(0);
+			});
+		});
+
+		it('getAllPositionIDsInPool', () => {
+			const positionIDs = endpoint.getAllPositionIDsInPool(getPoolIDFromPositionID(positionId), [
+				positionId,
+			]);
+			expect(positionIDs.indexOf(positionId)).not.toBe(-1);
+		});
+
+		it('getPool', async () => {
+			await endpoint
+				.getPool(moduleEndpointContext, getPoolIDFromPositionID(positionId))
+				.then(res => {
+					expect(res).not.toBeNull();
+					expect(res.liquidity).toBe(BigInt(5));
+				});
+		});
+
+		it('getCurrentSqrtPrice', async () => {
+			expect(
+				(
+					await endpoint.getCurrentSqrtPrice(
+						moduleEndpointContext,
+						getPoolIDFromPositionID(positionId),
+						false,
+					)
+				).toString(),
+			).toBe('79208358939348018173455069823');
 		});
 
 		it('getDexGlobalData', async () => {

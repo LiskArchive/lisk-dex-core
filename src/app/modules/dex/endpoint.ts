@@ -63,22 +63,20 @@ export class DexEndpoint extends BaseEndpoint {
     }
 
     public async getPool(
-        methodContext,
-        stores: NamedRegistry,
+        methodContext: ModuleEndpointContext,
         poolID: PoolID,
     ): Promise<PoolsStoreData> {
-        const poolsStore = stores.get(PoolsStore);
-        const poolStoreData = await poolsStore.getKey(methodContext, [poolID]);
-        return poolStoreData;
+        const poolsStore = this.stores.get(PoolsStore);
+        const key = await poolsStore.getKey(methodContext, [poolID]);
+        return key;
     }
 
     public async getCurrentSqrtPrice(
-        methodContext: MethodContext,
-        stores: NamedRegistry,
+        methodContext: ModuleEndpointContext,
         poolID: PoolID,
         priceDirection: boolean,
     ): Promise<Q96> {
-        const pools = await this.getPool(methodContext, stores, poolID);
+        const pools = await this.getPool(methodContext, poolID);
         if (pools == null) {
             throw new Error();
         }
@@ -89,15 +87,13 @@ export class DexEndpoint extends BaseEndpoint {
         return invQ96(q96SqrtPrice);
     }
 
-    public async getDexGlobalData(
-        methodContext: ModuleEndpointContext,
-    ): Promise<DexGlobalStoreData> {
+    public async getDexGlobalData(methodContext: ModuleEndpointContext): Promise<DexGlobalStoreData> {
         const dexGlobalStore = this.stores.get(DexGlobalStore);
         return dexGlobalStore.get(methodContext, Buffer.from([]));
     }
 
     public async getPosition(
-		methodContext: ModuleEndpointContext,
+        methodContext: ModuleEndpointContext,
         positionID: PositionID,
         positionIdsList: PositionID[],
     ): Promise<PositionsStoreData> {
@@ -110,11 +106,10 @@ export class DexEndpoint extends BaseEndpoint {
     }
 
     public async getTickWithTickId(
-        methodContext: MethodContext,
-        stores: NamedRegistry,
+        methodContext: ModuleEndpointContext,
         tickId: TickID[],
     ): Promise<PriceTicksStoreData> {
-        const priceTicksStore = stores.get(PriceTicksStore);
+        const priceTicksStore = this.stores.get(PriceTicksStore);
         const priceTicksStoreData = await priceTicksStore.getKey(methodContext, tickId);
         if (priceTicksStoreData == null) {
             throw new Error('No tick with the specified poolId');
