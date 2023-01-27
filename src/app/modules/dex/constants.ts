@@ -106,3 +106,14 @@ export const defaultConfig = {
 		10000: 200,
 	},
 };
+
+//Swap Constants
+
+export enum SwapFailedReasons {
+	SWAP_FAILED_INVALID_ROUTE,
+	SWAP_FAILED_TOO_MANY_TICKS,
+	SWAP_FAILED_NOT_ENOUGH,
+	SWAP_FAILED_INVALID_LIMIT_PRICE,
+}
+
+export const FEE_TIER_PARTITION = 1000000;
