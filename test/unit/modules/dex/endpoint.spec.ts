@@ -54,23 +54,19 @@ describe('dex: offChainEndpointFunctions', () => {
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
 	const dexModule = new DexModule();
-<<<<<<< HEAD
-	const feeTier = Number('0x00000c8');
+	const feeTier = 23343408;
 
-	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
-=======
 	const INVALID_ADDRESS = '1234';
->>>>>>> 0ac0bad5e4292605be2f450396e5b80442d263ea
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
 	//const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
 
 	let stateStore: PrefixedStateReadWriter;
 	stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-	
+
 	const moduleEndpointContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: { address: INVALID_ADDRESS },
-			});
+		stateStore,
+		params: { address: INVALID_ADDRESS },
+	});
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
@@ -221,7 +217,11 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('should return the feeTier from the poolID', () => {
-			expect(endpoint.getFeeTier(poolId)).toEqual(feeTier);
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { poolId: getPoolIDFromPositionID(positionId), positionIdsList: [positionId] },
+			});
+			expect(endpoint.getFeeTier(moduleEndpointContext)).toEqual(feeTier);
 		});
 
 		it('getPoolIDFromTickID', () => {
@@ -241,30 +241,34 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getAllPositionIDsInPool', () => {
-			const positionIDs = endpoint.getAllPositionIDsInPool(getPoolIDFromPositionID(positionId), [
-				positionId,
-			]);
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { poolId: getPoolIDFromPositionID(positionId), positionIdsList: [positionId] },
+			});
+			const positionIDs = endpoint.getAllPositionIDsInPool(moduleEndpointContext);
 			expect(positionIDs.indexOf(positionId)).not.toBe(-1);
 		});
 
 		it('getPool', async () => {
-			await endpoint.getPool(moduleEndpointContext, getPoolIDFromPositionID(positionId)).then(
-				res => {
-					expect(res).not.toBeNull();
-					expect(res.liquidity).toBe(BigInt(5));
-				});
+			const tempModuleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { poolId: getPoolIDFromPositionID(positionId) },
+			});
+			await endpoint.getPool(tempModuleEndpointContext).then(res => {
+				expect(res).not.toBeNull();
+				expect(res.liquidity).toBe(BigInt(5));
+			});
 		});
 
 		it('getCurrentSqrtPrice', async () => {
-			expect(
-				(
-					await endpoint.getCurrentSqrtPrice(
-						moduleEndpointContext,
-						getPoolIDFromPositionID(positionId),
-						false,
-					)
-				).toString(),
-			).toBe('79208358939348018173455069823');
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { poolId: getPoolIDFromPositionID(positionId), priceDirection: false },
+			});
+
+			expect((await endpoint.getCurrentSqrtPrice(moduleEndpointContext)).toString()).toBe(
+				'79208358939348018173455069823',
+			);
 		});
 
 		it('getDexGlobalData', async () => {
@@ -280,8 +284,12 @@ describe('dex: offChainEndpointFunctions', () => {
 			const newPositionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
 			await positionsStore.set(methodContext, newPositionId, positionsStoreData);
 			await positionsStore.setKey(methodContext, [newPositionId], positionsStoreData);
-			await endpoint.getPosition(moduleEndpointContext, newPositionId, positionIdsList).then(res => {
-				expect(res).not.toBeNull(); 
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { positionId: newPositionId, positionIdsList: positionIdsList },
+			});
+			await endpoint.getPosition(moduleEndpointContext).then(res => {
+				expect(res).not.toBeNull();
 			});
 		});
 
