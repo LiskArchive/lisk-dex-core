@@ -12,11 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MethodContext } from "lisk-sdk";
-import { SwapFailedEvent } from "../events/swapFailed";
-import { Address, TokenID } from "../types";
+import { MethodContext } from 'lisk-sdk';
+import { SwapFailedEvent } from '../events/swapFailed';
+import { Address, TokenID } from '../types';
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
-import { computeNextPrice, getAmount0Delta, getAmount1Delta } from "./math";
+import { computeNextPrice, getAmount0Delta, getAmount1Delta } from './math';
 
 export const swapWithin = (
 	sqrtCurrentPrice: bigint,
