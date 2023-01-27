@@ -484,18 +484,7 @@ export const getAllPoolIdsResponseSchema = {
 	},
 };
 
-export const getAllTokenIdsRequestSchema = {
-	$id: 'dex/getAllTokenIds',
-	type: 'object',
-	required: ['stores'],
-	properties: {
-		stores: {
-			dataType:'object',
-			fieldNumber: 1,
-		}
-	},
-	
-};
+//no requestParams for getAllTokenIds so no requestSchema 
 
 export const getAllTokenIdsResponseSchema = {
 	$id: 'dex/getAllTokenIds',
