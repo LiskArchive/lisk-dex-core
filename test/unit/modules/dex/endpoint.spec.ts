@@ -372,12 +372,13 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getPool', async () => {
-			await endpoint.getPool(moduleEndpointContext, getPoolIDFromPositionID(positionId)).then(
-				res => {
+			await endpoint
+				.getPool(moduleEndpointContext, getPoolIDFromPositionID(positionId))
+				.then(res => {
 					expect(res).not.toBeNull();
 					expect(res.liquidity).toBe(BigInt(5));
 				},
-			);
+				);
 		});
 
 		it('getCurrentSqrtPrice', async () => {
@@ -405,9 +406,11 @@ describe('dex: offChainEndpointFunctions', () => {
 			const newPositionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
 			await positionsStore.set(methodContext, newPositionId, positionsStoreData);
 			await positionsStore.setKey(methodContext, [newPositionId], positionsStoreData);
-			await endpoint.getPosition(moduleEndpointContext, newPositionId, positionIdsList).then(res => {
-				expect(res).not.toBeNull();
-			});
+			await endpoint
+				.getPosition(moduleEndpointContext, newPositionId, positionIdsList)
+				.then(res => {
+					expect(res).not.toBeNull();
+				});
 		});
 
 		it('getTickWithTickId', async () => {

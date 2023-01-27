@@ -16,7 +16,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MethodContext } from "lisk-sdk";
+import { MethodContext, ModuleEndpointContext } from "lisk-sdk";
 import { SwapFailedEvent } from "../events/swapFailed";
 import { Address, AdjacentEdgesInterface, PoolID, PoolsGraph, TokenID } from "../types";
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
@@ -128,7 +128,7 @@ export const computeCurrentPrice = async (
 		const pool = await endpoint.getPool(methodContext, poolId);
 		await endpoint.getPool(methodContext, poolId).catch(() => {
 			throw new Error('Not a valid pool');
-		})
+		});
 		if (tokenInPool.equals(getToken0Id(poolId))) {
 			price = mulQ96(price, bytesToQ96(pool.sqrtPrice));
 			tokenInPool = getToken1Id(poolId);

@@ -12,7 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+<<<<<<< HEAD
 import { sha256 } from '../dexRewards/constants';
+=======
+>>>>>>> 38078b5 (did the npm run format)
 import { Q96 } from './types';
 
 export const NUM_BYTES_ADDRESS = 20; // The number of bytes of an address (uint32)

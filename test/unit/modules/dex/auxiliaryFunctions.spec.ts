@@ -93,7 +93,14 @@ describe('dex:auxiliaryFunctions', () => {
 
 	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
-	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
+
+	let stateStore: PrefixedStateReadWriter;
+	stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+
+	const moduleEndpointContext = createTransientModuleEndpointContext({
+		stateStore,
+		params: { address: INVALID_ADDRESS },
+	});
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
@@ -112,10 +119,6 @@ describe('dex:auxiliaryFunctions', () => {
 	const unlockMock = jest.fn();
 	const getAvailableBalanceMock = jest.fn().mockReturnValue(BigInt(250));
 	const getLockedAmountMock = jest.fn().mockReturnValue(BigInt(5));
-<<<<<<< HEAD
-=======
-
->>>>>>> da971bb (added schemas and module)
 	const settings = {
 		feeTiers: [100],
 	};
@@ -514,7 +517,9 @@ describe('dex:auxiliaryFunctions', () => {
 
 		it('computeExceptionalRoute should return route with tokenID', async () => {
 			expect(
-				(await computeExceptionalRoute(methodContext, dexModule.stores, token0Id, token0Id))[0],
+				(
+					await computeExceptionalRoute(moduleEndpointContext, dexModule.stores, token0Id, token0Id)
+				)[0],
 			).toStrictEqual(Buffer.from('0000000000000000', 'hex'));
 		});
 
