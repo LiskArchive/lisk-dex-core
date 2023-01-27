@@ -19,7 +19,6 @@ import { PoolID, PositionID, TokenID } from './types';
 import { getPoolIDFromPositionID, getToken0Id, getToken1Id } from './utils/auxiliaryFunctions';
 import { validator } from '@liskhq/lisk-validator';
 
-
 export class DexEndpoint extends BaseEndpoint {
 	public async getAllPoolIDs(methodContext: ModuleEndpointContext): Promise<PoolID[]> {
 		const poolStore = this.stores.get(PoolsStore);
@@ -45,18 +44,19 @@ export class DexEndpoint extends BaseEndpoint {
 		return tokens;
 	}
 
-    public getAllPositionIDsInPool(
-		methodContext: ModuleEndpointContext,
-        poolId: PoolID,
-        positionIdsList: PositionID[],
-    ): Buffer[]{
-        validator.validate<{ poolID: Buffer, positionIDsList:Buffer[] }>(getAllPositionIDsInPoolRequestSchema, methodContext.params);
+	public getAllPositionIDsInPool(methodContext: ModuleEndpointContext): Buffer[] {
+		validator.validate<{ poolId: Buffer; positionIdsList: PositionID[] }>(
+			getAllPositionIDsInPoolRequestSchema,
+			methodContext.params,
+		);
 		const result: Buffer[] = [];
-        positionIdsList.forEach(positionId => {
-            if (getPoolIDFromPositionID(positionId).equals(poolId)) {
-                result.push(positionId);
-            }
-        });
-        return result;
-    };
+		const poolId = methodContext.params.poolId;
+		const positionIdsList = methodContext.params.positionIdsList;
+		positionIdsList.forEach(positionId => {
+			if (getPoolIDFromPositionID(positionId).equals(poolId)) {
+				result.push(positionId);
+			}
+		});
+		return result;
+	}
 }

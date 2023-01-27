@@ -24,7 +24,7 @@ import {
 	PriceTicksStore,
 	SettingsStore,
 } from '../../../../src/app/modules/dex/stores';
-import { Address, PoolID, PositionID } from '../../../../src/app/modules/dex/types';
+import { Address, PoolID, positionID } from '../../../../src/app/modules/dex/types';
 
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
@@ -52,7 +52,7 @@ import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateRead
 describe('dex: offChainEndpointFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
-	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
+	const positionId: positionID = Buffer.from('00000001000000000101643130', 'hex');
 	const dexModule = new DexModule();
 	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
@@ -60,11 +60,11 @@ describe('dex: offChainEndpointFunctions', () => {
 
 	let stateStore: PrefixedStateReadWriter;
 	stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-	
+
 	const moduleEndpointContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: { address: INVALID_ADDRESS },
-			});
+		stateStore,
+		params: { address: INVALID_ADDRESS },
+	});
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
@@ -221,12 +221,12 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getAllPositionIDsInPool', () => {
-			const positionIDs = endpoint.getAllPositionIDsInPool(moduleEndpointContext, getPoolIDFromPositionID(positionId), [
-				positionId,
-		]);
-		expect(positionIDs.indexOf(positionId)).not.toBe(-1);
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { poolId: getPoolIDFromPositionID(positionId), positionIdsList: [positionId] },
+			});
+			const positionIDs = endpoint.getAllPositionIDsInPool(moduleEndpointContext);
+			expect(positionIDs.indexOf(positionId)).not.toBe(-1);
 		});
-
-		
 	});
 });

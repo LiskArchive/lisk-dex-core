@@ -21,7 +21,6 @@ import {
 } from './constants';
 import { PoolsStore } from './stores';
 
-
 export const settingsSchema = {
 	$id: '/dex/settings',
 	type: 'object',
@@ -491,11 +490,10 @@ export const getAllTokenIdsRequestSchema = {
 	required: ['stores'],
 	properties: {
 		stores: {
-			dataType:'object',
+			dataType: 'object',
 			fieldNumber: 1,
-		}
+		},
 	},
-	
 };
 
 export const getAllTokenIdsResponseSchema = {
@@ -516,14 +514,14 @@ export const getAllTokenIdsResponseSchema = {
 					},
 				},
 			},
-		}
+		},
 	},
 };
 
 export const getAllPositionIDsInPoolRequestSchema = {
 	$id: 'dex/getAllPositionIDs',
 	type: 'object',
-	required: ['poolId','positionIdsList'],
+	required: ['poolId', 'positionIdsList'],
 	properties: {
 		poolId: {
 			dataType: 'bytes',
@@ -531,20 +529,9 @@ export const getAllPositionIDsInPoolRequestSchema = {
 		},
 		positionIdsList: {
 			type: 'array',
-			fieldNumber: 1,
-			items: {
-				type: 'object',
-				required: ['positionID'],
-				properties: {
-					positionID: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					},
-				},
-			},
-		}
+			fieldNumber: 2,
+		},
 	},
-	
 };
 
 export const getAllPositionIDsInPoolResponseSchema = {
@@ -565,7 +552,6 @@ export const getAllPositionIDsInPoolResponseSchema = {
 					},
 				},
 			},
-		}
+		},
 	},
 };
-
