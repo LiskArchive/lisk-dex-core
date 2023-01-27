@@ -38,33 +38,33 @@ import { PriceTicksStoreData } from "../../../../src/app/modules/dex/stores/pric
 
 
 describe('dex:swapFunctions', () => {
-    const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
+	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
-    const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
-    const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
-    const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
+	const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
+	const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
+	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const amount = 0;
-    const sqrtCurrentPrice = BigInt(5);
-	const sqrtTargetPrice =  BigInt(10);
+	const sqrtCurrentPrice = BigInt(5);
+	const sqrtTargetPrice = BigInt(10);
 	const sqrtLimitPrice = BigInt(15);
 	const liquidity = BigInt(100);
-	const amountRemaining =  BigInt(90);
+	const amountRemaining = BigInt(90);
 	const exactInput = true;
-    const dexModule = new DexModule();
-    const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
-    const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
-    const INVALID_ADDRESS = '1234';
+	const dexModule = new DexModule();
+	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
+	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
+	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
-	
+
 	const transferMock = jest.fn();
 	const lockMock = jest.fn();
 	const unlockMock = jest.fn();
 
-    let poolsStore: PoolsStore;
+	let poolsStore: PoolsStore;
 	let dexGlobalStore: DexGlobalStore;
 	let priceTicksStore: PriceTicksStore;
 
-    const methodContext: MethodContext = createMethodContext({
+	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
 		stateStore,
 		eventQueue: new EventQueue(0),
@@ -75,7 +75,7 @@ describe('dex:swapFunctions', () => {
 		params: { address: INVALID_ADDRESS },
 	});
 
-    const poolsStoreData: PoolsStoreData = {
+	const poolsStoreData: PoolsStoreData = {
 		liquidity: BigInt(5000),
 		sqrtPrice: q96ToBytes(BigInt(tickToPrice(5))),
 		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(10))),
@@ -103,14 +103,14 @@ describe('dex:swapFunctions', () => {
 
 
 
-    describe('constructor', () => {
+	describe('constructor', () => {
 
-        beforeEach(async () => {
-            poolsStore = dexModule.stores.get(PoolsStore);
+		beforeEach(async () => {
+			poolsStore = dexModule.stores.get(PoolsStore);
 			dexGlobalStore = dexModule.stores.get(DexGlobalStore);
 			priceTicksStore = dexModule.stores.get(PriceTicksStore);
 
-            await poolsStore.setKey(
+			await poolsStore.setKey(
 				methodContext,
 				[poolId],
 				poolsStoreData,
@@ -118,59 +118,59 @@ describe('dex:swapFunctions', () => {
 			await poolsStore.setKey(methodContext, [poolIdLSK], poolsStoreData);
 
 			await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData);
-			
+
 
 			tokenMethod.transfer = transferMock;
 			tokenMethod.lock = lockMock;
 			tokenMethod.unlock = unlockMock;
-        })
-        it('raiseSwapException', () => {
-			raiseSwapException(dexModule.events,methodContext,1,token0Id,token1Id,senderAddress)
-            const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed')
-            expect(swapFailedEvent.length).toBe(1)
+		})
+		it('raiseSwapException', () => {
+			raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress)
+			const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed')
+			expect(swapFailedEvent.length).toBe(1)
 		});
-        it('swapWithin', () => {
-			const [sqrtUpdatedPrice, amountIn, amountOut] = swapWithin(sqrtCurrentPrice,sqrtTargetPrice,liquidity,amountRemaining,exactInput)
-            expect(sqrtUpdatedPrice).toBe(BigInt(10))
-            expect(amountIn).toBe(BigInt(1))
-            expect(amountOut).toBe(BigInt(792281625142643375935439503360))
+		it('swapWithin', () => {
+			const [sqrtUpdatedPrice, amountIn, amountOut] = swapWithin(sqrtCurrentPrice, sqrtTargetPrice, liquidity, amountRemaining, exactInput)
+			expect(sqrtUpdatedPrice).toBe(BigInt(10))
+			expect(amountIn).toBe(BigInt(1))
+			expect(amountOut).toBe(BigInt(792281625142643375935439503360))
 		});
-        it('getAdjacent', () => {
+		it('getAdjacent', () => {
 			const adjacent = getAdjacent(moduleEndpointContext, dexModule.stores, token0Id)
-            expect(adjacent).not.toBeNull();
-		});  
-              
-        it('computeCurrentPrice', async () => {
-            const swapRoute = [poolId]
+			expect(adjacent).not.toBeNull();
+		});
+
+		it('computeCurrentPrice', async () => {
+			const swapRoute = [poolId]
 			const currentPrice = await computeCurrentPrice(moduleEndpointContext, dexModule.stores, token0Id, token1Id, swapRoute);
-            expect(currentPrice).not.toBeNull();
+			expect(currentPrice).not.toBeNull();
 		});
 		it('constructPoolsGraph', async () => {
-            const poolsGraph = await constructPoolsGraph(moduleEndpointContext, dexModule.stores);
-			const vertices:Buffer[] = [];
-			const edges:Buffer[] = [];
+			const poolsGraph = await constructPoolsGraph(moduleEndpointContext, dexModule.stores);
+			const vertices: Buffer[] = [];
+			const edges: Buffer[] = [];
 
-			poolsGraph.vertices.forEach(e => {vertices.push(e)})
-			poolsGraph.edges.forEach(e => {edges.push(e)})
-			
+			poolsGraph.vertices.forEach(e => { vertices.push(e) })
+			poolsGraph.edges.forEach(e => { edges.push(e) })
+
 			expect(vertices.filter(vertex => vertex.equals(token0Id))).toHaveLength(1)
 			expect(vertices.filter(vertex => vertex.equals(token1Id))).toHaveLength(1)
 			expect(edges.filter(edge => edge.equals(poolId))).toHaveLength(1)
-		});  
+		});
 
 		it('transferFeesFromPool', () => {
-            expect(transferFeesFromPool(tokenMethod, methodContext, amount , TOKEN_ID_LSK, poolId)).toBeUndefined()
+			expect(transferFeesFromPool(tokenMethod, methodContext, amount, TOKEN_ID_LSK, poolId)).toBeUndefined()
 		});
-		
+
 		it('transferFeesFromPool', async () => {
-            const protocolSetting  = await getProtocolSettings(moduleEndpointContext, dexModule.stores);
+			const protocolSetting = await getProtocolSettings(moduleEndpointContext, dexModule.stores);
 			expect(protocolSetting).toStrictEqual(dexGlobalStoreData)
 		});
 
 		it('computeRegularRoute ', async () => {
-			const adjacentToken = Buffer.from('0000000100000000', 'hex');			
-			const regularRoute  = await computeRegularRoute(moduleEndpointContext, dexModule.stores, adjacentToken, adjacentToken);
-			expect(regularRoute).toStrictEqual([adjacentToken,adjacentToken,adjacentToken])
+			const adjacentToken = Buffer.from('0000000100000000', 'hex');
+			const regularRoute = await computeRegularRoute(moduleEndpointContext, dexModule.stores, adjacentToken, adjacentToken);
+			expect(regularRoute).toStrictEqual([adjacentToken, adjacentToken, adjacentToken])
 		});
 
 		it('computeExceptionalRoute should return 0', async () => {
@@ -186,18 +186,16 @@ describe('dex:swapFunctions', () => {
 		});
 
 		it('swap', async () => {
-				const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
-				const currentTickID = q96ToBytes(BigInt(currentTick));
-				await poolsStore.setKey(methodContext, [currentTickID.slice(0, NUM_BYTES_POOL_ID)], poolsStoreData);
-				await priceTicksStore.setKey(
-					methodContext,
-					[currentTickID],
-					priceTicksStoreDataTickUpper,
-				);
-				q96ToBytes(BigInt(currentTick))
-				console.log(await swap(moduleEndpointContext, methodContext, dexModule.stores, poolId, true, sqrtLimitPrice, BigInt(5), false, 10, token0Id, token1Id))
+			const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
+			const currentTickID = q96ToBytes(BigInt(currentTick));
+			await poolsStore.setKey(methodContext, [currentTickID.slice(0, NUM_BYTES_POOL_ID)], poolsStoreData);
+			await priceTicksStore.setKey(
+				methodContext,
+				[currentTickID],
+				priceTicksStoreDataTickUpper,
+			);
+			q96ToBytes(BigInt(currentTick))
+			console.log(await swap(moduleEndpointContext, methodContext, dexModule.stores, poolId, true, sqrtLimitPrice, BigInt(5), false, 10, token0Id, token1Id))
 		});
-
-		
-    })
+	})
 })

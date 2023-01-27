@@ -132,8 +132,8 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 				nextflag = true;
 			}
 		}
-		if(nextflag==false){
-			throw new Error ("the specified current tick doesnot exist in the pool");
+		if (nextflag == false) {
+			throw new Error("the specified current tick doesnot exist in the pool");
 		}
 		return this.getKey(context, [nextTick]);
 	}
@@ -147,20 +147,21 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			lte: Buffer.alloc(16, 255),
 			reverse: false,
 		});
-		
+
 		for (let i = 0; i < allKeys.length; i++) {
 			if (allKeys[i].key.equals(key)) {
 				prevflag = true;
 			}
 			if (prevflag == true) {
+				prevTick = allKeys[i].key;
 				break;
 			}
-			prevTick = allKeys[i].key;
 		}
-		if(prevflag==false){
-			throw new Error ("the specified current tick doesnot exist in the pool");
+		if (prevflag == false) {
+			throw new Error("the specified current tick doesnot exist in the pool");
 		}
-		const resKey = await this.getKey(context, [prevTick]); 
+		console.log("prevTick: ", prevTick);
+		const resKey = await this.getKey(context, [prevTick]);
 		return resKey
 	}
 }
