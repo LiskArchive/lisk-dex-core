@@ -97,8 +97,8 @@ export class DexEndpoint extends BaseEndpoint {
 		const key = await poolsStore.getKey(methodContext, [methodContext.params.poolId]);
 		return key;
 	}
-    
-    public async getTickWithTickId(
+
+	public async getTickWithTickId(
 		methodContext: ModuleEndpointContext,
 		tickId: TickID[],
 	): Promise<PriceTicksStoreData> {
