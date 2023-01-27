@@ -59,6 +59,7 @@ import {
 	Q96,
 	routeInterface,
 	AdjacentEdgesInterface,
+	TickID
 } from '../types';
 
 import {
@@ -69,6 +70,7 @@ import {
 	roundDownQ96,
 	q96ToBytes,
 	bytesToQ96,
+	invQ96
 } from './q96';
 
 import { getAmount0Delta, getAmount1Delta, priceToTick, tickToPrice } from './math';
@@ -793,7 +795,7 @@ export const computeRegularRoute = async (
 	let lskAdjacent = await getAdjacent(methodContext, stores, TOKEN_ID_LSK);
 	let tokenInFlag = false;
 	let tokenOutFlag = false;
-	
+
 	lskAdjacent.forEach(lskAdjacentEdge => {
 		if (lskAdjacentEdge.edge.equals(tokenIn)) {
 			tokenInFlag = true;
@@ -904,7 +906,7 @@ export const getCredibleDirectPrice = async (
 		);
 		token1ValuesLocked.push(
 			roundDownQ96(token0ValueQ96) +
-				(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
+			(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
 		);
 	}
 
@@ -921,4 +923,104 @@ export const getCredibleDirectPrice = async (
 		await endpoint.getPool(methodContext, directPools[minToken1ValueLockedIndex])
 	).sqrtPrice;
 	return mulQ96(bytesToQ96(poolSqrtPrice), bytesToQ96(poolSqrtPrice));
+};
+
+export const computeCurrentPrice = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	tokenIn: TokenID,
+	tokenOut: TokenID,
+	swapRoute: PoolID[],
+): Promise<bigint> => {
+	let price = BigInt(1);
+	let tokenInPool = tokenIn;
+	// eslint-disable-next-line @typescript-eslint/no-misused-promises
+	for (const poolId of swapRoute) {
+		const pool = await getPool(methodContext, stores, poolId);
+		await getPool(methodContext, stores, poolId).catch(() => {
+			throw new Error('Not a valid pool');
+		})
+		if (tokenInPool.equals(getToken0Id(poolId))) {
+			price = mulQ96(price, bytesToQ96(pool.sqrtPrice));
+			tokenInPool = getToken1Id(poolId);
+		} else if (tokenInPool.equals(getToken1Id(poolId))) {
+			price = mulQ96(price, invQ96(bytesToQ96(pool.sqrtPrice)));
+			tokenInPool = getToken0Id(poolId);
+		} else {
+			throw new Error('Incorrect swap path for price computation');
+		}
+	}
+
+	if (!tokenInPool.equals(tokenOut)) {
+		throw new Error('Incorrect swap path for price computation');
+	}
+	return mulQ96(price, price);
+};
+
+
+
+
+export const getAllPoolIDs = async (
+	methodContext: MethodContext,
+	poolStore: PoolsStore,
+): Promise<PoolID[]> => {
+	const poolIds: PoolID[] = [];
+	const allPoolIds = await poolStore.getAll(methodContext);
+	if (allPoolIds != null && allPoolIds.length > 0) {
+		allPoolIds.forEach(poolId => {
+			poolIds.push(poolId.key);
+		});
+	}
+	return poolIds;
+};
+
+
+
+
+export const getAllTicks = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+): Promise<TickID[]> => {
+	const tickIds: Buffer[] = [];
+	const priceTicksStore = stores.get(PriceTicksStore);
+	const allTickIds = await priceTicksStore.getAll(methodContext);
+	allTickIds.forEach(tickId => {
+		tickIds.push(tickId.key);
+	});
+	return tickIds;
+};
+
+
+
+export const getPool = async (
+	methodContext,
+	stores: NamedRegistry,
+	poolID: PoolID,
+): Promise<PoolsStoreData> => {
+	const poolsStore = stores.get(PoolsStore);
+	const poolStoreData = await poolsStore.getKey(methodContext, [poolID]);
+	return poolStoreData;
+};
+
+
+
+
+export const getToken0Amount = async (
+	tokenMethod: TokenMethod,
+	methodContext: MethodContext,
+	poolId: PoolID,
+): Promise<bigint> => {
+	const address = poolIdToAddress(poolId);
+	const tokenId = getToken0Id(poolId);
+	return tokenMethod.getLockedAmount(methodContext, address, tokenId, MODULE_ID_DEX.toString());
+};
+
+export const getToken1Amount = async (
+	tokenMethod: TokenMethod,
+	methodContext: MethodContext,
+	poolId: PoolID,
+): Promise<bigint> => {
+	const address = poolIdToAddress(poolId);
+	const tokenId = getToken1Id(poolId);
+	return tokenMethod.getLockedAmount(methodContext, address, tokenId, MODULE_ID_DEX.toString());
 };
