@@ -75,7 +75,6 @@ describe('dex:auxiliaryFunctions', () => {
 	const dexModule = new DexModule();
 	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
-	
 
 	let stateStore: PrefixedStateReadWriter;
 	stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -84,7 +83,6 @@ describe('dex:auxiliaryFunctions', () => {
 		stateStore,
 		params: { address: INVALID_ADDRESS },
 	});
-
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
@@ -441,7 +439,9 @@ describe('dex:auxiliaryFunctions', () => {
 
 		it('computeExceptionalRoute should return route with tokenID', async () => {
 			expect(
-				(await computeExceptionalRoute(moduleEndpointContext, dexModule.stores, token0Id, token0Id))[0],
+				(
+					await computeExceptionalRoute(moduleEndpointContext, dexModule.stores, token0Id, token0Id)
+				)[0],
 			).toStrictEqual(Buffer.from('0000000000000000', 'hex'));
 		});
 
