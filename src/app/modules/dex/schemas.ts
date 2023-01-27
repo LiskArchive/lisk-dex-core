@@ -632,7 +632,6 @@ export const getDexGlobalDataResponseSchema = {
 	},
 };
 
-
 export const getPositionRequestSchema = {
 	$id: 'dex/getPosition',
 	type: 'object',
@@ -645,7 +644,7 @@ export const getPositionRequestSchema = {
 		positionIdsList: {
 			type: 'array',
 			fieldNumber: 2,
-		}
+		},
 	},
 };
 
@@ -657,6 +656,6 @@ export const getPositionResponseSchema = {
 		position: {
 			dataType: 'object',
 			fieldNumber: 1,
-		}
+		},
 	},
 };

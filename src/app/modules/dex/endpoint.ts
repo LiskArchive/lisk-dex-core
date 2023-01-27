@@ -74,21 +74,22 @@ export class DexEndpoint extends BaseEndpoint {
 		return dexGlobalStore.get(methodContext, Buffer.from([]));
 	}
 
-    public async getPosition(
-		methodContext: ModuleEndpointContext,       
-    ): Promise<PositionsStoreData>{
+	public async getPosition(methodContext: ModuleEndpointContext): Promise<PositionsStoreData> {
 		validator.validate<{ positionId: Buffer; positionIdsList: PositionID[] }>(
 			getPositionRequestSchema,
 			methodContext.params,
 		);
-        if (methodContext.params.positionIdsList.includes(methodContext.params.positionId)) {
-            throw new Error();
-        }
-        const positionsStore = this.stores.get(PositionsStore);
-        const positionStoreData = await positionsStore.get(methodContext, methodContext.params.positionId);
-        return positionStoreData;
-    };
-    
+		if (methodContext.params.positionIdsList.includes(methodContext.params.positionId)) {
+			throw new Error();
+		}
+		const positionsStore = this.stores.get(PositionsStore);
+		const positionStoreData = await positionsStore.get(
+			methodContext,
+			methodContext.params.positionId,
+		);
+		return positionStoreData;
+	}
+
 	public async getPool(methodContext: ModuleEndpointContext): Promise<PoolsStoreData> {
 		validator.validate<{ poolId: Buffer }>(getPoolRequestSchema, methodContext.params);
 		const poolsStore = this.stores.get(PoolsStore);

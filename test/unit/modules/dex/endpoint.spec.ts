@@ -269,9 +269,8 @@ describe('dex: offChainEndpointFunctions', () => {
 				params: { positionId: newPositionId, positionIdsList: positionIdsList },
 			});
 			await endpoint.getPosition(moduleEndpointContext).then(res => {
-				expect(res).not.toBeNull(); 
+				expect(res).not.toBeNull();
 			});
 		});
-		
 	});
 });

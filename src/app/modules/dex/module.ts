@@ -102,42 +102,41 @@ export class DexModule extends BaseModule {
 		return {
 			name: this.name,
 			endpoints: [
-			{
-				name: this.endpoint.getAllPoolIDs.name,
-				request: getAllPoolIdsRequestSchema,
-				response: getAllPoolIdsResponseSchema,
-			},
-			{
-				name: this.endpoint.getAllTokenIDs.name,
-				request: getAllTokenIdsRequestSchema,
-				response: getAllTokenIdsResponseSchema,
-			},
-			{
-				name: this.endpoint.getAllPositionIDsInPool.name,
-				request: getAllPositionIDsInPoolRequestSchema,
-				response: getAllPositionIDsInPoolResponseSchema,
-			},
-			{
-				name: this.endpoint.getPool.name,
-				request: getPoolResponseSchema,
-				response: getPoolRequestSchema,
-			},
-			{
-				name: this.endpoint.getCurrentSqrtPrice.name,
-				request: getCurrentSqrtPriceRequestSchema,
-				response: getCurrentSqrtPriceResponseSchema,
-			},
-			{
-				name: this.endpoint.getDexGlobalData.name,
-				request: getDexGlobalDataRequestSchema,
-				response: getDexGlobalDataResponseSchema,
-			},
-			{
-				name: this.endpoint.getPosition.name,
-				request: getDexGlobalDataRequestSchema,
-				response: getDexGlobalDataResponseSchema,
-			}
-		,
+				{
+					name: this.endpoint.getAllPoolIDs.name,
+					request: getAllPoolIdsRequestSchema,
+					response: getAllPoolIdsResponseSchema,
+				},
+				{
+					name: this.endpoint.getAllTokenIDs.name,
+					request: getAllTokenIdsRequestSchema,
+					response: getAllTokenIdsResponseSchema,
+				},
+				{
+					name: this.endpoint.getAllPositionIDsInPool.name,
+					request: getAllPositionIDsInPoolRequestSchema,
+					response: getAllPositionIDsInPoolResponseSchema,
+				},
+				{
+					name: this.endpoint.getPool.name,
+					request: getPoolResponseSchema,
+					response: getPoolRequestSchema,
+				},
+				{
+					name: this.endpoint.getCurrentSqrtPrice.name,
+					request: getCurrentSqrtPriceRequestSchema,
+					response: getCurrentSqrtPriceResponseSchema,
+				},
+				{
+					name: this.endpoint.getDexGlobalData.name,
+					request: getDexGlobalDataRequestSchema,
+					response: getDexGlobalDataResponseSchema,
+				},
+				{
+					name: this.endpoint.getPosition.name,
+					request: getDexGlobalDataRequestSchema,
+					response: getDexGlobalDataResponseSchema,
+				},
 				{
 					name: this.endpoint.getAllPoolIDs.name,
 					request: getAllPoolIdsRequestSchema,
