@@ -243,17 +243,12 @@ describe('dex: offChainEndpointFunctions', () => {
 		it('getCurrentSqrtPrice', async () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
-				params: { poolId: getPoolIDFromPositionID(positionId), priceDirection:false },
+				params: { poolId: getPoolIDFromPositionID(positionId), priceDirection: false },
 			});
-			
-			expect(
-				(
-					await endpoint.getCurrentSqrtPrice(
-						moduleEndpointContext
-					)
-				).toString(),
-			).toBe('79208358939348018173455069823');
+
+			expect((await endpoint.getCurrentSqrtPrice(moduleEndpointContext)).toString()).toBe(
+				'79208358939348018173455069823',
+			);
 		});
-		
 	});
 });

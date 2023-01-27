@@ -13,7 +13,11 @@
  */
 
 import { BaseEndpoint, ModuleEndpointContext } from 'lisk-sdk';
-import { getAllPositionIDsInPoolRequestSchema, getCurrentSqrtPriceRequestSchema, getPoolRequestSchema } from './schemas';
+import {
+	getAllPositionIDsInPoolRequestSchema,
+	getCurrentSqrtPriceRequestSchema,
+	getPoolRequestSchema,
+} from './schemas';
 import { PoolsStore } from './stores';
 import { PoolID, PositionID, Q96, TokenID } from './types';
 import { getPoolIDFromPositionID, getToken0Id, getToken1Id } from './utils/auxiliaryFunctions';
@@ -69,19 +73,19 @@ export class DexEndpoint extends BaseEndpoint {
 		return key;
 	}
 
-	public async getCurrentSqrtPrice(
-		methodContext: ModuleEndpointContext,
-
-    ): Promise<Q96>{
-		validator.validate<{ poolId: Buffer, priceDirection:false }>(getCurrentSqrtPriceRequestSchema, methodContext.params);
-        const pools = await this.getPool(methodContext);
-        if (pools == null) {
-            throw new Error();
-        }
-        const q96SqrtPrice = bytesToQ96(pools.sqrtPrice);
-        if (methodContext.params.priceDirection) {
-            return q96SqrtPrice;
-        }
-        return invQ96(q96SqrtPrice);
-    };
+	public async getCurrentSqrtPrice(methodContext: ModuleEndpointContext): Promise<Q96> {
+		validator.validate<{ poolId: Buffer; priceDirection: false }>(
+			getCurrentSqrtPriceRequestSchema,
+			methodContext.params,
+		);
+		const pools = await this.getPool(methodContext);
+		if (pools == null) {
+			throw new Error();
+		}
+		const q96SqrtPrice = bytesToQ96(pools.sqrtPrice);
+		if (methodContext.params.priceDirection) {
+			return q96SqrtPrice;
+		}
+		return invQ96(q96SqrtPrice);
+	}
 }

@@ -48,7 +48,9 @@ import {
 	getAllTokenIdsResponseSchema,
 	getAllPositionIDsInPoolRequestSchema,
 	getAllPositionIDsInPoolResponseSchema,
-	getCurrentSqrtPriceRequestSchema, getCurrentSqrtPriceResponseSchema, getPoolRequestSchema,
+	getCurrentSqrtPriceRequestSchema,
+	getCurrentSqrtPriceResponseSchema,
+	getPoolRequestSchema,
 	getPoolResponseSchema,
 } from './schemas';
 
@@ -117,11 +119,11 @@ export class DexModule extends BaseModule {
 					name: this.endpoint.getPool.name,
 					request: getPoolResponseSchema,
 					response: getPoolRequestSchema,
-			},
-			{
-				name: this.endpoint.getCurrentSqrtPrice.name,
-				request: getCurrentSqrtPriceRequestSchema,
-				response: getCurrentSqrtPriceResponseSchema,
+				},
+				{
+					name: this.endpoint.getCurrentSqrtPrice.name,
+					request: getCurrentSqrtPriceRequestSchema,
+					response: getCurrentSqrtPriceResponseSchema,
 				},
 			],
 			commands: this.commands.map(command => ({

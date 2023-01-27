@@ -577,7 +577,7 @@ export const getPoolRequestSchema = {
 			dataType: 'bytes',
 			fieldNumber: 1,
 		},
-	}
+	},
 };
 
 export const getCurrentSqrtPriceRequestSchema = {
@@ -592,7 +592,7 @@ export const getCurrentSqrtPriceRequestSchema = {
 		priceDirection: {
 			dataType: 'boolean',
 			fieldNumber: 2,
-		}
+		},
 	},
 };
 
@@ -604,6 +604,6 @@ export const getCurrentSqrtPriceResponseSchema = {
 		currentSqrtPrice: {
 			dataType: 'uint64',
 			fieldNumber: 1,
-		}
+		},
 	},
 };
