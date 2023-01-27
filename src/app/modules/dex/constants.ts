@@ -14,7 +14,7 @@
 
 
 import { sha256 } from '../dexRewards/constants';
-import {Q96} from './types';
+import { Q96 } from './types';
 
 export const NUM_BYTES_ADDRESS = 20; // The number of bytes of an address (uint32)
 export const MAX_NUM_BYTES_Q96 = 24; // The number of bytes of a fractional number stored in Q96 format (uint32)
@@ -29,7 +29,7 @@ export const NUM_BYTES_POOL_ID = 16; // The number of bytes of a pool ID. (uint3
 export const NUM_BYTES_TICK_ID = 20; // The number of bytes of a price tick ID. (uint32)
 export const NUM_BYTES_POSITION_ID = 24; // The number of bytes of a position ID. (uint32)
 export const MAX_NUMBER_CROSSED_TICKS = 10000; // TBA	Maximum number of price ticks to be crossed by a single swap. (uint32)
-export const MAX_HOPS_SWAP = 0; // TBA	Maximum number of different pools that a complete swap can interact with. (uint32)
+export const MAX_HOPS_SWAP = 100; // TBA	Maximum number of different pools that a complete swap can interact with. (uint32)
 export const MAX_NUM_POSITIONS_FEE_COLLECTION = 0; // TBD	The maximum number of positions for which it is possible to collect fees in one transaction. (uint32)
 export const TOKEN_ID_FEE_DEX = Buffer.from('0000', 'hex'); // The ID of the token used for fees. This defines the type of token in which the additional fees for pool creation and position creation are paid. (bytes)
 export const POOL_CREATION_FEE = BigInt(0); // This amount of tokens is transferred to the protocol fee account when creating a new pool. (uint64) (configurable)

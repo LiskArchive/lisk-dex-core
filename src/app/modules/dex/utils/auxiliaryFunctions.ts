@@ -926,41 +926,6 @@ export const getCredibleDirectPrice = async (
 	return mulQ96(bytesToQ96(poolSqrtPrice), bytesToQ96(poolSqrtPrice));
 };
 
-export const computeCurrentPrice = async (
-	methodContext: MethodContext,
-	stores: NamedRegistry,
-	tokenIn: TokenID,
-	tokenOut: TokenID,
-	swapRoute: PoolID[],
-): Promise<bigint> => {
-	let price = BigInt(1);
-	let tokenInPool = tokenIn;
-	// eslint-disable-next-line @typescript-eslint/no-misused-promises
-	for (const poolId of swapRoute) {
-		const pool = await getPool(methodContext, stores, poolId);
-		await getPool(methodContext, stores, poolId).catch(() => {
-			throw new Error('Not a valid pool');
-		})
-		if (tokenInPool.equals(getToken0Id(poolId))) {
-			price = mulQ96(price, bytesToQ96(pool.sqrtPrice));
-			tokenInPool = getToken1Id(poolId);
-		} else if (tokenInPool.equals(getToken1Id(poolId))) {
-			price = mulQ96(price, invQ96(bytesToQ96(pool.sqrtPrice)));
-			tokenInPool = getToken0Id(poolId);
-		} else {
-			throw new Error('Incorrect swap path for price computation');
-		}
-	}
-
-	if (!tokenInPool.equals(tokenOut)) {
-		throw new Error('Incorrect swap path for price computation');
-	}
-	return mulQ96(price, price);
-};
-
-
-
-
 export const getAllPoolIDs = async (
 	methodContext: MethodContext,
 	poolStore: PoolsStore,

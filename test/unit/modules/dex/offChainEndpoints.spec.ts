@@ -28,7 +28,7 @@ import { Address, PoolID, PositionID } from '../../../../src/app/modules/dex/typ
 
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
-import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
+import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 import {
 	createMethodContext,
 	EventQueue,
@@ -44,8 +44,17 @@ import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGl
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
-import { getAllPositionIDsInPool, getAllTickIDsInPool, getAllTokenIDs, getCurrentSqrtPrice, getPoolIDFromTickID } from '../../../../src/app/modules/dex/utils/offChainEndpoints';
-import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
+import { TokenID } from '../../../../src/app/modules/dex/types';
+import {
+	getAllPositionIDsInPool,
+	getAllTickIDsInPool,
+	getAllTokenIDs,
+	getCurrentSqrtPrice,
+	getPoolIDFromTickID,
+	dryRunSwapExactIn
+} from '../../../../src/app/modules/dex/utils/offChainEndpoints';
+import { computeCurrentPrice, getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
+import { createTransientModuleEndpointContext } from "../../../context/createContext";
 
 describe('dex:offChainEndpointFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
@@ -56,11 +65,20 @@ describe('dex:offChainEndpointFunctions', () => {
 	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
 	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
+	const INVALID_ADDRESS = '1234';
+
+	const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
+	const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
 		stateStore,
 		eventQueue: new EventQueue(0),
+	});
+
+	const moduleEndpointContext = createTransientModuleEndpointContext({
+		stateStore,
+		params: { address: INVALID_ADDRESS },
 	});
 
 	let poolsStore: PoolsStore;
@@ -244,5 +262,39 @@ describe('dex:offChainEndpointFunctions', () => {
 				).toString(),
 			).toBe('79208358939348018173455069823');
 		});
+
+		it('dryRunSwapExactIn', async () => {
+			const amountIn = BigInt(50);
+			const minAmountOut = BigInt(10);
+			console.log("111");
+			const checkPriceBefore = await computeCurrentPrice(
+				methodContext,
+				dexModule.stores,
+				token0Id,
+				token1Id,
+				[poolId]
+			);
+			console.log("checkPriceBefore: ", checkPriceBefore);
+			const result = await dryRunSwapExactIn(
+				methodContext,
+				moduleEndpointContext,
+				dexModule.stores,
+				token0Id,
+				amountIn,
+				token1Id,
+				minAmountOut,
+				[poolId]
+			);
+			const checkPriceAfter = await computeCurrentPrice(
+				methodContext,
+				dexModule.stores,
+				token0Id,
+				token1Id,
+				[poolId]
+			);
+
+			expect(result[2]).toEqual(checkPriceBefore);
+			expect(result[3]).toEqual(checkPriceAfter);
+		})
 	});
 });
