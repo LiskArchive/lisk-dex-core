@@ -13,11 +13,13 @@
  */
 
 import { BaseEndpoint, ModuleEndpointContext } from 'lisk-sdk';
+import { getAllPositionIDsInPoolRequestSchema, getCurrentSqrtPriceRequestSchema, getPoolRequestSchema } from './schemas';
 import { PoolsStore } from './stores';
 import { PoolID, PositionID, Q96, TokenID } from './types';
 import { getPoolIDFromPositionID, getToken0Id, getToken1Id } from './utils/auxiliaryFunctions';
 import { PoolsStoreData } from './stores/poolsStore';
 import { bytesToQ96, invQ96 } from './utils/q96';
+import { validator } from '@liskhq/lisk-validator';
 
 export class DexEndpoint extends BaseEndpoint {
 	public async getAllPoolIDs(methodContext: ModuleEndpointContext): Promise<PoolID[]> {
@@ -44,43 +46,42 @@ export class DexEndpoint extends BaseEndpoint {
 		return tokens;
 	}
 
-    public getAllPositionIDsInPool(
-        poolId: PoolID,
-        positionIdsList: PositionID[],
-    ): Buffer[]{
-        const result: Buffer[] = [];
-        positionIdsList.forEach(positionId => {
-            if (getPoolIDFromPositionID(positionId).equals(poolId)) {
-                result.push(positionId);
-            }
-        });
-        return result;
-    };
+	public getAllPositionIDsInPool(methodContext: ModuleEndpointContext): Buffer[] {
+		validator.validate<{ poolId: Buffer; positionIdsList: PositionID[] }>(
+			getAllPositionIDsInPoolRequestSchema,
+			methodContext.params,
+		);
+		const result: Buffer[] = [];
+		const poolId = methodContext.params.poolId;
+		const positionIdsList = methodContext.params.positionIdsList;
+		positionIdsList.forEach(positionId => {
+			if (getPoolIDFromPositionID(positionId).equals(poolId)) {
+				result.push(positionId);
+			}
+		});
+		return result;
+	}
 
-    public async getPool (
-        methodContext: ModuleEndpointContext,
-        poolID: PoolID,
-    ): Promise<PoolsStoreData>{
-        const poolsStore = this.stores.get(PoolsStore);
-		const key = await poolsStore.getKey(methodContext,[poolID]);
-        return key;
-    };
+	public async getPool(methodContext: ModuleEndpointContext): Promise<PoolsStoreData> {
+		validator.validate<{ poolId: Buffer }>(getPoolRequestSchema, methodContext.params);
+		const poolsStore = this.stores.get(PoolsStore);
+		const key = await poolsStore.getKey(methodContext, [methodContext.params.poolId]);
+		return key;
+	}
 
-    public async getCurrentSqrtPrice(
+	public async getCurrentSqrtPrice(
 		methodContext: ModuleEndpointContext,
-        poolID: PoolID,
-        priceDirection: boolean,
+
     ): Promise<Q96>{
-        const pools = await this.getPool(methodContext, poolID);
+		validator.validate<{ poolId: Buffer, priceDirection:false }>(getCurrentSqrtPriceRequestSchema, methodContext.params);
+        const pools = await this.getPool(methodContext);
         if (pools == null) {
             throw new Error();
         }
         const q96SqrtPrice = bytesToQ96(pools.sqrtPrice);
-        if (priceDirection) {
+        if (methodContext.params.priceDirection) {
             return q96SqrtPrice;
         }
         return invQ96(q96SqrtPrice);
     };
-
-
 }

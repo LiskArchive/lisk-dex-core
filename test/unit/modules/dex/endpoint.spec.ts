@@ -60,11 +60,11 @@ describe('dex: offChainEndpointFunctions', () => {
 
 	let stateStore: PrefixedStateReadWriter;
 	stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-	
+
 	const moduleEndpointContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: { address: INVALID_ADDRESS },
-			});
+		stateStore,
+		params: { address: INVALID_ADDRESS },
+	});
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
@@ -221,28 +221,35 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getAllPositionIDsInPool', () => {
-			const positionIDs = endpoint.getAllPositionIDsInPool(getPoolIDFromPositionID(positionId), [
-				positionId,
-		]);
-		expect(positionIDs.indexOf(positionId)).not.toBe(-1);
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { poolId: getPoolIDFromPositionID(positionId), positionIdsList: [positionId] },
+			});
+			const positionIDs = endpoint.getAllPositionIDsInPool(moduleEndpointContext);
+			expect(positionIDs.indexOf(positionId)).not.toBe(-1);
 		});
 
 		it('getPool', async () => {
-			await endpoint.getPool(moduleEndpointContext, getPoolIDFromPositionID(positionId)).then(
-				res => {
-					expect(res).not.toBeNull();
-					expect(res.liquidity).toBe(BigInt(5));
-				},
-			);
+			const tempModuleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { poolId: getPoolIDFromPositionID(positionId) },
+			});
+			await endpoint.getPool(tempModuleEndpointContext).then(res => {
+				expect(res).not.toBeNull();
+				expect(res.liquidity).toBe(BigInt(5));
+			});
 		});
 
 		it('getCurrentSqrtPrice', async () => {
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { poolId: getPoolIDFromPositionID(positionId), priceDirection:false },
+			});
+			
 			expect(
 				(
 					await endpoint.getCurrentSqrtPrice(
-						moduleEndpointContext,
-						getPoolIDFromPositionID(positionId),
-						false,
+						moduleEndpointContext
 					)
 				).toString(),
 			).toBe('79208358939348018173455069823');
