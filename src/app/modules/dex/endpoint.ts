@@ -13,10 +13,12 @@
  */
 
 import { BaseEndpoint, ModuleEndpointContext } from 'lisk-sdk';
+import { getAllPositionIDsInPoolRequestSchema, getPoolRequestSchema } from './schemas';
 import { PoolsStore } from './stores';
 import { PoolID, PositionID, TokenID } from './types';
 import { getPoolIDFromPositionID, getToken0Id, getToken1Id } from './utils/auxiliaryFunctions';
 import { PoolsStoreData } from './stores/poolsStore';
+import { validator } from '@liskhq/lisk-validator';
 
 export class DexEndpoint extends BaseEndpoint {
 	public async getAllPoolIDs(methodContext: ModuleEndpointContext): Promise<PoolID[]> {
@@ -43,27 +45,26 @@ export class DexEndpoint extends BaseEndpoint {
 		return tokens;
 	}
 
-    public getAllPositionIDsInPool(
-        poolId: PoolID,
-        positionIdsList: PositionID[],
-    ): Buffer[]{
-        const result: Buffer[] = [];
-        positionIdsList.forEach(positionId => {
-            if (getPoolIDFromPositionID(positionId).equals(poolId)) {
-                result.push(positionId);
-            }
-        });
-        return result;
-    };
+	public getAllPositionIDsInPool(methodContext: ModuleEndpointContext): Buffer[] {
+		validator.validate<{ poolId: Buffer; positionIdsList: PositionID[] }>(
+			getAllPositionIDsInPoolRequestSchema,
+			methodContext.params,
+		);
+		const result: Buffer[] = [];
+		const poolId = methodContext.params.poolId;
+		const positionIdsList = methodContext.params.positionIdsList;
+		positionIdsList.forEach(positionId => {
+			if (getPoolIDFromPositionID(positionId).equals(poolId)) {
+				result.push(positionId);
+			}
+		});
+		return result;
+	}
 
-    public async getPool (
-        methodContext: ModuleEndpointContext,
-        poolID: PoolID,
-    ): Promise<PoolsStoreData>{
-        const poolsStore = this.stores.get(PoolsStore);
-		const key = await poolsStore.getKey(methodContext,[poolID]);
-        return key;
-    };
-
-
+	public async getPool(methodContext: ModuleEndpointContext): Promise<PoolsStoreData> {
+		validator.validate<{ poolId: Buffer }>(getPoolRequestSchema, methodContext.params);
+		const poolsStore = this.stores.get(PoolsStore);
+		const key = await poolsStore.getKey(methodContext, [methodContext.params.poolId]);
+		return key;
+	}
 }
