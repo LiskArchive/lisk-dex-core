@@ -417,9 +417,9 @@ describe('dex:auxiliaryFunctions', () => {
 
 		const settingGlobalStore = dexModule.stores.get(SettingsStore);
 		const settingGlobalStoreData = await settingGlobalStore.get(methodContext, Buffer.alloc(0));
-		settingGlobalStoreData.poolCreationSettings.feeTier = feeTier;
-		settingGlobalStoreData.poolCreationSettings.tickSpacing = tickSpacing;
-		settingGlobalStore.set(methodContext, Buffer.alloc(0), settingGlobalStoreData);
+		// settingGlobalStoreData.poolCreationSettings.feeTier = feeTier;
+		// settingGlobalStoreData.poolCreationSettings.tickSpacing = tickSpacing;
+		// settingGlobalStore.set(methodContext, Buffer.alloc(0), settingGlobalStoreData);
 
 		expect(settingGlobalStoreData.poolCreationSettings.feeTier).toEqual(feeTier);
 	})
