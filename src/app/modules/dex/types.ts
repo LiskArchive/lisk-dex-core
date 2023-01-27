@@ -128,4 +128,3 @@ export type AdjacentEdgesInterface = {
 	edge: Buffer;
 	vertex: Buffer;
 };
-
