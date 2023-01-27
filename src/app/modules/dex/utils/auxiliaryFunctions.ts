@@ -69,7 +69,6 @@ import { tickToBytes } from '../stores/priceTicksStore';
 import { ADDRESS_VALIDATOR_REWARDS_POOL } from '../../dexRewards/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
 
-
 const { utils } = cryptography;
 
 const abs = (x: bigint) => (x < BigInt(0) ? -x : x);
@@ -83,7 +82,6 @@ export const getToken0Id = (poolId: PoolID): TokenID => poolId.slice(0, NUM_BYTE
 
 export const getToken1Id = (poolId: PoolID): TokenID =>
 	poolId.slice(NUM_BYTES_TOKEN_ID, 2 * NUM_BYTES_TOKEN_ID);
-
 
 export const transferToPool = async (
 	tokenMethod: TokenMethod,
