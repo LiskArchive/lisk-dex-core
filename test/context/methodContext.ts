@@ -16,8 +16,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ImmutableMethodContext } from "lisk-sdk";
-import { ImmutableSubStore } from "../types/types";
+import { ImmutableMethodContext } from 'lisk-sdk';
+import { ImmutableSubStore } from '../types/types';
 
 interface ImmutableSubStoreGetter {
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;

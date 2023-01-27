@@ -16,11 +16,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-    BlockHeader,
-	BlockHeaderAttrs,
-	StateStore,
-} from '@liskhq/lisk-chain';
+import { BlockHeader, BlockHeaderAttrs, StateStore } from '@liskhq/lisk-chain';
 
 import { ModuleEndpointContext } from 'lisk-sdk';
 import { PrefixedStateReadWriter } from '../stateMachine/prefixedStateReadWriter';
@@ -51,7 +47,6 @@ const createTestHeader = () =>
 		},
 		validatorsHash: utils.hash(Buffer.alloc(0)),
 	});
-
 
 export const createTransientModuleEndpointContext = (params: {
 	stateStore?: PrefixedStateReadWriter;
