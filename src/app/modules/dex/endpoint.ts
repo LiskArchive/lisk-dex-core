@@ -26,6 +26,8 @@ import {
 	getToken0Id,
 	getToken1Id,
 	poolIdToAddress,
+	computeCollectableFees,
+	computeCollectableIncentives
 } from './utils/auxiliaryFunctions';
 import { PoolsStoreData } from './stores/poolsStore';
 import { addQ96, bytesToQ96, divQ96, invQ96, roundDownQ96, mulQ96 } from './utils/q96';
@@ -281,5 +283,38 @@ export class DexEndpoint extends BaseEndpoint {
 			}
 		});
 		return result;
+	}
+
+	public async getCollectableFeesAndIncentives(
+		methodContext: ModuleEndpointContext,
+		tokenMethod: TokenMethod,
+		positionId: PositionID
+	) {
+		const positionsStore = this.stores.get(PositionsStore);
+		const positionStoreData = await positionsStore.get(methodContext, positionId);
+
+		if (!positionStoreData) {
+			throw new Error("The position is not registered!");
+		}
+
+		const [
+			collectableFees0,
+			collectableFees1,
+		] = await computeCollectableFees(
+			this.stores,
+			methodContext,
+			positionId
+		);
+
+		const dexGlobalStore = this.stores.get(DexGlobalStore);
+		const [collectableIncentives] = await computeCollectableIncentives(
+			dexGlobalStore,
+			tokenMethod,
+			methodContext,
+			positionId,
+			collectableFees0,
+			collectableFees1
+		);
+		return [collectableFees0, collectableFees1, collectableIncentives];
 	}
 }

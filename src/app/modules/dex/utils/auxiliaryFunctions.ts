@@ -293,7 +293,7 @@ export const collectFeesAndIncentives = async (
 
 export const computeCollectableFees = async (
 	stores: NamedRegistry,
-	methodContext: MethodContext,
+	methodContext,
 	positionID: PositionID,
 ): Promise<[bigint, bigint, Q96, Q96]> => {
 	const positionsStore = stores.get(PositionsStore);
@@ -904,7 +904,7 @@ export const getCredibleDirectPrice = async (
 		);
 		token1ValuesLocked.push(
 			roundDownQ96(token0ValueQ96) +
-				(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
+			(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
 		);
 	}
 

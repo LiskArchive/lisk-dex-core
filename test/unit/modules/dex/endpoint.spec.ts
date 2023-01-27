@@ -44,7 +44,10 @@ import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGl
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
-import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
+import {
+	getPoolIDFromPositionID,
+	computeCollectableFees
+} from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import { DexEndpoint } from '../../../../src/app/modules/dex/endpoint';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
@@ -368,6 +371,22 @@ describe('dex: offChainEndpointFunctions', () => {
 				}
 			});
 			expect(ifKeyExists).toBe(true);
+		});
+
+		it('getCollectableFeesAndIncentives', async () => {
+			const [collectableFee0] = await endpoint.getCollectableFeesAndIncentives(
+				moduleEndpointContext,
+				tokenMethod,
+				positionId
+			);
+
+			const [checkCollectableFee0] = await computeCollectableFees(
+				dexModule.stores,
+				methodContext,
+				positionId
+			);
+
+			expect(collectableFee0).toEqual(checkCollectableFee0);
 		});
 	});
 });
