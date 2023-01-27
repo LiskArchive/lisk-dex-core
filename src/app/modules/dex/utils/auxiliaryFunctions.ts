@@ -51,7 +51,15 @@ import {
 	MODULE_NAME_DEX,
 } from '../constants';
 
-import { PoolID, PositionID, Address, TokenID, Q96, routeInterface, AdjacentEdgesInterface } from '../types';
+import {
+	PoolID,
+	PositionID,
+	Address,
+	TokenID,
+	Q96,
+	routeInterface,
+	AdjacentEdgesInterface,
+} from '../types';
 
 import {
 	subQ96,
@@ -72,7 +80,6 @@ import { DexEndpoint } from '../endpoint';
 import { DexModule } from '../module';
 import { MAX_SINT32 } from '@liskhq/lisk-validator';
 
-
 const { utils } = cryptography;
 
 const abs = (x: bigint) => (x < BigInt(0) ? -x : x);
@@ -86,7 +93,6 @@ export const getToken0Id = (poolId: PoolID): TokenID => poolId.slice(0, NUM_BYTE
 
 export const getToken1Id = (poolId: PoolID): TokenID =>
 	poolId.slice(NUM_BYTES_TOKEN_ID, 2 * NUM_BYTES_TOKEN_ID);
-
 
 export const transferToPool = async (
 	tokenMethod: TokenMethod,
@@ -816,7 +822,6 @@ export const computeRegularRoute = async (
 	return [];
 };
 
-
 export const computeExceptionalRoute = async (
 	methodContext: ModuleEndpointContext,
 	stores: NamedRegistry,
@@ -852,8 +857,6 @@ export const computeExceptionalRoute = async (
 	return [];
 };
 
-
-
 export const getCredibleDirectPrice = async (
 	tokenMethod: TokenMethod,
 	methodContext: ModuleEndpointContext,
@@ -866,10 +869,10 @@ export const getCredibleDirectPrice = async (
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
 	const settings = (await endpoint.getDexGlobalData(methodContext)).poolCreationSettings;
 	const allpoolIDs = await endpoint.getAllPoolIDs(methodContext);
-	
+
 	const tokenIDArrays = [tokenID0, tokenID1];
-	[tokenID0,tokenID1] = tokenIDArrays.sort();
-	const concatedTokenIDs = Buffer.concat([tokenID0,tokenID1]);
+	[tokenID0, tokenID1] = tokenIDArrays.sort();
+	const concatedTokenIDs = Buffer.concat([tokenID0, tokenID1]);
 
 	settings.forEach(setting => {
 		const result = Buffer.alloc(4);
@@ -886,22 +889,22 @@ export const getCredibleDirectPrice = async (
 	});
 
 	if (directPools.length === 0) {
-		console.log(allpoolIDs)
+		console.log(allpoolIDs);
 		throw new Error('No direct pool between given tokens');
 	}
 
 	const token1ValuesLocked: bigint[] = [];
 
 	for (const directPool of directPools) {
-		const pool = await endpoint.getPool(methodContext, directPool);
-		const token0Amount = await endpoint.getToken0Amount(tokenMethod, methodContext, directPool);
+		methodContext.params.poolId = directPool;
+		const pool = await endpoint.getPool(methodContext);
+		const token0Amount = await endpoint.getToken0Amount(tokenMethod, methodContext);
 		const token0ValueQ96 = mulQ96(
 			mulQ96(numberToQ96(token0Amount), bytesToQ96(pool.sqrtPrice)),
 			bytesToQ96(pool.sqrtPrice),
 		);
 		token1ValuesLocked.push(
-			roundDownQ96(token0ValueQ96) +
-				(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
+			roundDownQ96(token0ValueQ96) + (await endpoint.getToken1Amount(tokenMethod, methodContext)),
 		);
 	}
 
@@ -913,9 +916,7 @@ export const getCredibleDirectPrice = async (
 			minToken1ValueLockedIndex = index;
 		}
 	});
-
-	const poolSqrtPrice = (
-		await endpoint.getPool(methodContext, directPools[minToken1ValueLockedIndex])
-	).sqrtPrice;
+	methodContext.params.poolId = directPools[minToken1ValueLockedIndex];
+	const poolSqrtPrice = (await endpoint.getPool(methodContext)).sqrtPrice;
 	return mulQ96(bytesToQ96(poolSqrtPrice), bytesToQ96(poolSqrtPrice));
 };

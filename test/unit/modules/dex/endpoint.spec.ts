@@ -54,8 +54,9 @@ describe('dex: offChainEndpointFunctions', () => {
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
 	const dexModule = new DexModule();
-	const feeTier = Number('0x00000c8');
 	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
+
+	const feeTier = 23343408;
 
 	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
@@ -63,11 +64,11 @@ describe('dex: offChainEndpointFunctions', () => {
 
 	let stateStore: PrefixedStateReadWriter;
 	stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-	
+
 	const moduleEndpointContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: { address: INVALID_ADDRESS },
-			});
+		stateStore,
+		params: { address: INVALID_ADDRESS },
+	});
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
@@ -158,7 +159,6 @@ describe('dex: offChainEndpointFunctions', () => {
 				[senderAddress, getPoolIDFromPositionID(positionId)],
 				poolsStoreData,
 			);
-			
 
 			await poolsStore.setKey(methodContext, [poolId], poolsStoreData);
 			await poolsStore.setKey(methodContext, [poolIdLSK], poolsStoreData);
@@ -222,19 +222,31 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getToken1Amount', async () => {
-			await endpoint.getToken1Amount(tokenMethod, moduleEndpointContext, poolId).then(res => {
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { poolId },
+			});
+			await endpoint.getToken1Amount(tokenMethod, moduleEndpointContext).then(res => {
 				expect(res).toBe(BigInt(5));
 			});
 		});
 
 		it('getToken0Amount', async () => {
-			await endpoint.getToken0Amount(tokenMethod, moduleEndpointContext, poolId).then(res => {
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { poolId },
+			});
+			await endpoint.getToken0Amount(tokenMethod, moduleEndpointContext).then(res => {
 				expect(res).toBe(BigInt(5));
 			});
 		});
 
 		it('should return the feeTier from the poolID', () => {
-			expect(endpoint.getFeeTier(poolId)).toEqual(feeTier);
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { poolId: getPoolIDFromPositionID(positionId), positionIdsList: [positionId] },
+			});
+			expect(endpoint.getFeeTier(moduleEndpointContext)).toEqual(feeTier);
 		});
 
 		it('getPoolIDFromTickID', () => {
@@ -254,30 +266,34 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getAllPositionIDsInPool', () => {
-			const positionIDs = endpoint.getAllPositionIDsInPool(getPoolIDFromPositionID(positionId), [
-				positionId,
-			]);
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { poolId: getPoolIDFromPositionID(positionId), positionIdsList: [positionId] },
+			});
+			const positionIDs = endpoint.getAllPositionIDsInPool(moduleEndpointContext);
 			expect(positionIDs.indexOf(positionId)).not.toBe(-1);
 		});
 
 		it('getPool', async () => {
-			await endpoint.getPool(moduleEndpointContext, getPoolIDFromPositionID(positionId)).then(
-				res => {
-					expect(res).not.toBeNull();
-					expect(res.liquidity).toBe(BigInt(5));
-				});
+			const tempModuleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { poolId: getPoolIDFromPositionID(positionId) },
+			});
+			await endpoint.getPool(tempModuleEndpointContext).then(res => {
+				expect(res).not.toBeNull();
+				expect(res.liquidity).toBe(BigInt(5));
+			});
 		});
 
 		it('getCurrentSqrtPrice', async () => {
-			expect(
-				(
-					await endpoint.getCurrentSqrtPrice(
-						moduleEndpointContext,
-						getPoolIDFromPositionID(positionId),
-						false,
-					)
-				).toString(),
-			).toBe('79208358939348018173455069823');
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { poolId: getPoolIDFromPositionID(positionId), priceDirection: false },
+			});
+
+			expect((await endpoint.getCurrentSqrtPrice(moduleEndpointContext)).toString()).toBe(
+				'79208358939348018173455069823',
+			);
 		});
 
 		it('getDexGlobalData', async () => {
@@ -293,8 +309,12 @@ describe('dex: offChainEndpointFunctions', () => {
 			const newPositionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
 			await positionsStore.set(methodContext, newPositionId, positionsStoreData);
 			await positionsStore.setKey(methodContext, [newPositionId], positionsStoreData);
-			await endpoint.getPosition(moduleEndpointContext, newPositionId, positionIdsList).then(res => {
-				expect(res).not.toBeNull(); 
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { positionId: newPositionId, positionIdsList: positionIdsList },
+			});
+			await endpoint.getPosition(moduleEndpointContext).then(res => {
+				expect(res).not.toBeNull();
 			});
 		});
 
@@ -319,17 +339,22 @@ describe('dex: offChainEndpointFunctions', () => {
 
 		it('getLSKPrice', async () => {
 			const result = Buffer.alloc(4);
-			const feeTier = q96ToBytes(BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings.feeTier, 0)))
-			await poolsStore.setKey(methodContext, [getPoolIDFromPositionID(positionId),positionId,feeTier], poolsStoreData);
-			await poolsStore.setKey(methodContext, [poolIdLSK,poolIdLSK,feeTier], poolsStoreData);
-			await poolsStore.setKey(methodContext, [poolIdLSK,positionId,feeTier], poolsStoreData);
-			
-			const res = await endpoint.getLSKPrice(
-				tokenMethod,
-				moduleEndpointContext,
-				getPoolIDFromPositionID(positionId),				
+			const feeTier = q96ToBytes(
+				BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings.feeTier, 0)),
 			);
-			expect(res).toBe(BigInt(1))
+			await poolsStore.setKey(
+				methodContext,
+				[getPoolIDFromPositionID(positionId), positionId, feeTier],
+				poolsStoreData,
+			);
+			await poolsStore.setKey(methodContext, [poolIdLSK, poolIdLSK, feeTier], poolsStoreData);
+			await poolsStore.setKey(methodContext, [poolIdLSK, positionId, feeTier], poolsStoreData);
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { tokenId: getPoolIDFromPositionID(positionId) },
+			});
+			const res = await endpoint.getLSKPrice(tokenMethod, moduleEndpointContext);
+			expect(res).toBe(BigInt(1));
 		});
 	});
 });
