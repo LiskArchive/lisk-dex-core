@@ -18,6 +18,8 @@ import {
 	getCurrentSqrtPriceRequestSchema,
 	getPoolRequestSchema,
 	getPositionRequestSchema,
+	getTickWithPoolIdAndTickValueRequestSchema,
+	getTickWithTickIdRequestSchema,
 } from './schemas';
 import { PoolsStore } from './stores';
 import { PoolID, PositionID, Q96, TickID, TokenID } from './types';
@@ -100,10 +102,13 @@ export class DexEndpoint extends BaseEndpoint {
 
 	public async getTickWithTickId(
 		methodContext: ModuleEndpointContext,
-		tickId: TickID[],
 	): Promise<PriceTicksStoreData> {
+		validator.validate<{ tickIds: TickID[] }>(
+			getTickWithTickIdRequestSchema,
+			methodContext.params,
+		);
 		const priceTicksStore = this.stores.get(PriceTicksStore);
-		const priceTicksStoreData = await priceTicksStore.getKey(methodContext, tickId);
+		const priceTicksStoreData = await priceTicksStore.getKey(methodContext, methodContext.params.tickIds);
 		if (priceTicksStoreData == null) {
 			throw new Error('No tick with the specified poolId');
 		} else {
@@ -113,11 +118,13 @@ export class DexEndpoint extends BaseEndpoint {
 
 	public async getTickWithPoolIdAndTickValue(
 		methodContext: ModuleEndpointContext,
-		poolId: PoolID,
-		tickValue: number,
 	): Promise<PriceTicksStoreData> {
+		validator.validate<{ poolId: Buffer; tickValue: number }>(
+			getTickWithPoolIdAndTickValueRequestSchema,
+			methodContext.params,
+		);
 		const priceTicksStore = this.stores.get(PriceTicksStore);
-		const key = poolId.toLocaleString() + tickToBytes(tickValue).toLocaleString();
+		const key = methodContext.params.poolId.toLocaleString() + tickToBytes(methodContext.params.tickValue).toLocaleString();
 		const priceTicksStoreData = await priceTicksStore.get(methodContext, Buffer.from(key, 'hex'));
 		if (priceTicksStoreData == null) {
 			throw new Error('No tick with the specified poolId and tickValue');

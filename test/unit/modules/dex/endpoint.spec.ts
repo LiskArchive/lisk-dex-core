@@ -274,19 +274,26 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getTickWithTickId', async () => {
-			const tickWithTickID = await endpoint.getTickWithTickId(moduleEndpointContext, [
-				getPoolIDFromPositionID(positionId),
-				tickToBytes(positionsStoreData.tickLower),
-			]);
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { tickIds: [
+					getPoolIDFromPositionID(positionId),
+					tickToBytes(positionsStoreData.tickLower),
+				]},
+			});
+			const tickWithTickID = await endpoint.getTickWithTickId(moduleEndpointContext);
 			expect(tickWithTickID).not.toBeNull();
 			expect(tickWithTickID.liquidityNet).toBe(BigInt(5));
 		});
 
 		it('getTickWithPoolIdAndTickValue', async () => {
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { poolId: getPoolIDFromPositionID(positionId),
+					tickValue: 5},
+			});
 			const tickWithPoolIdAndTickValue = await endpoint.getTickWithPoolIdAndTickValue(
-				moduleEndpointContext,
-				getPoolIDFromPositionID(positionId),
-				5,
+				moduleEndpointContext
 			);
 			expect(tickWithPoolIdAndTickValue).not.toBeNull();
 			expect(tickWithPoolIdAndTickValue.liquidityNet).toBe(BigInt(5));

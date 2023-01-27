@@ -663,25 +663,11 @@ export const getPositionResponseSchema = {
 export const getTickWithTickIdRequestSchema = {
 	$id: 'dex/getTickWithTickId',
 	type: 'object',
-	required: ['stores', 'tickIDs'],
+	required: ['tickIds'],
 	properties: {
-		stores: {
-			dataType: 'object',
-			fieldNumber: 1,
-		},
-		tickIDs: {
+		tickIds: {
 			type: 'array',
-			fieldNumber: 2,
-			items: {
-				type: 'object',
-				required: ['tickId'],
-				properties: {
-					positionID: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					},
-				},
-			},
+			fieldNumber: 1,
 		},
 	},
 };
@@ -701,19 +687,15 @@ export const getTickWithTickIdResponseSchema = {
 export const getTickWithPoolIdAndTickValueRequestSchema = {
 	$id: 'dex/getTickWithPoolIdAndTickValue',
 	type: 'object',
-	required: ['stores', 'poolId', 'tickValue'],
+	required: ['poolId', 'tickValue'],
 	properties: {
-		stores: {
-			dataType: 'object',
-			fieldNumber: 1,
-		},
 		poolId: {
 			dataType: 'bytes',
-			fieldNumber: 2,
+			fieldNumber: 1,
 		},
 		tickValue: {
-			dataType: 'unit32',
-			fieldNumber: 3,
+			dataType: 'uint32',
+			fieldNumber: 2,
 		},
 	},
 };
