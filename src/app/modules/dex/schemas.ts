@@ -19,7 +19,6 @@ import {
 	NUM_BYTES_POSITION_ID,
 	NUM_BYTES_TICK_ID,
 } from './constants';
-import { PoolsStore } from './stores';
 
 export const settingsSchema = {
 	$id: '/dex/settings',
@@ -466,20 +465,28 @@ export const addLiquiditySchema = {
 	},
 };
 
-export const getAllPoolIdsRequestSchema = {
-	$id: 'dex/getAllPoolIds',
-	type: 'object',
-	required: ['poolStore'],
-	properties: {
-		poolStore: PoolsStore,
-	},
-};
 
 export const getAllPoolIdsResponseSchema = {
 	$id: 'dex/getAllPoolIds',
 	type: 'object',
-	required: ['PoolID'],
+	required: ['poolID'],
 	properties: {
-		PoolID: Buffer,
+		poolIDArray: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['poolID'],
+				properties: {
+					poolID: {
+						dataType: 'bytes',
+						minLength:NUM_BYTES_POOL_ID,
+						maxLength:NUM_BYTES_POOL_ID,
+						fieldNumber: 1,
+					}
+				},
+			},
+
+		},
 	},
 };
