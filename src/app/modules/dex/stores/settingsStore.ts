@@ -19,8 +19,8 @@ export interface SettingsStoreData {
 	protocolFeePart: number;
 	validatorsLSKRewardsPart: number;
 	poolCreationSettings: {
-		feeTier: number;
-		tickSpacing: number;
+		feeTier: number,
+		tickSpacing: number,
 	};
 }
 
@@ -50,6 +50,7 @@ export const settingsStoreSchema = {
 		poolCreationSettings: {
 			type: 'array',
 			fieldNumber: 4,
+			required: ['feeTier', 'tickSpacing'],
 			items: {
 				type: 'object',
 				required: ['feeTier', 'tickSpacing'],
