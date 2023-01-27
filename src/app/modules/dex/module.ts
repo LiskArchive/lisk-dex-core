@@ -120,7 +120,7 @@ export class DexModule extends BaseModule {
 		this.events.register(RemoveLiquidityEvent, new RemoveLiquidityEvent(this.name));
 		this.events.register(RemoveLiquidityFailedEvent, new RemoveLiquidityFailedEvent(this.name));
 		this.events.register(SwapFailedEvent, new SwapFailedEvent(this.name));
-		
+
 		this.events.register(SwappedEvent, new SwappedEvent(this.name));
 	}
 
