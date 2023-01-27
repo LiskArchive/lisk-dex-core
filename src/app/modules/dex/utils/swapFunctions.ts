@@ -12,16 +12,29 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MethodContext, ModuleEndpointContext, TokenMethod } from "lisk-sdk";
-import { SwapFailedEvent } from "../events/swapFailed";
-import { Address, AdjacentEdgesInterface, PoolID, PoolsGraph, routeInterface, TokenID } from "../types";
+import { MethodContext, ModuleEndpointContext, TokenMethod } from 'lisk-sdk';
+import { SwapFailedEvent } from '../events/swapFailed';
+import {
+	Address,
+	AdjacentEdgesInterface,
+	PoolID,
+	PoolsGraph,
+	routeInterface,
+	TokenID,
+} from '../types';
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
-import { getToken0Id, getToken1Id, transferFromPool } from "./auxiliaryFunctions";
-import { computeNextPrice, getAmount0Delta, getAmount1Delta } from "./math";
-import { DexModule } from "../module";
-import { DexEndpoint } from "../endpoint";
-import { bytesToQ96, invQ96, mulDivQ96, mulQ96, roundDownQ96 } from "./q96";
-import { ADDRESS_VALIDATOR_INCENTIVES, FEE_TIER_PARTITION, MODULE_NAME_DEX, TOKEN_ID_LSK, VALIDATORS_LSK_INCENTIVE_PART } from "../constants";
+import { getToken0Id, getToken1Id, transferFromPool } from './auxiliaryFunctions';
+import { computeNextPrice, getAmount0Delta, getAmount1Delta } from './math';
+import { DexModule } from '../module';
+import { DexEndpoint } from '../endpoint';
+import { bytesToQ96, invQ96, mulDivQ96, mulQ96, roundDownQ96 } from './q96';
+import {
+	ADDRESS_VALIDATOR_INCENTIVES,
+	FEE_TIER_PARTITION,
+	MODULE_NAME_DEX,
+	TOKEN_ID_LSK,
+	VALIDATORS_LSK_INCENTIVE_PART,
+} from '../constants';
 
 export const swapWithin = (
 	sqrtCurrentPrice: bigint,
@@ -125,7 +138,7 @@ export const computeCurrentPrice = async (
 		const pool = await endpoint.getPool(methodContext, poolId);
 		await endpoint.getPool(methodContext, poolId).catch(() => {
 			throw new Error('Not a valid pool');
-		})
+		});
 		if (tokenInPool.equals(getToken0Id(poolId))) {
 			price = mulQ96(price, bytesToQ96(pool.sqrtPrice));
 			tokenInPool = getToken1Id(poolId);
@@ -180,12 +193,21 @@ export const transferFeesFromPool = (
 			ADDRESS_VALIDATOR_INCENTIVES,
 			id,
 			validatorFee,
-		)
-		tokenMethod.lock(methodContext, ADDRESS_VALIDATOR_INCENTIVES, MODULE_NAME_DEX, id, validatorFee);
+		);
+		tokenMethod.lock(
+			methodContext,
+			ADDRESS_VALIDATOR_INCENTIVES,
+			MODULE_NAME_DEX,
+			id,
+			validatorFee,
+		);
 	}
 };
 
-export const getProtocolSettings = async (methodContext: ModuleEndpointContext, stores: NamedRegistry) => {
+export const getProtocolSettings = async (
+	methodContext: ModuleEndpointContext,
+	stores: NamedRegistry,
+) => {
 	const dexModule = new DexModule();
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
 	const dexGlobalStoreData = await endpoint.getDexGlobalData(methodContext);
@@ -201,10 +223,10 @@ export const computeRegularRoute = async (
 	let lskAdjacent = await getAdjacent(methodContext, stores, TOKEN_ID_LSK);
 	let tokenInFlag = false;
 	let tokenOutFlag = false;
-	console.log(lskAdjacent)
-	console.log(tokenIn)
-	console.log(tokenOut)
-	
+	console.log(lskAdjacent);
+	console.log(tokenIn);
+	console.log(tokenOut);
+
 	lskAdjacent.forEach(lskAdjacentEdge => {
 		if (lskAdjacentEdge.edge.equals(tokenIn)) {
 			tokenInFlag = true;

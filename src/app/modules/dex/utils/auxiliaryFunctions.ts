@@ -793,7 +793,7 @@ export const computeRegularRoute = async (
 	let lskAdjacent = await getAdjacent(methodContext, stores, TOKEN_ID_LSK);
 	let tokenInFlag = false;
 	let tokenOutFlag = false;
-	
+
 	lskAdjacent.forEach(lskAdjacentEdge => {
 		if (lskAdjacentEdge.edge.equals(tokenIn)) {
 			tokenInFlag = true;
