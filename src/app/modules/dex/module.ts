@@ -43,9 +43,11 @@ import { RemoveLiquidityEvent } from './events/removeLiquidity';
 import { RemoveLiquidityCommand } from './commands/removeLiquidity';
 import {
 	getAllPoolIdsRequestSchema,
-	getAllPoolIdsResponseSchema, getAllTokenIdsRequestSchema, getAllTokenIdsResponseSchema,
+	getAllPoolIdsResponseSchema,
 	getAllPositionIDsInPoolRequestSchema,
 	getAllPositionIDsInPoolResponseSchema,
+	getAllTokenIdsRequestSchema,
+	getAllTokenIdsResponseSchema,
 	getCurrentSqrtPriceRequestSchema,
 	getCurrentSqrtPriceResponseSchema,
 	getDexGlobalDataRequestSchema,
@@ -148,6 +150,56 @@ export class DexModule extends BaseModule {
 					name: this.endpoint.getTickWithPoolIdAndTickValue.name,
 					request: getTickWithPoolIdAndTickValueRequestSchema,
 					response: getTickWithPoolIdAndTickValueResponseSchema,
+				},
+				{
+					name: this.endpoint.getAllTokenIDs.name,
+					request: getAllTokenIdsRequestSchema,
+					response: getAllTokenIdsResponseSchema,
+				},
+				{
+					name: this.endpoint.getAllPositionIDsInPool.name,
+					request: getAllPositionIDsInPoolRequestSchema,
+					response: getAllPositionIDsInPoolResponseSchema,
+				},
+				{
+					name: this.endpoint.getPool.name,
+					request: getPoolResponseSchema,
+					response: getPoolRequestSchema,
+				},
+				{
+					name: this.endpoint.getCurrentSqrtPrice.name,
+					request: getCurrentSqrtPriceRequestSchema,
+					response: getCurrentSqrtPriceResponseSchema,
+				},
+				{
+					name: this.endpoint.getDexGlobalData.name,
+					request: getDexGlobalDataRequestSchema,
+					response: getDexGlobalDataResponseSchema,
+				},
+				{
+					name: this.endpoint.getAllPoolIDs.name,
+					request: getAllPoolIdsRequestSchema,
+					response: getAllPoolIdsResponseSchema,
+				},
+				{
+					name: this.endpoint.getAllTokenIDs.name,
+					request: getAllTokenIdsRequestSchema,
+					response: getAllTokenIdsResponseSchema,
+				},
+				{
+					name: this.endpoint.getAllPositionIDsInPool.name,
+					request: getAllPositionIDsInPoolRequestSchema,
+					response: getAllPositionIDsInPoolResponseSchema,
+				},
+				{
+					name: this.endpoint.getPool.name,
+					request: getPoolResponseSchema,
+					response: getPoolRequestSchema,
+				},
+				{
+					name: this.endpoint.getCurrentSqrtPrice.name,
+					request: getCurrentSqrtPriceRequestSchema,
+					response: getCurrentSqrtPriceResponseSchema,
 				},
 			],
 			commands: this.commands.map(command => ({

@@ -21,7 +21,6 @@ import * as fs from 'fs';
 import * as bunyan from 'bunyan';
 import * as util from 'util';
 
-
 export const createDirIfNotExist = (filePath: string): void => {
 	const dir = path.dirname(filePath);
 	if (fs.existsSync(dir)) {
@@ -48,7 +47,7 @@ const parseStructData = (input: Record<string, unknown>, trace: boolean, err?: E
 	if (keys.length === 0 && !err) {
 		return '';
 	}
-	const pairs:string[] = [];
+	const pairs: string[] = [];
 	for (const key of keys) {
 		const value = input[key];
 		switch (typeof value) {
