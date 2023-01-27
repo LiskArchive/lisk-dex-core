@@ -84,4 +84,5 @@ export const raiseSwapException = (
 		[senderAddress],
 		true,
 	);
+	throw new Error();
 };
