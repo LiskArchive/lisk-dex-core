@@ -27,8 +27,8 @@ import {
 	getToken0Id,
 	getToken1Id,
 	poolIdToAddress,
-	computeCurrentPrice
 } from './utils/auxiliaryFunctions';
+import { computeCurrentPrice } from './utils/swapFunctions';
 import { PoolsStoreData } from './stores/poolsStore';
 import { addQ96, bytesToQ96, divQ96, invQ96, roundDownQ96, mulQ96 } from './utils/q96';
 import { DexGlobalStore, DexGlobalStoreData } from './stores/dexGlobalStore';
@@ -312,7 +312,7 @@ export class DexEndpoint extends BaseEndpoint {
 		}
 		try {
 			priceBefore = await computeCurrentPrice(
-				methodContext,
+				moduleEndpointContext,
 				stores,
 				tokenIdIn,
 				tokenIdOut,
@@ -359,7 +359,7 @@ export class DexEndpoint extends BaseEndpoint {
 			throw new Error('Too low output amount');
 		}
 		const priceAfter = await computeCurrentPrice(
-			methodContext,
+			moduleEndpointContext,
 			stores,
 			tokenIdIn,
 			tokenIdOut,
