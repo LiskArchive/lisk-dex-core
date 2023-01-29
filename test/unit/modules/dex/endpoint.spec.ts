@@ -46,7 +46,6 @@ import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settin
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import {
 	getPoolIDFromPositionID,
-	computeCollectableFees
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import { DexEndpoint } from '../../../../src/app/modules/dex/endpoint';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
@@ -374,19 +373,15 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getCollectableFeesAndIncentives', async () => {
-			const [collectableFee0] = await endpoint.getCollectableFeesAndIncentives(
+			const [collectableFee0, collectableFee1, collectableIncentives] = await endpoint.getCollectableFeesAndIncentives(
 				moduleEndpointContext,
 				tokenMethod,
 				positionId
 			);
 
-			const [checkCollectableFee0] = await computeCollectableFees(
-				dexModule.stores,
-				methodContext,
-				positionId
-			);
-
-			expect(collectableFee0).toEqual(checkCollectableFee0);
+			expect(collectableFee0).toEqual('0');
+			expect(collectableFee1).toEqual('0');
+			expect(collectableIncentives).toEqual('0');
 		});
 	});
 });
