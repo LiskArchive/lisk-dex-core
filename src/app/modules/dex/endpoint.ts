@@ -12,10 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseEndpoint, ModuleEndpointContext, TokenMethod } from 'lisk-sdk';
+import { BaseEndpoint, ModuleEndpointContext, TokenMethod, MethodContext } from 'lisk-sdk';
+import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 
 import { MODULE_ID_DEX, NUM_BYTES_POOL_ID, TOKEN_ID_LSK } from './constants';
-import { NUM_BYTES_ADDRESS, NUM_BYTES_POSITION_ID } from './constants';
+import { NUM_BYTES_ADDRESS, NUM_BYTES_POSITION_ID, MAX_HOPS_SWAP, MAX_SQRT_RATIO, MIN_SQRT_RATIO } from './constants';
 import { PoolsStore } from './stores';
 import { PoolID, PositionID, Q96, TickID, TokenID } from './types';
 import {
@@ -26,6 +27,7 @@ import {
 	getToken0Id,
 	getToken1Id,
 	poolIdToAddress,
+	computeCurrentPrice
 } from './utils/auxiliaryFunctions';
 import { PoolsStoreData } from './stores/poolsStore';
 import { addQ96, bytesToQ96, divQ96, invQ96, roundDownQ96, mulQ96 } from './utils/q96';
@@ -69,52 +71,52 @@ export class DexEndpoint extends BaseEndpoint {
 		return result;
 	}
 
-    public async getPool (
-        methodContext: ModuleEndpointContext,
-        poolID: PoolID,
-    ): Promise<PoolsStoreData>{
-        const poolsStore = this.stores.get(PoolsStore);
-		const key = await poolsStore.getKey(methodContext,[poolID]);
-        return key;
-    };
-
-    public async getCurrentSqrtPrice(
+	public async getPool(
 		methodContext: ModuleEndpointContext,
-        poolID: PoolID,
-        priceDirection: boolean,
-    ): Promise<Q96>{
-        const pools = await this.getPool(methodContext, poolID);
-        if (pools == null) {
-            throw new Error();
-        }
-        const q96SqrtPrice = bytesToQ96(pools.sqrtPrice);
-        if (priceDirection) {
-            return q96SqrtPrice;
-        }
-        return invQ96(q96SqrtPrice);
-    };
+		poolID: PoolID,
+	): Promise<PoolsStoreData> {
+		const poolsStore = this.stores.get(PoolsStore);
+		const key = await poolsStore.getKey(methodContext, [poolID]);
+		return key;
+	};
 
-    public async getDexGlobalData (
-        methodContext: ModuleEndpointContext,
-    ): Promise<DexGlobalStoreData>{
-        const dexGlobalStore = this.stores.get(DexGlobalStore);
-        return dexGlobalStore.get(methodContext, Buffer.from([]));
-    };
-
-    public async getPosition(
+	public async getCurrentSqrtPrice(
 		methodContext: ModuleEndpointContext,
-        positionID: PositionID,
-        positionIdsList: PositionID[],
-    ): Promise<PositionsStoreData>{
-        if (positionIdsList.includes(positionID)) {
-            throw new Error();
-        }
-        const positionsStore = this.stores.get(PositionsStore);
-        const positionStoreData = await positionsStore.get(methodContext, positionID);
-        return positionStoreData;
-    };
-    
-    public async getTickWithTickId(
+		poolID: PoolID,
+		priceDirection: boolean,
+	): Promise<Q96> {
+		const pools = await this.getPool(methodContext, poolID);
+		if (pools == null) {
+			throw new Error();
+		}
+		const q96SqrtPrice = bytesToQ96(pools.sqrtPrice);
+		if (priceDirection) {
+			return q96SqrtPrice;
+		}
+		return invQ96(q96SqrtPrice);
+	};
+
+	public async getDexGlobalData(
+		methodContext: ModuleEndpointContext,
+	): Promise<DexGlobalStoreData> {
+		const dexGlobalStore = this.stores.get(DexGlobalStore);
+		return dexGlobalStore.get(methodContext, Buffer.from([]));
+	};
+
+	public async getPosition(
+		methodContext: ModuleEndpointContext,
+		positionID: PositionID,
+		positionIdsList: PositionID[],
+	): Promise<PositionsStoreData> {
+		if (positionIdsList.includes(positionID)) {
+			throw new Error();
+		}
+		const positionsStore = this.stores.get(PositionsStore);
+		const positionStoreData = await positionsStore.get(methodContext, positionID);
+		return positionStoreData;
+	};
+
+	public async getTickWithTickId(
 		methodContext: ModuleEndpointContext,
 		tickId: TickID[],
 	): Promise<PriceTicksStoreData> {
@@ -284,4 +286,85 @@ export class DexEndpoint extends BaseEndpoint {
 		});
 		return result;
 	}
+
+	public async dryRunSwapExactIn(
+		methodContext: MethodContext,
+		moduleEndpointContext: ModuleEndpointContext,
+		stores: NamedRegistry,
+		tokenIdIn: TokenID,
+		amountIn: bigint,
+		tokenIdOut: TokenID,
+		minAmountOut: bigint,
+		swapRoute: PoolID[],
+	) {
+		let zeroToOne = false;
+		let IdOut: TokenID = tokenIdIn;
+		const tokens = [{ id: tokenIdIn, amount: amountIn }];
+		const fees = [{}];
+		let amountOut: bigint;
+		let feesIn: bigint;
+		let feesOut: bigint;
+		let priceBefore: bigint;
+		let newAmountIn = BigInt(0);
+
+		if (tokenIdIn === tokenIdOut || swapRoute.length === 0 || swapRoute.length > MAX_HOPS_SWAP) {
+			throw new Error('Invalid parameters');
+		}
+		try {
+			priceBefore = await computeCurrentPrice(
+				methodContext,
+				stores,
+				tokenIdIn,
+				tokenIdOut,
+				swapRoute,
+			);
+		} catch (error) {
+			throw new Error('Invalid swap route');
+		}
+
+		for (const poolId of swapRoute) {
+			const currentTokenIn = tokens[-1];
+
+			if (getToken0Id(poolId).equals(currentTokenIn.id)) {
+				zeroToOne = true;
+				IdOut = getToken1Id(poolId);
+			} else if (getToken1Id(poolId).equals(currentTokenIn.id)) {
+				zeroToOne = false;
+				IdOut = getToken0Id(poolId);
+			}
+			const sqrtLimitPrice = zeroToOne ? MIN_SQRT_RATIO : MAX_SQRT_RATIO;
+			const currentHeight = 10;
+			try {
+				[newAmountIn, amountOut, feesIn, feesOut] = await swap(
+					moduleEndpointContext,
+					methodContext,
+					stores,
+					poolId,
+					zeroToOne,
+					sqrtLimitPrice,
+					currentTokenIn.amount,
+					false,
+					currentHeight,
+					tokenIdIn,
+					tokenIdOut,
+				);
+			} catch (error) {
+				throw new Error('Crossed too many ticks');
+			}
+			tokens.push({ id: IdOut, amount: amountOut });
+			fees.push({ in: feesIn, out: feesOut });
+		}
+
+		if (tokens[-1].amount < minAmountOut) {
+			throw new Error('Too low output amount');
+		}
+		const priceAfter = await computeCurrentPrice(
+			methodContext,
+			stores,
+			tokenIdIn,
+			tokenIdOut,
+			swapRoute,
+		);
+		return [newAmountIn, tokens[-1].amount, priceBefore, priceAfter];
+	};
 }

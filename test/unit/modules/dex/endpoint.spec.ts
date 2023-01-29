@@ -63,11 +63,11 @@ describe('dex: offChainEndpointFunctions', () => {
 
 	let stateStore: PrefixedStateReadWriter;
 	stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-	
+
 	const moduleEndpointContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: { address: INVALID_ADDRESS },
-			});
+		stateStore,
+		params: { address: INVALID_ADDRESS },
+	});
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
@@ -293,7 +293,7 @@ describe('dex: offChainEndpointFunctions', () => {
 			await positionsStore.set(methodContext, newPositionId, positionsStoreData);
 			await positionsStore.setKey(methodContext, [newPositionId], positionsStoreData);
 			await endpoint.getPosition(moduleEndpointContext, newPositionId, positionIdsList).then(res => {
-				expect(res).not.toBeNull(); 
+				expect(res).not.toBeNull();
 			});
 		});
 
@@ -366,5 +366,39 @@ describe('dex: offChainEndpointFunctions', () => {
 			});
 			expect(ifKeyExists).toBe(true);
 		});
+
+		it('dryRunSwapExactIn', async () => {
+			const amountIn = BigInt(50);
+			const minAmountOut = BigInt(10);
+			console.log("111");
+			const checkPriceBefore = await computeCurrentPrice(
+				methodContext,
+				dexModule.stores,
+				token0Id,
+				token1Id,
+				[poolId]
+			);
+			console.log("checkPriceBefore: ", checkPriceBefore);
+			const result = await dryRunSwapExactIn(
+				methodContext,
+				moduleEndpointContext,
+				dexModule.stores,
+				token0Id,
+				amountIn,
+				token1Id,
+				minAmountOut,
+				[poolId]
+			);
+			const checkPriceAfter = await computeCurrentPrice(
+				methodContext,
+				dexModule.stores,
+				token0Id,
+				token1Id,
+				[poolId]
+			);
+
+			expect(result[2]).toEqual(checkPriceBefore);
+			expect(result[3]).toEqual(checkPriceAfter);
+		})
 	});
 });
