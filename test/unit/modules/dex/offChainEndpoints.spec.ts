@@ -44,17 +44,14 @@ import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGl
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
-import { TokenID } from '../../../../src/app/modules/dex/types';
 import {
 	getAllPositionIDsInPool,
 	getAllTickIDsInPool,
 	getAllTokenIDs,
 	getCurrentSqrtPrice,
 	getPoolIDFromTickID,
-	dryRunSwapExactIn
 } from '../../../../src/app/modules/dex/utils/offChainEndpoints';
-import { computeCurrentPrice, getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
-import { createTransientModuleEndpointContext } from "../../../context/createContext";
+import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 describe('dex:offChainEndpointFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
@@ -65,20 +62,11 @@ describe('dex:offChainEndpointFunctions', () => {
 	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
 	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
-	const INVALID_ADDRESS = '1234';
-
-	const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
-	const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
 		stateStore,
 		eventQueue: new EventQueue(0),
-	});
-
-	const moduleEndpointContext = createTransientModuleEndpointContext({
-		stateStore,
-		params: { address: INVALID_ADDRESS },
 	});
 
 	let poolsStore: PoolsStore;

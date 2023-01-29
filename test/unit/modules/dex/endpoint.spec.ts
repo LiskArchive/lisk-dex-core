@@ -48,6 +48,7 @@ import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/a
 import { DexEndpoint } from '../../../../src/app/modules/dex/endpoint';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
+import { dryRunSwapExactIn } from '../../../../src/app/modules/dex/endpoint';
 
 describe('dex: offChainEndpointFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');

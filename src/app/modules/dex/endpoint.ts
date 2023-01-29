@@ -28,7 +28,7 @@ import {
 	getToken1Id,
 	poolIdToAddress,
 } from './utils/auxiliaryFunctions';
-import { computeCurrentPrice } from './utils/swapFunctions';
+import { computeCurrentPrice, swap } from './utils/swapFunctions';
 import { PoolsStoreData } from './stores/poolsStore';
 import { addQ96, bytesToQ96, divQ96, invQ96, roundDownQ96, mulQ96 } from './utils/q96';
 import { DexGlobalStore, DexGlobalStoreData } from './stores/dexGlobalStore';
