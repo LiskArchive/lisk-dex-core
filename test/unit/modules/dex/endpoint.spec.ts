@@ -24,7 +24,7 @@ import {
 	PriceTicksStore,
 	SettingsStore,
 } from '../../../../src/app/modules/dex/stores';
-import { Address, PoolID, PositionID } from '../../../../src/app/modules/dex/types';
+import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
 
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
@@ -45,10 +45,10 @@ import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/posit
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
+import { computeCurrentPrice } from '../../../../src/app/modules/dex/utils/swapFunctions';
 import { DexEndpoint } from '../../../../src/app/modules/dex/endpoint';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
-import { dryRunSwapExactIn } from '../../../../src/app/modules/dex/endpoint';
 
 describe('dex: offChainEndpointFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
@@ -57,6 +57,8 @@ describe('dex: offChainEndpointFunctions', () => {
 	const dexModule = new DexModule();
 	const feeTier = Number('0x00000c8');
 	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
+	const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
+	const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
 
 	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
@@ -371,16 +373,14 @@ describe('dex: offChainEndpointFunctions', () => {
 		it('dryRunSwapExactIn', async () => {
 			const amountIn = BigInt(50);
 			const minAmountOut = BigInt(10);
-			console.log("111");
 			const checkPriceBefore = await computeCurrentPrice(
-				methodContext,
+				moduleEndpointContext,
 				dexModule.stores,
 				token0Id,
 				token1Id,
 				[poolId]
 			);
-			console.log("checkPriceBefore: ", checkPriceBefore);
-			const result = await dryRunSwapExactIn(
+			const result = await endpoint.dryRunSwapExactIn(
 				methodContext,
 				moduleEndpointContext,
 				dexModule.stores,
@@ -391,7 +391,7 @@ describe('dex: offChainEndpointFunctions', () => {
 				[poolId]
 			);
 			const checkPriceAfter = await computeCurrentPrice(
-				methodContext,
+				moduleEndpointContext,
 				dexModule.stores,
 				token0Id,
 				token1Id,
