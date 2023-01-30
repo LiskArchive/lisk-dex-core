@@ -16,23 +16,53 @@ import {
 	BaseModule,
 	PoSModule,
 	TokenModule,
+	GenesisBlockExecuteContext,
+	testing,
+	cryptography
 } from 'lisk-sdk';
+
+import { IndexStore } from '../../../../src/app/modules/dexGovernance/stores';
+
 import { DexGovernanceModule } from '../../../../src/app/modules/dexGovernance/module';
 import { DexGovernanceEndpoint } from '../../../../src/app/modules/dexGovernance/endpoint';
+import { GenesisBlockContext } from 'lisk-framework/dist-node/state_machine/';
+import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
+import { EventQueue } from 'lisk-framework/dist-node/state_machine';
+import { loggerMock } from 'lisk-framework/dist-node/testing/mocks';
 
+import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import { MODULE_NAME_DEX_GOVERNANCE } from '../../../../src/app/modules/dexGovernance/constants';
 
 import { DexGovernanceMethod } from '../../../../src/app/modules/dexGovernance/method';
+
+const { createBlockHeaderWithDefaults } = testing;
+const { utils } = cryptography;
 
 describe('DexGovernanceModule', () => {
 	let dexGovernanceModule: DexGovernanceModule;
 	let tokenModule: TokenModule;
 	let posModule: PoSModule;
+	let geneSisBlockContext: GenesisBlockContext;
+
+	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
+	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
+	const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
+
+	geneSisBlockContext = new GenesisBlockContext({
+		logger: loggerMock,
+		stateStore,
+		header: blockHeader,
+		assets: { getAsset: jest.fn() },
+		eventQueue: new EventQueue(0),
+		chainID: utils.getRandomBytes(32)
+	});
+	const genesisBlockExecuteContext: GenesisBlockExecuteContext = geneSisBlockContext.createInitGenesisStateContext();
 
 	beforeEach(() => {
 		dexGovernanceModule = new DexGovernanceModule();
 		tokenModule = new TokenModule();
 		posModule = new PoSModule();
+
 
 		tokenModule.method.mint = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.lock = jest.fn().mockImplementation(async () => Promise.resolve());
@@ -63,11 +93,14 @@ describe('DexGovernanceModule', () => {
 		});
 
 		it('initGenesisState', async () => {
-
+			await dexGovernanceModule.initGenesisState(genesisBlockExecuteContext);
+			const indexStore: IndexStore = dexGovernanceModule.stores.get(IndexStore);
+			const indexStoreData = await indexStore.get(genesisBlockExecuteContext, Buffer.alloc(0));
+			console.log("spec indexStoreData: ", indexStoreData);
 		});
 
 		it('verifyGenesisBlock', () => {
-
+			dexGovernanceModule.verifyGenesisBlock(genesisBlockExecuteContext);
 		});
 	});
 });

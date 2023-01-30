@@ -35,7 +35,7 @@ import {
 import { DexGovernanceMethod } from './method';
 import { genesisDEXGovernanceSchema } from './schemas';
 import { IndexStore, ProposalsStore, VotesStore } from './stores';
-import { Proposal, Vote, GenesisDEXGovernanceData } from './types';
+import { Proposal, Vote, GenesisDEXGovernanceData, Index } from './types';
 import {
 	PROPOSAL_TYPE_INCENTIVIZATION,
 	PROPOSAL_TYPE_UNIVERSAL,
@@ -159,11 +159,13 @@ export class DexGovernanceModule extends BaseModule {
 			}
 		}
 
-		const indexStoreData = {
+		const indexStoreData: Index = {
 			newestIndex: newestIndex,
 			nextOutcomeCheckIndex: nextoutcomeCheckIndex,
 			nextQuorumCheckIndex: nextQuorumCheckIndex,
 		};
+
+		console.log("indexStoreData: ", indexStoreData);
 
 		await indexStore.set(context, Buffer.alloc(0), indexStoreData);
 	}
