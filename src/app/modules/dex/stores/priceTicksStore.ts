@@ -114,7 +114,7 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 		});
 	}
 
-	public async getNextTick(context: StoreGetter, keys: Buffer[]) {
+	public async getNextTick(context: ModuleEndpointContext, keys: Buffer[]) {
 		const key = Buffer.concat(keys);
 		let nextTick;
 		let nextflag;
@@ -149,6 +149,9 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 		});
 
 		for (let i = 0; i < allKeys.length; i++) {
+
+			
+
 			if (allKeys[i].key.equals(key)) {
 				prevflag = true;
 			}
