@@ -35,7 +35,7 @@ import {
 import { DexGovernanceMethod } from './method';
 import { genesisDEXGovernanceSchema } from './schemas';
 import { IndexStore, ProposalsStore, VotesStore } from './stores';
-import { Proposal, Vote, GenesisDEXGovernanceData, Index } from './types';
+import { Proposal, Vote, GenesisDEXGovernanceData } from './types';
 import {
 	PROPOSAL_TYPE_INCENTIVIZATION,
 	PROPOSAL_TYPE_UNIVERSAL,
@@ -46,6 +46,7 @@ import {
 	VOTE_DURATION,
 	QUORUM_DURATION,
 } from './constants';
+import { IndexStoreData } from './stores/indexStore';
 
 export class DexGovernanceModule extends BaseModule {
 	public endpoint = new DexGovernanceEndpoint(this.stores, this.offchainStores);
@@ -159,7 +160,7 @@ export class DexGovernanceModule extends BaseModule {
 			}
 		}
 
-		const indexStoreData: Index = {
+		const indexStoreData: IndexStoreData = {
 			newestIndex: newestIndex,
 			nextOutcomeCheckIndex: nextoutcomeCheckIndex,
 			nextQuorumCheckIndex: nextQuorumCheckIndex,
@@ -167,7 +168,7 @@ export class DexGovernanceModule extends BaseModule {
 
 		console.log("indexStoreData: ", indexStoreData);
 
-		await indexStore.set(context, Buffer.alloc(0), indexStoreData);
+		await indexStore.set(context,  Buffer.from([]), indexStoreData);
 	}
 
 	public verifyGenesisBlock(context: GenesisBlockExecuteContext) {

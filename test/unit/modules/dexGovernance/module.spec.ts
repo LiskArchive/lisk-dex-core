@@ -95,7 +95,7 @@ describe('DexGovernanceModule', () => {
 		it('initGenesisState', async () => {
 			await dexGovernanceModule.initGenesisState(genesisBlockExecuteContext);
 			const indexStore = dexGovernanceModule.stores.get(IndexStore);
-			const indexStoreData = await indexStore.get(genesisBlockExecuteContext, Buffer.alloc(0));
+			const indexStoreData = await indexStore.get(genesisBlockExecuteContext,  Buffer.from([]));
 			console.log("spec indexStoreData: ", indexStoreData);
 		});
 
