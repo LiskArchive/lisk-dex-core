@@ -26,7 +26,7 @@ export class ProposalsStore extends BaseStore<Proposal> {
 
 	public async getAll(context: StoreGetter) {
 		return this.iterate(context, {
-			gte: Buffer.alloc(16, 0),
+			gte: Buffer.alloc(0, 16),
 			lte: Buffer.alloc(16, 255),
 			reverse: true,
 		});

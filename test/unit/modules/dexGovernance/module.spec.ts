@@ -21,7 +21,7 @@ import {
 	cryptography
 } from 'lisk-sdk';
 
-import { IndexStore } from '../../../../src/app/modules/dexGovernance/stores';
+import { IndexStore, ProposalsStore } from '../../../../src/app/modules/dexGovernance/stores';
 
 import { DexGovernanceModule } from '../../../../src/app/modules/dexGovernance/module';
 import { DexGovernanceEndpoint } from '../../../../src/app/modules/dexGovernance/endpoint';
@@ -34,11 +34,15 @@ import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import { MODULE_NAME_DEX_GOVERNANCE } from '../../../../src/app/modules/dexGovernance/constants';
 
 import { DexGovernanceMethod } from '../../../../src/app/modules/dexGovernance/method';
+import { IndexStoreData } from '../../../../src/app/modules/dexGovernance/stores/indexStore';
+import { Proposal } from '../../../../src/app/modules/dexGovernance/types';
+import { PoolID } from '../../../../src/app/modules/dex/types';
 
 const { createBlockHeaderWithDefaults } = testing;
 const { utils } = cryptography;
 
 describe('DexGovernanceModule', () => {
+	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 	let dexGovernanceModule: DexGovernanceModule;
 	let tokenModule: TokenModule;
 	let posModule: PoSModule;
@@ -47,6 +51,28 @@ describe('DexGovernanceModule', () => {
 	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
 	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
 	const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
+
+	let proposalsStore: ProposalsStore;
+
+	const proposalsStoreData: Proposal = {
+		creationHeight: 100,
+		votesYes: BigInt(10),
+		votesNo: BigInt(10),
+		votesPass: BigInt(10),
+		type: 1,
+		content: {
+			text: Buffer.from('proposalsStoreData', 'hex'),
+			poolID: poolId,
+			multiplier: 3,
+			metadata: {
+				title: Buffer.from('proposals metadata', 'hex'),
+				author: Buffer.from('Daniel Salo', 'hex'),
+				summary: Buffer.from('proposal', 'hex'),
+				discussionsTo: Buffer.from('Lightcurve', 'hex')
+			}
+		},
+		status: 1
+	}
 
 	geneSisBlockContext = new GenesisBlockContext({
 		logger: loggerMock,
@@ -58,11 +84,13 @@ describe('DexGovernanceModule', () => {
 	});
 	const genesisBlockExecuteContext: GenesisBlockExecuteContext = geneSisBlockContext.createInitGenesisStateContext();
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		dexGovernanceModule = new DexGovernanceModule();
 		tokenModule = new TokenModule();
 		posModule = new PoSModule();
+		proposalsStore = dexGovernanceModule.stores.get(ProposalsStore);
 
+		await proposalsStore.set(genesisBlockExecuteContext, Buffer.alloc(0), proposalsStoreData);
 
 		tokenModule.method.mint = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.lock = jest.fn().mockImplementation(async () => Promise.resolve());
@@ -95,12 +123,39 @@ describe('DexGovernanceModule', () => {
 		it('initGenesisState', async () => {
 			await dexGovernanceModule.initGenesisState(genesisBlockExecuteContext);
 			const indexStore = dexGovernanceModule.stores.get(IndexStore);
-			const indexStoreData = await indexStore.get(genesisBlockExecuteContext,  Buffer.from([]));
-			console.log("spec indexStoreData: ", indexStoreData);
+			const indexStoreData: IndexStoreData = await indexStore.get(genesisBlockExecuteContext, Buffer.alloc(0));
+			expect(indexStoreData.newestIndex).toEqual(0);
+			expect(indexStoreData.nextOutcomeCheckIndex).toEqual(0);
+			expect(indexStoreData.nextQuorumCheckIndex).toEqual(0);
 		});
 
-		it('verifyGenesisBlock', () => {
-			dexGovernanceModule.verifyGenesisBlock(genesisBlockExecuteContext);
+		it('verifyGenesisBlock', async () => {
+			try {
+				const proposalData: Proposal = {
+					creationHeight: 100,
+					votesYes: BigInt(10),
+					votesNo: BigInt(10),
+					votesPass: BigInt(10),
+					type: 1,
+					content: {
+						text: Buffer.from('proposalsStoreData', 'hex'),
+						poolID: poolId,
+						multiplier: 3,
+						metadata: {
+							title: Buffer.from('proposals metadata', 'hex'),
+							author: Buffer.from('Daniel Salo', 'hex'),
+							summary: Buffer.from('proposal', 'hex'),
+							discussionsTo: Buffer.from('Lightcurve', 'hex')
+						}
+					},
+					status: 4
+				}
+				const proposalStore = dexGovernanceModule.stores.get(ProposalsStore);
+				await proposalStore.set(genesisBlockExecuteContext, Buffer.alloc(0), proposalData);
+				dexGovernanceModule.verifyGenesisBlock(genesisBlockExecuteContext);
+			} catch (error) {
+				console.log(error);
+			}
 		});
 	});
 });

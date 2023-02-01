@@ -112,8 +112,6 @@ export class DexGovernanceModule extends BaseModule {
 	public async initGenesisState(context: GenesisBlockExecuteContext) {
 		this.verifyGenesisBlock(context);
 
-		// const proposalsStore: Proposal[] = genesisData.proposalsStore;
-		// const votesStore: Vote[] = genesisData.votesStore;
 		const proposalsStore = await this.stores.get(ProposalsStore);
 		const votesStore = await this.stores.get(VotesStore);
 		const proposalsData = await proposalsStore.getAll(context);
@@ -166,9 +164,7 @@ export class DexGovernanceModule extends BaseModule {
 			nextQuorumCheckIndex: nextQuorumCheckIndex,
 		};
 
-		console.log("indexStoreData: ", indexStoreData);
-
-		await indexStore.set(context,  Buffer.from([]), indexStoreData);
+		await indexStore.set(context, Buffer.from([]), indexStoreData);
 	}
 
 	public verifyGenesisBlock(context: GenesisBlockExecuteContext) {
