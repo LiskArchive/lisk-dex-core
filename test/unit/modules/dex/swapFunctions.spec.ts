@@ -76,7 +76,7 @@ describe('dex:swapFunctions', () => {
 	});
 
 	const poolsStoreData: PoolsStoreData = {
-		liquidity: BigInt(5000),
+		liquidity: BigInt(50000),
 		sqrtPrice: q96ToBytes(BigInt(tickToPrice(5))),
 		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(10))),
 		heightIncentivesUpdate: 5,
@@ -194,6 +194,14 @@ describe('dex:swapFunctions', () => {
 				[currentTickID],
 				priceTicksStoreDataTickUpper,
 			);
+
+			await priceTicksStore.setKey(
+				methodContext,
+				[Buffer.from('000000000000000000000000000000000000000000000006','hex')],
+				priceTicksStoreDataTickUpper,
+			);
+
+
 			q96ToBytes(BigInt(currentTick))
 			console.log(await swap(moduleEndpointContext, methodContext, dexModule.stores, poolId, true, sqrtLimitPrice, BigInt(5), false, 10, token0Id, token1Id))
 		});

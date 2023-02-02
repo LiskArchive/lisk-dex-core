@@ -115,56 +115,51 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 	}
 
 	public async getNextTick(context: ModuleEndpointContext, keys: Buffer[]) {
-		const key = Buffer.concat(keys);
-		let nextTick;
-		let nextflag;
+		const key = Buffer.concat(keys)
+		const keysArray:string[] = []; 
 		const allKeys = await this.iterate(context, {
 			gte: Buffer.alloc(16, 0),
 			lte: Buffer.alloc(16, 255),
 			reverse: false,
 		});
-		for (let i = 0; i < allKeys.length; i++) {
-			if (nextflag) {
-				nextTick = allKeys[i].key;
-				break;
-			}
-			if (allKeys[i].key.equals(key)) {
-				nextflag = true;
-			}
+		allKeys.forEach(key =>{
+			keysArray.push(key.key.toString('hex'));
+		});
+
+		const currentKeyIndex = keysArray.indexOf(key.toString('hex'),0)
+
+		if(currentKeyIndex<keysArray.length-1){
+			const prevKey = Buffer.from(keysArray[currentKeyIndex+1], 'hex');
+			const resKey = await this.getKey(context, [prevKey]);
+			return resKey 
+		}else{
+			const resKey = await this.getKey(context, keys);
+			return resKey
 		}
-		if (nextflag == false) {
-			throw new Error("the specified current tick doesnot exist in the pool");
-		}
-		return this.getKey(context, [nextTick]);
 	}
 
 	public async getPrevTick(context: ModuleEndpointContext, keys: Buffer[]) {
-		const key = Buffer.concat(keys);
-		let prevTick;
-		let prevflag = false;
+		const key = Buffer.concat(keys)
+		const keysArray:string[] = []; 
 		const allKeys = await this.iterate(context, {
 			gte: Buffer.alloc(16, 0),
 			lte: Buffer.alloc(16, 255),
 			reverse: false,
 		});
+		allKeys.forEach(key =>{
+			keysArray.push(key.key.toString('hex'));
+		});
 
-		for (let i = 0; i < allKeys.length; i++) {
+		const currentKeyIndex = keysArray.indexOf(key.toString('hex'),0)
 
-			
-
-			if (allKeys[i].key.equals(key)) {
-				prevflag = true;
-			}
-			if (prevflag == true) {
-				prevTick = allKeys[i].key;
-				break;
-			}
+		if(currentKeyIndex>0){
+			const prevKey = Buffer.from(keysArray[currentKeyIndex-1], 'hex');
+			const resKey = await this.getKey(context, [prevKey]);
+			return resKey 
+		}else{
+			const resKey = await this.getKey(context, keys);
+			return resKey
 		}
-		if (prevflag == false) {
-			throw new Error("the specified current tick doesnot exist in the pool");
-		}
-		console.log("prevTick: ", prevTick);
-		const resKey = await this.getKey(context, [prevTick]);
-		return resKey
+		
 	}
 }
