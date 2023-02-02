@@ -46,7 +46,7 @@ describe('DexGovernanceModule', () => {
 	let dexGovernanceModule: DexGovernanceModule;
 	let tokenModule: TokenModule;
 	let posModule: PoSModule;
-	let geneSisBlockContext: GenesisBlockContext;
+	let genesisBlockContext: GenesisBlockContext;
 
 	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
 	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
@@ -74,15 +74,18 @@ describe('DexGovernanceModule', () => {
 		status: 1
 	}
 
-	geneSisBlockContext = new GenesisBlockContext({
+	const getAsset = jest.fn((moduleName) => Buffer.from(moduleName) || Buffer.from("dexGovernance"));
+
+	genesisBlockContext = new GenesisBlockContext({
 		logger: loggerMock,
 		stateStore,
 		header: blockHeader,
-		assets: { getAsset: jest.fn() },
+		assets: { getAsset: getAsset },
 		eventQueue: new EventQueue(0),
 		chainID: utils.getRandomBytes(32)
 	});
-	const genesisBlockExecuteContext: GenesisBlockExecuteContext = geneSisBlockContext.createInitGenesisStateContext();
+
+	const genesisBlockExecuteContext: GenesisBlockExecuteContext = genesisBlockContext.createInitGenesisStateContext();
 
 	beforeEach(async () => {
 		dexGovernanceModule = new DexGovernanceModule();
@@ -130,32 +133,33 @@ describe('DexGovernanceModule', () => {
 		});
 
 		it('verifyGenesisBlock', async () => {
-			try {
-				const proposalData: Proposal = {
-					creationHeight: 100,
-					votesYes: BigInt(10),
-					votesNo: BigInt(10),
-					votesPass: BigInt(10),
-					type: 1,
-					content: {
-						text: Buffer.from('proposalsStoreData', 'hex'),
-						poolID: poolId,
-						multiplier: 3,
-						metadata: {
-							title: Buffer.from('proposals metadata', 'hex'),
-							author: Buffer.from('Daniel Salo', 'hex'),
-							summary: Buffer.from('proposal', 'hex'),
-							discussionsTo: Buffer.from('Lightcurve', 'hex')
-						}
-					},
-					status: 4
-				}
-				const proposalStore = dexGovernanceModule.stores.get(ProposalsStore);
-				await proposalStore.set(genesisBlockExecuteContext, Buffer.alloc(0), proposalData);
-				dexGovernanceModule.verifyGenesisBlock(genesisBlockExecuteContext);
-			} catch (error) {
-				console.log(error);
+			console.log(genesisBlockExecuteContext.assets.getAsset("aaaaaaa"));
+			console.log(getAsset("qweqweqweqweqweqweqwe"));
+			console.log("sdfsdfsdfsdfsdfsdfsdfs");
+			const proposalData: Proposal = {
+				creationHeight: 100,
+				votesYes: BigInt(10),
+				votesNo: BigInt(10),
+				votesPass: BigInt(10),
+				type: 1,
+				content: {
+					text: Buffer.from('proposalsStoreData', 'hex'),
+					poolID: poolId,
+					multiplier: 3,
+					metadata: {
+						title: Buffer.from('proposals metadata', 'hex'),
+						author: Buffer.from('Daniel Salo', 'hex'),
+						summary: Buffer.from('proposal', 'hex'),
+						discussionsTo: Buffer.from('Lightcurve', 'hex')
+					}
+				},
+				status: 4
 			}
+			const proposalStore = dexGovernanceModule.stores.get(ProposalsStore);
+			await proposalStore.set(genesisBlockExecuteContext, Buffer.alloc(0), proposalData);
+			const result = genesisBlockExecuteContext.assets.getAsset("dexGovernance");
+			console.log("result: ", result);
+			expect(() => dexGovernanceModule.verifyGenesisBlock(genesisBlockExecuteContext)).toThrow(Error("Invalid proposal status"));
 		});
 	});
 });
