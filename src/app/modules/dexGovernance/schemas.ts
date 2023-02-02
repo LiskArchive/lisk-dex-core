@@ -20,7 +20,7 @@ import {
 	MAX_LENGTH_METADATA_SUMMARY,
 	MAX_LENGTH_METADATA_LINK,
 	MAX_NUMBER_LIVE_PROPOSALS,
-	LENGTH_ADDRESS,
+	// LENGTH_ADDRESS,
 } from './constants';
 
 export const proposalContentSchema = {
@@ -161,7 +161,7 @@ export const genesisDEXGovernanceSchema = {
 				properties: {
 					address: {
 						dataType: 'bytes',
-						length: LENGTH_ADDRESS,
+						// length: LENGTH_ADDRESS,
 						fieldNumber: 1,
 					},
 					votes: {

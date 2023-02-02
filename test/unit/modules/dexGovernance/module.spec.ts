@@ -74,7 +74,7 @@ describe('DexGovernanceModule', () => {
 		status: 1
 	}
 
-	const getAsset = jest.fn((moduleName) => Buffer.from(moduleName) || Buffer.from("dexGovernance"));
+	const getAsset = jest.fn();
 
 	genesisBlockContext = new GenesisBlockContext({
 		logger: loggerMock,
@@ -86,6 +86,7 @@ describe('DexGovernanceModule', () => {
 	});
 
 	const genesisBlockExecuteContext: GenesisBlockExecuteContext = genesisBlockContext.createInitGenesisStateContext();
+	genesisBlockExecuteContext.assets.getAsset = getAsset;
 
 	beforeEach(async () => {
 		dexGovernanceModule = new DexGovernanceModule();
@@ -133,9 +134,7 @@ describe('DexGovernanceModule', () => {
 		});
 
 		it('verifyGenesisBlock', async () => {
-			console.log(genesisBlockExecuteContext.assets.getAsset("aaaaaaa"));
-			console.log(getAsset("qweqweqweqweqweqweqwe"));
-			console.log("sdfsdfsdfsdfsdfsdfsdfs");
+			getAsset.mockImplementation(m => Buffer.from(m));
 			const proposalData: Proposal = {
 				creationHeight: 100,
 				votesYes: BigInt(10),
@@ -157,8 +156,7 @@ describe('DexGovernanceModule', () => {
 			}
 			const proposalStore = dexGovernanceModule.stores.get(ProposalsStore);
 			await proposalStore.set(genesisBlockExecuteContext, Buffer.alloc(0), proposalData);
-			const result = genesisBlockExecuteContext.assets.getAsset("dexGovernance");
-			console.log("result: ", result);
+			// const result = genesisBlockExecuteContext.assets.getAsset("dexGovernance");
 			expect(() => dexGovernanceModule.verifyGenesisBlock(genesisBlockExecuteContext)).toThrow(Error("Invalid proposal status"));
 		});
 	});
