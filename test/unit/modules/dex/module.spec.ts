@@ -80,7 +80,7 @@ describe('DexModule', () => {
 	});
 
 	describe('initGenesisState', () => {
-		it('should setup initial state', async () => {
+		it('should setup initial state', () => {
 			const context = createGenesisBlockContext({}).createInitGenesisStateContext();
 			return expect(dexModule.initGenesisState?.(context)).toBeUndefined();
 		});

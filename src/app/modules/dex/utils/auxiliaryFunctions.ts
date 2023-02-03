@@ -980,6 +980,7 @@ export const getCredibleDirectPrice = async (
 	const allpoolIDs = await endpoint.getAllPoolIDs(methodContext, stores.get(PoolsStore));
 
 	const tokenIDArrays = [tokenID0, tokenID1];
+	// eslint-disable-next-line @typescript-eslint/require-array-sort-compare, no-param-reassign
 	[tokenID0, tokenID1] = tokenIDArrays.sort();
 	const concatedTokenIDs = Buffer.concat([tokenID0, tokenID1]);
 
@@ -998,7 +999,6 @@ export const getCredibleDirectPrice = async (
 	});
 
 	if (directPools.length === 0) {
-		console.log(allpoolIDs)
 		throw new Error('No direct pool between given tokens');
 	}
 
