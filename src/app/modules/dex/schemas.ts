@@ -500,7 +500,8 @@ export const getAllTokenIdsRequestSchema = {
 			},
 		},
 	},
-};
+}
+}
 
 //no requestParams for getAllTokenIds so no requestSchema 
 
@@ -538,16 +539,6 @@ export const getAllPositionIDsInPoolRequestSchema = {
 		positionIdsList: {
 			type: 'array',
 			fieldNumber: 2,
-			items: {
-				type: 'object',
-				required: ['positionID'],
-				properties: {
-					positionID: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					},
-				},
-			},
 		},
 	},
 };

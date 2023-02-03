@@ -12,9 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { getAllPositionIDsInPoolRequestSchema } from './schemas';
-import { PoolsStore } from './stores';
-import { PoolID, PositionID, TokenID } from './types';
-import { getPoolIDFromPositionID, getToken0Id, getToken1Id } from './utils/auxiliaryFunctions';
+
 import { validator } from '@liskhq/lisk-validator';
 import { BaseEndpoint, ModuleEndpointContext, TokenMethod } from 'lisk-sdk';
 
