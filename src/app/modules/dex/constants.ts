@@ -12,10 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-<<<<<<< HEAD
 import { sha256 } from '../dexRewards/constants';
-=======
->>>>>>> 38078b5 (did the npm run format)
 import { Q96 } from './types';
 
 export const NUM_BYTES_ADDRESS = 20; // The number of bytes of an address (uint32)
@@ -118,6 +115,7 @@ export const ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES = sha256(
 export const FEE_TIER_PARTITION = 1000000;
 export const ADDRESS_VALIDATOR_INCENTIVES = sha256('validatorIncentivesAccount').slice(0, 20);
 export const VALIDATORS_LSK_INCENTIVE_PART = 20000;
+// Swap Constants
 
 export enum SwapFailedReasons {
 	SWAP_FAILED_INVALID_ROUTE,

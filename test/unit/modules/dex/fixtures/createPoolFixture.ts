@@ -24,7 +24,7 @@ const senderPublicKey = Buffer.from('0000000000000000', 'hex');
 const signature = utils.getRandomBytes(64);
 const tokenID0 = Buffer.from('0100000000', 'hex');
 const tokenID1 = Buffer.from('1000000000', 'hex');
-var randomTokenID: number = 1111111111;
+let randomTokenID = 1111111111;
 
 const commonTransactionAttrs = {
 	module: 'dex',

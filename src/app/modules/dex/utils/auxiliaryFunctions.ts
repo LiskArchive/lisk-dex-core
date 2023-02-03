@@ -104,7 +104,6 @@ import { PositionsStoreData } from '../stores/positionsStore';
 import { updatePoolIncentives } from './tokenEcnomicsFunctions';
 import { DexEndpoint } from '../endpoint';
 import { DexModule } from '../module';
-import { MAX_SINT32 } from '@liskhq/lisk-validator';
 
 const { utils } = cryptography;
 

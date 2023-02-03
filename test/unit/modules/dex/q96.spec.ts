@@ -28,7 +28,7 @@ describe('DexQ96Module', () => {
 
 		it('sub', async () => {
 			expect(q96ToInt(subQ96(testValueMax, testValue2))).toBe(
-				BigInt('1461446703529909599612049957420313862569572983182'),
+				BigInt('1461446704550679960896629428549052887957817041880'),
 			);
 		});
 

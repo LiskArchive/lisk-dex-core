@@ -95,7 +95,6 @@ describe('dex:auxiliaryFunctions', () => {
             feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(0))),
             tickSpacing: 1,
         };
-
         describe('constructor', () => {
             beforeEach(async () => {
                 poolsStore = dexModule.stores.get(PoolsStore);
@@ -104,7 +103,7 @@ describe('dex:auxiliaryFunctions', () => {
             it('raiseSwapException', () => {
                 raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress);
                 const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
-                expect(swapFailedEvent.length).toBe(1);
+                expect(swapFailedEvent).toHaveLength(1);
             });
             it('swapWithin', () => {
                 const [sqrtUpdatedPrice, amountIn, amountOut] = swapWithin(
@@ -123,32 +122,59 @@ describe('dex:auxiliaryFunctions', () => {
                 expect(adjacent).not.toBeNull();
             });
 
-            it('computeCurrentPrice', async () => {
-                const swapRoute = [poolId];
-                const currentPrice = await computeCurrentPrice(
-                    moduleEndpointContext,
-                    dexModule.stores,
-                    token0Id,
-                    token1Id,
-                    swapRoute,
-                );
-                expect(currentPrice).not.toBeNull();
-            });
-            it('constructPoolsGraph', async () => {
-                const poolsGraph = await constructPoolsGraph(moduleEndpointContext, dexModule.stores);
-                const vertices: Buffer[] = [];
-                const edges: Buffer[] = [];
-
-                poolsGraph.vertices.forEach(e => {
-                    vertices.push(e);
+            describe('constructor', () => {
+                beforeEach(async () => {
+                    poolsStore = dexModule.stores.get(PoolsStore);
+                    await poolsStore.setKey(methodContext, [poolId], poolsStoreData);
                 });
-                poolsGraph.edges.forEach(e => {
-                    edges.push(e);
+                it('raiseSwapException', () => {
+                    raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress);
+                    const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
+                    expect(swapFailedEvent.length).toBe(1);
+                });
+                it('swapWithin', () => {
+                    const [sqrtUpdatedPrice, amountIn, amountOut] = swapWithin(
+                        sqrtCurrentPrice,
+                        sqrtTargetPrice,
+                        liquidity,
+                        amountRemaining,
+                        exactInput,
+                    );
+                    expect(sqrtUpdatedPrice).toBe(BigInt(10));
+                    expect(amountIn).toBe(BigInt(1));
+                    expect(amountOut).toBe(BigInt(792281625142643375935439503360));
+                });
+                it('getAdjacent', () => {
+                    const adjacent = getAdjacent(moduleEndpointContext, dexModule.stores, token0Id);
+                    expect(adjacent).not.toBeNull();
                 });
 
-                expect(vertices.filter(vertex => vertex.equals(token0Id))).toHaveLength(1);
-                expect(vertices.filter(vertex => vertex.equals(token1Id))).toHaveLength(1);
-                expect(edges.filter(edge => edge.equals(poolId))).toHaveLength(1);
+                it('computeCurrentPrice', async () => {
+                    const swapRoute = [poolId];
+                    const currentPrice = await computeCurrentPrice(
+                        moduleEndpointContext,
+                        dexModule.stores,
+                        token0Id,
+                        token1Id,
+                        swapRoute,
+                    );
+                    expect(currentPrice).not.toBeNull();
+                });
+                it('constructPoolsGraph', async () => {
+                    const poolsGraph = await constructPoolsGraph(moduleEndpointContext, dexModule.stores);
+                    const vertices: Buffer[] = [];
+                    const edges: Buffer[] = [];
+
+                    poolsGraph.vertices.forEach(e => {
+                        vertices.push(e);
+                    });
+                    poolsGraph.edges.forEach(e => {
+                        edges.push(e);
+                    });
+
+                    expect(vertices.filter(vertex => vertex.equals(token0Id))).toHaveLength(1);
+                    expect(vertices.filter(vertex => vertex.equals(token1Id))).toHaveLength(1);
+                    expect(edges.filter(edge => edge.equals(poolId))).toHaveLength(1);
+                });
             });
         });
-    });
