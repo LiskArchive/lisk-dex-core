@@ -72,7 +72,7 @@ export class DexGovernanceModule extends BaseModule {
 				name: v.name,
 				data: v.schema,
 			})),
-			assets: [],
+			assets: []
 		};
 	}
 

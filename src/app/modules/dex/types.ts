@@ -99,6 +99,8 @@ export type AdjacentEdgesInterface = {
 //Swap Types
 
 //PoolsGraph for Swap types
+// Swap Types
+// PoolsGraph for Swap types
 export type PoolsGraph = {
 	vertices: Set<TokenID>;
 	edges: Set<PoolID>;

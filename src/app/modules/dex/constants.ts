@@ -123,7 +123,7 @@ export const defaultConfig = {
 	},
 };
 
-//Swap Constants
+// Swap Constants
 
 export enum SwapFailedReasons {
 	SWAP_FAILED_INVALID_ROUTE,

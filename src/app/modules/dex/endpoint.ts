@@ -18,6 +18,8 @@ import { PoolsStore, PriceTicksStore } from './stores';
 import { PoolID, PositionID, Q96, TickID, TokenID } from './types';
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { computeExceptionalRoute, computeRegularRoute, getCredibleDirectPrice, getPoolIDFromPositionID, getToken0Id, getToken1Id, poolIdToAddress } from './utils/auxiliaryFunctions';
+
+// eslint-disable-next-line import/no-cycle
 import { PoolsStoreData } from './stores/poolsStore';
 import { bytesToQ96, divQ96, invQ96, mulQ96 } from './utils/q96';
 import { DexGlobalStore, DexGlobalStoreData } from './stores/dexGlobalStore';
@@ -27,7 +29,6 @@ import { uint32beInv } from './utils/bigEndian';
 import { } from 'lisk-sdk';
 
 export class DexEndpoint extends BaseEndpoint {
-
     public async getAllPoolIDs(methodContext: MethodContext,
         poolStore: PoolsStore): Promise<PoolID[]> {
         const poolIds: PoolID[] = [];
@@ -208,4 +209,27 @@ export class DexEndpoint extends BaseEndpoint {
         }
         return price;
     };
+    public async getAllTicks(methodContext: ModuleEndpointContext): Promise<TickID[]> {
+        const tickIds: Buffer[] = [];
+        const priceTicksStore = this.stores.get(PriceTicksStore);
+        const allTickIds = await priceTicksStore.getAll(methodContext);
+        allTickIds.forEach(tickId => {
+            tickIds.push(tickId.key);
+        });
+        return tickIds;
+    }
+
+    public async getAllTickIDsInPool(
+        methodContext: ModuleEndpointContext,
+        poolId: PoolID,
+    ): Promise<TickID[]> {
+        const result: Buffer[] = [];
+        const allTicks = await this.getAllTicks(methodContext);
+        allTicks.forEach(tickID => {
+            if (this.getPoolIDFromTickID(tickID).equals(poolId)) {
+                result.push(tickID);
+            }
+        });
+        return result;
+    }
 }

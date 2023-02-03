@@ -17,8 +17,8 @@
  */
 
 import { MethodContext, TokenMethod } from 'lisk-framework';
-import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_machine';
+import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 
 import {
 	getAllPoolIDs,
@@ -72,6 +72,7 @@ import { PriceTicksStoreData, tickToBytes } from '../../../../src/app/modules/de
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
+import { createTransientModuleEndpointContext } from '../../../context/createContext';
 
 describe('dex:auxiliaryFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
@@ -81,13 +82,9 @@ describe('dex:auxiliaryFunctions', () => {
 	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
 	const sqrtPrice: bigint = numberToQ96(BigInt(1));
 	const dexModule = new DexModule();
-
-	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
-<<<<<<< HEAD
-	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
-=======
 
+	const INVALID_ADDRESS = "1234";
 	let stateStore: PrefixedStateReadWriter;
 	stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
@@ -95,7 +92,6 @@ describe('dex:auxiliaryFunctions', () => {
 		stateStore,
 		params: { address: INVALID_ADDRESS },
 	});
->>>>>>> 38078b5 (did the npm run format)
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
@@ -590,13 +586,9 @@ describe('dex:auxiliaryFunctions', () => {
 
 		it('computeExceptionalRoute should return route with tokenID', async () => {
 			expect(
-<<<<<<< HEAD
-				(await computeExceptionalRoute(methodContext, dexModule.stores, token0Id, token0Id))[0],
-=======
 				(
 					await computeExceptionalRoute(moduleEndpointContext, dexModule.stores, token0Id, token0Id)
 				)[0],
->>>>>>> 38078b5 (did the npm run format)
 			).toStrictEqual(Buffer.from('0000000000000000', 'hex'));
 		});
 

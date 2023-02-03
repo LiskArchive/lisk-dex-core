@@ -16,6 +16,7 @@ import { MethodContext, TokenMethod, codec, cryptography } from 'lisk-sdk';
 
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 
+import { MAX_SINT32 } from '@liskhq/lisk-validator';
 import {
 	DexGlobalStore,
 	PoolsStore,
@@ -70,7 +71,6 @@ import { PoolsStoreData } from '../stores/poolsStore';
 import { PositionsStoreData } from '../stores/positionsStore';
 import { DexEndpoint } from '../endpoint';
 import { DexModule } from '../module';
-import { MAX_SINT32 } from '@liskhq/lisk-validator';
 
 const { utils } = cryptography;
 
