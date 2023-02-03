@@ -107,6 +107,7 @@ export const createPoolFixtures: Fixtures = [
 ];
 
 export const createRandomPoolFixturesGenerator = (): Fixtures => {
+	randomTokenID -= 1
 	return [
 		[
 			'should be successful with random tokenIDs',
@@ -114,8 +115,8 @@ export const createRandomPoolFixturesGenerator = (): Fixtures => {
 				...commonTransactionAttrs,
 				params: codec.encode(createPoolSchema, {
 					...commonParams,
-					tokenID0: Buffer.from((randomTokenID--).toString(), 'hex'),
-					tokenID1: Buffer.from((randomTokenID--).toString(), 'hex'),
+					tokenID0: Buffer.from((randomTokenID).toString(), 'hex'),
+					tokenID1: Buffer.from((randomTokenID).toString(), 'hex'),
 				}),
 			},
 			false,
