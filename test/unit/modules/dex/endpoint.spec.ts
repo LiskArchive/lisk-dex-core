@@ -379,9 +379,9 @@ describe('dex: offChainEndpointFunctions', () => {
 				positionId
 			);
 
-			expect(collectableFee0).toEqual('0');
-			expect(collectableFee1).toEqual('0');
-			expect(collectableIncentives).toEqual('0');
+			expect(collectableFee0).toEqual(BigInt(0));
+			expect(collectableFee1).toEqual(BigInt(0));
+			expect(collectableIncentives).toEqual(BigInt(0));
 		});
 	});
 });
