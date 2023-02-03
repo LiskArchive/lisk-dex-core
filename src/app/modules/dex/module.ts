@@ -75,6 +75,8 @@ import {
 	getAllTicksResponseSchema,
 	getAllTickIDsInPoolRequestSchema,
 	getAllTickIDsInPoolRsponseSchema,
+	getCollectableFeesAndIncentivesRequestSchema,
+	getCollectableFeesAndIncentivesResponseSchemas
 } from './schemas';
 import { SwappedEvent } from './events/swapped';
 import { SwapFailedEvent } from './events/swapFailed';
@@ -217,6 +219,11 @@ export class DexModule extends BaseModule {
 					name: this.endpoint.getAllTickIDsInPool.name,
 					request: getAllTickIDsInPoolRequestSchema,
 					response: getAllTickIDsInPoolRsponseSchema,
+				},
+				{
+					name: this.endpoint.getCollectableFeesAndIncentives.name,
+					request: getCollectableFeesAndIncentivesRequestSchema,
+					response: getCollectableFeesAndIncentivesResponseSchemas,
 				},
 			],
 			commands: this.commands.map(command => ({

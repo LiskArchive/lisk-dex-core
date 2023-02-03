@@ -886,7 +886,7 @@ export const getToken0AmountRequestSchema = {
 	},
 };
 
-export const getLSKPriceResponseSchema = {
+export const getLSKPriceRequestSchema = {
 	$id: 'dex/getLSKPrice',
 	type: 'object',
 	required: ['tokenMethod', 'methodContext', 'stores', 'tokenId'],
@@ -910,7 +910,7 @@ export const getLSKPriceResponseSchema = {
 	},
 };
 
-export const getLSKPriceRequestSchema = {
+export const getLSKPriceResponseSchema = {
 	$id: 'dex/getLSKPrice',
 	type: 'object',
 	required: ['lskPrice'],
@@ -1036,4 +1036,59 @@ export const getAllTickIDsInPoolRsponseSchema = {
 			},
 		},
 	},
+};
+
+export const getCollectableFeesAndIncentivesRequestSchema = {
+	$id: 'dex/getCollectableFeesAndIncentives',
+	type: 'object',
+	required: ['methodContext', 'stores', 'tokenMethod', 'positionId'],
+	properties: {
+		methodContext: {
+			dataType: 'object',
+			fieldNumber: 1,
+		},
+		stores: {
+			dataType: 'object',
+			fieldNumber: 2,
+		},
+		tokenMethod: {
+			dataType: 'object',
+			fieldNumber: 1,
+		},
+		positionId: {
+			dataType: 'bytes',
+			length: NUM_BYTES_POSITION_ID,
+			fieldNumber: 1,
+		},
+	}
+};
+
+export const getCollectableFeesAndIncentivesResponseSchema = {
+	$id: 'dex/getCollectableFeesAndIncentives',
+	type: 'object',
+	required: ['feesAndIncentives'],
+	properties: {
+		feesAndIncentives: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['collectableFees0', 'collectableFees1', 'collectableIncentives'],
+				properties: {
+					collectableFees0: {
+						dataType: 'uint64',
+						fieldNumber: 1
+					},
+					collectableFees1: {
+						dataType: 'uint64',
+						fieldNumber: 2,
+					},
+					collectableIncentives: {
+						dataType: 'uint64',
+						fieldNumber: 3
+					}
+				}
+			}
+		}
+	}
 };
