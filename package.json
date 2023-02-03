@@ -106,6 +106,9 @@
 		}
 	},
 	"dependencies": {
+		"@liskhq/lisk-chain": "0.4.0-alpha.11",
+		"@liskhq/lisk-codec": "0.3.0-alpha.7",
+		"@liskhq/lisk-cryptography": "4.0.0-alpha.6",
 		"@liskhq/lisk-db": "0.3.2",
 		"@liskhq/lisk-framework-dashboard-plugin": "0.2.0-alpha.7",
 		"@liskhq/lisk-framework-faucet-plugin": "0.2.0-alpha.7",
@@ -121,6 +124,7 @@
 		"@oclif/plugin-version": "1.1.2",
 		"axios": "0.21.2",
 		"bigint-buffer": "^1.1.5",
+		"bunyan": "1.8.15",
 		"fs-extra": "9.1.0",
 		"inquirer": "8.0.0",
 		"lisk-commander": "6.0.0-alpha.7",

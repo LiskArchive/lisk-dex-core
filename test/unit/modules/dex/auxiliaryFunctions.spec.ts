@@ -94,8 +94,7 @@ describe('dex:auxiliaryFunctions', () => {
 	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
 
-	let stateStore: PrefixedStateReadWriter;
-	stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+	const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
 	const moduleEndpointContext = createTransientModuleEndpointContext({
 		stateStore,

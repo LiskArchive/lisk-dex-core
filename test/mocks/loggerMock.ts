@@ -17,11 +17,11 @@
  */
 
 export const loggerMock = {
-	trace: (_data?: object | unknown, _message?: string): void => {},
-	debug: (_data?: object | unknown, _message?: string): void => {},
-	info: (_data?: object | unknown, _message?: string): void => {},
-	warn: (_data?: object | unknown, _message?: string): void => {},
-	error: (_data?: object | unknown, _message?: string): void => {},
-	fatal: (_data?: object | unknown, _message?: string): void => {},
+	trace: (_data?: Record<string, unknown> | unknown, _message?: string): void => {},
+	debug: (_data?: Record<string, unknown> | unknown, _message?: string): void => {},
+	info: (_data?: Record<string, unknown> | unknown, _message?: string): void => {},
+	warn: (_data?: Record<string, unknown> | unknown, _message?: string): void => {},
+	error: (_data?: Record<string, unknown> | unknown, _message?: string): void => {},
+	fatal: (_data?: Record<string, unknown> | unknown, _message?: string): void => {},
 	level: (): number => 2,
 };
