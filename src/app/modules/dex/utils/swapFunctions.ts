@@ -20,7 +20,7 @@ import { getToken0Id, getToken1Id, transferFromPool } from "./auxiliaryFunctions
 import { computeNextPrice, getAmount0Delta, getAmount1Delta, priceToTick, tickToPrice } from "./math";
 import { DexModule } from "../module";
 import { DexEndpoint } from "../endpoint";
-import { addQ96, bytesToQ96, divQ96, invQ96, mulDivQ96, mulDivRoundUpQ96, mulQ96, numberToQ96, q96ToBytes, q96ToInt, roundDownQ96, roundUpQ96, subQ96 } from "./q96";
+import { addQ96, bytesToQ96, divQ96, invQ96, mulDivQ96, mulDivRoundUpQ96, mulQ96, numberToQ96, q96ToBytes, roundDownQ96, roundUpQ96, subQ96 } from "./q96";
 import { ADDRESS_VALIDATOR_INCENTIVES, FEE_TIER_PARTITION, MAX_NUMBER_CROSSED_TICKS, MODULE_NAME_DEX, NUM_BYTES_POOL_ID, TOKEN_ID_LSK, VALIDATORS_LSK_INCENTIVE_PART } from "../constants";
 import { DexGlobalStore, PriceTicksStore } from "../stores";
 
@@ -65,7 +65,7 @@ export const swapWithin = (
 			exactInput,
 		);
 	}
-	console.log("sqrtUpdatedPrice is ",sqrtUpdatedPrice);
+
 	if (zeroToOne) {
 		amountIn = getAmount0Delta(sqrtCurrentPrice, sqrtUpdatedPrice, liquidity, true);
 		amountOut = getAmount1Delta(sqrtCurrentPrice, sqrtUpdatedPrice, liquidity, false);
@@ -433,7 +433,6 @@ export const swap = async (
 		}
 
 		const currentTick = priceToTick(poolSqrtPriceQ96);
-		console.log(amountRemaining, poolSqrtPriceQ96, currentTick);
 		if (zeroToOne && poolSqrtPriceQ96 === tickToPrice(currentTick) && currentTick != 0) {
 			await crossTick(moduleEndpointContext, methodContext, stores, q96ToBytes(BigInt(currentTick)), false, currentHeight);
 			numCrossedTicks += 1;
@@ -452,6 +451,7 @@ export const swap = async (
 		) {
 			sqrtTargetPrice = sqrtLimitPrice;
 		} else {
+			
 			sqrtTargetPrice = sqrtNextTickPriceQ96;
 		}
 
@@ -462,7 +462,6 @@ export const swap = async (
 		);
 
 		const amountRemainingTemp = amountRemaining - firstFee;
-
 		const result = swapWithin(
 			poolSqrtPriceQ96,
 			sqrtTargetPrice,
@@ -472,17 +471,16 @@ export const swap = async (
 		);
 
 		[poolSqrtPriceQ96, amountIn, amountOut] = result;
-		const feeCoeff = divQ96(BigInt(feeTier / 2), BigInt(FEE_TIER_PARTITION - feeTier / 2));
-		const feeIn = roundUpQ96(mulQ96(q96ToInt(amountIn), feeCoeff));
-		const feeOut = roundUpQ96(mulQ96(q96ToInt(amountOut), feeCoeff));
-		console.log(amountIn, feeIn)
+		const feeCoeff = divQ96(BigInt(feeTier / 2), BigInt(FEE_TIER_PARTITION - (feeTier/2)));
+		const feeIn = roundUpQ96(mulQ96(numberToQ96(amountIn), feeCoeff));
+		const feeOut = roundUpQ96(mulQ96(numberToQ96(amountOut), feeCoeff));
 
 		if (exactInput) {
-			amountRemaining = amountRemaining -(amountIn + feeIn);
+			amountRemaining -= (amountIn + feeIn);
 		} else if(!exactInput){
-			amountRemaining = amountRemaining -(amountOut + feeOut);
-		} 
+			amountRemaining -= (amountOut + feeOut);
 
+		} 
 		amountTotalOut += amountOut + feeOut;
 		amountTotalIn += amountIn + feeIn;
 		totalFeesIn += feeIn;
