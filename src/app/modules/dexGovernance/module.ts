@@ -168,9 +168,7 @@ export class DexGovernanceModule extends BaseModule {
 	}
 
 	public verifyGenesisBlock(context: GenesisBlockExecuteContext) {
-		console.log("module name: ", this.name);
 		const assetBytes = context.assets.getAsset(this.name);
-		console.log("assetByts: ", assetBytes);
 		if (!assetBytes) {
 			return;
 		}
