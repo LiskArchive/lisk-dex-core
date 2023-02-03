@@ -1053,12 +1053,12 @@ export const getCollectableFeesAndIncentivesRequestSchema = {
 		},
 		tokenMethod: {
 			dataType: 'object',
-			fieldNumber: 1,
+			fieldNumber: 3,
 		},
 		positionId: {
 			dataType: 'bytes',
 			length: NUM_BYTES_POSITION_ID,
-			fieldNumber: 1,
+			fieldNumber: 4,
 		},
 	}
 };
