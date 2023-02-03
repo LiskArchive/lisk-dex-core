@@ -54,7 +54,7 @@ describe('dex: offChainEndpointFunctions', () => {
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
 	const dexModule = new DexModule();
-	let feeTier = Number('0x00000c8');
+	const feeTierNumber = Number('0x00000c8');
 	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
 
 	const INVALID_ADDRESS = '1234';
@@ -232,7 +232,7 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('should return the feeTier from the poolID', () => {
-			expect(endpoint.getFeeTier(poolId)).toEqual(feeTier);
+			expect(endpoint.getFeeTier(poolId)).toEqual(feeTierNumber);
 		});
 
 		it('getPoolIDFromTickID', () => {
@@ -320,7 +320,7 @@ describe('dex: offChainEndpointFunctions', () => {
 
 		it('getLSKPrice', async () => {
 			const result = Buffer.alloc(4);
-			feeTier = q96ToBytes(
+			const feeTier = q96ToBytes(
 				BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings.feeTier, 0)),
 			);
 			await poolsStore.setKey(
