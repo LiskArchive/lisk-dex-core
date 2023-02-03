@@ -20,6 +20,7 @@ import { MethodContext, TokenMethod, cryptography, ModuleEndpointContext } from 
 
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 
+import { MAX_SINT32 } from '@liskhq/lisk-validator';
 import {
 	DexGlobalStore,
 	PoolsStore,
@@ -78,7 +79,6 @@ import { ADDRESS_VALIDATOR_REWARDS_POOL } from '../../dexRewards/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
 import { DexEndpoint } from '../endpoint';
 import { DexModule } from '../module';
-import { MAX_SINT32 } from '@liskhq/lisk-validator';
 
 const { utils } = cryptography;
 

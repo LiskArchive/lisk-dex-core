@@ -126,7 +126,6 @@ export class DexModule extends BaseModule {
 
 	public metadata(): ModuleMetadata {
 		return {
-			name: this.name,
 			endpoints: [
 				{
 					name: this.endpoint.getAllPoolIDs.name,
