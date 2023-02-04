@@ -114,7 +114,6 @@ export const getAmount0Delta = (
 
 	const num1 = numberToQ96(liquidity);
 	const num2 = subQ96(sqrtPrice2, sqrtPrice1);
-
 	let amount0 = divQ96(mulDivQ96(num1, num2, sqrtPrice2), sqrtPrice1);
 
 	if (!roundUp) {

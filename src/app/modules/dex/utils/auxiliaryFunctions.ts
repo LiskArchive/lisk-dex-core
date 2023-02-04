@@ -69,7 +69,7 @@ import {
 	numberToQ96,
 	roundDownQ96,
 	q96ToBytes,
-	bytesToQ96,
+	bytesToQ96
 } from './q96';
 
 import { getAmount0Delta, getAmount1Delta, priceToTick, tickToPrice } from './math';
