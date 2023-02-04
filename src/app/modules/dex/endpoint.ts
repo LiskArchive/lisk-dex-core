@@ -69,52 +69,52 @@ export class DexEndpoint extends BaseEndpoint {
 		return result;
 	}
 
-    public async getPool (
-        methodContext: ModuleEndpointContext,
-        poolID: PoolID,
-    ): Promise<PoolsStoreData>{
-        const poolsStore = this.stores.get(PoolsStore);
-		const key = await poolsStore.getKey(methodContext,[poolID]);
-        return key;
-    };
-
-    public async getCurrentSqrtPrice(
+	public async getPool(
 		methodContext: ModuleEndpointContext,
-        poolID: PoolID,
-        priceDirection: boolean,
-    ): Promise<Q96>{
-        const pools = await this.getPool(methodContext, poolID);
-        if (pools == null) {
-            throw new Error();
-        }
-        const q96SqrtPrice = bytesToQ96(pools.sqrtPrice);
-        if (priceDirection) {
-            return q96SqrtPrice;
-        }
-        return invQ96(q96SqrtPrice);
-    };
+		poolID: PoolID,
+	): Promise<PoolsStoreData> {
+		const poolsStore = this.stores.get(PoolsStore);
+		const key = await poolsStore.getKey(methodContext, [poolID]);
+		return key;
+	};
 
-    public async getDexGlobalData (
-        methodContext: ModuleEndpointContext,
-    ): Promise<DexGlobalStoreData>{
-        const dexGlobalStore = this.stores.get(DexGlobalStore);
-        return dexGlobalStore.get(methodContext, Buffer.from([]));
-    };
-
-    public async getPosition(
+	public async getCurrentSqrtPrice(
 		methodContext: ModuleEndpointContext,
-        positionID: PositionID,
-        positionIdsList: PositionID[],
-    ): Promise<PositionsStoreData>{
-        if (positionIdsList.includes(positionID)) {
-            throw new Error();
-        }
-        const positionsStore = this.stores.get(PositionsStore);
-        const positionStoreData = await positionsStore.get(methodContext, positionID);
-        return positionStoreData;
-    };
-    
-    public async getTickWithTickId(
+		poolID: PoolID,
+		priceDirection: boolean,
+	): Promise<Q96> {
+		const pools = await this.getPool(methodContext, poolID);
+		if (pools == null) {
+			throw new Error();
+		}
+		const q96SqrtPrice = bytesToQ96(pools.sqrtPrice);
+		if (priceDirection) {
+			return q96SqrtPrice;
+		}
+		return invQ96(q96SqrtPrice);
+	};
+
+	public async getDexGlobalData(
+		methodContext: ModuleEndpointContext,
+	): Promise<DexGlobalStoreData> {
+		const dexGlobalStore = this.stores.get(DexGlobalStore);
+		return dexGlobalStore.get(methodContext, Buffer.from([]));
+	};
+
+	public async getPosition(
+		methodContext: ModuleEndpointContext,
+		positionID: PositionID,
+		positionIdsList: PositionID[],
+	): Promise<PositionsStoreData> {
+		if (positionIdsList.includes(positionID)) {
+			throw new Error();
+		}
+		const positionsStore = this.stores.get(PositionsStore);
+		const positionStoreData = await positionsStore.get(methodContext, positionID);
+		return positionStoreData;
+	};
+
+	public async getTickWithTickId(
 		methodContext: ModuleEndpointContext,
 		tickId: TickID[],
 	): Promise<PriceTicksStoreData> {
