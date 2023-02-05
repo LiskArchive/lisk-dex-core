@@ -75,6 +75,8 @@ import {
 	getAllTicksResponseSchema,
 	getAllTickIDsInPoolRequestSchema,
 	getAllTickIDsInPoolRsponseSchema,
+	dryRunSwapExactInRequestSchema,
+	dryRunSwapExactInResponseSchema
 } from './schemas';
 import { SwappedEvent } from './events/swapped';
 import { SwapFailedEvent } from './events/swapFailed';
@@ -120,7 +122,7 @@ export class DexModule extends BaseModule {
 		this.events.register(RemoveLiquidityEvent, new RemoveLiquidityEvent(this.name));
 		this.events.register(RemoveLiquidityFailedEvent, new RemoveLiquidityFailedEvent(this.name));
 		this.events.register(SwapFailedEvent, new SwapFailedEvent(this.name));
-		
+
 		this.events.register(SwappedEvent, new SwappedEvent(this.name));
 	}
 
@@ -217,6 +219,11 @@ export class DexModule extends BaseModule {
 					name: this.endpoint.getAllTickIDsInPool.name,
 					request: getAllTickIDsInPoolRequestSchema,
 					response: getAllTickIDsInPoolRsponseSchema,
+				},
+				{
+					name: this.endpoint.dryRunSwapExactIn.name,
+					request: dryRunSwapExactInRequestSchema,
+					response: dryRunSwapExactInResponseSchema
 				},
 			],
 			commands: this.commands.map(command => ({

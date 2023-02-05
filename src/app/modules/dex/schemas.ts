@@ -1038,3 +1038,86 @@ export const getAllTickIDsInPoolRsponseSchema = {
 	},
 };
 
+export const dryRunSwapExactInRequestSchema = {
+	$id: 'dex/dryRunSwapExactIn',
+	type: 'object',
+	required: ['methodContext', 'moduleEndpointContext', 'stores', 'tokenIdIn', 'amountIn', 'tokenIdOut', 'minAmountOut', 'swapRoute'],
+	properties: {
+		methodContext: {
+			methodContext: {
+				dataType: 'object',
+				fieldNumber: 1,
+			},
+			moduleEndpointContext: {
+				dataType: 'object',
+				fieldNumber: 2,
+			},
+			stores: {
+				dataType: 'object',
+				fieldNumber: 3,
+			},
+			tokenIdIn: {
+				dataType: 'bytes',
+				fieldNumber: 4,
+			},
+			amountIn: {
+				dataType: 'uint64',
+				fieldNumber: 5
+			},
+			tokenIdOut: {
+				dataType: 'bytes',
+				filedNumber: 6
+			},
+			minAmountOut: {
+				dataType: 'uint64',
+				fieldNumber: 7
+			},
+			swapRoute: {
+				type: 'array',
+				fieldNumber: 8,
+				items: {
+					type: 'object',
+					required: ['poolId'],
+					properties: {
+						poolId: {
+							dataType: 'bytes',
+							fieldNumber: 1,
+						}
+					}
+				}
+			}
+		}
+	}
+};
+
+export const dryRunSwapExactInResponseSchema = {
+	$id: 'dex/dryRunSwapExactIn',
+	type: 'object',
+	required: ['swapInfo'],
+	properties: {
+		swapInfo: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['newAmountIn', 'tokensAmount', 'priceBefore', 'priceAfter'],
+				newAmountIn: {
+					dataType: 'uint64',
+					fieldNumber: 1
+				},
+				tokensAmount: {
+					dataType: 'uint64',
+					fieldNumber: 2
+				},
+				priceBefore: {
+					dataType: 'uint64',
+					fieldNumber: 3
+				},
+				priceAfter: {
+					dataType: 'uint64',
+					fieldNumber: 4
+				}
+			}
+		}
+	}
+};
