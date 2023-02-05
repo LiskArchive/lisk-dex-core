@@ -389,8 +389,8 @@ describe('dex: offChainEndpointFunctions', () => {
 			priceTicksStoreDataTickUpper,
 		);
 
-		const amountIn = BigInt(50);
-		const minAmountOut = BigInt(10);
+		const maxAmountIn = BigInt(50);
+		const amountOut = BigInt(10);
 		const checkPriceBefore = await computeCurrentPrice(
 			moduleEndpointContext,
 			dexModule.stores,
@@ -403,9 +403,9 @@ describe('dex: offChainEndpointFunctions', () => {
 			moduleEndpointContext,
 			dexModule.stores,
 			token0Id,
-			amountIn,
+			maxAmountIn,
 			token1Id,
-			minAmountOut,
+			amountOut,
 			[poolId]
 		);
 		const checkPriceAfter = await computeCurrentPrice(

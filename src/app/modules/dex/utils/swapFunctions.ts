@@ -449,6 +449,8 @@ export const swap = async (
 		}
 
 		const currentTick = priceToTick(poolSqrtPriceQ96);
+		console.log("currentTick: ", currentTick);
+		console.log("q96: ", q96ToBytes(BigInt(currentTick)));
 		if (zeroToOne && poolSqrtPriceQ96 === tickToPrice(currentTick) && currentTick != 0) {
 			await crossTick(moduleEndpointContext, methodContext, stores, q96ToBytes(BigInt(currentTick)), false, currentHeight);
 			numCrossedTicks += 1;
@@ -525,6 +527,7 @@ export const swap = async (
 		const feeGrowthGlobal1Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal1);
 		poolStoreData.feeGrowthGlobal1 = q96ToBytes(addQ96(feeGrowthGlobal1Q96, globalFees1Q96));
 
+		console.log("nextTick: ", nextTick);
 		if (poolSqrtPriceQ96 === sqrtNextTickPriceQ96 && !zeroToOne) {
 			await crossTick(moduleEndpointContext, methodContext, stores, nextTick, true, currentHeight);
 			numCrossedTicks += 1;
