@@ -284,4 +284,83 @@ export class DexEndpoint extends BaseEndpoint {
 		});
 		return result;
 	}
+
+	public async dryRunSwapExactOut(
+		methodContext: MethodContext,
+		stores: NamedRegistry,
+		tokenIdIn: TokenID,
+		maxAmountIn: bigint,
+		tokenIdOut: TokenID,
+		amountOut: bigint,
+		swapRoute: PoolID[],
+	): Promise<[bigint, bigint, bigint, bigint]> => {
+	let zeroToOne = false;
+	let IdIn = tokenIdIn;
+	const tokens = [{ id: tokenIdOut, amount: amountOut }];
+	const fees = [{}];
+	let amountIn: bigint;
+	let feesIn: bigint;
+	let feesOut: bigint;
+	let priceBefore: bigint;
+	let newAmountOut = BigInt(0);
+
+	if (tokenIdIn.equals(tokenIdOut) || swapRoute.length === 0 || swapRoute.length > MAX_HOPS_SWAP) {
+		throw new Error('Invalid parameters');
+	}
+	try {
+		priceBefore = await computeCurrentPrice(
+			methodContext,
+			stores,
+			tokenIdIn,
+			tokenIdOut,
+			swapRoute,
+		);
+	} catch (error) {
+		throw new Error('Invalid swap route');
+	}
+
+	const inverseSwapRoute = swapRoute.reverse();
+
+	for (const poolId of inverseSwapRoute) {
+		const currentTokenOut = tokens[-1];
+		if (getToken0Id(poolId).equals(currentTokenOut.id)) {
+			zeroToOne = true;
+			IdIn = getToken0Id(poolId);
+		} else if (getToken1Id(poolId).equals(currentTokenOut.id)) {
+			zeroToOne = false;
+			IdIn = getToken1Id(poolId);
+		}
+		const sqrtLimitPrice = zeroToOne ? MIN_SQRT_RATIO : MAX_SQRT_RATIO;
+		const currentHeight = 10;
+		try {
+			[amountIn, newAmountOut, feesIn, feesOut] = await swap(
+				methodContext,
+				stores,
+				poolId,
+				zeroToOne,
+				sqrtLimitPrice,
+				currentTokenOut.amount,
+				false,
+				currentHeight,
+				tokenIdIn,
+				tokenIdOut,
+			);
+		} catch (error) {
+			throw new Error('Crossed too many ticks');
+		}
+		tokens.push({ id: IdIn, amount: amountIn });
+		fees.push({ in: feesIn, out: feesOut });
+	}
+	if (tokens[-1].amount < maxAmountIn) {
+		throw new Error('Too low output amount');
+	}
+	const priceAfter = await computeCurrentPrice(
+		methodContext,
+		stores,
+		tokenIdIn,
+		tokenIdOut,
+		swapRoute,
+	);
+	return [tokens[-1].amount, newAmountOut, priceBefore, priceAfter];
+};
 }
