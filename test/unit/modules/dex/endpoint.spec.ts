@@ -25,8 +25,9 @@ import {
 	SettingsStore,
 } from '../../../../src/app/modules/dex/stores';
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
+import { NUM_BYTES_POOL_ID } from '../../../../src/app/modules/dex/constants';
 
-import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
+import { numberToQ96, q96ToBytes, bytesToQ96 } from '../../../../src/app/modules/dex/utils/q96';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 
 import {
@@ -35,7 +36,7 @@ import {
 	MethodContext,
 } from 'lisk-framework/dist-node/state_machine';
 import { TokenMethod } from 'lisk-sdk';
-import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
+import { tickToPrice, priceToTick } from '../../../../src/app/modules/dex/utils/math';
 import {
 	PriceTicksStoreData,
 	tickToBytes,
@@ -94,7 +95,7 @@ describe('dex: offChainEndpointFunctions', () => {
 	const poolsStoreData: PoolsStoreData = {
 		liquidity: BigInt(5),
 		sqrtPrice: q96ToBytes(BigInt(tickToPrice(5))),
-		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(99999))),
 		heightIncentivesUpdate: 5,
 		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(0))),
@@ -371,6 +372,22 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('dryRunSwapExactIn', async () => {
+			const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
+			const currentTickID = q96ToBytes(BigInt(currentTick));
+			await poolsStore.setKey(methodContext, [currentTickID.slice(0, NUM_BYTES_POOL_ID)], poolsStoreData);
+
+			await priceTicksStore.setKey(
+				methodContext,
+				[currentTickID],
+				priceTicksStoreDataTickUpper,
+			);
+
+			await priceTicksStore.setKey(
+				methodContext,
+				[Buffer.from('000000000000000000000000000000000000000000000006', 'hex')],
+				priceTicksStoreDataTickUpper,
+			);
+
 			const amountIn = BigInt(50);
 			const minAmountOut = BigInt(10);
 			const checkPriceBefore = await computeCurrentPrice(
