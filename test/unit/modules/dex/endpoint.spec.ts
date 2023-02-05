@@ -24,7 +24,7 @@ import {
 	PriceTicksStore,
 	SettingsStore,
 } from '../../../../src/app/modules/dex/stores';
-import { Address, PoolID, PositionID } from '../../../../src/app/modules/dex/types';
+import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
 
 import { numberToQ96, q96ToBytes, bytesToQ96 } from '../../../../src/app/modules/dex/utils/q96';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
@@ -58,6 +58,8 @@ describe('dex: offChainEndpointFunctions', () => {
 	const dexModule = new DexModule();
 	const feeTier = Number('0x00000c8');
 	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
+	const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
+	const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
 
 	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
