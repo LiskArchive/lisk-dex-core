@@ -333,7 +333,7 @@ export class DexEndpoint extends BaseEndpoint {
 		const inverseSwapRoute = swapRoute.reverse();
 
 		for (const poolId of inverseSwapRoute) {
-			const currentTokenOut = tokens[-1];
+			const currentTokenOut = tokens[tokens.length - 1];
 			if (getToken0Id(poolId).equals(currentTokenOut.id)) {
 				zeroToOne = true;
 				IdIn = getToken0Id(poolId);
@@ -363,7 +363,7 @@ export class DexEndpoint extends BaseEndpoint {
 			tokens.push({ id: IdIn, amount: amountIn });
 			fees.push({ in: feesIn, out: feesOut });
 		}
-		if (tokens[-1].amount < maxAmountIn) {
+		if (tokens[tokens.length - 1].amount < maxAmountIn) {
 			throw new Error('Too low output amount');
 		}
 		const priceAfter = await computeCurrentPrice(
@@ -373,6 +373,6 @@ export class DexEndpoint extends BaseEndpoint {
 			tokenIdOut,
 			swapRoute,
 		);
-		return [tokens[-1].amount, newAmountOut, priceBefore, priceAfter];
+		return [tokens[tokens.length - 1].amount, newAmountOut, priceBefore, priceAfter];
 	};
 }
