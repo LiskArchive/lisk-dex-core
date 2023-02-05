@@ -361,33 +361,49 @@ export const crossTick = async (
 	leftToRight: boolean,
 	currentHeight: number,
 ) => {
+	console.log("cross 11111111111111111");
 	const dexModule = new DexModule();
+	console.log("cross 121212121212121212");
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	console.log("cross 13131313131313131313");
+	console.log("tickId: ", tickId);
 	const poolId = tickId.slice(0, NUM_BYTES_POOL_ID);
+	console.log("cross 22222222222222222");
 	await updatePoolIncentives(moduleEnpointContext, methodContext, stores, poolId, currentHeight);
+	console.log("cross 333333333333333333");
 	const poolStoreData = await endpoint.getPool(moduleEnpointContext, poolId);
 	const priceTickStoreData = await endpoint.getTickWithTickId(moduleEnpointContext, [tickId]);
+	console.log("cross 4444444444444444444");
 	if (leftToRight) {
+		console.log("cross 555555555555555555");
 		poolStoreData.liquidity += priceTickStoreData.liquidityNet;
 	} else {
+		console.log("cross 6666666666666666666");
 		poolStoreData.liquidity -= priceTickStoreData.liquidityNet;
 	}
+	console.log("cross 777777777777777");
 	const feeGrowthGlobal0Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal0);
 	const feeGrowthOutside0Q96 = bytesToQ96(priceTickStoreData.feeGrowthOutside0);
 
+	console.log("cross 88888888888888888888888");
 	priceTickStoreData.feeGrowthOutside0 = q96ToBytes(
 		subQ96(feeGrowthGlobal0Q96, feeGrowthOutside0Q96),
 	);
+	console.log("cross 9999999999999999999");
 	const feeGrowthGlobal1Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal1);
 	const feeGrowthOutside1Q96 = bytesToQ96(priceTickStoreData.feeGrowthOutside1);
+	console.log("cross 00000000000000000000");
 	priceTickStoreData.feeGrowthOutside1 = q96ToBytes(
 		subQ96(feeGrowthGlobal1Q96, feeGrowthOutside1Q96),
 	);
+	console.log("cross !!!!!!!!!!!!!!");
 	const incentivesAccumulatorQ96 = bytesToQ96(poolStoreData.incentivesPerLiquidityAccumulator);
 	const incentivesOutsideQ96 = bytesToQ96(priceTickStoreData.incentivesPerLiquidityOutside);
+	console.log("cross @@@@@@@@@@@@@@@@@@");
 	priceTickStoreData.incentivesPerLiquidityOutside = q96ToBytes(
 		subQ96(incentivesAccumulatorQ96, incentivesOutsideQ96),
 	);
+	console.log("cross #####################");
 };
 
 export const swap = async (
