@@ -364,6 +364,8 @@ export class DexEndpoint extends BaseEndpoint {
 			fees.push({ in: feesIn, out: feesOut });
 		}
 		if (tokens[tokens.length - 1].amount < maxAmountIn) {
+			console.log("tokens[tokens.length - 1].amount: ", tokens[tokens.length - 1].amount);
+			console.log("maxAmountIn: ", maxAmountIn);
 			throw new Error('Too low output amount');
 		}
 		const priceAfter = await computeCurrentPrice(

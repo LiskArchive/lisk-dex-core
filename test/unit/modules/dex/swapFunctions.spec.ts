@@ -189,8 +189,8 @@ describe('dex:swapFunctions', () => {
 			const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
 			const currentTickID = q96ToBytes(BigInt(currentTick));
 			await poolsStore.setKey(methodContext, [currentTickID.slice(0, NUM_BYTES_POOL_ID)], poolsStoreData);
-			
-			
+
+
 			await priceTicksStore.setKey(
 				methodContext,
 				[currentTickID],
@@ -199,12 +199,12 @@ describe('dex:swapFunctions', () => {
 
 			await priceTicksStore.setKey(
 				methodContext,
-				[Buffer.from('000000000000000000000000000000000000000000000006','hex')],
+				[Buffer.from('000000000000000000000000000000000000000000000006', 'hex')],
 				priceTicksStoreDataTickUpper,
 			);
 			q96ToBytes(BigInt(currentTick))
 			const res = await swap(moduleEndpointContext, methodContext, dexModule.stores, poolId, true, sqrtLimitPrice, BigInt(5), true, 10, token0Id, token1Id);
-			expect(res).toStrictEqual([BigInt(5),BigInt(5),BigInt(1),BigInt(1)])
+			expect(res).toStrictEqual([BigInt(5), BigInt(5), BigInt(1), BigInt(1)])
 		});
 	})
 })
