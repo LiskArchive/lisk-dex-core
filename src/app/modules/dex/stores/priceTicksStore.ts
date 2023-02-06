@@ -129,9 +129,10 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 		const currentKeyIndex = keysArray.indexOf(key.toString('hex'), 0);
 
 		if (currentKeyIndex < keysArray.length - 1) {
-			return currentKeyIndex + 1;
+			const nextKey = Buffer.from(keysArray[currentKeyIndex + 1], 'hex');
+			return parseInt("0x" + nextKey.toString("hex"));
 		} else {
-			return currentKeyIndex;
+			return parseInt("0x" + key.toString("hex"));
 		}
 	}
 
@@ -150,9 +151,10 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 		const currentKeyIndex = keysArray.indexOf(key.toString('hex'), 0)
 
 		if (currentKeyIndex > 0) {
-			return currentKeyIndex - 1;
+			const prevKey = Buffer.from(keysArray[currentKeyIndex - 1], 'hex');
+			return parseInt("0x" + prevKey.toString("hex"));
 		} else {
-			return currentKeyIndex;
+			return parseInt("0x" + key.toString("hex"));
 		}
 	}
 
