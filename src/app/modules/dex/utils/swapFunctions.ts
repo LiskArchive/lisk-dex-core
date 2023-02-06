@@ -414,6 +414,7 @@ export const swap = async (
 	let totalFeesIn = BigInt(0);
 	let totalFeesOut = BigInt(0);
 	let nextTick;
+	let nextTickId;
 	let sqrtTargetPrice;
 	let amountIn: bigint;
 	let amountOut: bigint;
@@ -440,8 +441,16 @@ export const swap = async (
 
 		if (zeroToOne) {
 			nextTick = await stores.get(PriceTicksStore).getPrevTick(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
+			nextTickId = await stores.get(PriceTicksStore).getPrevTickId(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
+			console.log("zeroToOne true");
+			console.log("nextTick: ", nextTick);
+			console.log("nextTickId: ", nextTickId);
 		} else {
 			nextTick = await stores.get(PriceTicksStore).getNextTick(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
+			nextTickId = await stores.get(PriceTicksStore).getNextTickId(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
+			console.log("zeroToOne false");
+			console.log("nextTick: ", nextTick);
+			console.log("nextTickId: ", nextTickId);
 		}
 
 		const sqrtNextTickPriceQ96 = tickToPrice(nextTick);
@@ -508,12 +517,21 @@ export const swap = async (
 		const feeGrowthGlobal1Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal1);
 		poolStoreData.feeGrowthGlobal1 = q96ToBytes(addQ96(feeGrowthGlobal1Q96, globalFees1Q96));
 
+		console.log("1111111111");
 		if (poolSqrtPriceQ96 === sqrtNextTickPriceQ96 && !zeroToOne) {
-			await crossTick(moduleEndpointContext, methodContext, stores, nextTick, true, currentHeight);
+			console.log("222222222222222");
+			await crossTick(moduleEndpointContext, methodContext, stores, q96ToBytes(BigInt(nextTickId)), true, currentHeight);
 			numCrossedTicks += 1;
 		}
 	}
 
+	console.log("3333333333333333");
+
 	poolStoreData.sqrtPrice = q96ToBytes(poolSqrtPriceQ96);
+	console.log("4444444444444");
+	console.log("amountTotalIn: ", amountTotalIn);
+	console.log("amountTotalOut: ", amountTotalOut);
+	console.log("totalFeesIn: ", totalFeesIn);
+	console.log("totalFeesOut: ", totalFeesOut);
 	return [amountTotalIn, amountTotalOut, totalFeesIn, totalFeesOut];
 };
