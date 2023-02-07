@@ -1071,14 +1071,7 @@ export const dryRunSwapExactInRequestSchema = {
 			type: 'array',
 			fieldNumber: 7,
 			items: {
-				type: 'object',
-				required: ['poolId'],
-				properties: {
-					poolId: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					}
-				}
+				dataType: 'bytes'
 			}
 		}
 	}
@@ -1087,31 +1080,23 @@ export const dryRunSwapExactInRequestSchema = {
 export const dryRunSwapExactInResponseSchema = {
 	$id: 'dex/dryRunSwapExactIn',
 	type: 'object',
-	required: ['swapInfo'],
+	required: ['newAmountIn', 'tokensAmount', 'priceBefore', 'priceAfter'],
 	properties: {
-		swapInfo: {
-			type: 'array',
-			fieldNumber: 1,
-			items: {
-				type: 'object',
-				required: ['newAmountIn', 'tokensAmount', 'priceBefore', 'priceAfter'],
-				newAmountIn: {
-					dataType: 'uint64',
-					fieldNumber: 1
-				},
-				tokensAmount: {
-					dataType: 'uint64',
-					fieldNumber: 2
-				},
-				priceBefore: {
-					dataType: 'uint64',
-					fieldNumber: 3
-				},
-				priceAfter: {
-					dataType: 'uint64',
-					fieldNumber: 4
-				}
-			}
+		newAmountIn: {
+			dataType: 'uint64',
+			fieldNumber: 1
+		},
+		tokensAmount: {
+			dataType: 'uint64',
+			fieldNumber: 2
+		},
+		priceBefore: {
+			dataType: 'uint64',
+			fieldNumber: 3
+		},
+		priceAfter: {
+			dataType: 'uint64',
+			fieldNumber: 4
 		}
 	}
 };
