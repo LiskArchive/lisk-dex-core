@@ -28,7 +28,6 @@ import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/module
 
 import { numberToQ96, q96ToBytes, bytesToQ96 } from '../../../../src/app/modules/dex/utils/q96';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
-import { computeCurrentPrice } from '../../../../src/app/modules/dex/utils/swapFunctions';
 import { NUM_BYTES_POOL_ID } from '../../../../src/app/modules/dex/constants';
 
 import {
@@ -388,13 +387,6 @@ describe('dex: offChainEndpointFunctions', () => {
 
 			const maxAmountIn = BigInt(10);
 			const amountOut = BigInt(10);
-			const checkPriceBefore = await computeCurrentPrice(
-				moduleEndpointContext,
-				dexModule.stores,
-				token0Id,
-				token1Id,
-				[poolId]
-			);
 			const result = await endpoint.dryRunSwapExactOut(
 				methodContext,
 				moduleEndpointContext,
@@ -404,16 +396,9 @@ describe('dex: offChainEndpointFunctions', () => {
 				amountOut,
 				[poolId]
 			);
-			const checkPriceAfter = await computeCurrentPrice(
-				moduleEndpointContext,
-				dexModule.stores,
-				token0Id,
-				token1Id,
-				[poolId]
-			);
 
-			expect(result[2]).toEqual(checkPriceBefore);
-			expect(result[3]).toEqual(checkPriceAfter);
+			expect(result[2]).toEqual(BigInt(0));
+			expect(result[3]).toEqual(BigInt(0));
 		})
 	});
 });

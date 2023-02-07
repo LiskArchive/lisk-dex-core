@@ -13,7 +13,6 @@
  */
 
 import { BaseEndpoint, ModuleEndpointContext, TokenMethod, MethodContext } from 'lisk-sdk';
-import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { computeCurrentPrice, swap } from './utils/swapFunctions';
 
 import {
@@ -303,7 +302,7 @@ export class DexEndpoint extends BaseEndpoint {
 		tokenIdOut: TokenID,
 		amountOut: bigint,
 		swapRoute: PoolID[],
-	): Promise<[BigInt, BigInt, BigInt, BigInt]> {
+	): Promise<[bigint, bigint, bigint, bigint]> {
 		let zeroToOne = false;
 		let IdIn = tokenIdIn;
 		const tokens = [{ id: tokenIdOut, amount: amountOut }];
@@ -372,6 +371,7 @@ export class DexEndpoint extends BaseEndpoint {
 			tokenIdOut,
 			swapRoute,
 		);
+
 		return [tokens[tokens.length - 1].amount, newAmountOut, priceBefore, priceAfter];
 	};
 }
