@@ -1037,3 +1037,46 @@ export const getAllTickIDsInPoolRsponseSchema = {
 		},
 	},
 };
+
+
+export const swapExactInCommandSchema = {
+	$id: '/dex/swapExactInCommandSchema',
+	type: 'object',
+	required: [
+		'tokenIdIn',
+		'amountTokenIn',
+		'tokenIdOut',
+		'minAmountTokenOut',
+		'swapRoute',
+		'maxTimestampValid',
+	],
+	properties: {
+		tokenIdIn: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+		amountTokenIn: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+		tokenIdOut: {
+			dataType: 'bytes',
+			fieldNumber: 3,
+		},
+		minAmountTokenOut: {
+			dataType: 'uint64',
+			fieldNumber: 4,
+		},
+		swapRoute: {
+			dataType: 'array',
+			fieldNumber: 5,
+			items: {
+				type: 'bytes',
+			},
+		},
+		maxTimestampValid: {
+			dataType: 'uint64',
+			fieldNumber: 6,
+		},
+	},
+};

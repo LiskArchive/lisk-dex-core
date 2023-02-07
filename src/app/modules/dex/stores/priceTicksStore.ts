@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseStore, ImmutableStoreGetter, StoreGetter } from 'lisk-sdk';
+import { BaseStore, ImmutableStoreGetter, ModuleEndpointContext, StoreGetter } from 'lisk-sdk';
 import { MAX_NUM_BYTES_Q96, MAX_TICK, MIN_TICK } from '../constants';
 
 export const tickToBytes = (tickValue: number): Buffer => {
@@ -112,5 +112,54 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			lte: Buffer.alloc(16, 255),
 			reverse: true,
 		});
+	}
+
+	public async getNextTick(context: ModuleEndpointContext, keys: Buffer[]) {
+		const key = Buffer.concat(keys)
+		const keysArray:string[] = []; 
+		const allKeys = await this.iterate(context, {
+			gte: Buffer.alloc(16, 0),
+			lte: Buffer.alloc(16, 255),
+			reverse: false,
+		});
+		allKeys.forEach(key =>{
+			keysArray.push(key.key.toString('hex'));
+		});
+
+		const currentKeyIndex = keysArray.indexOf(key.toString('hex'),0)
+
+		if(currentKeyIndex<keysArray.length-1){
+			const prevKey = Buffer.from(keysArray[currentKeyIndex+1], 'hex');
+			const resKey = await this.getKey(context, [prevKey]);
+			return resKey 
+		}else{
+			const resKey = await this.getKey(context, keys);
+			return resKey
+		}
+	}
+
+	public async getPrevTick(context: ModuleEndpointContext, keys: Buffer[]) {
+		const key = Buffer.concat(keys)
+		const keysArray:string[] = []; 
+		const allKeys = await this.iterate(context, {
+			gte: Buffer.alloc(16, 0),
+			lte: Buffer.alloc(16, 255),
+			reverse: false,
+		});
+		allKeys.forEach(key =>{
+			keysArray.push(key.key.toString('hex'));
+		});
+
+		const currentKeyIndex = keysArray.indexOf(key.toString('hex'),0)
+
+		if(currentKeyIndex>0){
+			const prevKey = Buffer.from(keysArray[currentKeyIndex-1], 'hex');
+			const resKey = await this.getKey(context, [prevKey]);
+			return resKey 
+		}else{
+			const resKey = await this.getKey(context, keys);
+			return resKey
+		}
+		
 	}
 }
