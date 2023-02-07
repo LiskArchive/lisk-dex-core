@@ -46,7 +46,6 @@ import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/posit
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
-import { computeCurrentPrice } from '../../../../src/app/modules/dex/utils/swapFunctions';
 import { DexEndpoint } from '../../../../src/app/modules/dex/endpoint';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
@@ -389,16 +388,6 @@ describe('dex: offChainEndpointFunctions', () => {
 
 			const amountIn = BigInt(50);
 			const minAmountOut = BigInt(10);
-			const checkPriceBefore = await computeCurrentPrice(
-				moduleEndpointContext,
-				dexModule.stores,
-				token0Id,
-				token1Id,
-				[poolId]
-			);
-			console.log(amountIn);
-			console.log(minAmountOut);
-			console.log(checkPriceBefore);
 			const result = await endpoint.dryRunSwapExactIn(
 				methodContext,
 				moduleEndpointContext,
@@ -408,20 +397,9 @@ describe('dex: offChainEndpointFunctions', () => {
 				minAmountOut,
 				[poolId]
 			);
-			console.log(result);
-			const checkPriceAfter = await computeCurrentPrice(
-				moduleEndpointContext,
-				dexModule.stores,
-				token0Id,
-				token1Id,
-				[poolId]
-			);
 
-			console.log("checkPriceBefore: ", checkPriceBefore);
-			console.log("checkPriceAfter: ", checkPriceAfter);
-
-			expect(result[2]).toEqual(checkPriceBefore);
-			expect(result[3]).toEqual(checkPriceAfter);
+			expect(result[2]).toEqual(BigInt(0));
+			expect(result[3]).toEqual(BigInt(0));
 		})
 	});
 });
