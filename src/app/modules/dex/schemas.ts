@@ -1068,10 +1068,10 @@ export const swapExactInCommandSchema = {
 			fieldNumber: 4,
 		},
 		swapRoute: {
-			dataType: 'array',
+			type: 'array',
 			fieldNumber: 5,
 			items: {
-				type: 'bytes',
+				dataType: 'bytes',
 			},
 		},
 		maxTimestampValid: {

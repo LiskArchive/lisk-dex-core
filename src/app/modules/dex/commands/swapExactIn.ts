@@ -67,25 +67,25 @@ export class SwapExactInCommand extends BaseCommand {
 		}
 
 		const { tokenIdIn, tokenIdOut, swapRoute } = ctx.params;
-
+        console.log(ctx.params)
 		if (tokenIdIn.equals(tokenIdOut)) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error('tokenIdIn and tokenIdOut are same'),
 			};
 		}
-
+        
 		if (swapRoute === null || swapRoute.length === 0 || swapRoute.length > MAX_HOPS_SWAP) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error(
-					'SwapRout is either null or empty or length is greater than MAX_HOPS_SWAP',
+					'SwapRoute is either null or empty or length is greater than MAX_HOPS_SWAP',
 				),
 			};
 		}
 
 		const firstPool = swapRoute[0];
-		const lastPool = swapRoute[-1];
+		const lastPool = swapRoute[swapRoute.length-1];
 
 		if (!getToken0Id(firstPool).equals(tokenIdIn) && !getToken1Id(firstPool).equals(tokenIdIn)) {
 			return {
