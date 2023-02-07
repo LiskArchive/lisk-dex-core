@@ -304,7 +304,7 @@ export class DexEndpoint extends BaseEndpoint {
 		tokenIdOut: TokenID,
 		amountOut: bigint,
 		swapRoute: PoolID[],
-	) {
+	): Promise<BigInt[]> {
 		let zeroToOne = false;
 		let IdIn = tokenIdIn;
 		const tokens = [{ id: tokenIdOut, amount: amountOut }];
