@@ -1071,14 +1071,7 @@ export const dryRunSwapExactOutRequestSchema = {
 			type: 'array',
 			fieldNumber: 8,
 			items: {
-				type: 'object',
-				required: ['poolId'],
-				properties: {
-					poolId: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					}
-				}
+				dataType: 'bytes'
 			}
 		}
 	}
