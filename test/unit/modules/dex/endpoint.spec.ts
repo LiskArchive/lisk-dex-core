@@ -63,7 +63,6 @@ describe('dex: offChainEndpointFunctions', () => {
 
 	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
-	//const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
 
 	let stateStore: PrefixedStateReadWriter;
 	stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -93,12 +92,12 @@ describe('dex: offChainEndpointFunctions', () => {
 	const lockedAmountMock = jest.fn().mockReturnValue(BigInt(5));
 
 	const poolsStoreData: PoolsStoreData = {
-		liquidity: BigInt(5),
-		sqrtPrice: q96ToBytes(BigInt(tickToPrice(5))),
-		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(99999))),
+		liquidity: BigInt(5000000),
+		sqrtPrice: q96ToBytes(BigInt(tickToPrice(100))),
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(10))),
 		heightIncentivesUpdate: 5,
-		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(0))),
-		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(0))),
+		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
+		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(10))),
 		tickSpacing: 1,
 	};
 
@@ -267,7 +266,7 @@ describe('dex: offChainEndpointFunctions', () => {
 			await endpoint.getPool(moduleEndpointContext, getPoolIDFromPositionID(positionId)).then(
 				res => {
 					expect(res).not.toBeNull();
-					expect(res.liquidity).toBe(BigInt(5));
+					expect(res.liquidity).toBe(BigInt(5000000));
 				});
 		});
 
@@ -280,7 +279,7 @@ describe('dex: offChainEndpointFunctions', () => {
 						false,
 					)
 				).toString(),
-			).toBe('79208358939348018173455069823');
+			).toBe('78833030112140176575862854576');
 		});
 
 		it('getDexGlobalData', async () => {
@@ -397,6 +396,9 @@ describe('dex: offChainEndpointFunctions', () => {
 				token1Id,
 				[poolId]
 			);
+			console.log(amountIn);
+			console.log(minAmountOut);
+			console.log(checkPriceBefore);
 			const result = await endpoint.dryRunSwapExactIn(
 				methodContext,
 				moduleEndpointContext,
@@ -407,6 +409,7 @@ describe('dex: offChainEndpointFunctions', () => {
 				minAmountOut,
 				[poolId]
 			);
+			console.log(result);
 			const checkPriceAfter = await computeCurrentPrice(
 				moduleEndpointContext,
 				dexModule.stores,

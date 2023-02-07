@@ -348,12 +348,9 @@ export class DexEndpoint extends BaseEndpoint {
 					tokenIdIn,
 					tokenIdOut,
 				);
-				console.log("swap 00000000000000");
 			} catch (error) {
-				console.log("swap error");
 				throw new Error('Crossed too many ticks');
 			}
-			console.log("swap 1111111111111");
 			tokens.push({ id: IdOut, amount: amountOut });
 			fees.push({ in: feesIn, out: feesOut });
 		}
@@ -362,7 +359,6 @@ export class DexEndpoint extends BaseEndpoint {
 			throw new Error('Too low output amount');
 		}
 
-		console.log("swap 2222222222222");
 		const priceAfter = await computeCurrentPrice(
 			moduleEndpointContext,
 			stores,
@@ -370,7 +366,6 @@ export class DexEndpoint extends BaseEndpoint {
 			tokenIdOut,
 			swapRoute,
 		);
-		console.log("swap 333333333333");
 		return [newAmountIn, tokens[tokens.length - 1].amount, priceBefore, priceAfter];
 	};
 }
