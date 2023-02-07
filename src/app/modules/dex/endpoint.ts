@@ -1,3 +1,7 @@
+/* eslint-disable import/no-cycle */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -11,13 +15,17 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { getAllPositionIDsInPoolRequestSchema } from './schemas';
 
 import { validator } from '@liskhq/lisk-validator';
 import { BaseEndpoint, ModuleEndpointContext, TokenMethod } from 'lisk-sdk';
 
-import { MODULE_ID_DEX, NUM_BYTES_POOL_ID, TOKEN_ID_LSK } from './constants';
-import { NUM_BYTES_ADDRESS, NUM_BYTES_POSITION_ID } from './constants';
+import {
+	MODULE_ID_DEX,
+	NUM_BYTES_POOL_ID,
+	TOKEN_ID_LSK,
+	NUM_BYTES_ADDRESS,
+	NUM_BYTES_POSITION_ID,
+} from './constants';
 import { PoolsStore } from './stores';
 import { PoolID, PositionID, Q96, TickID, TokenID } from './types';
 import {
@@ -35,6 +43,7 @@ import { DexGlobalStore, DexGlobalStoreData } from './stores/dexGlobalStore';
 import { PositionsStore, PositionsStoreData } from './stores/positionsStore';
 import { PriceTicksStore, PriceTicksStoreData, tickToBytes } from './stores/priceTicksStore';
 import { uint32beInv } from './utils/bigEndian';
+import { getAllPositionIDsInPoolRequestSchema } from './schemas';
 
 export class DexEndpoint extends BaseEndpoint {
 	public async getAllPoolIDs(methodContext: ModuleEndpointContext): Promise<PoolID[]> {
@@ -61,14 +70,13 @@ export class DexEndpoint extends BaseEndpoint {
 		return tokens;
 	}
 
-public getAllPositionIDsInPool(methodContext: ModuleEndpointContext): Buffer[] {
+	public getAllPositionIDsInPool(methodContext: ModuleEndpointContext): Buffer[] {
 		validator.validate<{ poolId: Buffer; positionIdsList: PositionID[] }>(
 			getAllPositionIDsInPoolRequestSchema,
 			methodContext.params,
 		);
 		const result: Buffer[] = [];
-		const poolId = methodContext.params.poolId;
-		const positionIdsList = methodContext.params.positionIdsList;
+		const {poolId, positionIdsList} = methodContext.params;
 		positionIdsList.forEach(positionId => {
 			if (getPoolIDFromPositionID(positionId).equals(poolId)) {
 				result.push(positionId);
@@ -290,5 +298,4 @@ public getAllPositionIDsInPool(methodContext: ModuleEndpointContext): Buffer[] {
 		});
 		return result;
 	}
-
 }

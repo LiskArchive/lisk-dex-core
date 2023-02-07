@@ -1,3 +1,7 @@
+/* eslint-disable import/no-cycle */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -16,7 +20,6 @@ import { BaseModule, ModuleMetadata, utils, TokenMethod, ValidatorsMethod } from
 
 import { MODULE_ID_DEX, defaultConfig } from './constants';
 
-import { DexEndpoint } from './endpoint';
 import { ModuleConfig, ModuleInitArgs } from './types';
 
 import {
@@ -42,7 +45,6 @@ import { RemoveLiquidityFailedEvent } from './events/removeLiquidityFailed';
 import { RemoveLiquidityEvent } from './events/removeLiquidity';
 import { RemoveLiquidityCommand } from './commands/removeLiquidity';
 
-import { getAllPoolIdsResponseSchema } from './schemas';
 import {
 	getAllPoolIdsResponseSchema,
 	getToken1AmountRequestSchema,
@@ -80,7 +82,7 @@ import {
 
 import { SwappedEvent } from './events/swapped';
 import { SwapFailedEvent } from './events/swapFailed';
->>>>>>> feature/endpoints
+import { DexEndpoint } from './endpoint';
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
@@ -220,7 +222,6 @@ export class DexModule extends BaseModule {
 					request: getAllTickIDsInPoolRequestSchema,
 					response: getAllTickIDsInPoolRsponseSchema,
 				},
-
 			],
 			commands: this.commands.map(command => ({
 				name: command.name,
