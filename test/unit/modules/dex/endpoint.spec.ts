@@ -60,11 +60,11 @@ describe('dex: offChainEndpointFunctions', () => {
 
 	let stateStore: PrefixedStateReadWriter;
 	stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-	
+
 	const moduleEndpointContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: { address: INVALID_ADDRESS },
-			});
+		stateStore,
+		params: { address: INVALID_ADDRESS },
+	});
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),

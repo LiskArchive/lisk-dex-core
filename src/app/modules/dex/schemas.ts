@@ -465,12 +465,13 @@ export const addLiquiditySchema = {
 	},
 };
 
-
 export const getAllPoolIdsResponseSchema = {
 	$id: 'dex/getAllPoolIds',
 	type: 'array',
 	fieldNumber: 1,
-	items: {
-		dataType: 'bytes',
+	properties: {
+		items: {
+			dataType: 'bytes',
+		},
 	},
 };
