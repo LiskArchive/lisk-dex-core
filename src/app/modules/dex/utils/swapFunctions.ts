@@ -446,10 +446,8 @@ export const swap = async (
 			nextTick = await stores.get(PriceTicksStore).getNextTick(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
 			nextTickId = await stores.get(PriceTicksStore).getNextTickId(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
 		}
-		console.log("nextTickId: ", nextTickId);
 
 		const sqrtNextTickPriceQ96 = tickToPrice(nextTick);
-		console.log("sqrtNextTickPriceQ96: ", sqrtNextTickPriceQ96);
 		if (
 			(zeroToOne && sqrtNextTickPriceQ96 < sqrtLimitPrice) ||
 			(!zeroToOne && sqrtNextTickPriceQ96 > sqrtLimitPrice)
@@ -480,17 +478,11 @@ export const swap = async (
 		const feeIn = roundUpQ96(mulQ96(numberToQ96(amountIn), feeCoeff));
 		const feeOut = roundUpQ96(mulQ96(numberToQ96(amountOut), feeCoeff));
 
-		console.log("amountRemaining: ", amountRemaining);
-		console.log("amountIn: ", amountIn);
-		console.log("feeIn: ", feeIn);
-		console.log("amountOut: ", amountOut);
-		console.log("feeOut: ", feeOut);
 		if (exactInput) {
 			amountRemaining -= (amountIn + feeIn);
 		} else if (!exactInput) {
 			amountRemaining -= (amountOut + feeOut);
 		}
-		console.log("amountRemaining: ", amountRemaining);
 		amountTotalOut += amountOut + feeOut;
 		amountTotalIn += amountIn + feeIn;
 		totalFeesIn += feeIn;

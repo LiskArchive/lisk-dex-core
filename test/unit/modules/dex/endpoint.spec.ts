@@ -216,9 +216,8 @@ describe('dex: offChainEndpointFunctions', () => {
 
 		it('getAllPoolIDs', async () => {
 			await endpoint.getAllPoolIDs(moduleEndpointContext).then(res => {
-				console.log("getAllPoolIDs: ", res[0]);
 				expect(res[0]).toStrictEqual(
-					Buffer.from('00016000000011131002012940320020000200', 'hex'),
+					Buffer.from('000000000000000000000001000000000101643130', 'hex'),
 				);
 			});
 		});
@@ -263,7 +262,7 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getPool', async () => {
-			await endpoint.getPool(moduleEndpointContext, poolId).then(
+			await endpoint.getPool(moduleEndpointContext, getPoolIDFromPositionID(positionId)).then(
 				res => {
 					expect(res).not.toBeNull();
 					expect(res.liquidity).toBe(BigInt(5000000));
@@ -369,53 +368,53 @@ describe('dex: offChainEndpointFunctions', () => {
 			});
 			expect(ifKeyExists).toBe(true);
 		});
+
+		it('dryRunSwapExactOut', async () => {
+			const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
+			const currentTickID = q96ToBytes(BigInt(currentTick));
+			await poolsStore.setKey(methodContext, [currentTickID.slice(0, NUM_BYTES_POOL_ID)], poolsStoreData);
+
+			await priceTicksStore.setKey(
+				methodContext,
+				[currentTickID],
+				priceTicksStoreDataTickUpper,
+			);
+
+			await priceTicksStore.setKey(
+				methodContext,
+				[Buffer.from('000000000000000000000000000000000000000000000006', 'hex')],
+				priceTicksStoreDataTickUpper,
+			);
+
+			const maxAmountIn = BigInt(10);
+			const amountOut = BigInt(10);
+			const checkPriceBefore = await computeCurrentPrice(
+				moduleEndpointContext,
+				dexModule.stores,
+				token0Id,
+				token1Id,
+				[poolId]
+			);
+			const result = await endpoint.dryRunSwapExactOut(
+				methodContext,
+				moduleEndpointContext,
+				dexModule.stores,
+				token0Id,
+				maxAmountIn,
+				token1Id,
+				amountOut,
+				[poolId]
+			);
+			const checkPriceAfter = await computeCurrentPrice(
+				moduleEndpointContext,
+				dexModule.stores,
+				token0Id,
+				token1Id,
+				[poolId]
+			);
+
+			expect(result[2]).toEqual(checkPriceBefore);
+			expect(result[3]).toEqual(checkPriceAfter);
+		})
 	});
-
-	it('dryRunSwapExactOut', async () => {
-		const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
-		const currentTickID = q96ToBytes(BigInt(currentTick));
-		await poolsStore.setKey(methodContext, [currentTickID.slice(0, NUM_BYTES_POOL_ID)], poolsStoreData);
-
-		await priceTicksStore.setKey(
-			methodContext,
-			[currentTickID],
-			priceTicksStoreDataTickUpper,
-		);
-
-		await priceTicksStore.setKey(
-			methodContext,
-			[Buffer.from('000000000000000000000000000000000000000000000006', 'hex')],
-			priceTicksStoreDataTickUpper,
-		);
-
-		const maxAmountIn = BigInt(99999999);
-		const amountOut = BigInt(10);
-		const checkPriceBefore = await computeCurrentPrice(
-			moduleEndpointContext,
-			dexModule.stores,
-			token0Id,
-			token1Id,
-			[poolId]
-		);
-		const result = await endpoint.dryRunSwapExactOut(
-			methodContext,
-			moduleEndpointContext,
-			dexModule.stores,
-			token0Id,
-			maxAmountIn,
-			token1Id,
-			amountOut,
-			[poolId]
-		);
-		const checkPriceAfter = await computeCurrentPrice(
-			moduleEndpointContext,
-			dexModule.stores,
-			token0Id,
-			token1Id,
-			[poolId]
-		);
-
-		expect(result[2]).toEqual(checkPriceBefore);
-		expect(result[3]).toEqual(checkPriceAfter);
-	})
 });
