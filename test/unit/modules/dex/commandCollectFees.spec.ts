@@ -37,7 +37,7 @@ import {
 	PriceTicksStoreData,
 	tickToBytes,
 } from '../../../../src/app/modules/dex/stores/priceTicksStore';
-import { Address, PositionID } from '../../../../src/app/modules/dex/types';
+import { Address, PoolID, PositionID } from '../../../../src/app/modules/dex/types';
 import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
@@ -46,12 +46,15 @@ import { InMemoryPrefixedStateDB } from './inMemoryPrefixedStateDB';
 const { createBlockContext, createBlockHeaderWithDefaults, createTransactionContext } = testing;
 const { utils } = cryptography;
 
+const skipOnCI = process.env.CI ? describe.skip : describe;
+
 describe('dex:command:collectFees', () => {
 	describe('dex:command:collectFees', () => {
+		const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 		let command: CollectFeesCommand;
 		let stateStore: PrefixedStateReadWriter;
 		let methodContext: MethodContext;
-		let contextStore = new Map();
+		const contextStore = new Map();
 
 		const dexModule = new DexModule();
 		const senderAddress: Address = Buffer.from('00000000000000000', 'hex');
@@ -77,6 +80,8 @@ describe('dex:command:collectFees', () => {
 		const poolsStoreData: PoolsStoreData = {
 			liquidity: BigInt(5),
 			sqrtPrice: q96ToBytes(BigInt('327099227039063106')),
+			incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+			heightIncentivesUpdate: 5,
 			feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
 			feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(6))),
 			tickSpacing: 1,
@@ -87,6 +92,7 @@ describe('dex:command:collectFees', () => {
 			liquidityGross: BigInt(5),
 			feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(8))),
 			feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(5))),
+			incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(2))),
 		};
 
 		const priceTicksStoreDataTickUpper: PriceTicksStoreData = {
@@ -94,11 +100,15 @@ describe('dex:command:collectFees', () => {
 			liquidityGross: BigInt(5),
 			feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(4))),
 			feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(3))),
+			incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(3))),
 		};
 
 		const dexGlobalStoreData: DexGlobalStoreData = {
 			positionCounter: BigInt(10),
 			collectableLSKFees: BigInt(10),
+			poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
+			incentivizedPools: [{ poolId, multiplier: 10 }],
+			totalIncentivesMultiplier: 1,
 		};
 		const positionsStoreData: PositionsStoreData = {
 			tickLower: -8,
@@ -197,7 +207,7 @@ describe('dex:command:collectFees', () => {
 						nonce: BigInt(0),
 						senderPublicKey: senderAddress,
 						params: codec.encode(collectFeesSchema, {
-							positions: new Array(24).fill({ positionID: Buffer.from('0000000100', 'hex') }),
+							positions: new Array(500).fill({ positionID: Buffer.from('0000000100', 'hex') }),
 						}),
 						signatures: [utils.getRandomBytes(64)],
 					}),
@@ -256,7 +266,7 @@ describe('dex:command:collectFees', () => {
 			});
 		});
 
-		describe('stress test for checking the event emission and the time taken', () => {
+		skipOnCI('stress test for checking the event emission and the time taken', () => {
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			(async () => {
 				const testarray = Array.from({ length: 10000 });

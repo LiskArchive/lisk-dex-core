@@ -17,13 +17,12 @@
  */
 
 import { MethodContext, TokenMethod } from 'lisk-framework';
-import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_machine';
+import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 
 import {
 	getToken0Id,
 	getToken1Id,
-	getFeeTier,
 	getPoolIDFromPositionID,
 	createPool,
 	computePoolID,
@@ -38,6 +37,10 @@ import {
 	transferPoolToPool,
 	transferToProtocolFeeAccount,
 	updatePosition,
+	getCredibleDirectPrice,
+	computeExceptionalRoute,
+	computeRegularRoute,
+	getAdjacent,
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
@@ -60,6 +63,7 @@ import {
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
+import { createTransientModuleEndpointContext } from '../../../context/createContext';
 
 describe('dex:auxiliaryFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
@@ -67,13 +71,17 @@ describe('dex:auxiliaryFunctions', () => {
 	const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
-	const feeTier = Number('0x00000c8');
 	const sqrtPrice: bigint = numberToQ96(BigInt(1));
 	const dexModule = new DexModule();
-
-	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
+	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
-	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
+
+	const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+
+	const moduleEndpointContext = createTransientModuleEndpointContext({
+		stateStore,
+		params: { address: INVALID_ADDRESS },
+	});
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
@@ -91,6 +99,7 @@ describe('dex:auxiliaryFunctions', () => {
 	const lockMock = jest.fn();
 	const unlockMock = jest.fn();
 	const getAvailableBalanceMock = jest.fn().mockReturnValue(BigInt(250));
+	const getLockedAmountMock = jest.fn().mockReturnValue(BigInt(5));
 
 	const settings = {
 		feeTiers: [100],
@@ -99,6 +108,8 @@ describe('dex:auxiliaryFunctions', () => {
 	const poolsStoreData: PoolsStoreData = {
 		liquidity: BigInt(5),
 		sqrtPrice: q96ToBytes(BigInt(tickToPrice(5))),
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+		heightIncentivesUpdate: 5,
 		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(0))),
 		tickSpacing: 1,
@@ -109,6 +120,7 @@ describe('dex:auxiliaryFunctions', () => {
 		liquidityGross: BigInt(5),
 		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(0))),
+		incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(2))),
 	};
 
 	const priceTicksStoreDataTickUpper: PriceTicksStoreData = {
@@ -116,12 +128,17 @@ describe('dex:auxiliaryFunctions', () => {
 		liquidityGross: BigInt(5),
 		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(0))),
+		incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(3))),
 	};
 
 	const dexGlobalStoreData: DexGlobalStoreData = {
-		positionCounter: BigInt(10),
+		positionCounter: BigInt(15),
 		collectableLSKFees: BigInt(10),
+		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
+		incentivizedPools: [{ poolId, multiplier: 10 }],
+		totalIncentivesMultiplier: 1,
 	};
+
 	const positionsStoreData: PositionsStoreData = {
 		tickLower: -10,
 		tickUpper: 10,
@@ -194,15 +211,13 @@ describe('dex:auxiliaryFunctions', () => {
 			tokenMethod.lock = lockMock;
 			tokenMethod.unlock = unlockMock;
 			tokenMethod.getAvailableBalance = getAvailableBalanceMock.mockReturnValue(BigInt(250));
+			tokenMethod.getLockedAmount = getLockedAmountMock.mockReturnValue(BigInt(5));
 		});
 		it('should get Token0Id from poolID', () => {
 			expect(getToken0Id(poolId)).toEqual(token0Id);
 		});
 		it('should get Token1Id from poolID', () => {
 			expect(getToken1Id(poolId)).toEqual(token1Id);
-		});
-		it('should return the feeTier from the poolID', () => {
-			expect(getFeeTier(poolId)).toEqual(feeTier);
 		});
 
 		it('should transfer and lock using the tokenMethod', async () => {
@@ -271,7 +286,7 @@ describe('dex:auxiliaryFunctions', () => {
 		it('should return concatenated poolID with dexGlobalStoreData.positionCounter in result', () => {
 			expect(
 				getNewPositionID(dexGlobalStoreData, getPoolIDFromPositionID(positionId)).toString('hex'),
-			).toBe('000000010000000001016431303130');
+			).toBe('000000010000000001016431303135');
 		});
 
 		it('should return [316912650057057350374175801344,158456325028528675187087900672] as feeGrowthInside0, feeGrowthInside1 in result', async () => {
@@ -388,8 +403,67 @@ describe('dex:auxiliaryFunctions', () => {
 				}),
 			).toBeUndefined();
 		});
+
 		it('priceToTick', () => {
 			expect(priceToTick(tickToPrice(-735247))).toEqual(-735247);
+		});
+
+		it('getAdjacent', async () => {
+			const res = await getAdjacent(moduleEndpointContext, dexModule.stores, token0Id);
+			expect(res).not.toBeNull();
+		});
+
+		it('computeRegularRoute ', async () => {
+			const adjacentToken = Buffer.from('0000000000000000000001000000000000000000', 'hex');
+			const res = await computeRegularRoute(
+				moduleEndpointContext,
+				dexModule.stores,
+				token0Id,
+				adjacentToken,
+			);
+			let searchFlag = false;
+			for (const item of res) {
+				if (adjacentToken.equals(item)) {
+					searchFlag = true;
+				}
+			}
+			expect(searchFlag).toBeTruthy();
+		});
+
+		it('computeExceptionalRoute should return 0', async () => {
+			expect(
+				await computeExceptionalRoute(moduleEndpointContext, dexModule.stores, token0Id, token1Id),
+			).toHaveLength(0);
+		});
+
+		it('computeExceptionalRoute should return route with tokenID', async () => {
+			expect(
+				(
+					await computeExceptionalRoute(moduleEndpointContext, dexModule.stores, token0Id, token0Id)
+				)[0],
+			).toStrictEqual(Buffer.from('0000000000000000', 'hex'));
+		});
+
+		it('getCredibleDirectPrice', async () => {
+			const result = Buffer.alloc(4);
+			const newTokenIDsArray = [
+				token0Id,
+				token1Id,
+				q96ToBytes(
+					BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings[0].feeTier, 0)),
+				),
+			];
+			await poolsStore.setKey(methodContext, newTokenIDsArray, poolsStoreData);
+			await poolsStore.set(methodContext, Buffer.concat(newTokenIDsArray), poolsStoreData);
+			await getCredibleDirectPrice(
+				tokenMethod,
+				moduleEndpointContext,
+				dexModule.stores,
+				token0Id,
+				token1Id,
+			).then(res => {
+				expect(res.toString()).toBe('79267784519130042428790663800');
+			});
 		});
 	});
 });
