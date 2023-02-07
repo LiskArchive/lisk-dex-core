@@ -402,7 +402,6 @@ describe('dex: offChainEndpointFunctions', () => {
 			const result = await endpoint.dryRunSwapExactIn(
 				methodContext,
 				moduleEndpointContext,
-				dexModule.stores,
 				token0Id,
 				amountIn,
 				token1Id,
@@ -417,6 +416,9 @@ describe('dex: offChainEndpointFunctions', () => {
 				token1Id,
 				[poolId]
 			);
+
+			console.log("checkPriceBefore: ", checkPriceBefore);
+			console.log("checkPriceAfter: ", checkPriceAfter);
 
 			expect(result[2]).toEqual(checkPriceBefore);
 			expect(result[3]).toEqual(checkPriceAfter);

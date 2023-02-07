@@ -13,7 +13,6 @@
  */
 
 import { BaseEndpoint, ModuleEndpointContext, TokenMethod, MethodContext } from 'lisk-sdk';
-import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 
 import { MODULE_ID_DEX, NUM_BYTES_POOL_ID, TOKEN_ID_LSK } from './constants';
 import { NUM_BYTES_ADDRESS, NUM_BYTES_POSITION_ID, MAX_HOPS_SWAP, MAX_SQRT_RATIO, MIN_SQRT_RATIO } from './constants';
@@ -290,13 +289,12 @@ export class DexEndpoint extends BaseEndpoint {
 	public async dryRunSwapExactIn(
 		methodContext: MethodContext,
 		moduleEndpointContext: ModuleEndpointContext,
-		stores: NamedRegistry,
 		tokenIdIn: TokenID,
 		amountIn: bigint,
 		tokenIdOut: TokenID,
 		minAmountOut: bigint,
 		swapRoute: PoolID[],
-	) {
+	): Promise<[bigint, bigint, bigint, bigint]> {
 		let zeroToOne = false;
 		let IdOut: TokenID = tokenIdIn;
 		const tokens = [{ id: tokenIdIn, amount: amountIn }];
@@ -313,7 +311,7 @@ export class DexEndpoint extends BaseEndpoint {
 		try {
 			priceBefore = await computeCurrentPrice(
 				moduleEndpointContext,
-				stores,
+				this.stores,
 				tokenIdIn,
 				tokenIdOut,
 				swapRoute,
@@ -338,7 +336,7 @@ export class DexEndpoint extends BaseEndpoint {
 				[newAmountIn, amountOut, feesIn, feesOut] = await swap(
 					moduleEndpointContext,
 					methodContext,
-					stores,
+					this.stores,
 					poolId,
 					zeroToOne,
 					sqrtLimitPrice,
@@ -361,7 +359,7 @@ export class DexEndpoint extends BaseEndpoint {
 
 		const priceAfter = await computeCurrentPrice(
 			moduleEndpointContext,
-			stores,
+			this.stores,
 			tokenIdIn,
 			tokenIdOut,
 			swapRoute,
