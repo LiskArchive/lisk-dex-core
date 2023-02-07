@@ -204,6 +204,5 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			const resKey = await this.getKey(context, keys);
 			return resKey
 		}
-
 	}
 }

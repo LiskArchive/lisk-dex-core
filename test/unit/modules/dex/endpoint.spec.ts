@@ -61,26 +61,21 @@ describe('dex: offChainEndpointFunctions', () => {
 	const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
 	const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
 	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
-	console.log("11111111111");
 
 	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
-	console.log("2222222222222222");
 	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
-	console.log("333333333333333333");
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
 		stateStore,
 		eventQueue: new EventQueue(0),
 	});
-	console.log("4444444444444444444");
 
 	const moduleEndpointContext = createTransientModuleEndpointContext({
 		stateStore,
 		params: { address: INVALID_ADDRESS },
 	});
-	console.log("555555555555555555");
 
 	let poolsStore: PoolsStore;
 	let priceTicksStore: PriceTicksStore;
@@ -94,19 +89,9 @@ describe('dex: offChainEndpointFunctions', () => {
 	const unlockMock = jest.fn();
 	const getAvailableBalanceMock = jest.fn().mockReturnValue(BigInt(250));
 	const lockedAmountMock = jest.fn().mockReturnValue(BigInt(5));
-	console.log("6666666666666666");
 
-	const poolsStoreData: PoolsStoreData = {
-		liquidity: BigInt(5000000),
-		sqrtPrice: q96ToBytes(BigInt(tickToPrice(100))),
-		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(10))),
-		heightIncentivesUpdate: 5,
-		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
-		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(10))),
-		tickSpacing: 1,
-	};
 	// const poolsStoreData: PoolsStoreData = {
-	// 	liquidity: BigInt(5000000),
+	// 	liquidity: BigInt(50),
 	// 	sqrtPrice: q96ToBytes(BigInt(tickToPrice(100))),
 	// 	incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(99999))),
 	// 	heightIncentivesUpdate: 5,
@@ -114,25 +99,31 @@ describe('dex: offChainEndpointFunctions', () => {
 	// 	feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(10))),
 	// 	tickSpacing: 1,
 	// };
-	console.log("777777777777777777");
+	const poolsStoreData: PoolsStoreData = {
+		liquidity: BigInt(10),
+		sqrtPrice: q96ToBytes(BigInt(tickToPrice(100))),
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(99999))),
+		heightIncentivesUpdate: 5,
+		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
+		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(10))),
+		tickSpacing: 1,
+	};
 
 	const priceTicksStoreDataTickLower: PriceTicksStoreData = {
-		liquidityNet: BigInt(5),
-		liquidityGross: BigInt(5),
-		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(0))),
-		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(0))),
+		liquidityNet: BigInt(10),
+		liquidityGross: BigInt(10),
+		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(10))),
+		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(10))),
 		incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(2))),
 	};
-	console.log("888888888888888");
 
 	const priceTicksStoreDataTickUpper: PriceTicksStoreData = {
-		liquidityNet: BigInt(5),
-		liquidityGross: BigInt(5),
+		liquidityNet: BigInt(10),
+		liquidityGross: BigInt(10),
 		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(5))),
 		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(5))),
 		incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(3))),
 	};
-	console.log("999999999999999999");
 
 	const dexGlobalStoreData: DexGlobalStoreData = {
 		positionCounter: BigInt(15),
@@ -141,16 +132,14 @@ describe('dex: offChainEndpointFunctions', () => {
 		incentivizedPools: [{ poolId, multiplier: 10 }],
 		totalIncentivesMultiplier: 1,
 	};
-	console.log("0000000000000000");
 	const positionsStoreData: PositionsStoreData = {
 		tickLower: -10,
 		tickUpper: 10,
-		liquidity: BigInt(5000000),
+		liquidity: BigInt(10),
 		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(10))),
 		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(10))),
 		ownerAddress: senderAddress,
 	};
-	console.log("---------------------");
 
 	const settingStoreData: SettingsStoreData = {
 		protocolFeeAddress: Buffer.from('0000000000000000', 'hex'),
@@ -161,7 +150,6 @@ describe('dex: offChainEndpointFunctions', () => {
 			tickSpacing: 1,
 		},
 	};
-	console.log("===================");
 
 	describe('constructor', () => {
 		beforeEach(async () => {
@@ -173,7 +161,6 @@ describe('dex: offChainEndpointFunctions', () => {
 			endpoint = new DexEndpoint(dexModule.stores, dexModule.offchainStores);
 
 			await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData);
-
 			await settingsStore.set(methodContext, Buffer.from([]), settingStoreData);
 
 			await poolsStore.setKey(
@@ -237,8 +224,9 @@ describe('dex: offChainEndpointFunctions', () => {
 
 		it('getAllPoolIDs', async () => {
 			await endpoint.getAllPoolIDs(moduleEndpointContext).then(res => {
+				console.log("getAllPoolIDs: ", res[0]);
 				expect(res[0]).toStrictEqual(
-					Buffer.from('000000000000000000000001000011100494800200', 'hex'),
+					Buffer.from('00016000000011131002012940320020000200', 'hex'),
 				);
 			});
 		});
@@ -283,7 +271,7 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getPool', async () => {
-			await endpoint.getPool(moduleEndpointContext, getPoolIDFromPositionID(positionId)).then(
+			await endpoint.getPool(moduleEndpointContext, poolId).then(
 				res => {
 					expect(res).not.toBeNull();
 					expect(res.liquidity).toBe(BigInt(5));
