@@ -15,12 +15,14 @@
 import { MethodContext, ModuleEndpointContext } from 'lisk-sdk';
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { SwapFailedEvent } from '../events/swapFailed';
-import { Address, AdjacentEdgesInterface, PoolID, PoolsGraph, TokenID } from '../types';
+import { Address, AdjacentEdgesInterface, PoolID, PoolsGraph, TickID, TokenID } from '../types';
 import { getToken0Id, getToken1Id } from './auxiliaryFunctions';
 import { computeNextPrice, getAmount0Delta, getAmount1Delta } from './math';
 import { DexModule } from '../module';
 import { DexEndpoint } from '../endpoint';
-import { bytesToQ96, invQ96, mulQ96 } from './q96';
+import { addQ96, bytesToQ96, divQ96, invQ96, mulDivQ96, mulQ96, numberToQ96, q96ToBytes, subQ96 } from './q96';
+import { NUM_BYTES_POOL_ID } from '../constants';
+import { DexGlobalStore } from '../stores';
 
 export const swapWithin = (
 	sqrtCurrentPrice: bigint,
@@ -156,4 +158,125 @@ export const constructPoolsGraph = async (
 		edges.add(poolId);
 	});
 	return { vertices, edges };
+};
+
+export const updatePoolIncentives = async (
+	moduleEndpointContext: ModuleEndpointContext,
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	poolID: PoolID,
+	currentHeight: number,
+) => {
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	const dexGlobalStore = stores.get(DexGlobalStore);
+	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
+	let incentivizedPools: { poolId: Buffer; multiplier: number } | undefined;
+
+	dexGlobalStoreData.incentivizedPools.forEach(incentivizedPool => {
+		if (incentivizedPool.poolId.equals(poolID)) {
+			incentivizedPools = incentivizedPool;
+		}
+	});
+
+	if (incentivizedPools == null) {
+		return;
+	}
+
+	const pool = await endpoint.getPool(moduleEndpointContext, poolID);
+	const allPoolIds = await endpoint.getAllPoolIDs(moduleEndpointContext);
+	if (!allPoolIds.includes(poolID) || pool.heightIncentivesUpdate >= currentHeight) {
+		return;
+	}
+
+	const newIncentivesPerLiquidity = await computeNewIncentivesPerLiquidity(
+		moduleEndpointContext,
+		methodContext,
+		stores,
+		poolID,
+		currentHeight,
+	);
+	pool.incentivesPerLiquidityAccumulator = q96ToBytes(newIncentivesPerLiquidity);
+	pool.heightIncentivesUpdate = currentHeight.valueOf();
+};
+
+
+export const computeNewIncentivesPerLiquidity = async (
+	moduleEndpointContext: ModuleEndpointContext,
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	poolID: PoolID,
+	currentHeight: number,
+): Promise<bigint> => {
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	const dexGlobalStore = stores.get(DexGlobalStore);
+	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
+	let incentivizedPools: { poolId: Buffer; multiplier: number } | undefined;
+
+	dexGlobalStoreData.incentivizedPools.forEach(incentivizedPool => {
+		if (incentivizedPool.poolId.equals(poolID)) {
+			incentivizedPools = incentivizedPool;
+		}
+	});
+
+	if (incentivizedPools == null) {
+		throw new Error('Invalid arguments');
+	}
+
+	const pool = await endpoint.getPool(moduleEndpointContext, poolID);
+	const allPoolIds = await endpoint.getAllPoolIDs(moduleEndpointContext);
+	if (!allPoolIds.includes(poolID) || pool.heightIncentivesUpdate >= currentHeight) {
+		throw new Error('Invalid arguments');
+	}
+
+	const poolMultiplier = BigInt(incentivizedPools.multiplier);
+	const totalIncentives = BigInt(0);
+
+	const incentives = mulDivQ96(
+		numberToQ96(totalIncentives),
+		numberToQ96(poolMultiplier),
+		numberToQ96(BigInt(dexGlobalStoreData.totalIncentivesMultiplier)),
+	);
+	const incentivesPerLiquidity = divQ96(incentives, numberToQ96(pool.liquidity));
+	const currentIncentivesPerLiquidity = bytesToQ96(pool.incentivesPerLiquidityAccumulator);
+	return addQ96(incentivesPerLiquidity, currentIncentivesPerLiquidity);
+};
+
+
+export const crossTick = async (
+	moduleEnpointContext: ModuleEndpointContext,
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	tickId: TickID,
+	leftToRight: boolean,
+	currentHeight: number,
+) => {
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	const poolId = tickId.slice(0, NUM_BYTES_POOL_ID);
+	await updatePoolIncentives(moduleEnpointContext, methodContext, stores, poolId, currentHeight);
+	const poolStoreData = await endpoint.getPool(moduleEnpointContext, poolId);
+	const priceTickStoreData = await endpoint.getTickWithTickId(moduleEnpointContext, [tickId]);
+	if (leftToRight) {
+		poolStoreData.liquidity += priceTickStoreData.liquidityNet;
+	} else {
+		poolStoreData.liquidity -= priceTickStoreData.liquidityNet;
+	}
+	const feeGrowthGlobal0Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal0);
+	const feeGrowthOutside0Q96 = bytesToQ96(priceTickStoreData.feeGrowthOutside0);
+
+	priceTickStoreData.feeGrowthOutside0 = q96ToBytes(
+		subQ96(feeGrowthGlobal0Q96, feeGrowthOutside0Q96),
+	);
+	const feeGrowthGlobal1Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal1);
+	const feeGrowthOutside1Q96 = bytesToQ96(priceTickStoreData.feeGrowthOutside1);
+	priceTickStoreData.feeGrowthOutside1 = q96ToBytes(
+		subQ96(feeGrowthGlobal1Q96, feeGrowthOutside1Q96),
+	);
+	const incentivesAccumulatorQ96 = bytesToQ96(poolStoreData.incentivesPerLiquidityAccumulator);
+	const incentivesOutsideQ96 = bytesToQ96(priceTickStoreData.incentivesPerLiquidityOutside);
+	priceTickStoreData.incentivesPerLiquidityOutside = q96ToBytes(
+		subQ96(incentivesAccumulatorQ96, incentivesOutsideQ96),
+	);
 };

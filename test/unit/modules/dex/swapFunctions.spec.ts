@@ -22,6 +22,7 @@ import { DexModule } from '../../../../src/app/modules';
 import {
 	computeCurrentPrice,
 	constructPoolsGraph,
+	crossTick,
 	getAdjacent,
 	raiseSwapException,
 	swapWithin,
@@ -30,10 +31,13 @@ import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import { Address, PoolID, TokenID } from '../../../../src/app/modules/dex/types';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
-import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
-import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
-import { PoolsStore } from '../../../../src/app/modules/dex/stores';
+import { bytesToQ96, numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
+import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
+import { DexGlobalStore, PoolsStore, PriceTicksStore } from '../../../../src/app/modules/dex/stores';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
+import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
+import { PriceTicksStoreData } from '../../../../src/app/modules/dex/stores/priceTicksStore';
+import { NUM_BYTES_POOL_ID } from '../../../../src/app/modules/dex/constants';
 
 describe('dex:auxiliaryFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
@@ -50,7 +54,10 @@ describe('dex:auxiliaryFunctions', () => {
 	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
 	const INVALID_ADDRESS = '1234';
 
+	
 	let poolsStore: PoolsStore;
+	let dexGlobalStore: DexGlobalStore;
+	let priceTicksStore: PriceTicksStore;
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
@@ -64,19 +71,39 @@ describe('dex:auxiliaryFunctions', () => {
 	});
 
 	const poolsStoreData: PoolsStoreData = {
-		liquidity: BigInt(5),
-		sqrtPrice: q96ToBytes(BigInt(tickToPrice(5))),
-		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+		liquidity: BigInt(5000000),
+		sqrtPrice: q96ToBytes(BigInt(tickToPrice(100))),
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(10))),
 		heightIncentivesUpdate: 5,
-		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(0))),
-		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(0))),
+		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
+		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(10))),
 		tickSpacing: 1,
+	};
+
+	const dexGlobalStoreData: DexGlobalStoreData = {
+		positionCounter: BigInt(15),
+		collectableLSKFees: BigInt(10),
+		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
+		incentivizedPools: [{ poolId, multiplier: 10 }],
+		totalIncentivesMultiplier: 1,
+	};
+
+	const priceTicksStoreDataTickUpper: PriceTicksStoreData = {
+		liquidityNet: BigInt(5),
+		liquidityGross: BigInt(5),
+		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(5))),
+		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(5))),
+		incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(3))),
 	};
 
 	describe('constructor', () => {
 		beforeEach(async () => {
 			poolsStore = dexModule.stores.get(PoolsStore);
+			dexGlobalStore = dexModule.stores.get(DexGlobalStore);
+			priceTicksStore = dexModule.stores.get(PriceTicksStore);
 			await poolsStore.setKey(methodContext, [poolId], poolsStoreData);
+			await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData);
+
 		});
 		it('raiseSwapException', () => {
 			raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress);
@@ -127,5 +154,18 @@ describe('dex:auxiliaryFunctions', () => {
 			expect(vertices.filter(vertex => vertex.equals(token1Id))).toHaveLength(1);
 			expect(edges.filter(edge => edge.equals(poolId))).toHaveLength(1);
 		});
+		it('crossTick', async () => {
+			const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
+			const currentTickID = q96ToBytes(BigInt(currentTick));
+			await poolsStore.setKey(methodContext, [currentTickID.slice(0, NUM_BYTES_POOL_ID)], poolsStoreData);
+			await priceTicksStore.setKey(
+				methodContext,
+				[currentTickID],
+				priceTicksStoreDataTickUpper,
+			);
+			const crossTickRes = crossTick(moduleEndpointContext, methodContext, dexModule.stores, currentTickID, false, 10);
+			expect(crossTickRes).resolves.toBeUndefined();
+		});
+
 	});
 });
