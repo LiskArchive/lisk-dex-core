@@ -1053,23 +1053,23 @@ export const dryRunSwapExactOutRequestSchema = {
 		},
 		tokenIdIn: {
 			dataType: 'bytes',
-			fieldNumber: 4,
+			fieldNumber: 3,
 		},
 		maxAmountIn: {
 			dataType: 'uint64',
-			fieldNumber: 5
+			fieldNumber: 4
 		},
 		tokenIdOut: {
 			dataType: 'bytes',
-			filedNumber: 6
+			filedNumber: 5
 		},
 		amountOut: {
 			dataType: 'uint64',
-			fieldNumber: 7
+			fieldNumber: 6
 		},
 		swapRoute: {
 			type: 'array',
-			fieldNumber: 8,
+			fieldNumber: 7,
 			items: {
 				dataType: 'bytes'
 			}
