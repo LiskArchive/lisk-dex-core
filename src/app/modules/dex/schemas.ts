@@ -1041,7 +1041,7 @@ export const getAllTickIDsInPoolRsponseSchema = {
 export const dryRunSwapExactOutRequestSchema = {
 	$id: 'dex/dryRunSwapExactOut',
 	type: 'object',
-	required: ['methodContext', 'moduleEndpointContext', 'stores', 'tokenIdIn', 'maxAmountIn', 'tokenIdOut', 'amountOut', 'swapRoute'],
+	required: ['methodContext', 'moduleEndpointContext', 'tokenIdIn', 'maxAmountIn', 'tokenIdOut', 'amountOut', 'swapRoute'],
 	properties: {
 		methodContext: {
 			dataType: 'object',
@@ -1050,10 +1050,6 @@ export const dryRunSwapExactOutRequestSchema = {
 		moduleEndpointContext: {
 			dataType: 'object',
 			fieldNumber: 2,
-		},
-		stores: {
-			dataType: 'object',
-			fieldNumber: 3,
 		},
 		tokenIdIn: {
 			dataType: 'bytes',

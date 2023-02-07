@@ -298,7 +298,6 @@ export class DexEndpoint extends BaseEndpoint {
 	public async dryRunSwapExactOut(
 		methodContext: MethodContext,
 		moduleEndpointContext: ModuleEndpointContext,
-		stores: NamedRegistry,
 		tokenIdIn: TokenID,
 		maxAmountIn: bigint,
 		tokenIdOut: TokenID,
@@ -321,7 +320,7 @@ export class DexEndpoint extends BaseEndpoint {
 		try {
 			priceBefore = await computeCurrentPrice(
 				moduleEndpointContext,
-				stores,
+				this.stores,
 				tokenIdIn,
 				tokenIdOut,
 				swapRoute,
@@ -347,7 +346,7 @@ export class DexEndpoint extends BaseEndpoint {
 				[amountIn, newAmountOut, feesIn, feesOut] = await swap(
 					moduleEndpointContext,
 					methodContext,
-					stores,
+					this.stores,
 					poolId,
 					zeroToOne,
 					sqrtLimitPrice,
@@ -368,7 +367,7 @@ export class DexEndpoint extends BaseEndpoint {
 		}
 		const priceAfter = await computeCurrentPrice(
 			moduleEndpointContext,
-			stores,
+			this.stores,
 			tokenIdIn,
 			tokenIdOut,
 			swapRoute,

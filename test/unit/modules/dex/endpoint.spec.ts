@@ -398,7 +398,6 @@ describe('dex: offChainEndpointFunctions', () => {
 			const result = await endpoint.dryRunSwapExactOut(
 				methodContext,
 				moduleEndpointContext,
-				dexModule.stores,
 				token0Id,
 				maxAmountIn,
 				token1Id,
