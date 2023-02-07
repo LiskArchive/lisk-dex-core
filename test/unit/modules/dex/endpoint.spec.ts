@@ -60,21 +60,22 @@ describe('dex: offChainEndpointFunctions', () => {
 	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
 	const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
 	const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
-	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
 
 	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
-	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
+
+	let stateStore: PrefixedStateReadWriter;
+	stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+
+	const moduleEndpointContext = createTransientModuleEndpointContext({
+		stateStore,
+		params: { address: INVALID_ADDRESS },
+	});
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
 		stateStore,
 		eventQueue: new EventQueue(0),
-	});
-
-	const moduleEndpointContext = createTransientModuleEndpointContext({
-		stateStore,
-		params: { address: INVALID_ADDRESS },
 	});
 
 	let poolsStore: PoolsStore;
@@ -90,19 +91,10 @@ describe('dex: offChainEndpointFunctions', () => {
 	const getAvailableBalanceMock = jest.fn().mockReturnValue(BigInt(250));
 	const lockedAmountMock = jest.fn().mockReturnValue(BigInt(5));
 
-	// const poolsStoreData: PoolsStoreData = {
-	// 	liquidity: BigInt(50),
-	// 	sqrtPrice: q96ToBytes(BigInt(tickToPrice(100))),
-	// 	incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(99999))),
-	// 	heightIncentivesUpdate: 5,
-	// 	feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
-	// 	feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(10))),
-	// 	tickSpacing: 1,
-	// };
 	const poolsStoreData: PoolsStoreData = {
-		liquidity: BigInt(10),
+		liquidity: BigInt(5000000),
 		sqrtPrice: q96ToBytes(BigInt(tickToPrice(100))),
-		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(99999))),
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(10))),
 		heightIncentivesUpdate: 5,
 		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
 		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(10))),
@@ -110,18 +102,18 @@ describe('dex: offChainEndpointFunctions', () => {
 	};
 
 	const priceTicksStoreDataTickLower: PriceTicksStoreData = {
-		liquidityNet: BigInt(10),
-		liquidityGross: BigInt(10),
-		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(10))),
-		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(10))),
+		liquidityNet: BigInt(5),
+		liquidityGross: BigInt(5),
+		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(0))),
+		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(0))),
 		incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(2))),
 	};
 
 	const priceTicksStoreDataTickUpper: PriceTicksStoreData = {
-		liquidityNet: BigInt(10),
-		liquidityGross: BigInt(10),
-		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(5))),
-		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(5))),
+		liquidityNet: BigInt(5),
+		liquidityGross: BigInt(5),
+		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(0))),
+		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(0))),
 		incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(3))),
 	};
 
@@ -135,9 +127,9 @@ describe('dex: offChainEndpointFunctions', () => {
 	const positionsStoreData: PositionsStoreData = {
 		tickLower: -10,
 		tickUpper: 10,
-		liquidity: BigInt(10),
-		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(10))),
-		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(10))),
+		liquidity: BigInt(1000),
+		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(0))),
+		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(0))),
 		ownerAddress: senderAddress,
 	};
 
@@ -274,7 +266,7 @@ describe('dex: offChainEndpointFunctions', () => {
 			await endpoint.getPool(moduleEndpointContext, poolId).then(
 				res => {
 					expect(res).not.toBeNull();
-					expect(res.liquidity).toBe(BigInt(5));
+					expect(res.liquidity).toBe(BigInt(5000000));
 				});
 		});
 
