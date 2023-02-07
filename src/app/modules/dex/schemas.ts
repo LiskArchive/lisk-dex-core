@@ -1044,45 +1044,43 @@ export const dryRunSwapExactOutRequestSchema = {
 	required: ['methodContext', 'moduleEndpointContext', 'stores', 'tokenIdIn', 'maxAmountIn', 'tokenIdOut', 'amountOut', 'swapRoute'],
 	properties: {
 		methodContext: {
-			methodContext: {
-				dataType: 'object',
-				fieldNumber: 1,
-			},
-			moduleEndpointContext: {
-				dataType: 'object',
-				fieldNumber: 2,
-			},
-			stores: {
-				dataType: 'object',
-				fieldNumber: 3,
-			},
-			tokenIdIn: {
-				dataType: 'bytes',
-				fieldNumber: 4,
-			},
-			maxAmountIn: {
-				dataType: 'uint64',
-				fieldNumber: 5
-			},
-			tokenIdOut: {
-				dataType: 'bytes',
-				filedNumber: 6
-			},
-			amountOut: {
-				dataType: 'uint64',
-				fieldNumber: 7
-			},
-			swapRoute: {
-				type: 'array',
-				fieldNumber: 8,
-				items: {
-					type: 'object',
-					required: ['poolId'],
-					properties: {
-						poolId: {
-							dataType: 'bytes',
-							fieldNumber: 1,
-						}
+			dataType: 'object',
+			fieldNumber: 1,
+		},
+		moduleEndpointContext: {
+			dataType: 'object',
+			fieldNumber: 2,
+		},
+		stores: {
+			dataType: 'object',
+			fieldNumber: 3,
+		},
+		tokenIdIn: {
+			dataType: 'bytes',
+			fieldNumber: 4,
+		},
+		maxAmountIn: {
+			dataType: 'uint64',
+			fieldNumber: 5
+		},
+		tokenIdOut: {
+			dataType: 'bytes',
+			filedNumber: 6
+		},
+		amountOut: {
+			dataType: 'uint64',
+			fieldNumber: 7
+		},
+		swapRoute: {
+			type: 'array',
+			fieldNumber: 8,
+			items: {
+				type: 'object',
+				required: ['poolId'],
+				properties: {
+					poolId: {
+						dataType: 'bytes',
+						fieldNumber: 1,
 					}
 				}
 			}
