@@ -172,7 +172,8 @@ describe('dex:auxiliaryFunctions', () => {
 				currentTickID,
 				false,
 				10,
-			);
+			)
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises, jest/valid-expect
 			expect(crossTickRes).resolves.toBeUndefined();
 		});
 	});
