@@ -1038,7 +1038,6 @@ export const getAllTickIDsInPoolRsponseSchema = {
 	},
 };
 
-
 export const swapExactInCommandSchema = {
 	$id: '/dex/swapExactInCommandSchema',
 	type: 'object',

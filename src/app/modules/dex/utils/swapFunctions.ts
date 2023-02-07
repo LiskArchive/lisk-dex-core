@@ -12,17 +12,54 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MethodContext, ModuleEndpointContext, TokenMethod } from "lisk-sdk";
-import { Address, AdjacentEdgesInterface, PoolID, PoolsGraph, routeInterface, TickID, TokenID } from "../types";
+import { ModuleEndpointContext, TokenMethod } from 'lisk-sdk';
+
+import { MethodContext } from 'lisk-framework/dist-node/state_machine';
+import {
+	Address,
+	AdjacentEdgesInterface,
+	PoolID,
+	PoolsGraph,
+	routeInterface,
+	TickID,
+	TokenID,
+} from '../types';
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { SwapFailedEvent } from '../events/swapFailed';
 import { getToken0Id, getToken1Id, transferFromPool } from './auxiliaryFunctions';
-import { computeNextPrice, getAmount0Delta, getAmount1Delta, priceToTick, tickToPrice } from './math';
+import {
+	computeNextPrice,
+	getAmount0Delta,
+	getAmount1Delta,
+	priceToTick,
+	tickToPrice,
+} from './math';
 import { DexModule } from '../module';
 import { DexEndpoint } from '../endpoint';
-import { addQ96, bytesToQ96, divQ96, invQ96, mulDivQ96, mulDivRoundUpQ96, mulQ96, numberToQ96, q96ToBytes, roundDownQ96, roundUpQ96, subQ96 } from './q96';
-import { ADDRESS_VALIDATOR_INCENTIVES, FEE_TIER_PARTITION, MAX_NUMBER_CROSSED_TICKS, MODULE_NAME_DEX, NUM_BYTES_POOL_ID, TOKEN_ID_LSK, VALIDATORS_LSK_INCENTIVE_PART } from "../constants";
-import { DexGlobalStore, PriceTicksStore } from "../stores";
+import {
+	addQ96,
+	bytesToQ96,
+	divQ96,
+	invQ96,
+	mulDivQ96,
+	mulDivRoundUpQ96,
+	mulQ96,
+	numberToQ96,
+	q96ToBytes,
+	roundDownQ96,
+	roundUpQ96,
+	subQ96,
+} from './q96';
+import {
+	ADDRESS_VALIDATOR_INCENTIVES,
+	FEE_TIER_PARTITION,
+	MAX_NUMBER_CROSSED_TICKS,
+	MODULE_NAME_DEX,
+	NUM_BYTES_POOL_ID,
+	TOKEN_ID_LSK,
+	VALIDATORS_LSK_INCENTIVE_PART,
+} from '../constants';
+import { DexGlobalStore, PriceTicksStore } from '../stores';
 
 export const swapWithin = (
 	sqrtCurrentPrice: bigint,
@@ -117,7 +154,7 @@ export const getAdjacent = async (
 };
 
 export const computeCurrentPrice = async (
-	methodContext: ModuleEndpointContext,
+	methodContext: ModuleEndpointContext | MethodContext,
 	stores: NamedRegistry,
 	tokenIn: TokenID,
 	tokenOut: TokenID,
@@ -186,12 +223,21 @@ export const transferFeesFromPool = (
 			ADDRESS_VALIDATOR_INCENTIVES,
 			id,
 			validatorFee,
-		)
-		tokenMethod.lock(methodContext, ADDRESS_VALIDATOR_INCENTIVES, MODULE_NAME_DEX, id, validatorFee);
+		);
+		tokenMethod.lock(
+			methodContext,
+			ADDRESS_VALIDATOR_INCENTIVES,
+			MODULE_NAME_DEX,
+			id,
+			validatorFee,
+		);
 	}
 };
 
-export const getProtocolSettings = async (methodContext: ModuleEndpointContext, stores: NamedRegistry) => {
+export const getProtocolSettings = async (
+	methodContext: ModuleEndpointContext,
+	stores: NamedRegistry,
+) => {
 	const dexModule = new DexModule();
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
 	const dexGlobalStoreData = await endpoint.getDexGlobalData(methodContext);
@@ -272,8 +318,7 @@ export const computeExceptionalRoute = async (
 };
 
 export const updatePoolIncentives = async (
-	moduleEndpointContext: ModuleEndpointContext,
-	methodContext: MethodContext,
+	methodContext: ModuleEndpointContext | MethodContext,
 	stores: NamedRegistry,
 	poolID: PoolID,
 	currentHeight: number,
@@ -294,14 +339,13 @@ export const updatePoolIncentives = async (
 		return;
 	}
 
-	const pool = await endpoint.getPool(moduleEndpointContext, poolID);
-	const allPoolIds = await endpoint.getAllPoolIDs(moduleEndpointContext);
+	const pool = await endpoint.getPool(methodContext, poolID);
+	const allPoolIds = await endpoint.getAllPoolIDs(methodContext);
 	if (!allPoolIds.includes(poolID) || pool.heightIncentivesUpdate >= currentHeight) {
 		return;
 	}
 
 	const newIncentivesPerLiquidity = await computeNewIncentivesPerLiquidity(
-		moduleEndpointContext,
 		methodContext,
 		stores,
 		poolID,
@@ -312,8 +356,7 @@ export const updatePoolIncentives = async (
 };
 
 export const computeNewIncentivesPerLiquidity = async (
-	moduleEndpointContext: ModuleEndpointContext,
-	methodContext: MethodContext,
+	methodContext: ModuleEndpointContext | MethodContext,
 	stores: NamedRegistry,
 	poolID: PoolID,
 	currentHeight: number,
@@ -334,8 +377,8 @@ export const computeNewIncentivesPerLiquidity = async (
 		throw new Error('Invalid arguments');
 	}
 
-	const pool = await endpoint.getPool(moduleEndpointContext, poolID);
-	const allPoolIds = await endpoint.getAllPoolIDs(moduleEndpointContext);
+	const pool = await endpoint.getPool(methodContext, poolID);
+	const allPoolIds = await endpoint.getAllPoolIDs(methodContext);
 	if (!allPoolIds.includes(poolID) || pool.heightIncentivesUpdate >= currentHeight) {
 		throw new Error('Invalid arguments');
 	}
@@ -354,8 +397,7 @@ export const computeNewIncentivesPerLiquidity = async (
 };
 
 export const crossTick = async (
-	moduleEnpointContext: ModuleEndpointContext,
-	methodContext: MethodContext,
+	methodContext: ModuleEndpointContext | MethodContext,
 	stores: NamedRegistry,
 	tickId: TickID,
 	leftToRight: boolean,
@@ -364,9 +406,9 @@ export const crossTick = async (
 	const dexModule = new DexModule();
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
 	const poolId = tickId.slice(0, NUM_BYTES_POOL_ID);
-	await updatePoolIncentives(moduleEnpointContext, methodContext, stores, poolId, currentHeight);
-	const poolStoreData = await endpoint.getPool(moduleEnpointContext, poolId);
-	const priceTickStoreData = await endpoint.getTickWithTickId(moduleEnpointContext, [tickId]);
+	await updatePoolIncentives(methodContext, stores, poolId, currentHeight);
+	const poolStoreData = await endpoint.getPool(methodContext, poolId);
+	const priceTickStoreData = await endpoint.getTickWithTickId(methodContext, [tickId]);
 	if (leftToRight) {
 		poolStoreData.liquidity += priceTickStoreData.liquidityNet;
 	} else {
@@ -391,8 +433,7 @@ export const crossTick = async (
 };
 
 export const swap = async (
-	moduleEndpointContext: ModuleEndpointContext,
-	methodContext: MethodContext,
+	methodContext: ModuleEndpointContext | MethodContext,
 	stores: NamedRegistry,
 	poolID: PoolID,
 	zeroToOne: boolean,
@@ -406,7 +447,7 @@ export const swap = async (
 	const dexModule = new DexModule();
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
 	const feeTier = endpoint.getFeeTier(poolID);
-	let poolSqrtPriceQ96 = bytesToQ96((await endpoint.getPool(moduleEndpointContext, poolID)).sqrtPrice);
+	let poolSqrtPriceQ96 = bytesToQ96((await endpoint.getPool(methodContext, poolID)).sqrtPrice);
 	let numCrossedTicks = 0;
 	let amountRemaining = amountSpecified;
 	let amountTotalIn = BigInt(0);
@@ -417,7 +458,7 @@ export const swap = async (
 	let sqrtTargetPrice;
 	let amountIn: bigint;
 	let amountOut: bigint;
-	const poolStoreData = await endpoint.getPool(moduleEndpointContext, poolID);
+	const poolStoreData = await endpoint.getPool(methodContext, poolID);
 
 	if (
 		(zeroToOne && sqrtLimitPrice >= poolSqrtPriceQ96) ||
@@ -427,21 +468,24 @@ export const swap = async (
 	}
 
 	while (amountRemaining !== BigInt(0) && poolSqrtPriceQ96 !== sqrtLimitPrice) {
-		
 		if (numCrossedTicks >= MAX_NUMBER_CROSSED_TICKS) {
 			throw new Error('Crossed too many ticks');
 		}
 
 		const currentTick = priceToTick(poolSqrtPriceQ96);
 		if (zeroToOne && poolSqrtPriceQ96 === tickToPrice(currentTick) && currentTick != 0) {
-			await crossTick(moduleEndpointContext, methodContext, stores, q96ToBytes(BigInt(currentTick)), false, currentHeight);
+			await crossTick(methodContext, stores, q96ToBytes(BigInt(currentTick)), false, currentHeight);
 			numCrossedTicks += 1;
 		}
-		
+
 		if (zeroToOne) {
-			nextTick = await stores.get(PriceTicksStore).getPrevTick(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
+			nextTick = await stores
+				.get(PriceTicksStore)
+				.getPrevTick(methodContext, [q96ToBytes(BigInt(currentTick))]);
 		} else {
-			nextTick = await stores.get(PriceTicksStore).getNextTick(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
+			nextTick = await stores
+				.get(PriceTicksStore)
+				.getNextTick(methodContext, [q96ToBytes(BigInt(currentTick))]);
 		}
 
 		const sqrtNextTickPriceQ96 = tickToPrice(nextTick);
@@ -451,7 +495,6 @@ export const swap = async (
 		) {
 			sqrtTargetPrice = sqrtLimitPrice;
 		} else {
-			
 			sqrtTargetPrice = sqrtNextTickPriceQ96;
 		}
 
@@ -471,16 +514,15 @@ export const swap = async (
 		);
 
 		[poolSqrtPriceQ96, amountIn, amountOut] = result;
-		const feeCoeff = divQ96(BigInt(feeTier / 2), BigInt(FEE_TIER_PARTITION - (feeTier/2)));
+		const feeCoeff = divQ96(BigInt(feeTier / 2), BigInt(FEE_TIER_PARTITION - feeTier / 2));
 		const feeIn = roundUpQ96(mulQ96(numberToQ96(amountIn), feeCoeff));
 		const feeOut = roundUpQ96(mulQ96(numberToQ96(amountOut), feeCoeff));
 
 		if (exactInput) {
-			amountRemaining -= (amountIn + feeIn);
-		} else if(!exactInput){
-			amountRemaining -= (amountOut + feeOut);
-
-		} 
+			amountRemaining -= amountIn + feeIn;
+		} else if (!exactInput) {
+			amountRemaining -= amountOut + feeOut;
+		}
 		amountTotalOut += amountOut + feeOut;
 		amountTotalIn += amountIn + feeIn;
 		totalFeesIn += feeIn;
@@ -510,13 +552,11 @@ export const swap = async (
 		poolStoreData.feeGrowthGlobal1 = q96ToBytes(addQ96(feeGrowthGlobal1Q96, globalFees1Q96));
 
 		if (poolSqrtPriceQ96 === sqrtNextTickPriceQ96 && !zeroToOne) {
-			await crossTick(moduleEndpointContext, methodContext, stores, nextTick, true, currentHeight);
+			await crossTick(methodContext, stores, nextTick, true, currentHeight);
 			numCrossedTicks += 1;
 		}
-
 	}
-	
+
 	poolStoreData.sqrtPrice = q96ToBytes(poolSqrtPriceQ96);
 	return [amountTotalIn, amountTotalOut, totalFeesIn, totalFeesOut];
 };
-

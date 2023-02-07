@@ -41,9 +41,6 @@ import { SwapFailedEvent } from '../events/swapFailed';
 import { SwappedEvent } from '../events/swapped';
 import { q96ToBytes } from '../utils/q96';
 import { computeCurrentPrice, swap, transferFeesFromPool } from '../utils/swapFunctions';
-import { createTransientModuleEndpointContext } from 'lisk-framework/dist-node/testing';
-import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
-import { InMemoryPrefixedStateDB } from '../inMemoryPrefixedStateDB';
 
 export class SwapExactInCommand extends BaseCommand {
 	public id = COMMAND_ID_SWAP_EXACT_INPUT;
@@ -65,16 +62,13 @@ export class SwapExactInCommand extends BaseCommand {
 				error: err as Error,
 			};
 		}
-
 		const { tokenIdIn, tokenIdOut, swapRoute } = ctx.params;
-        console.log(ctx.params)
 		if (tokenIdIn.equals(tokenIdOut)) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error('tokenIdIn and tokenIdOut are same'),
 			};
 		}
-        
 		if (swapRoute === null || swapRoute.length === 0 || swapRoute.length > MAX_HOPS_SWAP) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -85,7 +79,7 @@ export class SwapExactInCommand extends BaseCommand {
 		}
 
 		const firstPool = swapRoute[0];
-		const lastPool = swapRoute[swapRoute.length-1];
+		const lastPool = swapRoute[swapRoute.length - 1];
 
 		if (!getToken0Id(firstPool).equals(tokenIdIn) && !getToken1Id(firstPool).equals(tokenIdIn)) {
 			return {
@@ -123,21 +117,14 @@ export class SwapExactInCommand extends BaseCommand {
 		const tokens = [{ id: tokenIdIn, amount: amountTokenIn }];
 		const fees: feesInterface[] = [];
 		let priceBefore: bigint;
-        const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
-        const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
-        const INVALID_ADDRESS = '1234';
-        const moduleEndpointContext = createTransientModuleEndpointContext({
-            stateStore,
-            params: { address: INVALID_ADDRESS },
-        });
-    
 		/* 
             const currentHeight = height of the block containing trs
         */
-		const currentHeight = 0;
+
+		const currentHeight = ctx.header.height;
 		try {
 			priceBefore = await computeCurrentPrice(
-				moduleEndpointContext,
+				methodContext,
 				this.stores,
 				tokenIdIn,
 				tokenIdOut,
@@ -155,10 +142,10 @@ export class SwapExactInCommand extends BaseCommand {
 				[senderAddress],
 				true,
 			);
-			throw new Error();
+			throw new Error('SWAP_FAILED_INVALID_ROUTE');
 		}
-        for (const swapRt of swapRoute) {
-			const currentTokenIn = tokens[-1];
+		for (const swapRt of swapRoute) {
+			const currentTokenIn = tokens[tokens.length - 1];
 			let zeroToOne = false;
 			let IdOut;
 			if (getToken0Id(swapRt).equals(currentTokenIn.id)) {
@@ -168,19 +155,18 @@ export class SwapExactInCommand extends BaseCommand {
 				zeroToOne = false;
 				IdOut = getToken0Id(swapRt);
 			} else {
-				throw new Error ('getToken0Id or getToken1Id is not equal to currentTokenIn.id')
+				throw new Error('getToken0Id or getToken1Id is not equal to currentTokenIn.id');
 			}
 			const sqrtLimitPrice = zeroToOne ? MIN_SQRT_RATIO : MAX_SQRT_RATIO;
 			try {
 				const [, amountOut, feesIn, feesOut] = await swap(
-					moduleEndpointContext,
-                    methodContext,
+					methodContext,
 					this.stores,
 					swapRt,
-					zeroToOne,
+					true,
 					sqrtLimitPrice,
 					currentTokenIn.amount,
-					false,
+					true,
 					currentHeight,
 					tokenIdIn,
 					tokenIdOut,
@@ -199,11 +185,11 @@ export class SwapExactInCommand extends BaseCommand {
 					[senderAddress],
 					true,
 				);
-				throw new Error();
+				throw new Error('SWAP_FAILED_TOO_MANY_TICKS');
 			}
 		}
 
-		if (tokens[-1].amount < minAmountTokenOut) {
+		if (tokens[tokens.length - 1].amount < minAmountTokenOut) {
 			this.events.get(SwapFailedEvent).add(
 				methodContext,
 				{
@@ -218,7 +204,7 @@ export class SwapExactInCommand extends BaseCommand {
 			throw new Error();
 		} else {
 			const priceAfter = await computeCurrentPrice(
-				moduleEndpointContext,
+				methodContext,
 				this.stores,
 				tokenIdIn,
 				tokenIdOut,
@@ -231,9 +217,9 @@ export class SwapExactInCommand extends BaseCommand {
 				swapRoute[0],
 				tokenIdIn,
 				amountTokenIn,
-			).catch((err: string | undefined)=>{
-                throw new Error(err)
-              });
+			).catch((err: string | undefined) => {
+				throw new Error(err);
+			});
 			transferFeesFromPool(
 				this._tokenMethod,
 				methodContext,
@@ -241,7 +227,7 @@ export class SwapExactInCommand extends BaseCommand {
 				tokenIdIn,
 				swapRoute[0],
 			);
-			for (let i = 1; i < swapRoute.length; i+=1) {
+			for (let i = 1; i < swapRoute.length; i += 1) {
 				transferFeesFromPool(
 					this._tokenMethod,
 					methodContext,
@@ -256,9 +242,9 @@ export class SwapExactInCommand extends BaseCommand {
 					swapRoute[i],
 					tokens[i].id,
 					tokens[i].amount,
-				).catch((err: string | undefined)=>{
-					throw new Error(err)
-				  });
+				).catch((err: string | undefined) => {
+					throw new Error(err);
+				});
 				transferFeesFromPool(
 					this._tokenMethod,
 					methodContext,
@@ -270,20 +256,20 @@ export class SwapExactInCommand extends BaseCommand {
 			transferFeesFromPool(
 				this._tokenMethod,
 				methodContext,
-				Number(fees[-1].out),
+				Number(fees[fees.length - 1].out),
 				tokenIdOut,
-				swapRoute[-1],
+				swapRoute[swapRoute.length - 1],
 			);
 			transferFromPool(
 				this._tokenMethod,
 				methodContext,
-				swapRoute[-1],
+				swapRoute[swapRoute.length - 1],
 				senderAddress,
 				tokenIdOut,
-				tokens[-1].amount,
-			).catch((err: string | undefined)=>{
-                throw new Error(err)
-              });
+				tokens[tokens.length - 1].amount,
+			).catch((err: string | undefined) => {
+				throw new Error(err);
+			});
 
 			this.events.get(SwappedEvent).add(
 				methodContext,
@@ -294,7 +280,7 @@ export class SwapExactInCommand extends BaseCommand {
 					tokenIdIn,
 					amountIn: amountTokenIn,
 					tokenIdOut,
-					amountOut: tokens[-1].amount,
+					amountOut: tokens[tokens.length - 1].amount,
 				},
 				[senderAddress],
 			);

@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { MethodContext } from 'lisk-framework/dist-node/state_machine';
 import { BaseStore, ImmutableStoreGetter, ModuleEndpointContext, StoreGetter } from 'lisk-sdk';
 import { MAX_NUM_BYTES_Q96, MAX_TICK, MIN_TICK } from '../constants';
 
@@ -114,52 +115,51 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 		});
 	}
 
-	public async getNextTick(context: ModuleEndpointContext, keys: Buffer[]) {
-		const key = Buffer.concat(keys)
-		const keysArray:string[] = []; 
+	public async getNextTick(context: ModuleEndpointContext | MethodContext, keys: Buffer[]) {
+		const key = Buffer.concat(keys);
+		const keysArray: string[] = [];
 		const allKeys = await this.iterate(context, {
 			gte: Buffer.alloc(16, 0),
 			lte: Buffer.alloc(16, 255),
 			reverse: false,
 		});
-		allKeys.forEach(key =>{
+		allKeys.forEach(key => {
 			keysArray.push(key.key.toString('hex'));
 		});
 
-		const currentKeyIndex = keysArray.indexOf(key.toString('hex'),0)
+		const currentKeyIndex = keysArray.indexOf(key.toString('hex'), 0);
 
-		if(currentKeyIndex<keysArray.length-1){
-			const prevKey = Buffer.from(keysArray[currentKeyIndex+1], 'hex');
+		if (currentKeyIndex < keysArray.length - 1) {
+			const prevKey = Buffer.from(keysArray[currentKeyIndex + 1], 'hex');
 			const resKey = await this.getKey(context, [prevKey]);
-			return resKey 
-		}else{
+			return resKey;
+		} else {
 			const resKey = await this.getKey(context, keys);
-			return resKey
+			return resKey;
 		}
 	}
 
-	public async getPrevTick(context: ModuleEndpointContext, keys: Buffer[]) {
-		const key = Buffer.concat(keys)
-		const keysArray:string[] = []; 
+	public async getPrevTick(context: ModuleEndpointContext | MethodContext, keys: Buffer[]) {
+		const key = Buffer.concat(keys);
+		const keysArray: string[] = [];
 		const allKeys = await this.iterate(context, {
 			gte: Buffer.alloc(16, 0),
 			lte: Buffer.alloc(16, 255),
 			reverse: false,
 		});
-		allKeys.forEach(key =>{
+		allKeys.forEach(key => {
 			keysArray.push(key.key.toString('hex'));
 		});
 
-		const currentKeyIndex = keysArray.indexOf(key.toString('hex'),0)
+		const currentKeyIndex = keysArray.indexOf(key.toString('hex'), 0);
 
-		if(currentKeyIndex>0){
-			const prevKey = Buffer.from(keysArray[currentKeyIndex-1], 'hex');
+		if (currentKeyIndex > 0) {
+			const prevKey = Buffer.from(keysArray[currentKeyIndex - 1], 'hex');
 			const resKey = await this.getKey(context, [prevKey]);
-			return resKey 
-		}else{
+			return resKey;
+		} else {
 			const resKey = await this.getKey(context, keys);
-			return resKey
+			return resKey;
 		}
-		
 	}
 }
