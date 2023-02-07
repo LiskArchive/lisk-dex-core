@@ -20,7 +20,17 @@ import { getToken0Id, getToken1Id } from './auxiliaryFunctions';
 import { computeNextPrice, getAmount0Delta, getAmount1Delta } from './math';
 import { DexModule } from '../module';
 import { DexEndpoint } from '../endpoint';
-import { addQ96, bytesToQ96, divQ96, invQ96, mulDivQ96, mulQ96, numberToQ96, q96ToBytes, subQ96 } from './q96';
+import {
+	addQ96,
+	bytesToQ96,
+	divQ96,
+	invQ96,
+	mulDivQ96,
+	mulQ96,
+	numberToQ96,
+	q96ToBytes,
+	subQ96,
+} from './q96';
 import { NUM_BYTES_POOL_ID } from '../constants';
 import { DexGlobalStore } from '../stores';
 
@@ -200,7 +210,6 @@ export const updatePoolIncentives = async (
 	pool.heightIncentivesUpdate = currentHeight.valueOf();
 };
 
-
 export const computeNewIncentivesPerLiquidity = async (
 	moduleEndpointContext: ModuleEndpointContext,
 	methodContext: MethodContext,
@@ -242,7 +251,6 @@ export const computeNewIncentivesPerLiquidity = async (
 	const currentIncentivesPerLiquidity = bytesToQ96(pool.incentivesPerLiquidityAccumulator);
 	return addQ96(incentivesPerLiquidity, currentIncentivesPerLiquidity);
 };
-
 
 export const crossTick = async (
 	moduleEnpointContext: ModuleEndpointContext,

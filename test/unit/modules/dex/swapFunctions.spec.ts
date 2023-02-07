@@ -33,7 +33,11 @@ import { createTransientModuleEndpointContext } from '../../../context/createCon
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 import { bytesToQ96, numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
 import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
-import { DexGlobalStore, PoolsStore, PriceTicksStore } from '../../../../src/app/modules/dex/stores';
+import {
+	DexGlobalStore,
+	PoolsStore,
+	PriceTicksStore,
+} from '../../../../src/app/modules/dex/stores';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { PriceTicksStoreData } from '../../../../src/app/modules/dex/stores/priceTicksStore';
@@ -54,7 +58,6 @@ describe('dex:auxiliaryFunctions', () => {
 	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
 	const INVALID_ADDRESS = '1234';
 
-	
 	let poolsStore: PoolsStore;
 	let dexGlobalStore: DexGlobalStore;
 	let priceTicksStore: PriceTicksStore;
@@ -103,7 +106,6 @@ describe('dex:auxiliaryFunctions', () => {
 			priceTicksStore = dexModule.stores.get(PriceTicksStore);
 			await poolsStore.setKey(methodContext, [poolId], poolsStoreData);
 			await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData);
-
 		});
 		it('raiseSwapException', () => {
 			raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress);
@@ -157,15 +159,21 @@ describe('dex:auxiliaryFunctions', () => {
 		it('crossTick', async () => {
 			const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
 			const currentTickID = q96ToBytes(BigInt(currentTick));
-			await poolsStore.setKey(methodContext, [currentTickID.slice(0, NUM_BYTES_POOL_ID)], poolsStoreData);
-			await priceTicksStore.setKey(
+			await poolsStore.setKey(
 				methodContext,
-				[currentTickID],
-				priceTicksStoreDataTickUpper,
+				[currentTickID.slice(0, NUM_BYTES_POOL_ID)],
+				poolsStoreData,
 			);
-			const crossTickRes = crossTick(moduleEndpointContext, methodContext, dexModule.stores, currentTickID, false, 10);
+			await priceTicksStore.setKey(methodContext, [currentTickID], priceTicksStoreDataTickUpper);
+			const crossTickRes = crossTick(
+				moduleEndpointContext,
+				methodContext,
+				dexModule.stores,
+				currentTickID,
+				false,
+				10,
+			);
 			expect(crossTickRes).resolves.toBeUndefined();
 		});
-
 	});
 });
