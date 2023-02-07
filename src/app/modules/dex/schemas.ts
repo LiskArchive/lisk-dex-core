@@ -468,25 +468,9 @@ export const addLiquiditySchema = {
 
 export const getAllPoolIdsResponseSchema = {
 	$id: 'dex/getAllPoolIds',
-	type: 'object',
-	required: ['poolID'],
-	properties: {
-		poolIDArray: {
-			type: 'array',
-			fieldNumber: 1,
-			items: {
-				type: 'object',
-				required: ['poolID'],
-				properties: {
-					poolID: {
-						dataType: 'bytes',
-						minLength:NUM_BYTES_POOL_ID,
-						maxLength:NUM_BYTES_POOL_ID,
-						fieldNumber: 1,
-					}
-				},
-			},
-
-		},
+	type: 'array',
+	fieldNumber: 1,
+	items: {
+		dataType: 'bytes',
 	},
 };
