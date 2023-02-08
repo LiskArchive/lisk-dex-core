@@ -513,7 +513,7 @@ export const swap = async (
 		poolStoreData.feeGrowthGlobal1 = q96ToBytes(addQ96(feeGrowthGlobal1Q96, globalFees1Q96));
 
 		if (poolSqrtPriceQ96 === sqrtNextTickPriceQ96 && !zeroToOne) {
-			await crossTick(moduleEndpointContext, methodContext, stores, q96ToBytes(BigInt(nextTickId)), true, currentHeight);
+			await crossTick(moduleEndpointContext, methodContext, stores, q96ToBytes(nextTickId), true, currentHeight);
 			numCrossedTicks += 1;
 		}
 	}
