@@ -175,7 +175,7 @@ export const transferFeesFromPool = (
 	let validatorFee = BigInt(0);
 	if (id.equals(TOKEN_ID_LSK)) {
 		validatorFee = roundDownQ96(
-			mulDivQ96(BigInt(amount), BigInt(VALIDATORS_LSK_INCENTIVE_PART), BigInt(FEE_TIER_PARTITION)),
+			mulDivQ96(numberToQ96(BigInt(amount)), numberToQ96(BigInt(VALIDATORS_LSK_INCENTIVE_PART)), numberToQ96(BigInt(FEE_TIER_PARTITION))),
 		);
 	}
 	if (validatorFee > 0) {
@@ -222,9 +222,9 @@ export const computeRegularRoute = async (
 	}
 
 	tokenOutFlag = false;
-	lskAdjacent = await getAdjacent(methodContext, stores, tokenIn);
+	const tokenInAdjacent = await getAdjacent(methodContext, stores, tokenIn);
 
-	lskAdjacent.forEach(lskAdjacentEdge => {
+	tokenInAdjacent.forEach(lskAdjacentEdge => {
 		if (lskAdjacentEdge.edge.equals(tokenOut)) {
 			tokenOutFlag = true;
 		}
@@ -258,7 +258,7 @@ export const computeExceptionalRoute = async (
 			}
 			const adjacent = await getAdjacent(methodContext, stores, routeElement.endVertex);
 			adjacent.forEach(adjacentEdge => {
-				if (visited.includes(adjacentEdge.vertex)) {
+				if (!visited.includes(adjacentEdge.vertex)) {
 					if (routeElement != null) {
 						routeElement.path.push(adjacentEdge.edge);
 						routes.push({ path: routeElement.path, endVertex: adjacentEdge.vertex });
@@ -340,6 +340,7 @@ export const computeNewIncentivesPerLiquidity = async (
 		throw new Error('Invalid arguments');
 	}
 
+	// Todo Update after implementing DEXIncentives.getLPIncentivesInRange
 	const poolMultiplier = BigInt(incentivizedPools.multiplier);
 	const totalIncentives = BigInt(0);
 
@@ -434,8 +435,9 @@ export const swap = async (
 		}
 
 		const currentTick = priceToTick(poolSqrtPriceQ96);
+		const currentTickId = await stores.get(PriceTicksStore).getCurrentTickId(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
 		if (zeroToOne && poolSqrtPriceQ96 === tickToPrice(currentTick) && currentTick != 0) {
-			await crossTick(moduleEndpointContext, methodContext, stores, q96ToBytes(BigInt(currentTick)), false, currentHeight);
+			await crossTick(moduleEndpointContext, methodContext, stores, q96ToBytes(BigInt(currentTickId)), false, currentHeight);
 			numCrossedTicks += 1;
 		}
 
@@ -459,9 +461,9 @@ export const swap = async (
 		}
 
 		const firstFee = mulDivRoundUpQ96(
-			amountRemaining,
-			BigInt(feeTier / 2),
-			BigInt(FEE_TIER_PARTITION),
+			numberToQ96(amountRemaining),
+			numberToQ96(BigInt(feeTier / 2)),
+			numberToQ96(BigInt(FEE_TIER_PARTITION)),
 		);
 
 		const amountRemainingTemp = amountRemaining - firstFee;
@@ -474,13 +476,13 @@ export const swap = async (
 		);
 
 		[poolSqrtPriceQ96, amountIn, amountOut] = result;
-		const feeCoeff = divQ96(BigInt(feeTier / 2), BigInt(FEE_TIER_PARTITION - (feeTier / 2)));
+		const feeCoeff = divQ96(numberToQ96(BigInt(feeTier / 2)), numberToQ96(BigInt(FEE_TIER_PARTITION - (feeTier / 2))));
 		const feeIn = roundUpQ96(mulQ96(numberToQ96(amountIn), feeCoeff));
 		const feeOut = roundUpQ96(mulQ96(numberToQ96(amountOut), feeCoeff));
 
 		if (exactInput) {
 			amountRemaining -= (amountIn + feeIn);
-		} else if (!exactInput) {
+		} else {
 			amountRemaining -= (amountOut + feeOut);
 		}
 		amountTotalOut += amountOut + feeOut;
@@ -492,20 +494,20 @@ export const swap = async (
 		const validatorFeePartOut = tokenOut.equals(TOKEN_ID_LSK) ? VALIDATORS_LSK_INCENTIVE_PART : 0;
 
 		const liquidityFeeInQ96 = mulDivQ96(
-			BigInt(feeIn),
-			BigInt(FEE_TIER_PARTITION - validatorFeePartIn),
-			BigInt(FEE_TIER_PARTITION),
+			numberToQ96(BigInt(feeIn)),
+			numberToQ96(BigInt(FEE_TIER_PARTITION - validatorFeePartIn)),
+			numberToQ96(BigInt(FEE_TIER_PARTITION)),
 		);
 		const liquidityFeeOutQ96 = mulDivQ96(
-			BigInt(feeOut),
-			BigInt(FEE_TIER_PARTITION - validatorFeePartOut),
-			BigInt(FEE_TIER_PARTITION),
+			numberToQ96(BigInt(feeOut)),
+			numberToQ96(BigInt(FEE_TIER_PARTITION - validatorFeePartOut)),
+			numberToQ96(BigInt(FEE_TIER_PARTITION)),
 		);
 
 		const liquidityFee0Q96 = zeroToOne ? liquidityFeeInQ96 : liquidityFeeOutQ96;
 		const liquidityFee1Q96 = zeroToOne ? liquidityFeeOutQ96 : liquidityFeeInQ96;
-		const globalFees0Q96 = divQ96(liquidityFee0Q96, BigInt(poolStoreData.liquidity));
-		const globalFees1Q96 = divQ96(liquidityFee1Q96, BigInt(poolStoreData.liquidity));
+		const globalFees0Q96 = divQ96(liquidityFee0Q96, numberToQ96(BigInt(poolStoreData.liquidity)));
+		const globalFees1Q96 = divQ96(liquidityFee1Q96, numberToQ96(BigInt(poolStoreData.liquidity)));
 		const feeGrowthGlobal0Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal0);
 		poolStoreData.feeGrowthGlobal0 = q96ToBytes(addQ96(feeGrowthGlobal0Q96, globalFees0Q96));
 		const feeGrowthGlobal1Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal1);

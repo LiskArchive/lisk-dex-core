@@ -342,13 +342,13 @@ export class DexEndpoint extends BaseEndpoint {
 			const currentTokenOut = tokens[tokens.length - 1];
 			if (getToken0Id(poolId).equals(currentTokenOut.id)) {
 				zeroToOne = true;
-				IdIn = getToken0Id(poolId);
+				IdIn = getToken1Id(poolId);
 			} else if (getToken1Id(poolId).equals(currentTokenOut.id)) {
 				zeroToOne = false;
-				IdIn = getToken1Id(poolId);
+				IdIn = getToken0Id(poolId);
 			}
 			const sqrtLimitPrice = zeroToOne ? MIN_SQRT_RATIO : MAX_SQRT_RATIO;
-			const currentHeight = 10;
+			const currentHeight = moduleEndpointContext.header.height;
 			try {
 				[amountIn, newAmountOut, feesIn, feesOut] = await swap(
 					moduleEndpointContext,
@@ -369,8 +369,8 @@ export class DexEndpoint extends BaseEndpoint {
 			tokens.push({ id: IdIn, amount: amountIn });
 			fees.push({ in: feesIn, out: feesOut });
 		}
-		if (tokens[tokens.length - 1].amount < maxAmountIn) {
-			throw new Error('Too low output amount');
+		if (tokens[tokens.length - 1].amount > maxAmountIn) {
+			throw new Error('Too high input amount');
 		}
 		const priceAfter = await computeCurrentPrice(
 			moduleEndpointContext,

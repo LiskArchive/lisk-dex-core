@@ -1090,11 +1090,11 @@ export const dryRunSwapExactOutResponseSchema = {
 			fieldNumber: 2
 		},
 		priceBefore: {
-			dataType: 'uint64',
+			dataType: 'bytes',
 			fieldNumber: 3
 		},
 		priceAfter: {
-			dataType: 'uint64',
+			dataType: 'bytes',
 			fieldNumber: 4
 		}
 	}
