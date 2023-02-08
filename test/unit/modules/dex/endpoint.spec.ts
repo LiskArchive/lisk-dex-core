@@ -391,14 +391,16 @@ describe('dex: offChainEndpointFunctions', () => {
 
 			const maxAmountIn = BigInt(10);
 			const amountOut = BigInt(10);
+			moduleEndpointContext.params = {
+				tokenIdIn: token0Id,
+				maxAmountIn: maxAmountIn,
+				tokenIdOut: token1Id,
+				amountOut: amountOut,
+				swapRoute: [poolId]
+			}
 			const result = await endpoint.dryRunSwapExactOut(
 				methodContext,
-				moduleEndpointContext,
-				token0Id,
-				maxAmountIn,
-				token1Id,
-				amountOut,
-				[poolId]
+				moduleEndpointContext
 			);
 
 			expect(result[2]).toEqual(BigInt(0));
