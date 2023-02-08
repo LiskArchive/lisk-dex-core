@@ -48,14 +48,16 @@ import {
 	getToken0AmountRequestSchema,
 	getToken0AmountResponseSchema,
 	getFeeTierResponseSchema,
-	getFeeTierResquestSchema,
+	getFeeTierRequestSchema,
 	getPoolIDFromTickIDRequestSchema,
+	getPoolIDFromTickIDResponseSchema,
 	getPositionIndexResponseSchema,
-	ggetPositionIndexResquestSchema,
+	getPositionIndexRequestSchema,
 	getAllTokenIdsResponseSchema,
 	getAllPositionIDsInPoolRequestSchema,
 	getAllPositionIDsInPoolResponseSchema,
 	getPoolResponseSchema,
+	getPoolRequestSchema,
 	getCurrentSqrtPriceRequestSchema,
 	getCurrentSqrtPriceResponseSchema,
 	getDexGlobalDataResponseSchema,
@@ -71,10 +73,9 @@ import {
 	getTVLResponseSchema,
 	getAllTicksRequestSchema,
 	getAllTicksResponseSchema,
-	getAllTickIDsInPoolRsponseSchema,
+	getAllTickIDsInPoolResponseSchema,
 	getAllTickIDsInPoolRequestSchema,
 } from './schemas';
-
 
 import { SwappedEvent } from './events/swapped';
 import { SwapFailedEvent } from './events/swapFailed';
@@ -128,8 +129,8 @@ export class DexModule extends BaseModule {
 		return {
 			name: this.name,
 			endpoints: [
-			  {
-          name: this.endpoint.getAllPoolIDs.name,
+				{
+					name: this.endpoint.getAllPoolIDs.name,
 					response: getAllPoolIdsResponseSchema,
 				},
 				{
@@ -144,21 +145,20 @@ export class DexModule extends BaseModule {
 				},
 				{
 					name: this.endpoint.getFeeTier.name,
-					request: getFeeTierResquestSchema,
+					request: getFeeTierRequestSchema,
 					response: getFeeTierResponseSchema,
 				},
 				{
 					name: this.endpoint.getPoolIDFromTickID.name,
 					request: getPoolIDFromTickIDRequestSchema,
-					response: getPoolIDFromTickIDRequestSchema,
+					response: getPoolIDFromTickIDResponseSchema,
 				},
 				{
 					name: this.endpoint.getPositionIndex.name,
-					request: ggetPositionIndexResquestSchema,
+					request: getPositionIndexRequestSchema,
 					response: getPositionIndexResponseSchema,
 				},
 				{
-
 					name: this.endpoint.getAllTokenIDs.name,
 					response: getAllTokenIdsResponseSchema,
 				},
@@ -169,6 +169,7 @@ export class DexModule extends BaseModule {
 				},
 				{
 					name: this.endpoint.getPool.name,
+					request: getPoolRequestSchema,
 					response: getPoolResponseSchema,
 				},
 				{
@@ -213,7 +214,7 @@ export class DexModule extends BaseModule {
 				{
 					name: this.endpoint.getAllTickIDsInPool.name,
 					request: getAllTickIDsInPoolRequestSchema,
-					response: getAllTickIDsInPoolRsponseSchema,
+					response: getAllTickIDsInPoolResponseSchema,
 				},
 			],
 			commands: this.commands.map(command => ({

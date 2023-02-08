@@ -267,11 +267,13 @@ describe('dex: offChainEndpointFunctions', () => {
 				stateStore,
 				params: { poolId: getPoolIDFromPositionID(positionId) },
 			});
-			poolId
-			await endpoint.getPool(tempModuleEndpointContext , [getPoolIDFromPositionID(positionId)]).then(res => {
-				expect(res).not.toBeNull();
-				expect(res.liquidity).toBe(BigInt(5));
-			});
+			poolId;
+			await endpoint
+				.getPool(tempModuleEndpointContext, [getPoolIDFromPositionID(positionId)])
+				.then(res => {
+					expect(res).not.toBeNull();
+					expect(res.liquidity).toBe(BigInt(5));
+				});
 		});
 
 		it('getCurrentSqrtPrice', async () => {

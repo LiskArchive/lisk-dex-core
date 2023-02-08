@@ -126,8 +126,7 @@ export const computeCurrentPrice = async (
 	let price = BigInt(1);
 	let tokenInPool = tokenIn;
 	for (const poolId of swapRoute) {
-		const pool = await endpoint.getPool(methodContext, [poolId]);
-		await endpoint.getPool(methodContext, [poolId]).catch(() => {
+		const pool = await endpoint.getPool(methodContext, [poolId]).catch(() => {
 			throw new Error('Not a valid pool');
 		});
 		if (tokenInPool.equals(getToken0Id(poolId))) {

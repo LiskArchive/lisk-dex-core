@@ -189,7 +189,6 @@ export class DexEndpoint extends BaseEndpoint {
 		methodContext: ModuleEndpointContext,
 		poolId: PoolID,
 	): Promise<bigint> {
-
 		const pool = await this.getPool(methodContext, [poolId]);
 		const token1Amount = await this.getToken1Amount(tokenMethod, methodContext, poolId);
 		const token0Amount = await this.getToken0Amount(tokenMethod, methodContext, poolId);
@@ -291,8 +290,11 @@ export class DexEndpoint extends BaseEndpoint {
 		return result;
 	}
 
-	public async getPool(methodContext: ModuleEndpointContext, poolId: Buffer[]): Promise<PoolsStoreData> {
-		validator.validate<{ poolId: Buffer }>(getPoolRequestSchema,poolId);
+	public async getPool(
+		methodContext: ModuleEndpointContext,
+		poolId: Buffer[],
+	): Promise<PoolsStoreData> {
+		validator.validate<{ poolId: Buffer }>(getPoolRequestSchema, poolId);
 		const poolsStore = this.stores.get(PoolsStore);
 		const key = await poolsStore.getKey(methodContext, poolId);
 		return key;
