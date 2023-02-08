@@ -483,24 +483,24 @@ export const getAllTokenIdsRequestSchema = {
 		stores: {
 			dataType: 'object',
 			fieldNumber: 1,
-		poolIDArray: {
-			type: 'array',
-			fieldNumber: 1,
-			items: {
-				type: 'object',
-				required: ['poolID'],
-				properties: {
-					poolID: {
-						dataType: 'bytes',
-						minLength:NUM_BYTES_POOL_ID,
-						maxLength:NUM_BYTES_POOL_ID,
-						fieldNumber: 1,
-					}
+			poolIDArray: {
+				type: 'array',
+				fieldNumber: 1,
+				items: {
+					type: 'object',
+					required: ['poolID'],
+					properties: {
+						poolID: {
+							dataType: 'bytes',
+							minLength: NUM_BYTES_POOL_ID,
+							maxLength: NUM_BYTES_POOL_ID,
+							fieldNumber: 1,
+						}
+					},
 				},
 			},
 		},
-	},
-}
+	}
 }
 
 //no requestParams for getAllTokenIds so no requestSchema 
@@ -1040,35 +1040,27 @@ export const getAllTickIDsInPoolRsponseSchema = {
 export const dryRunSwapExactOutRequestSchema = {
 	$id: 'dex/dryRunSwapExactOut',
 	type: 'object',
-	required: ['methodContext', 'moduleEndpointContext', 'tokenIdIn', 'maxAmountIn', 'tokenIdOut', 'amountOut', 'swapRoute'],
+	required: ['tokenIdIn', 'maxAmountIn', 'tokenIdOut', 'amountOut', 'swapRoute'],
 	properties: {
-		methodContext: {
-			dataType: 'object',
-			fieldNumber: 1,
-		},
-		moduleEndpointContext: {
-			dataType: 'object',
-			fieldNumber: 2,
-		},
 		tokenIdIn: {
 			dataType: 'bytes',
-			fieldNumber: 3,
+			fieldNumber: 1
 		},
 		maxAmountIn: {
 			dataType: 'uint64',
-			fieldNumber: 4
+			fieldNumber: 2
 		},
 		tokenIdOut: {
 			dataType: 'bytes',
-			filedNumber: 5
+			filedNumber: 3
 		},
 		amountOut: {
 			dataType: 'uint64',
-			fieldNumber: 6
+			fieldNumber: 4
 		},
 		swapRoute: {
 			type: 'array',
-			fieldNumber: 7,
+			fieldNumber: 5,
 			items: {
 				dataType: 'bytes'
 			}
