@@ -29,6 +29,8 @@ import {
 	getToken1Id,
 	poolIdToAddress,
 } from './utils/auxiliaryFunctions';
+
+import { dryRunSwapExactInRequestSchema } from './schemas';
 import { computeCurrentPrice, swap } from './utils/swapFunctions';
 import { PoolsStoreData } from './stores/poolsStore';
 import { addQ96, bytesToQ96, divQ96, invQ96, roundDownQ96, mulQ96 } from './utils/q96';
@@ -296,13 +298,22 @@ export class DexEndpoint extends BaseEndpoint {
 
 	public async dryRunSwapExactIn(
 		methodContext: MethodContext,
-		moduleEndpointContext: ModuleEndpointContext,
-		tokenIdIn: TokenID,
-		amountIn: bigint,
-		tokenIdOut: TokenID,
-		minAmountOut: bigint,
-		swapRoute: PoolID[],
+		moduleEndpointContext: ModuleEndpointContext
 	): Promise<[bigint, bigint, bigint, bigint]> {
+		validator.validate<{
+			tokenIdIn: string,
+			amountIn: bigint,
+			tokenIdOut: string,
+			minAmountOut: BigInt,
+			swapRoute: string[]
+		}>(dryRunSwapExactInRequestSchema, moduleEndpointContext.params);
+
+		const tokenIdIn = Buffer.from(moduleEndpointContext.params.tokenIdIn, "hex");
+		const amountIn = moduleEndpointContext.params.amountIn;
+		const tokenIdOut = Buffer.from(moduleEndpointContext.params.tokenIdOut, "hex");
+		const minAmountOut = moduleEndpointContext.params.minAmountOut;
+		const swapRoute = moduleEndpointContext.params.swapRoute.map((route) => Buffer.from(route, "hex"));
+
 		let zeroToOne = false;
 		let IdOut: TokenID = tokenIdIn;
 		const tokens = [{ id: tokenIdIn, amount: amountIn }];
