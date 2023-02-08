@@ -895,7 +895,7 @@ export const getCredibleDirectPrice = async (
 
 	const token1ValuesLocked: bigint[] = [];
 
-	for (const directPool of directPools) {
+for (const directPool of directPools) {
 		methodContext.params.poolD = directPool
 		const pool = await endpoint.getPool(methodContext);
 		const token0Amount = await endpoint.getToken0Amount(tokenMethod, methodContext, directPool);
@@ -917,7 +917,7 @@ export const getCredibleDirectPrice = async (
 			minToken1ValueLockedIndex = index;
 		}
 	});
-	methodContext.params.poolID = directPools[minToken1ValueLockedIndex]
+methodContext.params.poolID = directPools[minToken1ValueLockedIndex]
 	const poolSqrtPrice = (
 		await endpoint.getPool(methodContext)
 	).sqrtPrice;

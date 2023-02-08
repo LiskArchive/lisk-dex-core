@@ -445,7 +445,7 @@ describe('dex:auxiliaryFunctions', () => {
 			).toStrictEqual(Buffer.from('0000000000000000', 'hex'));
 		});
 
-		it('getCredibleDirectPrice', async () => {
+	it('getCredibleDirectPrice', async () => {
 			const tempModuleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
 				params: { poolID: getPoolIDFromPositionID(positionId) },
