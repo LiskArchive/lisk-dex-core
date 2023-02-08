@@ -11,9 +11,11 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { getAllPositionIDsInPoolRequestSchema } from './schemas';
 
 import { BaseEndpoint, ModuleEndpointContext, TokenMethod, MethodContext } from 'lisk-sdk';
 import { computeCurrentPrice, swap } from './utils/swapFunctions';
+import { validator } from '@liskhq/lisk-validator';
 
 import {
 	MODULE_ID_DEX,
@@ -68,8 +70,14 @@ export class DexEndpoint extends BaseEndpoint {
 		return tokens;
 	}
 
-	public getAllPositionIDsInPool(poolId: PoolID, positionIdsList: PositionID[]): Buffer[] {
+	public getAllPositionIDsInPool(methodContext: ModuleEndpointContext): Buffer[] {
+		validator.validate<{ poolId: Buffer; positionIdsList: PositionID[] }>(
+			getAllPositionIDsInPoolRequestSchema,
+			methodContext.params,
+		);
 		const result: Buffer[] = [];
+		const poolId = methodContext.params.poolId;
+		const positionIdsList = methodContext.params.positionIdsList;
 		positionIdsList.forEach(positionId => {
 			if (getPoolIDFromPositionID(positionId).equals(poolId)) {
 				result.push(positionId);

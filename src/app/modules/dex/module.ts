@@ -42,7 +42,6 @@ import { RemoveLiquidityFailedEvent } from './events/removeLiquidityFailed';
 import { RemoveLiquidityEvent } from './events/removeLiquidity';
 import { RemoveLiquidityCommand } from './commands/removeLiquidity';
 import {
-	getAllPoolIdsRequestSchema,
 	getAllPoolIdsResponseSchema,
 	getToken1AmountRequestSchema,
 	getToken1AmountResponseSchema,
@@ -78,6 +77,7 @@ import {
 	dryRunSwapExactOutRequestSchema,
 	dryRunSwapExactOutResponseSchema
 } from './schemas';
+
 import { SwappedEvent } from './events/swapped';
 import { SwapFailedEvent } from './events/swapFailed';
 
@@ -132,7 +132,6 @@ export class DexModule extends BaseModule {
 			endpoints: [
 				{
 					name: this.endpoint.getAllPoolIDs.name,
-					request: getAllPoolIdsRequestSchema,
 					response: getAllPoolIdsResponseSchema,
 				},
 				{
