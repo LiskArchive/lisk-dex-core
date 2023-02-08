@@ -52,6 +52,7 @@ describe('swapEactOutn', () => {
 	const lockMock = jest.fn();
 	const unlockMock = jest.fn();
 
+
 	let poolsStore: PoolsStore;
 	let dexGlobalStore: DexGlobalStore;
 	let priceTicksStore: PriceTicksStore;
@@ -114,6 +115,7 @@ describe('swapEactOutn', () => {
 		tokenMethod.lock = lockMock;
 		tokenMethod.unlock = unlockMock;
 
+
 		const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
 		const currentTickID = q96ToBytes(BigInt(currentTick));
 		await poolsStore.setKey(
@@ -131,7 +133,7 @@ describe('swapEactOutn', () => {
 		);
 
 		command.init({
-			tokenMethod: TokenMethod,
+			tokenMethod,
 		});
 	});
 
