@@ -32,6 +32,9 @@ import {
 	computeCollectableIncentives
 } from './utils/auxiliaryFunctions';
 import { PoolsStoreData } from './stores/poolsStore';
+
+import { getCollectableFeesAndIncentivesRequestSchema } from './schemas';
+
 import { addQ96, bytesToQ96, divQ96, invQ96, roundDownQ96, mulQ96 } from './utils/q96';
 import { DexGlobalStore, DexGlobalStoreData } from './stores/dexGlobalStore';
 import { PositionsStore, PositionsStoreData } from './stores/positionsStore';
@@ -295,9 +298,11 @@ export class DexEndpoint extends BaseEndpoint {
 
 	public async getCollectableFeesAndIncentives(
 		methodContext: ModuleEndpointContext,
-		tokenMethod: TokenMethod,
-		positionId: PositionID
+		tokenMethod: TokenMethod
 	) {
+		validator.validate<{ positionId: string }>(getCollectableFeesAndIncentivesRequestSchema, methodContext.params);
+		
+		const positionId = Buffer.from(methodContext.params.positionId, "hex");
 		const positionsStore = this.stores.get(PositionsStore);
 		const positionStoreData = await positionsStore.get(methodContext, positionId);
 

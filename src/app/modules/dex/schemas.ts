@@ -483,24 +483,24 @@ export const getAllTokenIdsRequestSchema = {
 		stores: {
 			dataType: 'object',
 			fieldNumber: 1,
-		poolIDArray: {
-			type: 'array',
-			fieldNumber: 1,
-			items: {
-				type: 'object',
-				required: ['poolID'],
-				properties: {
-					poolID: {
-						dataType: 'bytes',
-						minLength:NUM_BYTES_POOL_ID,
-						maxLength:NUM_BYTES_POOL_ID,
-						fieldNumber: 1,
-					}
+			poolIDArray: {
+				type: 'array',
+				fieldNumber: 1,
+				items: {
+					type: 'object',
+					required: ['poolID'],
+					properties: {
+						poolID: {
+							dataType: 'bytes',
+							minLength: NUM_BYTES_POOL_ID,
+							maxLength: NUM_BYTES_POOL_ID,
+							fieldNumber: 1,
+						}
+					},
 				},
 			},
 		},
-	},
-}
+	}
 }
 
 //no requestParams for getAllTokenIds so no requestSchema 
@@ -1040,24 +1040,12 @@ export const getAllTickIDsInPoolRsponseSchema = {
 export const getCollectableFeesAndIncentivesRequestSchema = {
 	$id: 'dex/getCollectableFeesAndIncentives',
 	type: 'object',
-	required: ['methodContext', 'stores', 'tokenMethod', 'positionId'],
+	required: ['positionId'],
 	properties: {
-		methodContext: {
-			dataType: 'object',
-			fieldNumber: 1,
-		},
-		stores: {
-			dataType: 'object',
-			fieldNumber: 2,
-		},
-		tokenMethod: {
-			dataType: 'object',
-			fieldNumber: 3,
-		},
 		positionId: {
 			dataType: 'bytes',
 			length: NUM_BYTES_POSITION_ID,
-			fieldNumber: 4,
+			fieldNumber: 1,
 		},
 	}
 };
