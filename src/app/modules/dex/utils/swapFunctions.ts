@@ -131,7 +131,7 @@ export const computeCurrentPrice = async (
 		const pool = await endpoint.getPool(methodContext, poolId);
 		await endpoint.getPool(methodContext, poolId).catch(() => {
 			throw new Error('Not a valid pool');
-		})
+		});
 		if (tokenInPool.equals(getToken0Id(poolId))) {
 			price = mulQ96(price, bytesToQ96(pool.sqrtPrice));
 			tokenInPool = getToken1Id(poolId);

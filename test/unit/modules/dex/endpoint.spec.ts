@@ -255,15 +255,19 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getAllPositionIDsInPool', () => {
-			const positionIDs = endpoint.getAllPositionIDsInPool(getPoolIDFromPositionID(positionId), [
-				positionId,
-			]);
+			const tempModuleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { poolId: getPoolIDFromPositionID(positionId), positionIdsList: [positionId] },
+			});
+			const positionIDs = endpoint.getAllPositionIDsInPool(tempModuleEndpointContext);
 			expect(positionIDs.indexOf(positionId)).not.toBe(-1);
 		});
 
+
 		it('getPool', async () => {
-			await endpoint.getPool(moduleEndpointContext, getPoolIDFromPositionID(positionId)).then(
-				res => {
+			await endpoint
+				.getPool(moduleEndpointContext, getPoolIDFromPositionID(positionId))
+				.then(res => {
 					expect(res).not.toBeNull();
 					expect(res.liquidity).toBe(BigInt(5000000));
 				});
