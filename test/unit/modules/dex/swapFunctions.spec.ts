@@ -16,6 +16,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { TokenMethod } from 'lisk-sdk';
 import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_machine';
 import { MethodContext } from 'lisk-framework/dist-node/state_machine/method_context';
 import { DexModule } from '../../../../src/app/modules';
@@ -43,7 +44,6 @@ import {
 } from '../../../../src/app/modules/dex/stores';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import { TOKEN_ID_LSK } from '../../../../src/app/modules/dexRewards/constants';
-import { TokenMethod } from 'lisk-sdk';
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { computeExceptionalRoute } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import { NUM_BYTES_POOL_ID } from '../../../../src/app/modules/dex/constants';
@@ -131,7 +131,7 @@ describe('dex:swapFunctions', () => {
 		it('raiseSwapException', () => {
 			raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress);
 			const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
-			expect(swapFailedEvent.length).toBe(1);
+			expect(swapFailedEvent).toHaveLength(1);
 		});
 		it('swapWithin', () => {
 			const [sqrtUpdatedPrice, amountIn, amountOut] = swapWithin(
@@ -184,7 +184,7 @@ describe('dex:swapFunctions', () => {
 			).toBeUndefined();
 		});
 
-		it('transferFeesFromPool', async () => {
+		it('getProtocolSettings', async () => {
 			const protocolSetting = await getProtocolSettings(moduleEndpointContext, dexModule.stores);
 			expect(protocolSetting).toStrictEqual(dexGlobalStoreData);
 		});

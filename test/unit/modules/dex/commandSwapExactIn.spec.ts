@@ -1,3 +1,7 @@
+/* eslint-disable import/no-cycle */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * Copyright © 2020 Lisk Foundation
  *
@@ -13,12 +17,6 @@
  */
 
 import { codec, Transaction, cryptography, testing, TokenMethod } from 'lisk-sdk';
-import { DexModule } from '../../../../src/app/modules';
-import { SwapExactInCommand } from '../../../../src/app/modules/dex/commands/swapExactIn';
-import { swapExactInCommandSchema } from '../../../../src/app/modules/dex/schemas';
-
-const { createTransactionContext } = testing;
-
 import {
 	createMethodContext,
 	EventQueue,
@@ -26,15 +24,15 @@ import {
 	VerifyStatus,
 } from 'lisk-framework/dist-node/state_machine';
 
-const { utils } = cryptography;
-
-import { Address, PoolID } from '../../../../src/app/modules/dex/types';
 import { TokenID } from 'lisk-framework/dist-node/modules/token/types';
-
-import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
-import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import { loggerMock } from 'lisk-framework/dist-node/testing/mocks';
 import { createFakeBlockHeader } from 'lisk-framework/dist-node/testing';
+import { Address, PoolID } from '../../../../src/app/modules/dex/types';
+import { DexModule } from '../../../../src/app/modules';
+import { SwapExactInCommand } from '../../../../src/app/modules/dex/commands/swapExactIn';
+import { swapExactInCommandSchema } from '../../../../src/app/modules/dex/schemas';
+import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
+import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import { PoolsStore, PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import { bytesToQ96, numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
 import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
@@ -42,6 +40,9 @@ import { NUM_BYTES_POOL_ID } from '../../../../src/app/modules/dex/constants';
 import { DexGlobalStore, PriceTicksStore } from '../../../../src/app/modules/dex/stores';
 import { PriceTicksStoreData } from '../../../../src/app/modules/dex/stores/priceTicksStore';
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
+
+const { utils } = cryptography;
+const { createTransactionContext } = testing;
 
 describe('swapEactIn', () => {
 	let command: SwapExactInCommand;
@@ -51,7 +52,6 @@ describe('swapEactIn', () => {
 	const lockMock = jest.fn();
 	const unlockMock = jest.fn();
 
-	let methodContext: MethodContext;
 	let poolsStore: PoolsStore;
 	let dexGlobalStore: DexGlobalStore;
 	let priceTicksStore: PriceTicksStore;
@@ -66,7 +66,7 @@ describe('swapEactIn', () => {
 	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
 
-	methodContext = createMethodContext({
+	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
 		stateStore,
 		eventQueue: new EventQueue(0),

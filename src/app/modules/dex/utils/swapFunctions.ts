@@ -1,3 +1,8 @@
+/* eslint-disable import/no-cycle */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-floating-promises */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -15,6 +20,7 @@
 import { ModuleEndpointContext, TokenMethod } from 'lisk-sdk';
 
 import { MethodContext } from 'lisk-framework/dist-node/state_machine';
+import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import {
 	Address,
 	AdjacentEdgesInterface,
@@ -24,7 +30,6 @@ import {
 	TickID,
 	TokenID,
 } from '../types';
-import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { SwapFailedEvent } from '../events/swapFailed';
 import { getToken0Id, getToken1Id, transferFromPool } from './auxiliaryFunctions';
 import {
@@ -80,12 +85,10 @@ export const swapWithin = (
 		} else {
 			amountIn = getAmount1Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, true);
 		}
+	} else if (zeroToOne) {
+		amountOut = getAmount1Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, false);
 	} else {
-		if (zeroToOne) {
-			amountOut = getAmount1Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, false);
-		} else {
-			amountOut = getAmount0Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, false);
-		}
+		amountOut = getAmount0Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, false);
 	}
 
 	if (
@@ -473,7 +476,7 @@ export const swap = async (
 		}
 
 		const currentTick = priceToTick(poolSqrtPriceQ96);
-		if (zeroToOne && poolSqrtPriceQ96 === tickToPrice(currentTick) && currentTick != 0) {
+		if (zeroToOne && poolSqrtPriceQ96 === tickToPrice(currentTick) && currentTick !== 0) {
 			await crossTick(methodContext, stores, q96ToBytes(BigInt(currentTick)), false, currentHeight);
 			numCrossedTicks += 1;
 		}

@@ -13,7 +13,7 @@
  */
 
 import { BaseEndpoint, ModuleEndpointContext, TokenMethod } from 'lisk-sdk';
-
+import { MethodContext } from 'lisk-framework/dist-node/state_machine';
 import {
 	MODULE_ID_DEX,
 	NUM_BYTES_POOL_ID,
@@ -40,7 +40,6 @@ import { DexGlobalStore, DexGlobalStoreData } from './stores/dexGlobalStore';
 import { PositionsStore, PositionsStoreData } from './stores/positionsStore';
 import { PriceTicksStore, PriceTicksStoreData, tickToBytes } from './stores/priceTicksStore';
 import { uint32beInv } from './utils/bigEndian';
-import { MethodContext } from 'lisk-framework/dist-node/state_machine';
 
 export class DexEndpoint extends BaseEndpoint {
 	public async getAllPoolIDs(
