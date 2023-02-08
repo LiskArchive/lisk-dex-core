@@ -456,7 +456,6 @@ export const swap = async (
 		) {
 			sqrtTargetPrice = sqrtLimitPrice;
 		} else {
-
 			sqrtTargetPrice = sqrtNextTickPriceQ96;
 		}
 
