@@ -13,12 +13,12 @@
  */
 import { BaseStore } from 'lisk-sdk';
 
-interface IncentivizedPools {
+export interface IncentivizedPools {
 	poolId: Buffer;
 	multiplier: number;
 }
 
-interface PoolCreationSettings {
+export interface PoolCreationSettings {
 	feeTier: number;
 	tickSpacing: number;
 }

@@ -40,7 +40,10 @@ import {
 	PriceTicksStoreData,
 	tickToBytes,
 } from '../../../../src/app/modules/dex/stores/priceTicksStore';
-import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
+import {
+	DexGlobalStoreData,
+	PoolCreationSettings,
+} from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
@@ -73,6 +76,11 @@ describe('dex: offChainEndpointFunctions', () => {
 		stateStore,
 		eventQueue: new EventQueue(0),
 	});
+
+	const poolCreationSettingsData: PoolCreationSettings = {
+		feeTier: 100,
+		tickSpacing: 1,
+	};
 
 	let poolsStore: PoolsStore;
 	let priceTicksStore: PriceTicksStore;
@@ -116,7 +124,7 @@ describe('dex: offChainEndpointFunctions', () => {
 	const dexGlobalStoreData: DexGlobalStoreData = {
 		positionCounter: BigInt(15),
 		collectableLSKFees: BigInt(10),
-		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
+		poolCreationSettings: [poolCreationSettingsData],
 		incentivizedPools: [{ poolId, multiplier: 10 }],
 		totalIncentivesMultiplier: 1,
 	};
@@ -321,7 +329,7 @@ describe('dex: offChainEndpointFunctions', () => {
 		it('getLSKPrice', async () => {
 			const result = Buffer.alloc(4);
 			const feeTier = q96ToBytes(
-				BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings.feeTier, 0)),
+				BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings[0].feeTier, 0)),
 			);
 			await poolsStore.setKey(
 				methodContext,
