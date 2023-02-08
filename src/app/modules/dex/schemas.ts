@@ -483,24 +483,24 @@ export const getAllTokenIdsRequestSchema = {
 		stores: {
 			dataType: 'object',
 			fieldNumber: 1,
-		poolIDArray: {
-			type: 'array',
-			fieldNumber: 1,
-			items: {
-				type: 'object',
-				required: ['poolID'],
-				properties: {
-					poolID: {
-						dataType: 'bytes',
-						minLength:NUM_BYTES_POOL_ID,
-						maxLength:NUM_BYTES_POOL_ID,
-						fieldNumber: 1,
-					}
+			poolIDArray: {
+				type: 'array',
+				fieldNumber: 1,
+				items: {
+					type: 'object',
+					required: ['poolID'],
+					properties: {
+						poolID: {
+							dataType: 'bytes',
+							minLength: NUM_BYTES_POOL_ID,
+							maxLength: NUM_BYTES_POOL_ID,
+							fieldNumber: 1,
+						}
+					},
 				},
 			},
 		},
-	},
-}
+	}
 }
 
 //no requestParams for getAllTokenIds so no requestSchema 
@@ -1090,11 +1090,11 @@ export const dryRunSwapExactInResponseSchema = {
 			fieldNumber: 2
 		},
 		priceBefore: {
-			dataType: 'uint64',
+			dataType: 'bytes',
 			fieldNumber: 3
 		},
 		priceAfter: {
-			dataType: 'uint64',
+			dataType: 'bytes',
 			fieldNumber: 4
 		}
 	}

@@ -339,7 +339,7 @@ export class DexEndpoint extends BaseEndpoint {
 				IdOut = getToken0Id(poolId);
 			}
 			const sqrtLimitPrice = zeroToOne ? MIN_SQRT_RATIO : MAX_SQRT_RATIO;
-			const currentHeight = 10;
+			const currentHeight = moduleEndpointContext.header.height;
 			try {
 				[newAmountIn, amountOut, feesIn, feesOut] = await swap(
 					moduleEndpointContext,

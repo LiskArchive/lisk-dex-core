@@ -158,6 +158,23 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 		}
 	}
 
+	public async getCurrentTickId(context: ModuleEndpointContext, keys: Buffer[]) {
+		const key = Buffer.concat(keys)
+		const keysArray: string[] = [];
+		const allKeys = await this.iterate(context, {
+			gte: Buffer.alloc(16, 0),
+			lte: Buffer.alloc(16, 255),
+			reverse: false,
+		});
+		allKeys.forEach(key => {
+			keysArray.push(key.key.toString('hex'));
+		});
+
+		const currentKeyIndex = keysArray.indexOf(key.toString('hex'), 0);
+		const currentKey = Buffer.from(keysArray[currentKeyIndex], 'hex');
+		return parseInt("0x" + currentKey.toString("hex"));
+	}
+
 	public async getNextTick(context: ModuleEndpointContext, keys: Buffer[]) {
 		const key = Buffer.concat(keys)
 		const keysArray: string[] = [];
