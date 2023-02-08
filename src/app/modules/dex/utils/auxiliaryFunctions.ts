@@ -80,7 +80,6 @@ import { DexEndpoint } from '../endpoint';
 import { DexModule } from '../module';
 import { MAX_SINT32 } from '@liskhq/lisk-validator';
 
-
 const { utils } = cryptography;
 
 const abs = (x: bigint) => (x < BigInt(0) ? -x : x);
@@ -897,7 +896,7 @@ export const getCredibleDirectPrice = async (
 	const token1ValuesLocked: bigint[] = [];
 
 	for (const directPool of directPools) {
-		const pool = await endpoint.getPool(methodContext, directPool);
+		const pool = await endpoint.getPool(methodContext, [directPool]);
 		const token0Amount = await endpoint.getToken0Amount(tokenMethod, methodContext, directPool);
 		const token0ValueQ96 = mulQ96(
 			mulQ96(numberToQ96(token0Amount), bytesToQ96(pool.sqrtPrice)),
@@ -917,9 +916,6 @@ export const getCredibleDirectPrice = async (
 			minToken1ValueLockedIndex = index;
 		}
 	});
-
-	const poolSqrtPrice = (
-		await endpoint.getPool(methodContext, directPools[minToken1ValueLockedIndex])
-	).sqrtPrice;
+	const poolSqrtPrice = (await endpoint.getPool(methodContext, [directPools[minToken1ValueLockedIndex]])).sqrtPrice;
 	return mulQ96(bytesToQ96(poolSqrtPrice), bytesToQ96(poolSqrtPrice));
 };

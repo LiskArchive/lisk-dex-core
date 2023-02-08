@@ -20,7 +20,6 @@ import {
 	NUM_BYTES_TICK_ID,
 } from './constants';
 
-import { PoolsStore } from './stores';
 
 export const settingsSchema = {
 	$id: '/dex/settings',
@@ -471,39 +470,14 @@ export const addLiquiditySchema = {
 export const getAllPoolIdsResponseSchema = {
 	$id: 'dex/getAllPoolIds',
 	type: 'object',
-	required: ['poolID'],
+	required: ['poolIDs'],
 	properties: {
-		PoolID: Buffer,
-	},
-};
-
-export const getAllTokenIdsRequestSchema = {
-	$id: 'dex/getAllTokenIds',
-	type: 'object',
-	required: ['stores'],
-	properties: {
-		poolIDArray: {
-			type: 'array',
+		poolIDs: {
+			dataType: 'bytes',
 			fieldNumber: 1,
-			items: {
-				type: 'object',
-				required: ['poolID'],
-				properties: {
-					poolID: {
-						dataType: 'bytes',
-						minLength:NUM_BYTES_POOL_ID,
-						maxLength:NUM_BYTES_POOL_ID,
-						fieldNumber: 1,
-					}
-				},
-			},
 		},
 	},
-}
-}
-
-//no requestParams for getAllTokenIds so no requestSchema 
-
+};
 
 export const getAllTokenIdsResponseSchema = {
 	$id: 'dex/getAllTokenIds',
@@ -539,7 +513,10 @@ export const getAllPositionIDsInPoolRequestSchema = {
 		positionIdsList: {
 			type: 'array',
 			fieldNumber: 2,
-		},
+			items: {
+				dataType: 'bytes',
+			},
+		},	
 	},
 };
 
@@ -552,67 +529,26 @@ export const getAllPositionIDsInPoolResponseSchema = {
 			type: 'array',
 			fieldNumber: 1,
 			items: {
-				type: 'object',
-				required: ['positionID'],
-				properties: {
-					positionID: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					},
-				},
+				dataType: 'bytes',
+				fieldNumber: 1,
 			},
 		},
 	},
 };
 
-export const getPoolResponseSchema = {
-	$id: 'dex/getPool',
-	type: 'object',
-	required: ['stores', 'poolID'],
-	properties: {
-		stores: {
-			dataType: 'object',
-			fieldNumber: 1,
-		},
-		poolID: {
-			dataType: 'bytes',
-			fieldNumber: 2,
-		},
-	},
-};
-
-export const getPoolRequestSchema = {
-	$id: 'dex/getPool',
-	type: 'object',
-	required: ['stores', 'poolID'],
-	properties: {
-		stores: {
-			dataType: 'object',
-			fieldNumber: 1,
-		},
-		poolID: {
-			dataType: 'bytes',
-			fieldNumber: 2,
-		},
-	},
-};
 
 export const getCurrentSqrtPriceRequestSchema = {
 	$id: 'dex/getCurrentSqrtPrice',
 	type: 'object',
-	required: ['stores', 'poolID', 'priceDirection'],
+	required: ['poolID', 'priceDirection'],
 	properties: {
-		stores: {
-			dataType: 'object',
-			fieldNumber: 1,
-		},
 		poolID: {
 			dataType: 'bytes',
-			fieldNumber: 2,
+			fieldNumber: 1,
 		},
 		priceDirection: {
 			dataType: 'boolean',
-			fieldNumber: 3,
+			fieldNumber: 2,
 		},
 	},
 };
@@ -629,17 +565,6 @@ export const getCurrentSqrtPriceResponseSchema = {
 	},
 };
 
-export const getDexGlobalDataRequestSchema = {
-	$id: 'dex/getDexGlobalData',
-	type: 'object',
-	required: ['stores'],
-	properties: {
-		stores: {
-			dataType: 'object',
-			fieldNumber: 1,
-		},
-	},
-};
 
 export const getDexGlobalDataResponseSchema = {
 	$id: 'dex/getDexGlobalData',
@@ -656,28 +581,18 @@ export const getDexGlobalDataResponseSchema = {
 export const getPositionRequestSchema = {
 	$id: 'dex/getPosition',
 	type: 'object',
-	required: ['stores', 'positionID', 'positionIdsList'],
+	required: ['positionID', 'positionIdsList'],
 	properties: {
-		stores: {
-			dataType: 'object',
-			fieldNumber: 1,
-		},
 		positionID: {
 			dataType: 'bytes',
-			fieldNumber: 2,
+			fieldNumber: 1,
 		},
 		positionIdsList: {
 			type: 'array',
-			fieldNumber: 3,
+			fieldNumber: 2,
 			items: {
-				type: 'object',
-				required: ['positionID'],
-				properties: {
-					positionID: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					},
-				},
+				dataType: 'bytes',
+				fieldNumber: 1,
 			},
 		},
 	},
@@ -686,10 +601,7 @@ export const getPositionRequestSchema = {
 export const getPositionResponseSchema = {
 	$id: 'dex/getPosition',
 	type: 'object',
-
-	required: ['poolsStoreData'],
-
-	required: ['position'],
+	required: ['positionsStoreData'],
 	properties: {
 		position: {
 			dataType: 'object',
@@ -700,26 +612,12 @@ export const getPositionResponseSchema = {
 
 export const getTickWithTickIdRequestSchema = {
 	$id: 'dex/getTickWithTickId',
-	type: 'object',
-	required: ['stores', 'tickIDs'],
+	type: 'array',
+	required: ['tickIDs'],
 	properties: {
-		stores: {
-			dataType: 'object',
-			fieldNumber: 1,
-		},
 		tickIDs: {
-			type: 'array',
-			fieldNumber: 2,
-			items: {
-				type: 'object',
-				required: ['tickId'],
-				properties: {
-					positionID: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					},
-				},
-			},
+			dataType: 'bytes',
+			fieldNumber: 1,
 		},
 	},
 };
@@ -730,7 +628,7 @@ export const getTickWithTickIdResponseSchema = {
 	required: ['priceTicksStoreData'],
 	properties: {
 		priceTicksStoreData: {
-			dataType: 'object',
+			type: 'object',
 			fieldNumber: 1,
 		},
 	},
@@ -740,7 +638,6 @@ export const getTickWithPoolIdAndTickValueRequestSchema = {
 	$id: 'dex/getTickWithPoolIdAndTickValue',
 	type: 'object',
 	required: ['stores', 'poolId', 'tickValue'],
-
 	properties: {
 		poolsStoreData: {
 			type: 'object',
@@ -752,8 +649,8 @@ export const getTickWithPoolIdAndTickValueRequestSchema = {
 
 export const getPoolRequestSchema = {
 	$id: 'dex/getPool',
-	type: 'object',
 	required: ['poolId'],
+	type: 'array',
 	properties: {
 		poolId: {
 			dataType: 'bytes',
@@ -761,17 +658,20 @@ export const getPoolRequestSchema = {
 		},
 	},
 };
-		poolId: {
-			dataType: 'bytes',
-			fieldNumber: 2,
-		},
-		tickValue: {
-			dataType: 'unit32',
-			fieldNumber: 3,
-		},
+
+export const getPoolResponseSchema = {
+	$id: 'dex/getPool',
+	type: 'object',
+	required: ['poolsStoreData'],
+	properties: {
+		poolsStoreData: {
+			type: 'object',
+			fieldNumber: 1,
+		}
 	},
 };
 
+	
 export const getTickWithPoolIdAndTickValueResponseSchema = {
 	$id: 'dex/getTickWithPoolIdAndTickValue',
 	type: 'object',
@@ -940,31 +840,19 @@ export const getLSKPriceRequestSchema = {
 	},
 };
 
-export const getTVLResponseSchema = {
+export const getTVLRequestSchema = {
 	$id: 'dex/getTVL',
 	type: 'object',
-	required: ['tokenMethod', 'methodContext', 'stores', 'poolId'],
+	required: ['poolId'],
 	properties: {
-		tokenMethod: {
-			dataType: 'object',
-			fieldNumber: 1,
-		},
-		methodContext: {
-			dataType: 'object',
-			fieldNumber: 2,
-		},
-		stores: {
-			dataType: 'object',
-			fieldNumber: 3,
-		},
 		poolId: {
 			dataType: 'bytes',
-			fieldNumber: 4,
+			fieldNumber: 1,
 		},
 	},
 };
 
-export const getTVLRequestSchema = {
+export const getTVLResponseSchema = {
 	$id: 'dex/getTVL',
 	type: 'object',
 	required: ['tvl'],

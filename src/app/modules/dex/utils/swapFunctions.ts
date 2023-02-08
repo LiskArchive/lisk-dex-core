@@ -1,3 +1,8 @@
+/* eslint-disable import/no-cycle */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable no-param-reassign */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -121,8 +126,8 @@ export const computeCurrentPrice = async (
 	let price = BigInt(1);
 	let tokenInPool = tokenIn;
 	for (const poolId of swapRoute) {
-		const pool = await endpoint.getPool(methodContext, poolId);
-		await endpoint.getPool(methodContext, poolId).catch(() => {
+		const pool = await endpoint.getPool(methodContext, [poolId]);
+		await endpoint.getPool(methodContext, [poolId]).catch(() => {
 			throw new Error('Not a valid pool');
 		});
 		if (tokenInPool.equals(getToken0Id(poolId))) {
