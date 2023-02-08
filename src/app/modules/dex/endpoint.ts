@@ -13,7 +13,7 @@
  */
 
 import { BaseEndpoint, ModuleEndpointContext, TokenMethod } from 'lisk-sdk';
-import { MethodContext } from 'lisk-framework/dist-node/state_machine';
+import { ImmutableMethodContext, MethodContext } from 'lisk-framework/dist-node/state_machine';
 import {
 	MODULE_ID_DEX,
 	NUM_BYTES_POOL_ID,
@@ -79,7 +79,7 @@ export class DexEndpoint extends BaseEndpoint {
 	}
 
 	public async getPool(
-		methodContext: ModuleEndpointContext | MethodContext,
+		methodContext: ImmutableMethodContext | ModuleEndpointContext | MethodContext,
 		poolID: PoolID,
 	): Promise<PoolsStoreData> {
 		const poolsStore = this.stores.get(PoolsStore);
