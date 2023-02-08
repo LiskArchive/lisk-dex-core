@@ -465,7 +465,6 @@ export const addLiquiditySchema = {
 	},
 };
 
-
 export const getAllPoolIdsResponseSchema = {
 	$id: 'dex/endpoint/getAllPoolIdsResponse',
 	type: 'object',
@@ -518,7 +517,6 @@ export const getAllPositionIDsInPoolRequestSchema = {
 		},
 	},
 };
-
 
 export const getAllPositionIDsInPoolResponseSchema = {
 	$id: 'dex/endpoint/getAllPositionIDsInPoolResponse',
@@ -632,7 +630,6 @@ export const getPositionResponseSchema = {
 	},
 };
 
-
 export const getTickWithTickIdRequestSchema = {
 	$id: 'dex/endpoint/getTickWithTickIdRequest',
 	type: 'array',
@@ -683,7 +680,7 @@ export const getTickWithPoolIdAndTickValueResponseSchema = {
 			fieldNumber: 1,
 		},
 	},
-}
+};
 
 export const ggetPositionIndexRequestSchema = {
 	$id: 'dex/getPositionIndexRequest',
@@ -805,8 +802,6 @@ export const getToken0AmountResponseSchema = {
 	},
 };
 
-
-
 export const getLSKPriceResponseSchema = {
 	$id: 'dex/endpoint/getLSKPriceResponse',
 	type: 'object',
@@ -831,11 +826,9 @@ export const getLSKPriceRequestSchema = {
 		poolID: {
 			dataType: 'bytes',
 			fieldNumber: 2,
-		}
+		},
 	},
 };
-
-
 
 export const getTVLRequestSchema = {
 	$id: 'dex/endpoint/getTVLRequest',
@@ -854,7 +847,6 @@ export const getTVLRequestSchema = {
 			dataType: 'bytes',
 			fieldNumber: 3,
 		},
-
 	},
 };
 

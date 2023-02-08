@@ -48,17 +48,13 @@ import {
 	getToken0AmountRequestSchema,
 	getToken0AmountResponseSchema,
 	getFeeTierResponseSchema,
-	getFeeTierResquestSchema,
 	getPoolIDFromTickIDRequestSchema,
 	getPositionIndexResponseSchema,
-	ggetPositionIndexResquestSchema,
-	getAllTokenIdsRequestSchema,
 	getAllTokenIdsResponseSchema,
 	getAllPositionIDsInPoolRequestSchema,
 	getAllPositionIDsInPoolResponseSchema,
 	getCurrentSqrtPriceRequestSchema,
 	getCurrentSqrtPriceResponseSchema,
-	getDexGlobalDataRequestSchema,
 	getDexGlobalDataResponseSchema,
 	getPoolRequestSchema,
 	getPoolResponseSchema,
@@ -73,7 +69,8 @@ import {
 	getAllTicksRequestSchema,
 	getAllTicksResponseSchema,
 	getAllTickIDsInPoolRequestSchema,
-	getAllTickIDsInPoolRsponseSchema,
+	getPositionRequestSchema,
+	getAllTickIDsInPoolResponseSchema,
 } from './schemas';
 
 import { SwappedEvent } from './events/swapped';
@@ -144,7 +141,6 @@ export class DexModule extends BaseModule {
 				},
 				{
 					name: this.endpoint.getFeeTier.name,
-					request: getFeeTierResquestSchema,
 					response: getFeeTierResponseSchema,
 				},
 				{
@@ -154,12 +150,10 @@ export class DexModule extends BaseModule {
 				},
 				{
 					name: this.endpoint.getPositionIndex.name,
-					request: ggetPositionIndexResquestSchema,
 					response: getPositionIndexResponseSchema,
 				},
 				{
 					name: this.endpoint.getAllTokenIDs.name,
-					request: getAllTokenIdsRequestSchema,
 					response: getAllTokenIdsResponseSchema,
 				},
 				{
@@ -179,12 +173,11 @@ export class DexModule extends BaseModule {
 				},
 				{
 					name: this.endpoint.getDexGlobalData.name,
-					request: getDexGlobalDataRequestSchema,
 					response: getDexGlobalDataResponseSchema,
 				},
 				{
 					name: this.endpoint.getPosition.name,
-					request: getDexGlobalDataRequestSchema,
+					request: getPositionRequestSchema,
 					response: getDexGlobalDataResponseSchema,
 				},
 				{
@@ -215,9 +208,8 @@ export class DexModule extends BaseModule {
 				{
 					name: this.endpoint.getAllTickIDsInPool.name,
 					request: getAllTickIDsInPoolRequestSchema,
-					response: getAllTickIDsInPoolRsponseSchema,
+					response: getAllTickIDsInPoolResponseSchema,
 				},
-
 			],
 			commands: this.commands.map(command => ({
 				name: command.name,

@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable no-param-reassign */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -895,8 +896,8 @@ export const getCredibleDirectPrice = async (
 
 	const token1ValuesLocked: bigint[] = [];
 
-for (const directPool of directPools) {
-		methodContext.params.poolD = directPool
+	for (const directPool of directPools) {
+		methodContext.params.poolD = directPool;
 		const pool = await endpoint.getPool(methodContext);
 		const token0Amount = await endpoint.getToken0Amount(tokenMethod, methodContext, directPool);
 		const token0ValueQ96 = mulQ96(
@@ -917,9 +918,7 @@ for (const directPool of directPools) {
 			minToken1ValueLockedIndex = index;
 		}
 	});
-methodContext.params.poolID = directPools[minToken1ValueLockedIndex]
-	const poolSqrtPrice = (
-		await endpoint.getPool(methodContext)
-	).sqrtPrice;
+	methodContext.params.poolID = directPools[minToken1ValueLockedIndex];
+	const poolSqrtPrice = (await endpoint.getPool(methodContext)).sqrtPrice;
 	return mulQ96(bytesToQ96(poolSqrtPrice), bytesToQ96(poolSqrtPrice));
 };

@@ -76,8 +76,7 @@ describe('dex:auxiliaryFunctions', () => {
 	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
 
-	let stateStore: PrefixedStateReadWriter;
-	stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
 	const moduleEndpointContext = createTransientModuleEndpointContext({
 		stateStore,
@@ -445,7 +444,7 @@ describe('dex:auxiliaryFunctions', () => {
 			).toStrictEqual(Buffer.from('0000000000000000', 'hex'));
 		});
 
-	it('getCredibleDirectPrice', async () => {
+		it('getCredibleDirectPrice', async () => {
 			const tempModuleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
 				params: { poolID: getPoolIDFromPositionID(positionId) },

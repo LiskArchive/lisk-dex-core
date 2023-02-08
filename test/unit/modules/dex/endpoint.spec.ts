@@ -15,6 +15,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { TokenMethod } from 'lisk-sdk';
+import {
+	createMethodContext,
+	EventQueue,
+	MethodContext,
+} from 'lisk-framework/dist-node/state_machine';
 
 import { DexModule } from '../../../../src/app/modules';
 import {
@@ -29,12 +35,8 @@ import { Address, PoolID, PositionID } from '../../../../src/app/modules/dex/typ
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 
-import {
-	createMethodContext,
-	EventQueue,
-	MethodContext,
-} from 'lisk-framework/dist-node/state_machine';
-import { TokenMethod } from 'lisk-sdk';
+
+
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import {
 	PriceTicksStoreData,
@@ -44,7 +46,11 @@ import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGl
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
-import { getPoolIDFromPositionID, getToken0Id, getToken1Id } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
+import {
+	getPoolIDFromPositionID,
+	getToken0Id,
+	getToken1Id,
+} from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import { DexEndpoint } from '../../../../src/app/modules/dex/endpoint';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
@@ -60,8 +66,9 @@ describe('dex: offChainEndpointFunctions', () => {
 	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
 
-	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-
+	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(
+		new InMemoryPrefixedStateDB(),
+	);
 
 	const moduleEndpointContext = createTransientModuleEndpointContext({
 		stateStore,
@@ -254,13 +261,12 @@ describe('dex: offChainEndpointFunctions', () => {
 		it('getAllPositionIDsInPool', () => {
 			const tempModuleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
-				params: { poolId: getPoolIDFromPositionID(positionId), positionIdsList: [positionId] },
+				params: { poolID: getPoolIDFromPositionID(positionId), positionIdsList: [positionId] },
 			});
 			const positionIDs = endpoint.getAllPositionIDsInPool(tempModuleEndpointContext);
 			expect(positionIDs.indexOf(positionId)).not.toBe(-1);
 		});
 
-		
 		it('getPool', async () => {
 			const tempModuleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
@@ -325,41 +331,37 @@ describe('dex: offChainEndpointFunctions', () => {
 		it('getLSKPrice', async () => {
 			const tempModuleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
-				params: { tokenID: getPoolIDFromPositionID(positionId),
+				params: {
+					tokenID: getPoolIDFromPositionID(positionId),
 					poolID: getPoolIDFromPositionID(positionId),
-			},
+				},
 			});
 			const result = Buffer.alloc(4);
-			const feeTier = q96ToBytes(
+			const tempFeTier = q96ToBytes(
 				BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings.feeTier, 0)),
 			);
 			await poolsStore.setKey(
 				methodContext,
-				[getPoolIDFromPositionID(positionId), positionId, feeTier],
+				[getPoolIDFromPositionID(positionId), positionId, tempFeTier],
 				poolsStoreData,
 			);
-			await poolsStore.setKey(methodContext, [poolIdLSK, poolIdLSK, feeTier], poolsStoreData);
-			await poolsStore.setKey(methodContext, [poolIdLSK, positionId, feeTier], poolsStoreData);
+			await poolsStore.setKey(methodContext, [poolIdLSK, poolIdLSK, tempFeTier], poolsStoreData);
+			await poolsStore.setKey(methodContext, [poolIdLSK, positionId, tempFeTier], poolsStoreData);
 
-			const res = await endpoint.getLSKPrice(
-				tokenMethod,
-				tempModuleEndpointContext
-			);
+			const res = await endpoint.getLSKPrice(tokenMethod, tempModuleEndpointContext);
 			expect(res).toBe(BigInt(1));
 		});
 
 		it('getTVL', async () => {
 			const tempModuleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
-				params: { poolID: getPoolIDFromPositionID(positionId),
-				token0ID: getToken0Id(getPoolIDFromPositionID(positionId)),
-				token1ID: getToken1Id(getPoolIDFromPositionID(positionId)),
-			},
+				params: {
+					poolID: getPoolIDFromPositionID(positionId),
+					token0ID: getToken0Id(getPoolIDFromPositionID(positionId)),
+					token1ID: getToken1Id(getPoolIDFromPositionID(positionId)),
+				},
 			});
-			const res = await endpoint.getTVL(
-				tokenMethod,
-				tempModuleEndpointContext,
-			);
+			const res = await endpoint.getTVL(tokenMethod, tempModuleEndpointContext);
 			expect(res).toBe(BigInt(5));
 		});
 

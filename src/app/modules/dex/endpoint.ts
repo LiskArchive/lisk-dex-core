@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-
 import { BaseEndpoint, ModuleEndpointContext, TokenMethod } from 'lisk-sdk';
 import {
 	getAllPositionIDsInPoolRequestSchema,
@@ -23,8 +22,13 @@ import {
 } from './schemas';
 import { validator } from '@liskhq/lisk-validator';
 
-
-import { MODULE_ID_DEX, NUM_BYTES_POOL_ID, TOKEN_ID_LSK, NUM_BYTES_ADDRESS, NUM_BYTES_POSITION_ID } from './constants';
+import {
+	MODULE_ID_DEX,
+	NUM_BYTES_POOL_ID,
+	TOKEN_ID_LSK,
+	NUM_BYTES_ADDRESS,
+	NUM_BYTES_POSITION_ID,
+} from './constants';
 import { PoolsStore } from './stores';
 import { PoolID, PositionID, Q96, TickID, TokenID } from './types';
 import {
@@ -68,13 +72,13 @@ export class DexEndpoint extends BaseEndpoint {
 		return tokens;
 	}
 
-public getAllPositionIDsInPool(methodContext: ModuleEndpointContext): Buffer[] {
-		validator.validate<{ poolId: Buffer; positionIdsList: PositionID[] }>(
+	public getAllPositionIDsInPool(methodContext: ModuleEndpointContext): Buffer[] {
+		validator.validate<{ poolID: Buffer; positionIdsList: PositionID[] }>(
 			getAllPositionIDsInPoolRequestSchema,
 			methodContext.params,
 		);
 		const result: Buffer[] = [];
-		const poolId = methodContext.params.poolId;
+		const poolId = methodContext.params.poolID;
 		const positionIdsList = methodContext.params.positionIdsList;
 		positionIdsList.forEach(positionId => {
 			if (getPoolIDFromPositionID(positionId).equals(poolId)) {
@@ -89,7 +93,6 @@ public getAllPositionIDsInPool(methodContext: ModuleEndpointContext): Buffer[] {
 		const poolsStore = this.stores.get(PoolsStore);
 		const key = await poolsStore.getKey(methodContext, [methodContext.params.poolID]);
 		return key;
-
 	}
 
 	public async getDexGlobalData(methodContext: ModuleEndpointContext): Promise<DexGlobalStoreData> {
@@ -179,7 +182,7 @@ public getAllPositionIDsInPool(methodContext: ModuleEndpointContext): Buffer[] {
 		tokenMethod: TokenMethod,
 		methodContext: ModuleEndpointContext,
 	): Promise<bigint> {
-		validator.validate<{ poolID: Buffer; token0ID:Buffer; token1ID:Buffer}>(
+		validator.validate<{ poolID: Buffer; token0ID: Buffer; token1ID: Buffer }>(
 			getTVLRequestSchema,
 			methodContext.params,
 		);
@@ -224,11 +227,11 @@ public getAllPositionIDsInPool(methodContext: ModuleEndpointContext): Buffer[] {
 		tokenMethod: TokenMethod,
 		methodContext: ModuleEndpointContext,
 	): Promise<bigint> {
-		validator.validate<{ tokenID: Buffer; poolID:Buffer}>(
+		validator.validate<{ tokenID: Buffer; poolID: Buffer }>(
 			getLSKPriceRequestSchema,
 			methodContext.params,
 		);
-		const {tokenID} = methodContext.params 
+		const { tokenID } = methodContext.params;
 		let tokenRoute = await computeRegularRoute(methodContext, this.stores, tokenID, TOKEN_ID_LSK);
 		let price = BigInt(1);
 

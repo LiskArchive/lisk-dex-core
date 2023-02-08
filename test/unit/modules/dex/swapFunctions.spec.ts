@@ -81,7 +81,7 @@ describe('dex:auxiliaryFunctions', () => {
 		it('raiseSwapException', () => {
 			raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress);
 			const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
-			expect(swapFailedEvent.length).toBe(1);
+			expect(swapFailedEvent).toHaveLength(1);
 		});
 		it('swapWithin', () => {
 			const [sqrtUpdatedPrice, amountIn, amountOut] = swapWithin(
@@ -101,13 +101,13 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('computeCurrentPrice', async () => {
-			const moduleEndpointContext = createTransientModuleEndpointContext({
+			const tempModuleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
-				params: { poolID: poolId},
+				params: { poolID: poolId },
 			});
 			const swapRoute = [poolId];
 			const currentPrice = await computeCurrentPrice(
-				moduleEndpointContext,
+				tempModuleEndpointContext,
 				dexModule.stores,
 				token0Id,
 				token1Id,
