@@ -11,8 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { getAllPositionIDsInPoolRequestSchema } from './schemas';
-
 import { validator } from '@liskhq/lisk-validator';
 import { BaseEndpoint, ModuleEndpointContext, TokenMethod } from 'lisk-sdk';
 
@@ -40,7 +38,7 @@ import {
 } from './utils/auxiliaryFunctions';
 import { PoolsStoreData } from './stores/poolsStore';
 
-import { getCollectableFeesAndIncentivesRequestSchema } from './schemas';
+import { getCollectableFeesAndIncentivesRequestSchema, getAllPositionIDsInPoolRequestSchema } from './schemas';
 
 import { addQ96, bytesToQ96, divQ96, invQ96, roundDownQ96, mulQ96 } from './utils/q96';
 import { DexGlobalStore, DexGlobalStoreData } from './stores/dexGlobalStore';
@@ -79,8 +77,7 @@ export class DexEndpoint extends BaseEndpoint {
 			methodContext.params,
 		);
 		const result: Buffer[] = [];
-		const poolId = methodContext.params.poolId;
-		const positionIdsList = methodContext.params.positionIdsList;
+		const { poolId, positionIdsList } = methodContext.params;
 		positionIdsList.forEach(positionId => {
 			if (getPoolIDFromPositionID(positionId).equals(poolId)) {
 				result.push(positionId);
