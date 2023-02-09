@@ -113,7 +113,6 @@ export interface InteroperabilityMethod {
 }
 
 // Swap Types
-export type TickID = Buffer; // TickID for Swap types
 // PoolsGraph for Swap types
 export type PoolsGraph = {
 	vertices: Set<TokenID>;
