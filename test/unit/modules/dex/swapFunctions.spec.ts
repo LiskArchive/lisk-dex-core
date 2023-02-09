@@ -50,10 +50,12 @@ describe('dex:auxiliaryFunctions', () => {
 
 		it('raiseSwapException', () => {
 			try {
-				expect(raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress)).toThrow();
+				expect(
+					raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress),
+				).toThrow();
 			} catch (error) {
 				expect(error).toBeInstanceOf(Error);
-			}	
+			}
 			const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
 			expect(swapFailedEvent.length).toBe(1);
 		});
