@@ -11,15 +11,20 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { getAllPositionIDsInPoolRequestSchema } from './schemas';
-
 import { validator } from '@liskhq/lisk-validator';
 import { BaseEndpoint, ModuleEndpointContext, TokenMethod } from 'lisk-sdk';
 
-import { MODULE_ID_DEX, NUM_BYTES_POOL_ID, TOKEN_ID_LSK } from './constants';
-import { NUM_BYTES_ADDRESS, NUM_BYTES_POSITION_ID } from './constants';
+import {
+	MODULE_ID_DEX,
+	NUM_BYTES_POOL_ID,
+	TOKEN_ID_LSK,
+	NUM_BYTES_ADDRESS,
+	NUM_BYTES_POSITION_ID,
+} from './constants';
+
 import { PoolsStore } from './stores';
 import { PoolID, PositionID, Q96, TickID, TokenID } from './types';
+// eslint-disable-next-line import/no-cycle
 import {
 	computeExceptionalRoute,
 	computeRegularRoute,
@@ -28,8 +33,16 @@ import {
 	getToken0Id,
 	getToken1Id,
 	poolIdToAddress,
+	computeCollectableFees,
+	computeCollectableIncentives,
 } from './utils/auxiliaryFunctions';
 import { PoolsStoreData } from './stores/poolsStore';
+
+import {
+	getCollectableFeesAndIncentivesRequestSchema,
+	getAllPositionIDsInPoolRequestSchema,
+} from './schemas';
+
 import { addQ96, bytesToQ96, divQ96, invQ96, roundDownQ96, mulQ96 } from './utils/q96';
 import { DexGlobalStore, DexGlobalStoreData } from './stores/dexGlobalStore';
 import { PositionsStore, PositionsStoreData } from './stores/positionsStore';
@@ -41,7 +54,7 @@ export class DexEndpoint extends BaseEndpoint {
 		const poolStore = this.stores.get(PoolsStore);
 		const store = await poolStore.getAll(methodContext);
 		const poolIds: PoolID[] = [];
-		if (store && store.length) {
+		if (store?.length) {
 			store.forEach(poolId => {
 				poolIds.push(poolId.key);
 			});
@@ -61,14 +74,13 @@ export class DexEndpoint extends BaseEndpoint {
 		return tokens;
 	}
 
-public getAllPositionIDsInPool(methodContext: ModuleEndpointContext): Buffer[] {
+	public getAllPositionIDsInPool(methodContext: ModuleEndpointContext): Buffer[] {
 		validator.validate<{ poolId: Buffer; positionIdsList: PositionID[] }>(
 			getAllPositionIDsInPoolRequestSchema,
 			methodContext.params,
 		);
 		const result: Buffer[] = [];
-		const poolId = methodContext.params.poolId;
-		const positionIdsList = methodContext.params.positionIdsList;
+		const { poolId, positionIdsList } = methodContext.params;
 		positionIdsList.forEach(positionId => {
 			if (getPoolIDFromPositionID(positionId).equals(poolId)) {
 				result.push(positionId);
@@ -255,6 +267,7 @@ public getAllPositionIDsInPool(methodContext: ModuleEndpointContext): Buffer[] {
 			);
 
 			const tokenIDArrays = [tokenIn, rt];
+			// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
 			const [tokenID0, tokenID1] = tokenIDArrays.sort();
 
 			if (tokenIn.equals(tokenID0) && rt.equals(tokenID1)) {
@@ -291,4 +304,38 @@ public getAllPositionIDsInPool(methodContext: ModuleEndpointContext): Buffer[] {
 		return result;
 	}
 
+	public async getCollectableFeesAndIncentives(
+		methodContext: ModuleEndpointContext,
+		tokenMethod: TokenMethod,
+	) {
+		validator.validate<{ positionId: string }>(
+			getCollectableFeesAndIncentivesRequestSchema,
+			methodContext.params,
+		);
+
+		const positionId = Buffer.from(methodContext.params.positionId, 'hex');
+		const positionsStore = this.stores.get(PositionsStore);
+		const hasPositionData = await positionsStore.has(methodContext, positionId);
+
+		if (!hasPositionData) {
+			throw new Error('The position is not registered!');
+		}
+
+		const [collectableFees0, collectableFees1] = await computeCollectableFees(
+			this.stores,
+			methodContext,
+			positionId,
+		);
+
+		const dexGlobalStore = this.stores.get(DexGlobalStore);
+		const [collectableIncentives] = await computeCollectableIncentives(
+			dexGlobalStore,
+			tokenMethod,
+			methodContext,
+			positionId,
+			collectableFees0,
+			collectableFees1,
+		);
+		return [collectableFees0, collectableFees1, collectableIncentives];
+	}
 }

@@ -465,7 +465,6 @@ export const addLiquiditySchema = {
 	},
 };
 
-
 export const getAllPoolIdsResponseSchema = {
 	$id: 'dex/getAllPoolIds',
 	type: 'object',
@@ -483,27 +482,25 @@ export const getAllTokenIdsRequestSchema = {
 		stores: {
 			dataType: 'object',
 			fieldNumber: 1,
-		poolIDArray: {
-			type: 'array',
-			fieldNumber: 1,
-			items: {
-				type: 'object',
-				required: ['poolID'],
-				properties: {
-					poolID: {
-						dataType: 'bytes',
-						minLength:NUM_BYTES_POOL_ID,
-						maxLength:NUM_BYTES_POOL_ID,
-						fieldNumber: 1,
-					}
+			poolIDArray: {
+				type: 'array',
+				fieldNumber: 1,
+				items: {
+					type: 'object',
+					required: ['poolID'],
+					properties: {
+						poolID: {
+							dataType: 'bytes',
+							minLength: NUM_BYTES_POOL_ID,
+							maxLength: NUM_BYTES_POOL_ID,
+							fieldNumber: 1,
+						},
+					},
 				},
 			},
 		},
 	},
-}
-}
-
-//no requestParams for getAllTokenIds so no requestSchema 
+};
 
 export const getAllTokenIdsResponseSchema = {
 	$id: 'dex/getAllTokenIds',
@@ -885,7 +882,7 @@ export const getToken0AmountRequestSchema = {
 	},
 };
 
-export const getLSKPriceResponseSchema = {
+export const getLSKPriceRequestSchema = {
 	$id: 'dex/getLSKPrice',
 	type: 'object',
 	required: ['tokenMethod', 'methodContext', 'stores', 'tokenId'],
@@ -909,7 +906,7 @@ export const getLSKPriceResponseSchema = {
 	},
 };
 
-export const getLSKPriceRequestSchema = {
+export const getLSKPriceResponseSchema = {
 	$id: 'dex/getLSKPrice',
 	type: 'object',
 	required: ['lskPrice'],
@@ -1030,6 +1027,48 @@ export const getAllTickIDsInPoolRsponseSchema = {
 					positionID: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+					},
+				},
+			},
+		},
+	},
+};
+
+export const getCollectableFeesAndIncentivesRequestSchema = {
+	$id: 'dex/getCollectableFeesAndIncentives',
+	type: 'object',
+	required: ['positionId'],
+	properties: {
+		positionId: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+	},
+};
+
+export const getCollectableFeesAndIncentivesResponseSchema = {
+	$id: 'dex/getCollectableFeesAndIncentives',
+	type: 'object',
+	required: ['feesAndIncentives'],
+	properties: {
+		feesAndIncentives: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['collectableFees0', 'collectableFees1', 'collectableIncentives'],
+				properties: {
+					collectableFees0: {
+						dataType: 'uint64',
+						fieldNumber: 1,
+					},
+					collectableFees1: {
+						dataType: 'uint64',
+						fieldNumber: 2,
+					},
+					collectableIncentives: {
+						dataType: 'uint64',
+						fieldNumber: 3,
 					},
 				},
 			},
