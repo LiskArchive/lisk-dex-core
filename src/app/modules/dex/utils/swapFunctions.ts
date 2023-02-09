@@ -14,13 +14,14 @@
 
 import { MethodContext, ModuleEndpointContext } from 'lisk-sdk';
 import { SwapFailedEvent } from '../events/swapFailed';
-import { Address, AdjacentEdgesInterface, PoolID, TokenID } from '../types';
+import { Address, AdjacentEdgesInterface, PoolID, PoolsGraph, TokenID } from '../types';
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { getToken0Id, getToken1Id } from './auxiliaryFunctions';
 import { computeNextPrice, getAmount0Delta, getAmount1Delta } from './math';
 import { DexModule } from '../module';
 import { DexEndpoint } from '../endpoint';
 import { bytesToQ96, invQ96, mulQ96 } from './q96';
+
 
 export const swapWithin = (
 	sqrtCurrentPrice: bigint,
@@ -88,10 +89,11 @@ export const raiseSwapException = (
 		[senderAddress],
 		true,
 	);
+	throw new Error();
 };
 
 export const getAdjacent = async (
-	methodContext: ModuleEndpointContext,
+	methodContext,
 	stores: NamedRegistry,
 	vertex: TokenID,
 ): Promise<AdjacentEdgesInterface[]> => {
@@ -140,4 +142,21 @@ export const computeCurrentPrice = async (
 		throw new Error('Incorrect swap path for price computation');
 	}
 	return mulQ96(price, price);
+};
+
+export const constructPoolsGraph = async (
+	methodContext: ModuleEndpointContext,
+	stores: NamedRegistry,
+): Promise<PoolsGraph> => {
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	const vertices = new Set<TokenID>();
+	const poolIDs = await endpoint.getAllPoolIDs(methodContext);
+	const edges = new Set<PoolID>();
+	poolIDs.forEach(poolId => {
+		vertices.add(getToken0Id(poolId));
+		vertices.add(getToken1Id(poolId));
+		edges.add(poolId);
+	});
+	return { vertices, edges };
 };

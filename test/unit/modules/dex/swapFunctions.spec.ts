@@ -21,6 +21,7 @@ import { MethodContext } from 'lisk-framework/dist-node/state_machine/method_con
 import { DexModule } from '../../../../src/app/modules';
 import {
 	computeCurrentPrice,
+	constructPoolsGraph,
 	getAdjacent,
 	raiseSwapException,
 	swapWithin,
@@ -34,7 +35,8 @@ import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { PoolsStore } from '../../../../src/app/modules/dex/stores';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 
-describe('dex:auxiliaryFunctions', () => {
+
+describe('dex:swapFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 	const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
 	const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
@@ -78,7 +80,13 @@ describe('dex:auxiliaryFunctions', () => {
 			await poolsStore.setKey(methodContext, [poolId], poolsStoreData);
 		});
 		it('raiseSwapException', () => {
-			raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress);
+			try {
+				expect(
+					raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress),
+				).toThrow();
+			} catch (error) {
+				expect(error).toBeInstanceOf(Error);
+			}
 			const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
 			expect(swapFailedEvent.length).toBe(1);
 		});
@@ -110,5 +118,24 @@ describe('dex:auxiliaryFunctions', () => {
 			);
 			expect(currentPrice).not.toBeNull();
 		});
+
+		it('constructPoolsGraph', async () => {
+			const poolsGraph = await constructPoolsGraph(moduleEndpointContext, dexModule.stores);
+			const vertices: Buffer[] = [];
+			const edges: Buffer[] = [];
+
+			poolsGraph.vertices.forEach(e => {
+				vertices.push(e);
+			});
+			poolsGraph.edges.forEach(e => {
+				edges.push(e);
+			});
+
+			expect(vertices.filter(vertex => vertex.equals(token0Id))).toHaveLength(1);
+			expect(vertices.filter(vertex => vertex.equals(token1Id))).toHaveLength(1);
+			expect(edges.filter(edge => edge.equals(poolId))).toHaveLength(1);
+		});
+
 	});
 });
+
