@@ -309,12 +309,12 @@ export class DexEndpoint extends BaseEndpoint {
 		tokenMethod: TokenMethod
 	) {
 		validator.validate<{ positionId: string }>(getCollectableFeesAndIncentivesRequestSchema, methodContext.params);
-		
+
 		const positionId = Buffer.from(methodContext.params.positionId, "hex");
 		const positionsStore = this.stores.get(PositionsStore);
-		const positionStoreData = await positionsStore.get(methodContext, positionId);
+		const hasPositionData = await positionsStore.has(methodContext, positionId);
 
-		if (!positionStoreData) {
+		if (!hasPositionData) {
 			throw new Error("The position is not registered!");
 		}
 
