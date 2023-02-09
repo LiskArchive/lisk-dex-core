@@ -1052,7 +1052,7 @@ export const dryRunSwapExactOutRequestSchema = {
 		},
 		tokenIdOut: {
 			dataType: 'bytes',
-			filedNumber: 3
+			fieldNumber: 3
 		},
 		amountOut: {
 			dataType: 'uint64',
