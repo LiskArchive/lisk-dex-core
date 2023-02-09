@@ -27,7 +27,7 @@ import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { Address, TokenID } from '../../../../src/app/modules/dex/types';
 
-describe('dex:auxiliaryFunctions', () => {
+describe('dex:swapFunctions', () => {
 	const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
 	const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
@@ -46,7 +46,7 @@ describe('dex:auxiliaryFunctions', () => {
 	});
 
 	describe('constructor', () => {
-		beforeEach(async () => {});
+		beforeEach(async () => { });
 
 		it('raiseSwapException', () => {
 			try {
@@ -59,17 +59,21 @@ describe('dex:auxiliaryFunctions', () => {
 			const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
 			expect(swapFailedEvent.length).toBe(1);
 		});
-		it('swapWithin', () => {
-			const [sqrtUpdatedPrice, amountIn, amountOut] = swapWithin(
-				sqrtCurrentPrice,
-				sqrtTargetPrice,
-				liquidity,
-				amountRemaining,
-				exactInput,
-			);
-			expect(sqrtUpdatedPrice).toBe(BigInt(10));
-			expect(amountIn).toBe(BigInt(1));
-			expect(amountOut).toBe(BigInt(792281625142643375935439503360));
+
+		describe('constructor', () => {
+			beforeEach(async () => { });
+			it('swapWithin', () => {
+				const [sqrtUpdatedPrice, amountIn, amountOut] = swapWithin(
+					sqrtCurrentPrice,
+					sqrtTargetPrice,
+					liquidity,
+					amountRemaining,
+					exactInput,
+				);
+				expect(sqrtUpdatedPrice).toBe(BigInt(10));
+				expect(amountIn).toBe(BigInt(1));
+				expect(amountOut).toBe(BigInt(792281625142643375935439503360));
+			});
 		});
 	});
 });
