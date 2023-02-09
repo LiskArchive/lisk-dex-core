@@ -205,7 +205,7 @@ describe('dex:command:collectFees', () => {
 						nonce: BigInt(0),
 						senderPublicKey: senderAddress,
 						params: codec.encode(collectFeesSchema, {
-							positions: new Array(24).fill({ positionID: Buffer.from('0000000100', 'hex') }),
+							positions: new Array(101).fill({ positionID: Buffer.from('0000000100', 'hex') }),
 						}),
 						signatures: [utils.getRandomBytes(64)],
 					}),
