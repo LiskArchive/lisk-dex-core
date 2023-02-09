@@ -17,6 +17,11 @@
  */
 
 import { TokenMethod } from 'lisk-sdk';
+import {
+	createMethodContext,
+	EventQueue,
+	MethodContext,
+} from 'lisk-framework/dist-node/state_machine';
 import { DexModule } from '../../../../src/app/modules';
 import {
 	DexGlobalStore,
@@ -31,11 +36,6 @@ import { numberToQ96, q96ToBytes, bytesToQ96 } from '../../../../src/app/modules
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import { NUM_BYTES_POOL_ID } from '../../../../src/app/modules/dex/constants';
 
-import {
-	createMethodContext,
-	EventQueue,
-	MethodContext,
-} from 'lisk-framework/dist-node/state_machine';
 import { tickToPrice, priceToTick } from '../../../../src/app/modules/dex/utils/math';
 import {
 	PriceTicksStoreData,

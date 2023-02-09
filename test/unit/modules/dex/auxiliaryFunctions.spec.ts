@@ -17,8 +17,8 @@
  */
 
 import { MethodContext, TokenMethod } from 'lisk-framework';
-import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_machine';
+import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 
 import {
 	getToken0Id,
