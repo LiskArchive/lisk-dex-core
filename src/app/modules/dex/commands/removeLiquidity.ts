@@ -40,9 +40,11 @@ export class RemoveLiquidityCommand extends BaseCommand {
 	private _tokenMethod!: TokenMethod;
 
 	public init({ tokenMethod }): void {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		this._tokenMethod = tokenMethod;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verify(
 		ctx: CommandVerifyContext<RemoveLiquidityParamsData>,
 	): Promise<VerificationResult> {

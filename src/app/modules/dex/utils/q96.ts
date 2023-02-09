@@ -127,7 +127,7 @@ export const q96ToBytes = (numberQ96: Q96): Buffer => {
 	let _byteArr = 0;
 
 	for (let c = 0; c < _hex.length; c += 2) {
-		_byteArr++;
+		_byteArr += 1;
 	}
 
 	if (_byteArr > MAX_NUM_BYTES_Q96) {
