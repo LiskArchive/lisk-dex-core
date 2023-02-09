@@ -904,8 +904,7 @@ export const getCredibleDirectPrice = async (
 			bytesToQ96(pool.sqrtPrice),
 		);
 		token1ValuesLocked.push(
-			roundDownQ96(token0ValueQ96) +
-				(await endpoint.getToken1Amount(tokenMethod, methodContext)),
+			roundDownQ96(token0ValueQ96) + (await endpoint.getToken1Amount(tokenMethod, methodContext)),
 		);
 	}
 
@@ -918,8 +917,6 @@ export const getCredibleDirectPrice = async (
 		}
 	});
 	methodContext.params.poolID = directPools[minToken1ValueLockedIndex];
-	const poolSqrtPrice = (
-		await endpoint.getPool(methodContext)
-	).sqrtPrice;
+	const poolSqrtPrice = (await endpoint.getPool(methodContext)).sqrtPrice;
 	return mulQ96(bytesToQ96(poolSqrtPrice), bytesToQ96(poolSqrtPrice));
 };

@@ -44,7 +44,11 @@ import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGl
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
-import { getPoolIDFromPositionID, getToken0Id, getToken1Id } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
+import {
+	getPoolIDFromPositionID,
+	getToken0Id,
+	getToken1Id,
+} from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import { DexEndpoint } from '../../../../src/app/modules/dex/endpoint';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
@@ -402,18 +406,17 @@ describe('dex: offChainEndpointFunctions', () => {
 		it('getAllTickIDsInPool', async () => {
 			let tempModuleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
-				params: { tickID: Buffer.from('000000010000000001016431308000000a', 'hex')},
+				params: { tickID: Buffer.from('000000010000000001016431308000000a', 'hex') },
 			});
 			const tempPoolID = endpoint.getPoolIDFromTickID(tempModuleEndpointContext);
 			tempModuleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
-				params: { tickID: Buffer.from('000000010000000001016431308000000a', 'hex'),
-				poolID: tempPoolID
-			}				
+				params: {
+					tickID: Buffer.from('000000010000000001016431308000000a', 'hex'),
+					poolID: tempPoolID,
+				},
 			});
-			const allTickIDsInPool = await endpoint.getAllTickIDsInPool(
-				tempModuleEndpointContext,
-			);
+			const allTickIDsInPool = await endpoint.getAllTickIDsInPool(tempModuleEndpointContext);
 			let ifKeyExists = false;
 			allTickIDsInPool.forEach(tickIdInPool => {
 				if (tickIdInPool.equals(Buffer.from('000000010000000001016431308000000a', 'hex'))) {
@@ -425,7 +428,7 @@ describe('dex: offChainEndpointFunctions', () => {
 
 		it('getCollectableFeesAndIncentives', async () => {
 			moduleEndpointContext.params = {
-				positionID:positionId,
+				positionID: positionId,
 			};
 			const [
 				collectableFee0,

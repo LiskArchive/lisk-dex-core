@@ -143,9 +143,7 @@ export class DexEndpoint extends BaseEndpoint {
 		return positionStoreData;
 	}
 
-	public async getTickWithTickId(
-		methodContext,
-	): Promise<PriceTicksStoreData> {
+	public async getTickWithTickId(methodContext): Promise<PriceTicksStoreData> {
 		validator.validate<{ tickIDs: Buffer }>(getTickWithTickIdRequestSchema, methodContext.params);
 		const priceTicksStore = this.stores.get(PriceTicksStore);
 		const priceTicksStoreData = await priceTicksStore.getKey(methodContext, [
@@ -157,9 +155,7 @@ export class DexEndpoint extends BaseEndpoint {
 			return priceTicksStoreData;
 		}
 	}
-	public async getTickWithPoolIdAndTickValue(
-		methodContext,
-	): Promise<PriceTicksStoreData> {
+	public async getTickWithPoolIdAndTickValue(methodContext): Promise<PriceTicksStoreData> {
 		validator.validate<{ poolID: Buffer; tickValue: number }>(
 			getTickWithPoolIdAndTickValueRequestSchema,
 			methodContext.params,
@@ -176,20 +172,14 @@ export class DexEndpoint extends BaseEndpoint {
 		}
 	}
 
-	public async getToken1Amount(
-		tokenMethod: TokenMethod,
-		methodContext,
-	): Promise<bigint> {
+	public async getToken1Amount(tokenMethod: TokenMethod, methodContext): Promise<bigint> {
 		validator.validate<{ poolID: Buffer }>(getToken1AmountRequestSchema, methodContext.params);
 		const address = poolIdToAddress(methodContext.params.poolID);
 		const tokenId = getToken1Id(methodContext.params.poolID);
 		return tokenMethod.getLockedAmount(methodContext, address, tokenId, MODULE_ID_DEX.toString());
 	}
 
-	public async getToken0Amount(
-		tokenMethod: TokenMethod,
-		methodContext,
-	): Promise<bigint> {
+	public async getToken0Amount(tokenMethod: TokenMethod, methodContext): Promise<bigint> {
 		validator.validate<{ poolID: Buffer }>(getToken0AmountRequestSchema, methodContext.params);
 		const address = poolIdToAddress(methodContext.params.poolID);
 		const tokenId = getToken0Id(methodContext.params.poolID);
@@ -218,10 +208,7 @@ export class DexEndpoint extends BaseEndpoint {
 		return uint32beInv(_hexBuffer);
 	}
 
-	public async getTVL(
-		tokenMethod: TokenMethod,
-		methodContext,
-	): Promise<bigint> {
+	public async getTVL(tokenMethod: TokenMethod, methodContext): Promise<bigint> {
 		validator.validate<{ poolID: Buffer; token0ID: Buffer; token1ID: Buffer }>(
 			getTVLRequestSchema,
 			methodContext.params,
@@ -261,10 +248,7 @@ export class DexEndpoint extends BaseEndpoint {
 		return roundDownQ96(addQ96(value0Q96, value1Q96));
 	}
 
-	public async getLSKPrice(
-		tokenMethod: TokenMethod,
-		methodContext 
-	): Promise<bigint> {
+	public async getLSKPrice(tokenMethod: TokenMethod, methodContext): Promise<bigint> {
 		validator.validate<{ tokenID: Buffer; poolID: Buffer }>(
 			getLSKPriceRequestSchema,
 			methodContext.params,
@@ -315,11 +299,9 @@ export class DexEndpoint extends BaseEndpoint {
 		return tickIds;
 	}
 
-	public async getAllTickIDsInPool(
-		methodContext,
-	): Promise<TickID[]> {
+	public async getAllTickIDsInPool(methodContext): Promise<TickID[]> {
 		validator.validate<{ poolID: Buffer }>(getAllTickIDsInPoolRequestSchema, methodContext.params);
-		const {poolID} = methodContext.params; 
+		const { poolID } = methodContext.params;
 		const result: Buffer[] = [];
 		const allTicks = await this.getAllTicks(methodContext);
 		allTicks.forEach(tickID => {
@@ -330,19 +312,14 @@ export class DexEndpoint extends BaseEndpoint {
 		return result;
 	}
 
-	public async getPool(
-		methodContext 
-	): Promise<PoolsStoreData> {
+	public async getPool(methodContext): Promise<PoolsStoreData> {
 		validator.validate<{ poolID: Buffer }>(getPoolRequestSchema, methodContext.params);
 		const poolsStore = this.stores.get(PoolsStore);
 		const key = await poolsStore.getKey(methodContext, [methodContext.params.poolID]);
 		return key;
 	}
 
-	public async getCollectableFeesAndIncentives(
-		methodContext,
-		tokenMethod: TokenMethod,
-	) {
+	public async getCollectableFeesAndIncentives(methodContext, tokenMethod: TokenMethod) {
 		validator.validate<{ positionID: Buffer }>(
 			getCollectableFeesAndIncentivesRequestSchema,
 			methodContext.params,
