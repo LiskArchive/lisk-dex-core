@@ -33,7 +33,7 @@ import {
 import { CreatePoolCommand } from './commands/createPool';
 import { PoolsStore, PositionsStore, PriceTicksStore, SettingsStore } from './stores';
 import { DexMethod } from './method';
-import { DexGlobalStore, dexGlobalStoreSchema } from './stores/dexGlobalStore';
+import { DexGlobalStore } from './stores/dexGlobalStore';
 import { AddLiquidityCommand } from './commands/addLiquidity';
 import { CreatePositionCommand } from './commands/createPosition';
 
@@ -80,10 +80,6 @@ import {
 
 import { SwappedEvent } from './events/swapped';
 import { SwapFailedEvent } from './events/swapFailed';
-import { poolsStoreSchema } from './stores/poolsStore';
-import { positionsStoreSchema } from './stores/positionsStore';
-import { priceTicksStoreSchema } from './stores/priceTicksStore';
-import { settingsStoreSchema } from './stores/settingsStore';
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;

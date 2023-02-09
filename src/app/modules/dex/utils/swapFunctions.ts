@@ -527,11 +527,6 @@ export const swap = async (
 		);
 
 		const amountRemainingTemp = amountRemaining - firstFee;
-		console.log("poolSqrtPriceQ96: ", poolSqrtPriceQ96);
-		console.log("sqrtTargetPrice: ", sqrtTargetPrice);
-		console.log("poolStoreData.liquidity: ", poolStoreData.liquidity);
-		console.log("amountRemainingTemp: ", amountRemainingTemp);
-		console.log("exactInput: ", exactInput);
 		const result = swapWithin(
 			poolSqrtPriceQ96,
 			sqrtTargetPrice,
@@ -539,15 +534,12 @@ export const swap = async (
 			amountRemainingTemp,
 			exactInput,
 		);
-		console.log('result: ', result);
 
 		[poolSqrtPriceQ96, amountIn, amountOut] = result;
 		const feeCoeff = divQ96(
 			numberToQ96(BigInt(feeTier / 2)),
 			numberToQ96(BigInt(FEE_TIER_PARTITION - feeTier / 2)),
 		);
-		console.log('amountIn: ', amountIn);
-		console.log('feeCoeff: ', feeCoeff);
 		const feeIn = roundUpQ96(mulQ96(numberToQ96(amountIn), numberToQ96(feeCoeff)));
 		const feeOut = roundUpQ96(mulQ96(numberToQ96(amountOut), numberToQ96(feeCoeff)));
 
@@ -565,12 +557,6 @@ export const swap = async (
 		const validatorFeePartIn = tokenIn.equals(TOKEN_ID_LSK) ? VALIDATORS_LSK_INCENTIVE_PART : 0;
 		const validatorFeePartOut = tokenOut.equals(TOKEN_ID_LSK) ? VALIDATORS_LSK_INCENTIVE_PART : 0;
 
-		console.log('feeIn: ', feeIn);
-		console.log(
-			'BigInt(FEE_TIER_PARTITION - validatorFeePartIn): ',
-			BigInt(FEE_TIER_PARTITION - validatorFeePartIn),
-		);
-		console.log('BigInt(FEE_TIER_PARTITION): ', BigInt(FEE_TIER_PARTITION));
 		const liquidityFeeInQ96 = mulDivQ96(
 			numberToQ96(feeIn),
 			numberToQ96(BigInt(FEE_TIER_PARTITION - validatorFeePartIn)),
@@ -582,12 +568,8 @@ export const swap = async (
 			numberToQ96(BigInt(FEE_TIER_PARTITION)),
 		);
 
-		console.log('liquidityFeeInQ96: ', liquidityFeeInQ96);
-		console.log('liquidityFeeOutQ96: ', liquidityFeeOutQ96);
 		const liquidityFee0Q96 = zeroToOne ? liquidityFeeInQ96 : liquidityFeeOutQ96;
 		const liquidityFee1Q96 = zeroToOne ? liquidityFeeOutQ96 : liquidityFeeInQ96;
-		console.log('liquidityFee0Q96: ', liquidityFee0Q96);
-		console.log('poolStoreData.liquidity: ', poolStoreData.liquidity);
 		const globalFees0Q96 = divQ96(
 			numberToQ96(liquidityFee0Q96),
 			numberToQ96(poolStoreData.liquidity),
@@ -597,14 +579,9 @@ export const swap = async (
 			numberToQ96(poolStoreData.liquidity),
 		);
 		const feeGrowthGlobal0Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal0);
-		console.log('11111111111111');
-		console.log('feeGrowthGlobal0Q96: ', feeGrowthGlobal0Q96);
-		console.log('globalFees0Q96: ', globalFees0Q96);
 		poolStoreData.feeGrowthGlobal0 = q96ToBytes(addQ96(feeGrowthGlobal0Q96, globalFees0Q96));
-		console.log('222222222222');
 		const feeGrowthGlobal1Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal1);
 		poolStoreData.feeGrowthGlobal1 = q96ToBytes(addQ96(feeGrowthGlobal1Q96, globalFees1Q96));
-		console.log('333333333333333');
 
 		if (poolSqrtPriceQ96 === sqrtNextTickPriceQ96 && !zeroToOne) {
 			await crossTick(
