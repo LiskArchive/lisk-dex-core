@@ -16,6 +16,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { TokenMethod } from 'lisk-sdk';
 import { DexModule } from '../../../../src/app/modules';
 import {
 	DexGlobalStore,
@@ -35,7 +36,6 @@ import {
 	EventQueue,
 	MethodContext,
 } from 'lisk-framework/dist-node/state_machine';
-import { TokenMethod } from 'lisk-sdk';
 import { tickToPrice, priceToTick } from '../../../../src/app/modules/dex/utils/math';
 import {
 	PriceTicksStoreData,
@@ -63,8 +63,7 @@ describe('dex: offChainEndpointFunctions', () => {
 	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
 
-	let stateStore: PrefixedStateReadWriter;
-	stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
 	const moduleEndpointContext = createTransientModuleEndpointContext({
 		stateStore,
@@ -393,9 +392,9 @@ describe('dex: offChainEndpointFunctions', () => {
 			const amountOut = BigInt(10);
 			moduleEndpointContext.params = {
 				tokenIdIn: token0Id,
-				maxAmountIn: maxAmountIn,
+				maxAmountIn,
 				tokenIdOut: token1Id,
-				amountOut: amountOut,
+				amountOut,
 				swapRoute: [poolId]
 			}
 			const result = await endpoint.dryRunSwapExactOut(

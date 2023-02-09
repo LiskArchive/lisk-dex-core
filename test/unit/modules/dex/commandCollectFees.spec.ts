@@ -52,7 +52,7 @@ describe('dex:command:collectFees', () => {
 		let command: CollectFeesCommand;
 		let stateStore: PrefixedStateReadWriter;
 		let methodContext: MethodContext;
-		let contextStore = new Map();
+		const contextStore = new Map();
 
 		const dexModule = new DexModule();
 		const senderAddress: Address = Buffer.from('00000000000000000', 'hex');

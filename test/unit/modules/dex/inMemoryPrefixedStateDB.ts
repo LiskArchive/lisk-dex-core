@@ -13,6 +13,7 @@
  */
 
 import { InMemoryDatabase, IterateOptions } from '@liskhq/lisk-db';
+
 export class InMemoryPrefixedStateDB {
 	private readonly _db: InMemoryDatabase;
 
@@ -64,5 +65,5 @@ export class InMemoryPrefixedStateDB {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public restoreSnapshot(): void {}
+	public restoreSnapshot(): void { }
 }
