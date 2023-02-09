@@ -450,9 +450,7 @@ export const swap = async (
 	const dexModule = new DexModule();
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
 	const feeTier = endpoint.getFeeTier(poolID);
-	let poolSqrtPriceQ96 = bytesToQ96(
-		(await endpoint.getPool(moduleEndpointContext, poolID)).sqrtPrice,
-	);
+	let poolSqrtPriceQ96 = bytesToQ96((await endpoint.getPool(moduleEndpointContext, poolID)).sqrtPrice);
 	let numCrossedTicks = 0;
 	let amountRemaining = amountSpecified;
 	let amountTotalIn = BigInt(0);
@@ -460,7 +458,6 @@ export const swap = async (
 	let totalFeesIn = BigInt(0);
 	let totalFeesOut = BigInt(0);
 	let nextTick;
-	let nextTickId;
 	let sqrtTargetPrice;
 	let amountIn: bigint;
 	let amountOut: bigint;
@@ -474,40 +471,24 @@ export const swap = async (
 	}
 
 	while (amountRemaining !== BigInt(0) && poolSqrtPriceQ96 !== sqrtLimitPrice) {
+
 		if (numCrossedTicks >= MAX_NUMBER_CROSSED_TICKS) {
 			throw new Error('Crossed too many ticks');
 		}
 
 		const currentTick = priceToTick(poolSqrtPriceQ96);
-		const currentTickId = await stores
-			.get(PriceTicksStore)
-			.getCurrentTickId(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
 		if (zeroToOne && poolSqrtPriceQ96 === tickToPrice(currentTick) && currentTick != 0) {
-			await crossTick(
-				moduleEndpointContext,
-				methodContext,
-				stores,
-				q96ToBytes(BigInt(currentTickId)),
-				false,
-				currentHeight,
-			);
+			await crossTick(moduleEndpointContext, methodContext, stores, q96ToBytes(BigInt(currentTick)), false, currentHeight);
 			numCrossedTicks += 1;
 		}
 
+		let nextTickId;
 		if (zeroToOne) {
-			nextTick = await stores
-				.get(PriceTicksStore)
-				.getPrevTick(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
-			nextTickId = await stores
-				.get(PriceTicksStore)
-				.getPrevTickId(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
+			nextTick = await stores.get(PriceTicksStore).getPrevTick(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
+			nextTickId = await stores.get(PriceTicksStore).getPrevTickId(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))])
 		} else {
-			nextTick = await stores
-				.get(PriceTicksStore)
-				.getNextTick(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
-			nextTickId = await stores
-				.get(PriceTicksStore)
-				.getNextTickId(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
+			nextTick = await stores.get(PriceTicksStore).getNextTick(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
+			nextTickId = await stores.get(PriceTicksStore).getNextTickId(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))])
 		}
 
 		const sqrtNextTickPriceQ96 = tickToPrice(nextTick);
@@ -517,13 +498,14 @@ export const swap = async (
 		) {
 			sqrtTargetPrice = sqrtLimitPrice;
 		} else {
+
 			sqrtTargetPrice = sqrtNextTickPriceQ96;
 		}
 
 		const firstFee = mulDivRoundUpQ96(
-			numberToQ96(amountRemaining),
-			numberToQ96(BigInt(feeTier / 2)),
-			numberToQ96(BigInt(FEE_TIER_PARTITION)),
+			amountRemaining,
+			BigInt(feeTier / 2),
+			BigInt(FEE_TIER_PARTITION),
 		);
 
 		const amountRemainingTemp = amountRemaining - firstFee;
@@ -536,19 +518,16 @@ export const swap = async (
 		);
 
 		[poolSqrtPriceQ96, amountIn, amountOut] = result;
-		const feeCoeff = divQ96(
-			numberToQ96(BigInt(feeTier / 2)),
-			numberToQ96(BigInt(FEE_TIER_PARTITION - feeTier / 2)),
-		);
-		const feeIn = roundUpQ96(mulQ96(numberToQ96(amountIn), numberToQ96(feeCoeff)));
-		const feeOut = roundUpQ96(mulQ96(numberToQ96(amountOut), numberToQ96(feeCoeff)));
+		const feeCoeff = divQ96(BigInt(feeTier / 2), BigInt(FEE_TIER_PARTITION - (feeTier / 2)));
+		const feeIn = roundUpQ96(mulQ96(numberToQ96(amountIn), feeCoeff));
+		const feeOut = roundUpQ96(mulQ96(numberToQ96(amountOut), feeCoeff));
 
 		if (exactInput) {
-			amountRemaining -= amountIn + feeIn;
-		} else {
-			amountRemaining -= amountOut + feeOut;
-		}
+			amountRemaining -= (amountIn + feeIn);
+		} else if (!exactInput) {
+			amountRemaining -= (amountOut + feeOut);
 
+		}
 		amountTotalOut += amountOut + feeOut;
 		amountTotalIn += amountIn + feeIn;
 		totalFeesIn += feeIn;
@@ -558,42 +537,30 @@ export const swap = async (
 		const validatorFeePartOut = tokenOut.equals(TOKEN_ID_LSK) ? VALIDATORS_LSK_INCENTIVE_PART : 0;
 
 		const liquidityFeeInQ96 = mulDivQ96(
-			numberToQ96(feeIn),
-			numberToQ96(BigInt(FEE_TIER_PARTITION - validatorFeePartIn)),
-			numberToQ96(BigInt(FEE_TIER_PARTITION)),
+			BigInt(feeIn),
+			BigInt(FEE_TIER_PARTITION - validatorFeePartIn),
+			BigInt(FEE_TIER_PARTITION),
 		);
 		const liquidityFeeOutQ96 = mulDivQ96(
-			numberToQ96(feeOut),
-			numberToQ96(BigInt(FEE_TIER_PARTITION - validatorFeePartOut)),
-			numberToQ96(BigInt(FEE_TIER_PARTITION)),
+			BigInt(feeOut),
+			BigInt(FEE_TIER_PARTITION - validatorFeePartOut),
+			BigInt(FEE_TIER_PARTITION),
 		);
 
 		const liquidityFee0Q96 = zeroToOne ? liquidityFeeInQ96 : liquidityFeeOutQ96;
 		const liquidityFee1Q96 = zeroToOne ? liquidityFeeOutQ96 : liquidityFeeInQ96;
-		const globalFees0Q96 = divQ96(
-			numberToQ96(liquidityFee0Q96),
-			numberToQ96(poolStoreData.liquidity),
-		);
-		const globalFees1Q96 = divQ96(
-			numberToQ96(liquidityFee1Q96),
-			numberToQ96(poolStoreData.liquidity),
-		);
+		const globalFees0Q96 = divQ96(liquidityFee0Q96, BigInt(poolStoreData.liquidity));
+		const globalFees1Q96 = divQ96(liquidityFee1Q96, BigInt(poolStoreData.liquidity));
 		const feeGrowthGlobal0Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal0);
 		poolStoreData.feeGrowthGlobal0 = q96ToBytes(addQ96(feeGrowthGlobal0Q96, globalFees0Q96));
 		const feeGrowthGlobal1Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal1);
 		poolStoreData.feeGrowthGlobal1 = q96ToBytes(addQ96(feeGrowthGlobal1Q96, globalFees1Q96));
 
 		if (poolSqrtPriceQ96 === sqrtNextTickPriceQ96 && !zeroToOne) {
-			await crossTick(
-				moduleEndpointContext,
-				methodContext,
-				stores,
-				q96ToBytes(nextTickId),
-				true,
-				currentHeight,
-			);
+			await crossTick(moduleEndpointContext, methodContext, stores, nextTickId, true, currentHeight);
 			numCrossedTicks += 1;
 		}
+
 	}
 
 	poolStoreData.sqrtPrice = q96ToBytes(poolSqrtPriceQ96);
