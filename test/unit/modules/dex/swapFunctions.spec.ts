@@ -20,12 +20,16 @@ import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_
 import { MethodContext } from 'lisk-framework/dist-node/state_machine/method_context';
 import { DexModule } from '../../../../src/app/modules';
 import {
+	getAdjacent,
 	raiseSwapException,
 	swapWithin,
 } from '../../../../src/app/modules/dex/utils/swapFunctions';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
-import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { Address, TokenID } from '../../../../src/app/modules/dex/types';
+import { createTransientModuleEndpointContext } from '../../../context/createContext';
+import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
+
+
 
 describe('dex:swapFunctions', () => {
 	const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
@@ -39,29 +43,33 @@ describe('dex:swapFunctions', () => {
 	const dexModule = new DexModule();
 	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
 	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
+	const INVALID_ADDRESS = '1234';
+
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
 		stateStore,
 		eventQueue: new EventQueue(0),
 	});
 
+	const moduleEndpointContext = createTransientModuleEndpointContext({
+		stateStore,
+		params: { address: INVALID_ADDRESS },
+	});
+
 	describe('constructor', () => {
-		beforeEach(async () => { });
-
-		it('raiseSwapException', () => {
-			try {
-				expect(
-					raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress),
-				).toThrow();
-			} catch (error) {
-				expect(error).toBeInstanceOf(Error);
-			}
-			const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
-			expect(swapFailedEvent.length).toBe(1);
-		});
-
 		describe('constructor', () => {
 			beforeEach(async () => { });
+			it('raiseSwapException', () => {
+				try {
+					expect(
+						raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress),
+					).toThrow();
+				} catch (error) {
+					expect(error).toBeInstanceOf(Error);
+				}
+				const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
+				expect(swapFailedEvent.length).toBe(1);
+			});
 			it('swapWithin', () => {
 				const [sqrtUpdatedPrice, amountIn, amountOut] = swapWithin(
 					sqrtCurrentPrice,
@@ -74,6 +82,10 @@ describe('dex:swapFunctions', () => {
 				expect(amountIn).toBe(BigInt(1));
 				expect(amountOut).toBe(BigInt(792281625142643375935439503360));
 			});
+			it('getAdjacent', () => {
+				const adjacent = getAdjacent(moduleEndpointContext, dexModule.stores, token0Id);
+				expect(adjacent).not.toBeNull();
+			});
 		});
 	});
-});
+})

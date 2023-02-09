@@ -14,9 +14,12 @@
 
 import { MethodContext } from 'lisk-sdk';
 import { SwapFailedEvent } from '../events/swapFailed';
-import { Address, TokenID } from '../types';
+import { Address, AdjacentEdgesInterface, TokenID } from '../types';
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { computeNextPrice, getAmount0Delta, getAmount1Delta } from './math';
+import { DexModule } from '../module';
+import { DexEndpoint } from '../endpoint';
+import { getToken0Id, getToken1Id } from './auxiliaryFunctions';
 
 export const swapWithin = (
 	sqrtCurrentPrice: bigint,
@@ -85,4 +88,23 @@ export const raiseSwapException = (
 		true,
 	);
 	throw new Error();
+};
+
+export const getAdjacent = async (
+	methodContext,
+	stores: NamedRegistry,
+	vertex: TokenID,
+): Promise<AdjacentEdgesInterface[]> => {
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	const result: AdjacentEdgesInterface[] = [];
+	const poolIDs = await endpoint.getAllPoolIDs(methodContext);
+	poolIDs.forEach(edge => {
+		if (getToken0Id(edge).equals(vertex)) {
+			result.push({ edge, vertex: getToken1Id(edge) });
+		} else if (getToken1Id(edge).equals(vertex)) {
+			result.push({ edge, vertex: getToken0Id(edge) });
+		}
+	});
+	return result;
 };
