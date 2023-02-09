@@ -16,6 +16,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import {
+	createMethodContext,
+	EventQueue,
+	MethodContext,
+} from 'lisk-framework/dist-node/state_machine';
+import { TokenMethod } from 'lisk-sdk';
 import { DexModule } from '../../../../src/app/modules';
 import {
 	DexGlobalStore,
@@ -29,12 +35,6 @@ import { Address, PoolID, PositionID } from '../../../../src/app/modules/dex/typ
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 
-import {
-	createMethodContext,
-	EventQueue,
-	MethodContext,
-} from 'lisk-framework/dist-node/state_machine';
-import { TokenMethod } from 'lisk-sdk';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import {
 	PriceTicksStoreData,
@@ -59,6 +59,7 @@ describe('dex: offChainEndpointFunctions', () => {
 
 	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
+	// const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
 
 	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(
 		new InMemoryPrefixedStateDB(),
@@ -240,7 +241,7 @@ describe('dex: offChainEndpointFunctions', () => {
 			});
 		});
 
-		it('should return the feeTier from the poolID', () => {
+		it('getFeeTier', () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
 				params: { poolID: getPoolIDFromPositionID(positionId), positionIDsList: [positionId] },
@@ -420,6 +421,21 @@ describe('dex: offChainEndpointFunctions', () => {
 				}
 			});
 			expect(ifKeyExists).toBe(true);
+		});
+
+		it('getCollectableFeesAndIncentives', async () => {
+			moduleEndpointContext.params = {
+				positionID:positionId,
+			};
+			const [
+				collectableFee0,
+				collectableFee1,
+				collectableIncentives,
+			] = await endpoint.getCollectableFeesAndIncentives(moduleEndpointContext, tokenMethod);
+
+			expect(collectableFee0).toEqual(BigInt(0));
+			expect(collectableFee1).toEqual(BigInt(0));
+			expect(collectableIncentives).toEqual(BigInt(0));
 		});
 	});
 });

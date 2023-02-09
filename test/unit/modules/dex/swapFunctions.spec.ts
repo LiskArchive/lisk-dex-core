@@ -81,7 +81,7 @@ describe('dex:auxiliaryFunctions', () => {
 		it('raiseSwapException', () => {
 			raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress);
 			const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
-			expect(swapFailedEvent.length).toBe(1);
+			expect(swapFailedEvent).toHaveLength(1);
 		});
 		it('swapWithin', () => {
 			const [sqrtUpdatedPrice, amountIn, amountOut] = swapWithin(
