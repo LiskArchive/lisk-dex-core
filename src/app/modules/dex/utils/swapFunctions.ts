@@ -13,9 +13,9 @@
  */
 
 import { MethodContext, ModuleEndpointContext } from 'lisk-sdk';
+import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { SwapFailedEvent } from '../events/swapFailed';
 import { Address, AdjacentEdgesInterface, PoolID, PoolsGraph, TokenID } from '../types';
-import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { getToken0Id, getToken1Id } from './auxiliaryFunctions';
 import { computeNextPrice, getAmount0Delta, getAmount1Delta } from './math';
 import { DexModule } from '../module';
