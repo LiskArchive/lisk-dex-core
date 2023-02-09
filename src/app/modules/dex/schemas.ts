@@ -502,13 +502,13 @@ export const getAllTokenIdsResponseSchema = {
 export const getAllPositionIDsInPoolRequestSchema = {
 	$id: 'dex/endpoint/getAllPositionIDsInPoolRequest',
 	type: 'object',
-	required: ['poolId', 'positionIdsList'],
+	required: ['poolID', 'positionIDsList'],
 	properties: {
-		poolId: {
+		poolID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
 		},
-		positionIdsList: {
+		positionIDsList: {
 			type: 'array',
 			fieldNumber: 2,
 			items: {
@@ -586,10 +586,6 @@ export const getPositionRequestSchema = {
 		positionIDsList: {
 			type: 'array',
 			fieldNumber: 2,
-			items: {
-				dataType: 'bytes',
-				fieldNumber: 1,
-			},
 		},
 	},
 };
@@ -608,11 +604,11 @@ export const getPositionResponseSchema = {
 
 export const getTickWithTickIdRequestSchema = {
 	$id: 'dex/endpoint/getTickWithTickIdRequest',
-	type: 'array',
-	required: ['tickID'],
+	type: 'object',
+	required: ['tickIDs'],
 	properties: {
-		tickID: {
-			dataType: 'bytes',
+		tickIDs: {
+			type: 'object',
 			fieldNumber: 1,
 		},
 	},
@@ -640,7 +636,7 @@ export const getTickWithPoolIdAndTickValueRequestSchema = {
 			fieldNumber: 1,
 		},
 		tickValue: {
-			dataType: 'bytes',
+			dataType: 'uint32',
 			fieldNumber: 2,
 		},
 	},
@@ -661,10 +657,10 @@ export const getTickWithPoolIdAndTickValueResponseSchema = {
 export const getPoolRequestSchema = {
 	$id: 'dex/endpoint/getPoolRequest',
 	required: ['poolID'],
-	type: 'array',
+	type: 'object',
 	properties: {
 		poolID: {
-			dataType: 'bytes',
+			type: 'object',
 			fieldNumber: 1,
 		},
 	},
@@ -685,9 +681,9 @@ export const getPoolResponseSchema = {
 export const getPositionIndexRequestSchema = {
 	$id: 'dex/endpoint/getPositionIndexRequest',
 	type: 'object',
-	required: ['positionId'],
+	required: ['positionID'],
 	properties: {
-		positionId: {
+		positionID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
 		},
@@ -832,7 +828,7 @@ export const getTVLRequestSchema = {
 	required: ['poolID'],
 	properties: {
 		poolID: {
-			dataType: 'bytes',
+			type: 'object',
 			fieldNumber: 1,
 		},
 	},
