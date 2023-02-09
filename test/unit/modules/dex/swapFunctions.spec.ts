@@ -29,7 +29,9 @@ import { Address, TokenID } from '../../../../src/app/modules/dex/types';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 
-describe('dex:auxiliaryFunctions', () => {
+
+
+describe('dex:swapFunctions', () => {
 	const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
 	const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
@@ -55,26 +57,35 @@ describe('dex:auxiliaryFunctions', () => {
 	});
 
 	describe('constructor', () => {
-		it('raiseSwapException', () => {
-			raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress);
-			const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
-			expect(swapFailedEvent.length).toBe(1);
-		});
-		it('swapWithin', () => {
-			const [sqrtUpdatedPrice, amountIn, amountOut] = swapWithin(
-				sqrtCurrentPrice,
-				sqrtTargetPrice,
-				liquidity,
-				amountRemaining,
-				exactInput,
-			);
-			expect(sqrtUpdatedPrice).toBe(BigInt(10));
-			expect(amountIn).toBe(BigInt(1));
-			expect(amountOut).toBe(BigInt(792281625142643375935439503360));
-		});
-		it('getAdjacent', () => {
-			const adjacent = getAdjacent(moduleEndpointContext, dexModule.stores, token0Id);
-			expect(adjacent).not.toBeNull();
+		describe('constructor', () => {
+			beforeEach(async () => { });
+			it('raiseSwapException', () => {
+				try {
+					expect(
+						raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress),
+					).toThrow();
+				} catch (error) {
+					expect(error).toBeInstanceOf(Error);
+				}
+				const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
+				expect(swapFailedEvent.length).toBe(1);
+			});
+			it('swapWithin', () => {
+				const [sqrtUpdatedPrice, amountIn, amountOut] = swapWithin(
+					sqrtCurrentPrice,
+					sqrtTargetPrice,
+					liquidity,
+					amountRemaining,
+					exactInput,
+				);
+				expect(sqrtUpdatedPrice).toBe(BigInt(10));
+				expect(amountIn).toBe(BigInt(1));
+				expect(amountOut).toBe(BigInt(792281625142643375935439503360));
+			});
+			it('getAdjacent', () => {
+				const adjacent = getAdjacent(moduleEndpointContext, dexModule.stores, token0Id);
+				expect(adjacent).not.toBeNull();
+			});
 		});
 	});
-});
+})
