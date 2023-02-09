@@ -17,7 +17,7 @@
  */
 
 import { MethodContext, TokenMethod, cryptography, ModuleEndpointContext } from 'lisk-sdk';
-
+import { MAX_SINT32 } from '@liskhq/lisk-validator';
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 
 import {
@@ -78,7 +78,6 @@ import { ADDRESS_VALIDATOR_REWARDS_POOL } from '../../dexRewards/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
 import { DexEndpoint } from '../endpoint';
 import { DexModule } from '../module';
-import { MAX_SINT32 } from '@liskhq/lisk-validator';
 
 const { utils } = cryptography;
 
@@ -889,7 +888,6 @@ export const getCredibleDirectPrice = async (
 	});
 
 	if (directPools.length === 0) {
-		console.log(allpoolIDs);
 		throw new Error('No direct pool between given tokens');
 	}
 

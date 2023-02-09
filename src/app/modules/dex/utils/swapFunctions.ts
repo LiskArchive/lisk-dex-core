@@ -179,6 +179,7 @@ export const transferFeesFromPool = (
 		);
 	}
 	if (validatorFee > 0) {
+		// eslint-disable-next-line
 		transferFromPool(
 			tokenMethod,
 			methodContext,
@@ -187,6 +188,7 @@ export const transferFeesFromPool = (
 			id,
 			validatorFee,
 		)
+		// eslint-disable-next-line
 		tokenMethod.lock(methodContext, ADDRESS_VALIDATOR_INCENTIVES, MODULE_NAME_DEX, id, validatorFee);
 	}
 };
@@ -284,6 +286,7 @@ export const updatePoolIncentives = async (
 	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
 	let incentivizedPools: { poolId: Buffer; multiplier: number } | undefined;
 
+	// eslint-disable-next-line
 	dexGlobalStoreData.incentivizedPools.forEach((incentivizedPool: { poolId: Buffer; multiplier: number; } | undefined) => {
 		if (incentivizedPool?.poolId.equals(poolID)) {
 			incentivizedPools = incentivizedPool;
@@ -324,6 +327,7 @@ export const computeNewIncentivesPerLiquidity = async (
 	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
 	let incentivizedPools: { poolId: Buffer; multiplier: number } | undefined;
 
+	// eslint-disable-next-line
 	dexGlobalStoreData.incentivizedPools.forEach((incentivizedPool: { poolId: Buffer; multiplier: number; } | undefined) => {
 		if (incentivizedPool?.poolId.equals(poolID)) {
 			incentivizedPools = incentivizedPool;

@@ -122,17 +122,17 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			lte: Buffer.alloc(16, 255),
 			reverse: false,
 		});
-		allKeys.forEach(key => {
-			keysArray.push(key.key.toString('hex'));
+		allKeys.forEach(oneKey => {
+			keysArray.push(oneKey.key.toString('hex'));
 		});
 
 		const currentKeyIndex = keysArray.indexOf(key.toString('hex'), 0);
 
 		if (currentKeyIndex < keysArray.length - 1) {
 			const nextKey = Buffer.from(keysArray[currentKeyIndex + 1], 'hex');
-			return parseInt("0x" + nextKey.toString("hex"));
+			return parseInt("0x" + nextKey.toString("hex"), 10);
 		} else {
-			return parseInt("0x" + key.toString("hex"));
+			return parseInt("0x" + key.toString("hex"), 10);
 		}
 	}
 
@@ -144,17 +144,17 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			lte: Buffer.alloc(16, 255),
 			reverse: false,
 		});
-		allKeys.forEach(key => {
-			keysArray.push(key.key.toString('hex'));
+		allKeys.forEach(oneKey => {
+			keysArray.push(oneKey.key.toString('hex'), 10);
 		});
 
 		const currentKeyIndex = keysArray.indexOf(key.toString('hex'), 0);
 
 		if (currentKeyIndex > 0) {
 			const prevKey = Buffer.from(keysArray[currentKeyIndex - 1], 'hex');
-			return parseInt("0x" + prevKey.toString("hex"));
+			return parseInt("0x" + prevKey.toString("hex"), 10);
 		} else {
-			return parseInt("0x" + key.toString("hex"));
+			return parseInt("0x" + key.toString("hex"), 10);
 		}
 	}
 
@@ -166,13 +166,13 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			lte: Buffer.alloc(16, 255),
 			reverse: false,
 		});
-		allKeys.forEach(key => {
-			keysArray.push(key.key.toString('hex'));
+		allKeys.forEach(oneKey => {
+			keysArray.push(oneKey.key.toString('hex'), 10);
 		});
 
 		const currentKeyIndex = keysArray.indexOf(key.toString('hex'), 0);
 		const currentKey = Buffer.from(keysArray[currentKeyIndex], 'hex');
-		return parseInt("0x" + currentKey.toString("hex"));
+		return parseInt("0x" + currentKey.toString("hex"), 10);
 	}
 
 	public async getNextTick(context: ModuleEndpointContext, keys: Buffer[]) {
@@ -183,8 +183,8 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			lte: Buffer.alloc(16, 255),
 			reverse: false,
 		});
-		allKeys.forEach(key => {
-			keysArray.push(key.key.toString('hex'));
+		allKeys.forEach(oneKey => {
+			keysArray.push(oneKey.key.toString('hex'));
 		});
 
 		const currentKeyIndex = keysArray.indexOf(key.toString('hex'), 0)
@@ -207,8 +207,8 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			lte: Buffer.alloc(16, 255),
 			reverse: false,
 		});
-		allKeys.forEach(key => {
-			keysArray.push(key.key.toString('hex'));
+		allKeys.forEach(oneKey => {
+			keysArray.push(oneKey.key.toString('hex'));
 		});
 
 		const currentKeyIndex = keysArray.indexOf(key.toString('hex'), 0)
