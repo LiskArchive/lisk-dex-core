@@ -16,8 +16,10 @@ import { getAllPositionIDsInPoolRequestSchema } from './schemas';
 import { BaseEndpoint, ModuleEndpointContext, TokenMethod, MethodContext } from 'lisk-sdk';
 import { validator } from '@liskhq/lisk-validator';
 
-import { MODULE_ID_DEX, NUM_BYTES_POOL_ID, TOKEN_ID_LSK } from './constants';
 import {
+	MODULE_ID_DEX,
+	NUM_BYTES_POOL_ID,
+	TOKEN_ID_LSK,
 	NUM_BYTES_ADDRESS,
 	NUM_BYTES_POSITION_ID,
 	MAX_HOPS_SWAP,
@@ -26,6 +28,7 @@ import {
 } from './constants';
 import { PoolsStore } from './stores';
 import { PoolID, PositionID, Q96, TickID, TokenID } from './types';
+// eslint-disable-next-line import/no-cycle
 import {
 	computeExceptionalRoute,
 	computeRegularRoute,
@@ -50,7 +53,7 @@ export class DexEndpoint extends BaseEndpoint {
 		const poolStore = this.stores.get(PoolsStore);
 		const store = await poolStore.getAll(methodContext);
 		const poolIds: PoolID[] = [];
-		if (store && store.length) {
+		if (store?.length) {
 			store.forEach(poolId => {
 				poolIds.push(poolId.key);
 			});
@@ -264,6 +267,7 @@ export class DexEndpoint extends BaseEndpoint {
 			);
 
 			const tokenIDArrays = [tokenIn, rt];
+			// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
 			const [tokenID0, tokenID1] = tokenIDArrays.sort();
 
 			if (tokenIn.equals(tokenID0) && rt.equals(tokenID1)) {
