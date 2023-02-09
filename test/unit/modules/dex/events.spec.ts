@@ -14,8 +14,8 @@
 
 import { BaseEvent } from 'lisk-sdk';
 import { DexModule } from '../../../../src/app/modules';
+import { SwapFailedEvent } from '../../../../src/app/modules/dex/events/swapFailed';
 import { SwappedEvent } from '../../../../src/app/modules/dex/events/swapped';
-
 
 describe('DexModule:events', () => {
 	let dexModule: DexModule;
@@ -25,6 +25,7 @@ describe('DexModule:events', () => {
 	});
 
 	it('events should be registered and inherit from BaseEvent', () => {
+		expect(dexModule.events.get(SwapFailedEvent)).toBeInstanceOf(BaseEvent);
 		expect(dexModule.events.get(SwappedEvent)).toBeInstanceOf(BaseEvent);
 	});
 });
