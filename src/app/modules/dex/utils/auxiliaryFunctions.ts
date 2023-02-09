@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable no-param-reassign*/
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -16,7 +17,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MethodContext, TokenMethod, cryptography } from 'lisk-sdk';
+import { MethodContext, TokenMethod, cryptography, ModuleEndpointContext } from 'lisk-sdk';
 
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 
@@ -51,7 +52,15 @@ import {
 	MODULE_NAME_DEX,
 } from '../constants';
 
-import { PoolID, PositionID, Address, TokenID, Q96 } from '../types';
+import {
+	PoolID,
+	PositionID,
+	Address,
+	TokenID,
+	Q96,
+	routeInterface,
+	AdjacentEdgesInterface,
+} from '../types';
 
 import {
 	subQ96,
@@ -68,6 +77,9 @@ import { FeesIncentivesCollectedEvent, PositionUpdateFailedEvent } from '../even
 import { tickToBytes } from '../stores/priceTicksStore';
 import { ADDRESS_VALIDATOR_REWARDS_POOL } from '../../dexRewards/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
+import { DexEndpoint } from '../endpoint';
+import { DexModule } from '../module';
+import { MAX_SINT32 } from '@liskhq/lisk-validator';
 
 const { utils } = cryptography;
 
@@ -752,4 +764,160 @@ export const updatePosition = async (
 	}
 
 	return [amount0, amount1];
+};
+
+export const getAdjacent = async (
+	methodContext: ModuleEndpointContext,
+	stores: NamedRegistry,
+	vertex: TokenID,
+): Promise<AdjacentEdgesInterface[]> => {
+	const result: AdjacentEdgesInterface[] = [];
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	const poolIDs = await endpoint.getAllPoolIDs(methodContext);
+	poolIDs.forEach(edge => {
+		if (getToken0Id(edge).equals(vertex)) {
+			result.push({ edge, vertex: getToken1Id(edge) });
+		} else if (getToken1Id(edge).equals(vertex)) {
+			result.push({ edge, vertex: getToken0Id(edge) });
+		}
+	});
+	return result;
+};
+
+export const computeRegularRoute = async (
+	methodContext: ModuleEndpointContext,
+	stores: NamedRegistry,
+	tokenIn: TokenID,
+	tokenOut: TokenID,
+): Promise<TokenID[]> => {
+	let lskAdjacent = await getAdjacent(methodContext, stores, TOKEN_ID_LSK);
+	let tokenInFlag = false;
+	let tokenOutFlag = false;
+
+	lskAdjacent.forEach(lskAdjacentEdge => {
+		if (lskAdjacentEdge.edge.equals(tokenIn)) {
+			tokenInFlag = true;
+		}
+		if (lskAdjacentEdge.edge.equals(tokenOut)) {
+			tokenOutFlag = true;
+		}
+	});
+
+	if (tokenInFlag && tokenOutFlag) {
+		return [tokenIn, TOKEN_ID_LSK, tokenOut];
+	}
+
+	tokenOutFlag = false;
+	lskAdjacent = await getAdjacent(methodContext, stores, tokenIn);
+
+	lskAdjacent.forEach(lskAdjacentEdge => {
+		if (lskAdjacentEdge.edge.equals(tokenOut)) {
+			tokenOutFlag = true;
+		}
+	});
+
+	if (tokenOutFlag) {
+		return [tokenIn, tokenOut];
+	}
+	return [];
+};
+
+export const computeExceptionalRoute = async (
+	methodContext: ModuleEndpointContext,
+	stores: NamedRegistry,
+	tokenIn: TokenID,
+	tokenOut: TokenID,
+): Promise<TokenID[]> => {
+	const routes: routeInterface[] = [
+		{
+			path: [],
+			endVertex: tokenIn,
+		},
+	];
+	const visited = [tokenIn];
+	while (routes.length > 0) {
+		const routeElement = routes.shift();
+		if (routeElement != null) {
+			if (routeElement.endVertex.equals(tokenOut)) {
+				routeElement.path.push(tokenOut);
+				return routeElement.path;
+			}
+			const adjacent = await getAdjacent(methodContext, stores, routeElement.endVertex);
+			adjacent.forEach(adjacentEdge => {
+				if (visited.includes(adjacentEdge.vertex)) {
+					if (routeElement != null) {
+						routeElement.path.push(adjacentEdge.edge);
+						routes.push({ path: routeElement.path, endVertex: adjacentEdge.vertex });
+						visited.push(adjacentEdge.vertex);
+					}
+				}
+			});
+		}
+	}
+	return [];
+};
+
+export const getCredibleDirectPrice = async (
+	tokenMethod: TokenMethod,
+	methodContext: ModuleEndpointContext,
+	stores: NamedRegistry,
+	tokenID0: TokenID,
+	tokenID1: TokenID,
+): Promise<bigint> => {
+	const directPools: Buffer[] = [];
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	const settings = (await endpoint.getDexGlobalData(methodContext)).poolCreationSettings;
+	const allpoolIDs = await endpoint.getAllPoolIDs(methodContext);
+
+	const tokenIDArrays = [tokenID0, tokenID1];
+	[tokenID0, tokenID1] = tokenIDArrays.sort();
+	const concatedTokenIDs = Buffer.concat([tokenID0, tokenID1]);
+
+	settings.forEach(setting => {
+		const result = Buffer.alloc(4);
+		const tokenIDAndSettingsArray = [
+			concatedTokenIDs,
+			q96ToBytes(BigInt(result.writeUInt32BE(setting.feeTier, 0))),
+		];
+		const potentialPoolId: Buffer = Buffer.concat(tokenIDAndSettingsArray);
+		allpoolIDs.forEach(poolId => {
+			if (poolId.equals(potentialPoolId)) {
+				directPools.push(potentialPoolId);
+			}
+		});
+	});
+
+	if (directPools.length === 0) {
+		throw new Error('No direct pool between given tokens');
+	}
+
+	const token1ValuesLocked: bigint[] = [];
+
+	for (const directPool of directPools) {
+		methodContext.params.poolD = directPool;
+		const pool = await endpoint.getPool(methodContext);
+		const token0Amount = await endpoint.getToken0Amount(tokenMethod, methodContext);
+		const token0ValueQ96 = mulQ96(
+			mulQ96(numberToQ96(token0Amount), bytesToQ96(pool.sqrtPrice)),
+			bytesToQ96(pool.sqrtPrice),
+		);
+		token1ValuesLocked.push(
+			roundDownQ96(token0ValueQ96) +
+				(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
+		);
+	}
+
+	let minToken1ValueLocked = BigInt(MAX_SINT32);
+	let minToken1ValueLockedIndex = 0;
+	token1ValuesLocked.forEach((token1ValueLocked, index) => {
+		if (token1ValueLocked > minToken1ValueLocked) {
+			minToken1ValueLocked = token1ValueLocked;
+			minToken1ValueLockedIndex = index;
+		}
+	});
+	methodContext.params.poolID = directPools[minToken1ValueLockedIndex];
+	const poolSqrtPrice = (await endpoint.getPool(methodContext)).sqrtPrice;
+	return mulQ96(bytesToQ96(poolSqrtPrice), bytesToQ96(poolSqrtPrice));
 };
