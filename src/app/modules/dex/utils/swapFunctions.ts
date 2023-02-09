@@ -434,19 +434,26 @@ export const swap = async (
 			throw new Error('Crossed too many ticks');
 		}
 
+		console.log("111111111111");
 		const currentTick = priceToTick(poolSqrtPriceQ96);
-		const currentTickId = await stores.get(PriceTicksStore).getCurrentTickId(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
 		if (zeroToOne && poolSqrtPriceQ96 === tickToPrice(currentTick) && currentTick != 0) {
-			await crossTick(moduleEndpointContext, methodContext, stores, q96ToBytes(BigInt(currentTickId)), false, currentHeight);
+			console.log("22222222222");
+			await crossTick(moduleEndpointContext, methodContext, stores, q96ToBytes(BigInt(currentTick)), false, currentHeight);
+			console.log("3333333333333");
 			numCrossedTicks += 1;
 		}
 
 		if (zeroToOne) {
+			console.log("4444444444444");
 			nextTick = await stores.get(PriceTicksStore).getPrevTick(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
+			console.log("4444444444444-111111111111");
 			nextTickId = await stores.get(PriceTicksStore).getPrevTickId(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
+			console.log("55555555555555");
 		} else {
+			console.log("666666666666");
 			nextTick = await stores.get(PriceTicksStore).getNextTick(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
 			nextTickId = await stores.get(PriceTicksStore).getNextTickId(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
+			console.log("7777777777777777");
 		}
 
 		const sqrtNextTickPriceQ96 = tickToPrice(nextTick);
@@ -460,9 +467,9 @@ export const swap = async (
 		}
 
 		const firstFee = mulDivRoundUpQ96(
-			numberToQ96(amountRemaining),
-			numberToQ96(BigInt(feeTier / 2)),
-			numberToQ96(BigInt(FEE_TIER_PARTITION)),
+			amountRemaining,
+			BigInt(feeTier / 2),
+			BigInt(FEE_TIER_PARTITION),
 		);
 
 		const amountRemainingTemp = amountRemaining - firstFee;
@@ -475,9 +482,9 @@ export const swap = async (
 		);
 
 		[poolSqrtPriceQ96, amountIn, amountOut] = result;
-		const feeCoeff = divQ96(numberToQ96(BigInt(feeTier / 2)), numberToQ96(BigInt(FEE_TIER_PARTITION - (feeTier / 2))));
-		const feeIn = roundUpQ96(mulQ96(numberToQ96(amountIn), feeCoeff));
-		const feeOut = roundUpQ96(mulQ96(numberToQ96(amountOut), feeCoeff));
+		const feeCoeff = divQ96(BigInt(feeTier / 2), BigInt(FEE_TIER_PARTITION - (feeTier / 2)));
+		const feeIn = roundUpQ96(mulQ96(amountIn, feeCoeff));
+		const feeOut = roundUpQ96(mulQ96(amountOut, feeCoeff));
 
 		if (exactInput) {
 			amountRemaining -= (amountIn + feeIn);
@@ -493,20 +500,20 @@ export const swap = async (
 		const validatorFeePartOut = tokenOut.equals(TOKEN_ID_LSK) ? VALIDATORS_LSK_INCENTIVE_PART : 0;
 
 		const liquidityFeeInQ96 = mulDivQ96(
-			numberToQ96(BigInt(feeIn)),
-			numberToQ96(BigInt(FEE_TIER_PARTITION - validatorFeePartIn)),
-			numberToQ96(BigInt(FEE_TIER_PARTITION)),
+			BigInt(feeIn),
+			BigInt(FEE_TIER_PARTITION - validatorFeePartIn),
+			BigInt(FEE_TIER_PARTITION),
 		);
 		const liquidityFeeOutQ96 = mulDivQ96(
-			numberToQ96(BigInt(feeOut)),
-			numberToQ96(BigInt(FEE_TIER_PARTITION - validatorFeePartOut)),
-			numberToQ96(BigInt(FEE_TIER_PARTITION)),
+			BigInt(feeOut),
+			BigInt(FEE_TIER_PARTITION - validatorFeePartOut),
+			BigInt(FEE_TIER_PARTITION),
 		);
 
 		const liquidityFee0Q96 = zeroToOne ? liquidityFeeInQ96 : liquidityFeeOutQ96;
 		const liquidityFee1Q96 = zeroToOne ? liquidityFeeOutQ96 : liquidityFeeInQ96;
-		const globalFees0Q96 = divQ96(liquidityFee0Q96, numberToQ96(BigInt(poolStoreData.liquidity)));
-		const globalFees1Q96 = divQ96(liquidityFee1Q96, numberToQ96(BigInt(poolStoreData.liquidity)));
+		const globalFees0Q96 = divQ96(liquidityFee0Q96, BigInt(poolStoreData.liquidity));
+		const globalFees1Q96 = divQ96(liquidityFee1Q96, BigInt(poolStoreData.liquidity));
 		const feeGrowthGlobal0Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal0);
 		poolStoreData.feeGrowthGlobal0 = q96ToBytes(addQ96(feeGrowthGlobal0Q96, globalFees0Q96));
 		const feeGrowthGlobal1Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal1);

@@ -375,6 +375,8 @@ describe('dex: offChainEndpointFunctions', () => {
 		it('dryRunSwapExactOut', async () => {
 			const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
 			const currentTickID = q96ToBytes(BigInt(currentTick));
+			console.log("currentTick: ", currentTick);
+			console.log("currentTickID: ", currentTickID);
 			await poolsStore.setKey(methodContext, [currentTickID.slice(0, NUM_BYTES_POOL_ID)], poolsStoreData);
 
 			await priceTicksStore.setKey(

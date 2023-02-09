@@ -370,7 +370,7 @@ export class DexEndpoint extends BaseEndpoint {
 					zeroToOne,
 					sqrtLimitPrice,
 					currentTokenOut.amount,
-					false,
+					true,
 					currentHeight,
 					tokenIdIn,
 					tokenIdOut,

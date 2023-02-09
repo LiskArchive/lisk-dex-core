@@ -69,7 +69,6 @@ describe('dex:swapFunctions', () => {
 		stateStore,
 		eventQueue: new EventQueue(0),
 	});
-
 	const moduleEndpointContext = createTransientModuleEndpointContext({
 		stateStore,
 		params: { address: INVALID_ADDRESS },
@@ -204,7 +203,7 @@ describe('dex:swapFunctions', () => {
 			);
 			q96ToBytes(BigInt(currentTick))
 			const res = await swap(moduleEndpointContext, methodContext, dexModule.stores, poolId, true, sqrtLimitPrice, BigInt(5), true, 10, token0Id, token1Id);
-			expect(res).toStrictEqual([BigInt(5), BigInt(5), BigInt(1), BigInt(1)])
+			expect(res).toStrictEqual([BigInt(5), BigInt(5), BigInt(1), BigInt(1)]);
 		});
 	})
 })
