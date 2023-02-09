@@ -16,6 +16,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import {
+	createMethodContext,
+	EventQueue,
+	MethodContext,
+} from 'lisk-framework/dist-node/state_machine';
+import { TokenMethod } from 'lisk-sdk';
 import { DexModule } from '../../../../src/app/modules';
 import {
 	DexGlobalStore,
@@ -29,12 +35,7 @@ import { Address, PoolID, PositionID } from '../../../../src/app/modules/dex/typ
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
-import {
-	createMethodContext,
-	EventQueue,
-	MethodContext,
-} from 'lisk-framework/dist-node/state_machine';
-import { TokenMethod } from 'lisk-sdk';
+
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import {
 	PriceTicksStoreData,

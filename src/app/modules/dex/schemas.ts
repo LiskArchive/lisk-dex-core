@@ -502,8 +502,6 @@ export const getAllTokenIdsRequestSchema = {
 	},
 };
 
-//no requestParams for getAllTokenIds so no requestSchema
-
 export const getAllTokenIdsResponseSchema = {
 	$id: 'dex/getAllTokenIds',
 	type: 'object',

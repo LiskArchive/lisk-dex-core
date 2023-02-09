@@ -11,8 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { getAllPositionIDsInPoolRequestSchema } from './schemas';
-
 import { BaseEndpoint, ModuleEndpointContext, TokenMethod, MethodContext } from 'lisk-sdk';
 import { validator } from '@liskhq/lisk-validator';
 
@@ -39,7 +37,7 @@ import {
 	poolIdToAddress,
 } from './utils/auxiliaryFunctions';
 
-import { dryRunSwapExactInRequestSchema } from './schemas';
+import { dryRunSwapExactInRequestSchema, getAllPositionIDsInPoolRequestSchema } from './schemas';
 import { computeCurrentPrice, swap } from './utils/swapFunctions';
 import { PoolsStoreData } from './stores/poolsStore';
 import { addQ96, bytesToQ96, divQ96, invQ96, roundDownQ96, mulQ96 } from './utils/q96';
@@ -79,8 +77,7 @@ export class DexEndpoint extends BaseEndpoint {
 			methodContext.params,
 		);
 		const result: Buffer[] = [];
-		const poolId = methodContext.params.poolId;
-		const positionIdsList = methodContext.params.positionIdsList;
+		const { poolId, positionIdsList } = methodContext.params;
 		positionIdsList.forEach(positionId => {
 			if (getPoolIDFromPositionID(positionId).equals(poolId)) {
 				result.push(positionId);
@@ -317,9 +314,8 @@ export class DexEndpoint extends BaseEndpoint {
 		}>(dryRunSwapExactInRequestSchema, moduleEndpointContext.params);
 
 		const tokenIdIn = Buffer.from(moduleEndpointContext.params.tokenIdIn, 'hex');
-		const amountIn = moduleEndpointContext.params.amountIn;
+		const { amountIn, minAmountOut } = moduleEndpointContext.params;
 		const tokenIdOut = Buffer.from(moduleEndpointContext.params.tokenIdOut, 'hex');
-		const minAmountOut = moduleEndpointContext.params.minAmountOut;
 		const swapRoute = moduleEndpointContext.params.swapRoute.map(route =>
 			Buffer.from(route, 'hex'),
 		);

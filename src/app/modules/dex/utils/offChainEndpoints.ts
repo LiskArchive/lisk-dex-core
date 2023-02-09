@@ -17,6 +17,7 @@
  */
 
 import { MethodContext } from 'lisk-sdk';
+import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { PoolsStore, PriceTicksStore } from '../stores';
 import { PoolID, PositionID, Q96, TickID, TokenID } from '../types';
 import {
@@ -27,7 +28,6 @@ import {
 	getToken0Id,
 	getToken1Id,
 } from './auxiliaryFunctions';
-import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { bytesToQ96, invQ96 } from './q96';
 import { DexGlobalStore, DexGlobalStoreData } from '../stores/dexGlobalStore';
 import { NUM_BYTES_POOL_ID } from '../constants';

@@ -394,9 +394,9 @@ describe('dex: offChainEndpointFunctions', () => {
 			const minAmountOut = BigInt(10);
 			moduleEndpointContext.params = {
 				tokenIdIn: token0Id,
-				amountIn: amountIn,
+				amountIn,
 				tokenIdOut: token1Id,
-				minAmountOut: minAmountOut,
+				minAmountOut,
 				swapRoute: [poolId],
 			};
 			const result = await endpoint.dryRunSwapExactIn(methodContext, moduleEndpointContext);

@@ -13,6 +13,7 @@
  */
 
 import { MethodContext, ModuleEndpointContext, TokenMethod } from 'lisk-sdk';
+import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { SwapFailedEvent } from '../events/swapFailed';
 import {
 	Address,
@@ -23,7 +24,6 @@ import {
 	TickID,
 	TokenID,
 } from '../types';
-import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { getToken0Id, getToken1Id, transferFromPool } from './auxiliaryFunctions';
 import {
 	computeNextPrice,
@@ -213,6 +213,7 @@ export const transferFeesFromPool = (
 		);
 	}
 	if (validatorFee > 0) {
+		// eslint-disable-next-line
 		transferFromPool(
 			tokenMethod,
 			methodContext,
@@ -221,6 +222,7 @@ export const transferFeesFromPool = (
 			id,
 			validatorFee,
 		);
+		// eslint-disable-next-line
 		tokenMethod.lock(
 			methodContext,
 			ADDRESS_VALIDATOR_INCENTIVES,
@@ -247,7 +249,7 @@ export const computeRegularRoute = async (
 	tokenIn: TokenID,
 	tokenOut: TokenID,
 ): Promise<TokenID[]> => {
-	let lskAdjacent = await getAdjacent(methodContext, stores, TOKEN_ID_LSK);
+	const lskAdjacent = await getAdjacent(methodContext, stores, TOKEN_ID_LSK);
 	let tokenInFlag = false;
 	let tokenOutFlag = false;
 
@@ -327,8 +329,9 @@ export const updatePoolIncentives = async (
 	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
 	let incentivizedPools: { poolId: Buffer; multiplier: number } | undefined;
 
-	dexGlobalStoreData.incentivizedPools.forEach(incentivizedPool => {
-		if (incentivizedPool.poolId.equals(poolID)) {
+	// eslint-disable-next-line
+	dexGlobalStoreData.incentivizedPools.forEach((incentivizedPool: { poolId: Buffer; multiplier: number; } | undefined) => {
+		if (incentivizedPool?.poolId.equals(poolID)) {
 			incentivizedPools = incentivizedPool;
 		}
 	});
@@ -367,8 +370,9 @@ export const computeNewIncentivesPerLiquidity = async (
 	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
 	let incentivizedPools: { poolId: Buffer; multiplier: number } | undefined;
 
-	dexGlobalStoreData.incentivizedPools.forEach(incentivizedPool => {
-		if (incentivizedPool.poolId.equals(poolID)) {
+	// eslint-disable-next-line
+	dexGlobalStoreData.incentivizedPools.forEach((incentivizedPool: { poolId: Buffer; multiplier: number; } | undefined) => {
+		if (incentivizedPool?.poolId.equals(poolID)) {
 			incentivizedPools = incentivizedPool;
 		}
 	});
@@ -477,7 +481,7 @@ export const swap = async (
 		}
 
 		const currentTick = priceToTick(poolSqrtPriceQ96);
-		if (zeroToOne && poolSqrtPriceQ96 === tickToPrice(currentTick) && currentTick != 0) {
+		if (zeroToOne && poolSqrtPriceQ96 === tickToPrice(currentTick) && currentTick !== 0) {
 			await crossTick(moduleEndpointContext, methodContext, stores, q96ToBytes(BigInt(currentTick)), false, currentHeight);
 			numCrossedTicks += 1;
 		}
