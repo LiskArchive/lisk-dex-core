@@ -132,13 +132,7 @@ export class DexModule extends BaseModule {
 
 	public metadata(): ModuleMetadata {
 		return {
-			stores: [
-				{ key: DexGlobalStore.name, data: dexGlobalStoreSchema },
-				{ key: PoolsStore.name, data: poolsStoreSchema },
-				{ key: PositionsStore.name, data: positionsStoreSchema },
-				{ key: PriceTicksStore.name, data: priceTicksStoreSchema },
-				{ key: SettingsStore.name, data: settingsStoreSchema },
-			],
+			name: this.name,
 			endpoints: [
 				{
 					name: this.endpoint.getAllPoolIDs.name,
