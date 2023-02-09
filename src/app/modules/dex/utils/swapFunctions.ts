@@ -67,7 +67,6 @@ export const swapWithin = (
 	exactInput: boolean,
 ): [bigint, bigint, bigint] => {
 	const zeroToOne: boolean = sqrtCurrentPrice >= sqrtTargetPrice;
-
 	let amountIn = BigInt(0);
 	let amountOut = BigInt(0);
 	let sqrtUpdatedPrice: bigint;
@@ -78,14 +77,11 @@ export const swapWithin = (
 		} else {
 			amountIn = getAmount1Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, true);
 		}
+	} else if (zeroToOne) {
+		amountOut = getAmount1Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, false);
 	} else {
-		if (zeroToOne) {
-			amountOut = getAmount1Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, false);
-		} else {
-			amountOut = getAmount0Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, false);
-		}
+		amountOut = getAmount0Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, false);
 	}
-
 	if (
 		(exactInput && amountRemaining >= amountIn) ||
 		(!exactInput && amountRemaining >= amountOut)
@@ -100,7 +96,6 @@ export const swapWithin = (
 			exactInput,
 		);
 	}
-
 	if (zeroToOne) {
 		amountIn = getAmount0Delta(sqrtCurrentPrice, sqrtUpdatedPrice, liquidity, true);
 		amountOut = getAmount1Delta(sqrtCurrentPrice, sqrtUpdatedPrice, liquidity, false);
