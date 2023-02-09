@@ -373,7 +373,7 @@ describe('dex: offChainEndpointFunctions', () => {
 
 		it('getCollectableFeesAndIncentives', async () => {
 			moduleEndpointContext.params = {
-				positionId
+				positionId,
 			};
 			const [
 				collectableFee0,
