@@ -48,12 +48,12 @@ import {
 	transferPoolToPool,
 	transferToProtocolFeeAccount,
 	updatePosition,
+	poolExists,
+	addPoolCreationSettings,
 	getCredibleDirectPrice,
 	computeExceptionalRoute,
 	computeRegularRoute,
 	getAdjacent,
-	poolExists,
-	addPoolCreationSettings
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
@@ -555,6 +555,15 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 
+		it('poolExists', async () => {
+			const poolExistResult = await poolExists(
+				methodContext,
+				poolsStore,
+				poolId
+			);
+			const exists = await poolsStore.has(methodContext, poolId);
+			expect(poolExistResult).toEqual(exists);
+		})
 		it('getAdjacent', async () => {
 			const res = await getAdjacent(
 				methodContext,
@@ -631,6 +640,7 @@ describe('dex:auxiliaryFunctions', () => {
 
 	it('addPoolCreationSettings', async () => {
 		const tickSpacing = 10;
+		const feeTier = 10;
 		await addPoolCreationSettings(
 			methodContext,
 			dexModule.stores,
