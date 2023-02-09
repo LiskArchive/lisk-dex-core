@@ -1,21 +1,3 @@
-/* eslint-disable import/no-cycle */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/*
- * Copyright © 2022 Lisk Foundation
- *
- * See the LICENSE file at the top-level directory of this distribution
- * for licensing information.
- *
- * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
- * no part of this software, including this file, may be copied, modified,
- * propagated, or distributed except according to the terms contained in the
- * LICENSE file.
- *
- * Removal or modification of this copyright notice is prohibited.
- */
-
 import { createMethodContext, EventQueue } from "lisk-framework/dist-node/state_machine";
 import { MethodContext } from "lisk-framework/dist-node/state_machine/method_context";
 import { DexModule } from "../../../../src/app/modules";
@@ -69,6 +51,7 @@ describe('dex:swapFunctions', () => {
 		stateStore,
 		eventQueue: new EventQueue(0),
 	});
+
 	const moduleEndpointContext = createTransientModuleEndpointContext({
 		stateStore,
 		params: { address: INVALID_ADDRESS },
@@ -203,7 +186,7 @@ describe('dex:swapFunctions', () => {
 			);
 			q96ToBytes(BigInt(currentTick))
 			const res = await swap(moduleEndpointContext, methodContext, dexModule.stores, poolId, true, sqrtLimitPrice, BigInt(5), true, 10, token0Id, token1Id);
-			expect(res).toStrictEqual([BigInt(5), BigInt(5), BigInt(1), BigInt(1)]);
+			expect(res).toStrictEqual([BigInt(5), BigInt(5), BigInt(1), BigInt(1)])
 		});
 	})
 })

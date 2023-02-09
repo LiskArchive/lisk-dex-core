@@ -215,9 +215,7 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 
 		if (currentKeyIndex > 0) {
 			const prevKey = Buffer.from(keysArray[currentKeyIndex - 1], 'hex');
-			console.log("priceTickStore 111111111");
 			const resKey = await this.getKey(context, [prevKey]);
-			console.log("priceTickStore 22222222222");
 			return resKey
 		} else {
 			const resKey = await this.getKey(context, keys);

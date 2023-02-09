@@ -415,7 +415,6 @@ export const swap = async (
 	let totalFeesIn = BigInt(0);
 	let totalFeesOut = BigInt(0);
 	let nextTick;
-	let nextTickId;
 	let sqrtTargetPrice;
 	let amountIn: bigint;
 	let amountOut: bigint;
@@ -434,26 +433,19 @@ export const swap = async (
 			throw new Error('Crossed too many ticks');
 		}
 
-		console.log("111111111111");
 		const currentTick = priceToTick(poolSqrtPriceQ96);
 		if (zeroToOne && poolSqrtPriceQ96 === tickToPrice(currentTick) && currentTick != 0) {
-			console.log("22222222222");
 			await crossTick(moduleEndpointContext, methodContext, stores, q96ToBytes(BigInt(currentTick)), false, currentHeight);
-			console.log("3333333333333");
 			numCrossedTicks += 1;
 		}
 
+		let nextTickId;
 		if (zeroToOne) {
-			console.log("4444444444444");
 			nextTick = await stores.get(PriceTicksStore).getPrevTick(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
-			console.log("4444444444444-111111111111");
-			nextTickId = await stores.get(PriceTicksStore).getPrevTickId(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
-			console.log("55555555555555");
+			nextTickId = await stores.get(PriceTicksStore).getPrevTickId(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))])
 		} else {
-			console.log("666666666666");
 			nextTick = await stores.get(PriceTicksStore).getNextTick(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
-			nextTickId = await stores.get(PriceTicksStore).getNextTickId(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
-			console.log("7777777777777777");
+			nextTickId = await stores.get(PriceTicksStore).getNextTickId(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))])
 		}
 
 		const sqrtNextTickPriceQ96 = tickToPrice(nextTick);
@@ -463,6 +455,7 @@ export const swap = async (
 		) {
 			sqrtTargetPrice = sqrtLimitPrice;
 		} else {
+
 			sqrtTargetPrice = sqrtNextTickPriceQ96;
 		}
 
@@ -483,13 +476,14 @@ export const swap = async (
 
 		[poolSqrtPriceQ96, amountIn, amountOut] = result;
 		const feeCoeff = divQ96(BigInt(feeTier / 2), BigInt(FEE_TIER_PARTITION - (feeTier / 2)));
-		const feeIn = roundUpQ96(mulQ96(amountIn, feeCoeff));
-		const feeOut = roundUpQ96(mulQ96(amountOut, feeCoeff));
+		const feeIn = roundUpQ96(mulQ96(numberToQ96(amountIn), feeCoeff));
+		const feeOut = roundUpQ96(mulQ96(numberToQ96(amountOut), feeCoeff));
 
 		if (exactInput) {
 			amountRemaining -= (amountIn + feeIn);
-		} else {
+		} else if (!exactInput) {
 			amountRemaining -= (amountOut + feeOut);
+
 		}
 		amountTotalOut += amountOut + feeOut;
 		amountTotalIn += amountIn + feeIn;
@@ -520,9 +514,10 @@ export const swap = async (
 		poolStoreData.feeGrowthGlobal1 = q96ToBytes(addQ96(feeGrowthGlobal1Q96, globalFees1Q96));
 
 		if (poolSqrtPriceQ96 === sqrtNextTickPriceQ96 && !zeroToOne) {
-			await crossTick(moduleEndpointContext, methodContext, stores, q96ToBytes(nextTickId), true, currentHeight);
+			await crossTick(moduleEndpointContext, methodContext, stores, nextTickId, true, currentHeight);
 			numCrossedTicks += 1;
 		}
+
 	}
 
 	poolStoreData.sqrtPrice = q96ToBytes(poolSqrtPriceQ96);
