@@ -162,7 +162,7 @@ describe('dex:swapFunctions', () => {
 			).toBeUndefined();
 		});
 
-		it('transferFeesFromPool', async () => {
+		it('getProtocolSettings', async () => {
 			const protocolSetting = await getProtocolSettings(moduleEndpointContext, dexModule.stores);
 			expect(protocolSetting).toStrictEqual(dexGlobalStoreData);
 		});
