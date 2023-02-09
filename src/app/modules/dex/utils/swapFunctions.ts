@@ -1,7 +1,3 @@
-/* eslint-disable import/no-cycle */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -16,7 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
+import { DexEndpoint } from '../endpoint';
+import { SwapFailedEvent } from '../events/swapFailed';
+import { DexModule } from '../module';
+import { Address, AdjacentEdgesInterface, PoolID, PoolsGraph, TokenID } from '../types';
+import { getToken0Id, getToken1Id } from './auxiliaryFunctions';
 import { computeNextPrice, getAmount0Delta, getAmount1Delta } from './math';
+import { bytesToQ96, invQ96, mulQ96 } from './q96';
 
 export const swapWithin = (
 	sqrtCurrentPrice: bigint,
@@ -63,4 +66,93 @@ export const swapWithin = (
 		amountOut = getAmount0Delta(sqrtCurrentPrice, sqrtUpdatedPrice, liquidity, false);
 	}
 	return [sqrtUpdatedPrice, amountIn, amountOut];
+};
+
+export const raiseSwapException = (
+	events: NamedRegistry,
+	methodContext,
+	reason: number,
+	tokenIdIn: TokenID,
+	tokenIdOut: TokenID,
+	senderAddress: Address,
+) => {
+	events.get(SwapFailedEvent).add(
+		methodContext,
+		{
+			senderAddress,
+			tokenIdIn,
+			tokenIdOut,
+			reason,
+		},
+		[senderAddress],
+		true,
+	);
+};
+
+export const getAdjacent = async (
+	methodContext,
+	stores: NamedRegistry,
+	vertex: TokenID,
+): Promise<AdjacentEdgesInterface[]> => {
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	const result: AdjacentEdgesInterface[] = [];
+	const poolIDs = await endpoint.getAllPoolIDs(methodContext);
+	poolIDs.forEach(edge => {
+		if (getToken0Id(edge).equals(vertex)) {
+			result.push({ edge, vertex: getToken1Id(edge) });
+		} else if (getToken1Id(edge).equals(vertex)) {
+			result.push({ edge, vertex: getToken0Id(edge) });
+		}
+	});
+	return result;
+};
+
+export const computeCurrentPrice = async (
+	methodContext,
+	stores: NamedRegistry,
+	tokenIn: TokenID,
+	tokenOut: TokenID,
+	swapRoute: PoolID[],
+): Promise<bigint> => {
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	let price = BigInt(1);
+	let tokenInPool = tokenIn;
+	for (const poolId of swapRoute) {
+		const pool = await endpoint.getPool(methodContext, poolId);
+		await endpoint.getPool(methodContext, poolId).catch(() => {
+			throw new Error('Not a valid pool');
+		});
+		if (tokenInPool.equals(getToken0Id(poolId))) {
+			price = mulQ96(price, bytesToQ96(pool.sqrtPrice));
+			tokenInPool = getToken1Id(poolId);
+		} else if (tokenInPool.equals(getToken1Id(poolId))) {
+			price = mulQ96(price, invQ96(bytesToQ96(pool.sqrtPrice)));
+			tokenInPool = getToken0Id(poolId);
+		} else {
+			throw new Error('Incorrect swap path for price computation');
+		}
+	}
+	if (!tokenInPool.equals(tokenOut)) {
+		throw new Error('Incorrect swap path for price computation');
+	}
+	return mulQ96(price, price);
+};
+
+export const constructPoolsGraph = async (
+	methodContext,
+	stores: NamedRegistry,
+): Promise<PoolsGraph> => {
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	const vertices = new Set<TokenID>();
+	const poolIDs = await endpoint.getAllPoolIDs(methodContext);
+	const edges = new Set<PoolID>();
+	poolIDs.forEach(poolId => {
+		vertices.add(getToken0Id(poolId));
+		vertices.add(getToken1Id(poolId));
+		edges.add(poolId);
+	});
+	return { vertices, edges };
 };
