@@ -1044,7 +1044,6 @@ export const getCollectableFeesAndIncentivesRequestSchema = {
 	properties: {
 		positionId: {
 			dataType: 'bytes',
-			length: NUM_BYTES_POSITION_ID,
 			fieldNumber: 1,
 		},
 	}
