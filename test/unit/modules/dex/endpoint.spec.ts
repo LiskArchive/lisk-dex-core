@@ -44,9 +44,7 @@ import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGl
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
-import {
-	getPoolIDFromPositionID,
-} from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
+import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import { DexEndpoint } from '../../../../src/app/modules/dex/endpoint';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
@@ -262,7 +260,6 @@ describe('dex: offChainEndpointFunctions', () => {
 			expect(positionIDs.indexOf(positionId)).not.toBe(-1);
 		});
 
-
 		it('getPool', async () => {
 			await endpoint
 				.getPool(moduleEndpointContext, getPoolIDFromPositionID(positionId))
@@ -376,12 +373,13 @@ describe('dex: offChainEndpointFunctions', () => {
 
 		it('getCollectableFeesAndIncentives', async () => {
 			moduleEndpointContext.params = {
-				positionId: positionId
+				positionId: positionId,
 			};
-			const [collectableFee0, collectableFee1, collectableIncentives] = await endpoint.getCollectableFeesAndIncentives(
-				moduleEndpointContext,
-				tokenMethod
-			);
+			const [
+				collectableFee0,
+				collectableFee1,
+				collectableIncentives,
+			] = await endpoint.getCollectableFeesAndIncentives(moduleEndpointContext, tokenMethod);
 
 			expect(collectableFee0).toEqual(BigInt(0));
 			expect(collectableFee1).toEqual(BigInt(0));

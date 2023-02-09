@@ -465,7 +465,6 @@ export const addLiquiditySchema = {
 	},
 };
 
-
 export const getAllPoolIdsResponseSchema = {
 	$id: 'dex/getAllPoolIds',
 	type: 'object',
@@ -495,15 +494,15 @@ export const getAllTokenIdsRequestSchema = {
 							minLength: NUM_BYTES_POOL_ID,
 							maxLength: NUM_BYTES_POOL_ID,
 							fieldNumber: 1,
-						}
+						},
 					},
 				},
 			},
 		},
-	}
-}
+	},
+};
 
-//no requestParams for getAllTokenIds so no requestSchema 
+//no requestParams for getAllTokenIds so no requestSchema
 
 export const getAllTokenIdsResponseSchema = {
 	$id: 'dex/getAllTokenIds',
@@ -1046,7 +1045,7 @@ export const getCollectableFeesAndIncentivesRequestSchema = {
 			dataType: 'bytes',
 			fieldNumber: 1,
 		},
-	}
+	},
 };
 
 export const getCollectableFeesAndIncentivesResponseSchema = {
@@ -1063,7 +1062,7 @@ export const getCollectableFeesAndIncentivesResponseSchema = {
 				properties: {
 					collectableFees0: {
 						dataType: 'uint64',
-						fieldNumber: 1
+						fieldNumber: 1,
 					},
 					collectableFees1: {
 						dataType: 'uint64',
@@ -1071,10 +1070,10 @@ export const getCollectableFeesAndIncentivesResponseSchema = {
 					},
 					collectableIncentives: {
 						dataType: 'uint64',
-						fieldNumber: 3
-					}
-				}
-			}
-		}
-	}
+						fieldNumber: 3,
+					},
+				},
+			},
+		},
+	},
 };

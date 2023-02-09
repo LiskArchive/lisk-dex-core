@@ -36,7 +36,7 @@ import {
 	getToken1Id,
 	poolIdToAddress,
 	computeCollectableFees,
-	computeCollectableIncentives
+	computeCollectableIncentives,
 } from './utils/auxiliaryFunctions';
 import { PoolsStoreData } from './stores/poolsStore';
 
@@ -306,25 +306,25 @@ export class DexEndpoint extends BaseEndpoint {
 
 	public async getCollectableFeesAndIncentives(
 		methodContext: ModuleEndpointContext,
-		tokenMethod: TokenMethod
+		tokenMethod: TokenMethod,
 	) {
-		validator.validate<{ positionId: string }>(getCollectableFeesAndIncentivesRequestSchema, methodContext.params);
+		validator.validate<{ positionId: string }>(
+			getCollectableFeesAndIncentivesRequestSchema,
+			methodContext.params,
+		);
 
-		const positionId = Buffer.from(methodContext.params.positionId, "hex");
+		const positionId = Buffer.from(methodContext.params.positionId, 'hex');
 		const positionsStore = this.stores.get(PositionsStore);
 		const hasPositionData = await positionsStore.has(methodContext, positionId);
 
 		if (!hasPositionData) {
-			throw new Error("The position is not registered!");
+			throw new Error('The position is not registered!');
 		}
 
-		const [
-			collectableFees0,
-			collectableFees1,
-		] = await computeCollectableFees(
+		const [collectableFees0, collectableFees1] = await computeCollectableFees(
 			this.stores,
 			methodContext,
-			positionId
+			positionId,
 		);
 
 		const dexGlobalStore = this.stores.get(DexGlobalStore);
@@ -334,7 +334,7 @@ export class DexEndpoint extends BaseEndpoint {
 			methodContext,
 			positionId,
 			collectableFees0,
-			collectableFees1
+			collectableFees1,
 		);
 		return [collectableFees0, collectableFees1, collectableIncentives];
 	}

@@ -75,7 +75,7 @@ import {
 	getAllTickIDsInPoolRequestSchema,
 	getAllTickIDsInPoolRsponseSchema,
 	getCollectableFeesAndIncentivesRequestSchema,
-	getCollectableFeesAndIncentivesResponseSchema
+	getCollectableFeesAndIncentivesResponseSchema,
 } from './schemas';
 
 import { SwappedEvent } from './events/swapped';
