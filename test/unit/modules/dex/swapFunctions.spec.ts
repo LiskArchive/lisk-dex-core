@@ -88,7 +88,7 @@ describe('dex:swapFunctions', () => {
 	});
 
 	const poolsStoreData: PoolsStoreData = {
-		liquidity: BigInt(5000000),
+		liquidity: BigInt(5),
 		sqrtPrice: q96ToBytes(BigInt(tickToPrice(100))),
 		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(10))),
 		heightIncentivesUpdate: 5,

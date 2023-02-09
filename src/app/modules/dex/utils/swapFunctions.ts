@@ -532,6 +532,11 @@ export const swap = async (
 		);
 
 		const amountRemainingTemp = amountRemaining - firstFee;
+		console.log("poolSqrtPriceQ96: ", poolSqrtPriceQ96);
+		console.log("sqrtTargetPrice: ", sqrtTargetPrice);
+		console.log("poolStoreData.liquidity: ", poolStoreData.liquidity);
+		console.log("amountRemainingTemp: ", amountRemainingTemp);
+		console.log("exactInput: ", exactInput);
 		const result = swapWithin(
 			poolSqrtPriceQ96,
 			sqrtTargetPrice,
