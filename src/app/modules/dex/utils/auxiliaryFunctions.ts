@@ -59,7 +59,7 @@ import {
 	Q96,
 	routeInterface,
 	AdjacentEdgesInterface,
-	TickID
+	TickID,
 } from '../types';
 
 import {
@@ -69,7 +69,7 @@ import {
 	numberToQ96,
 	roundDownQ96,
 	q96ToBytes,
-	bytesToQ96
+	bytesToQ96,
 } from './q96';
 
 import { getAmount0Delta, getAmount1Delta, priceToTick, tickToPrice } from './math';
@@ -906,7 +906,7 @@ export const getCredibleDirectPrice = async (
 		);
 		token1ValuesLocked.push(
 			roundDownQ96(token0ValueQ96) +
-			(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
+				(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
 		);
 	}
 
@@ -939,9 +939,6 @@ export const getAllPoolIDs = async (
 	return poolIds;
 };
 
-
-
-
 export const getAllTicks = async (
 	methodContext: MethodContext,
 	stores: NamedRegistry,
@@ -955,8 +952,6 @@ export const getAllTicks = async (
 	return tickIds;
 };
 
-
-
 export const getPool = async (
 	methodContext,
 	stores: NamedRegistry,
@@ -966,9 +961,6 @@ export const getPool = async (
 	const poolStoreData = await poolsStore.getKey(methodContext, [poolID]);
 	return poolStoreData;
 };
-
-
-
 
 export const getToken0Amount = async (
 	tokenMethod: TokenMethod,

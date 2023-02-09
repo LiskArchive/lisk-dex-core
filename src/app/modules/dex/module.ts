@@ -75,7 +75,7 @@ import {
 	getAllTickIDsInPoolRequestSchema,
 	getAllTickIDsInPoolRsponseSchema,
 	dryRunSwapExactInRequestSchema,
-	dryRunSwapExactInResponseSchema
+	dryRunSwapExactInResponseSchema,
 } from './schemas';
 
 import { SwappedEvent } from './events/swapped';
@@ -222,7 +222,7 @@ export class DexModule extends BaseModule {
 				{
 					name: this.endpoint.dryRunSwapExactIn.name,
 					request: dryRunSwapExactInRequestSchema,
-					response: dryRunSwapExactInResponseSchema
+					response: dryRunSwapExactInResponseSchema,
 				},
 			],
 			commands: this.commands.map(command => ({

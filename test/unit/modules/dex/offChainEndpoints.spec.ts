@@ -199,7 +199,6 @@ describe('dex:offChainEndpointFunctions', () => {
 			tokenMethod.unlock = unlockMock;
 			tokenMethod.getAvailableBalance = getAvailableBalanceMock.mockReturnValue(BigInt(250));
 			tokenMethod.getLockedAmount = lockedAmountMock.mockReturnValue(BigInt(5));
-
 		});
 
 		it('getAllTokenIDs', async () => {
@@ -207,7 +206,6 @@ describe('dex:offChainEndpointFunctions', () => {
 				expect(res.size).toBeGreaterThan(0);
 			});
 		});
-
 
 		it('getAllPositionIDsInPool', () => {
 			const positionIDs = getAllPositionIDsInPool(getPoolIDFromPositionID(positionId), [

@@ -17,7 +17,13 @@ import { BaseEndpoint, ModuleEndpointContext, TokenMethod, MethodContext } from 
 import { validator } from '@liskhq/lisk-validator';
 
 import { MODULE_ID_DEX, NUM_BYTES_POOL_ID, TOKEN_ID_LSK } from './constants';
-import { NUM_BYTES_ADDRESS, NUM_BYTES_POSITION_ID, MAX_HOPS_SWAP, MAX_SQRT_RATIO, MIN_SQRT_RATIO } from './constants';
+import {
+	NUM_BYTES_ADDRESS,
+	NUM_BYTES_POSITION_ID,
+	MAX_HOPS_SWAP,
+	MAX_SQRT_RATIO,
+	MIN_SQRT_RATIO,
+} from './constants';
 import { PoolsStore } from './stores';
 import { PoolID, PositionID, Q96, TickID, TokenID } from './types';
 import {
@@ -87,7 +93,7 @@ export class DexEndpoint extends BaseEndpoint {
 		const poolsStore = this.stores.get(PoolsStore);
 		const key = await poolsStore.getKey(methodContext, [poolID]);
 		return key;
-	};
+	}
 
 	public async getCurrentSqrtPrice(
 		methodContext: ModuleEndpointContext,
@@ -103,14 +109,12 @@ export class DexEndpoint extends BaseEndpoint {
 			return q96SqrtPrice;
 		}
 		return invQ96(q96SqrtPrice);
-	};
+	}
 
-	public async getDexGlobalData(
-		methodContext: ModuleEndpointContext,
-	): Promise<DexGlobalStoreData> {
+	public async getDexGlobalData(methodContext: ModuleEndpointContext): Promise<DexGlobalStoreData> {
 		const dexGlobalStore = this.stores.get(DexGlobalStore);
 		return dexGlobalStore.get(methodContext, Buffer.from([]));
-	};
+	}
 
 	public async getPosition(
 		methodContext: ModuleEndpointContext,
@@ -123,7 +127,7 @@ export class DexEndpoint extends BaseEndpoint {
 		const positionsStore = this.stores.get(PositionsStore);
 		const positionStoreData = await positionsStore.get(methodContext, positionID);
 		return positionStoreData;
-	};
+	}
 
 	public async getTickWithTickId(
 		methodContext: ModuleEndpointContext,
@@ -298,21 +302,23 @@ export class DexEndpoint extends BaseEndpoint {
 
 	public async dryRunSwapExactIn(
 		methodContext: MethodContext,
-		moduleEndpointContext: ModuleEndpointContext
+		moduleEndpointContext: ModuleEndpointContext,
 	): Promise<[bigint, bigint, bigint, bigint]> {
 		validator.validate<{
-			tokenIdIn: string,
-			amountIn: bigint,
-			tokenIdOut: string,
-			minAmountOut: BigInt,
-			swapRoute: string[]
+			tokenIdIn: string;
+			amountIn: bigint;
+			tokenIdOut: string;
+			minAmountOut: BigInt;
+			swapRoute: string[];
 		}>(dryRunSwapExactInRequestSchema, moduleEndpointContext.params);
 
-		const tokenIdIn = Buffer.from(moduleEndpointContext.params.tokenIdIn, "hex");
+		const tokenIdIn = Buffer.from(moduleEndpointContext.params.tokenIdIn, 'hex');
 		const amountIn = moduleEndpointContext.params.amountIn;
-		const tokenIdOut = Buffer.from(moduleEndpointContext.params.tokenIdOut, "hex");
+		const tokenIdOut = Buffer.from(moduleEndpointContext.params.tokenIdOut, 'hex');
 		const minAmountOut = moduleEndpointContext.params.minAmountOut;
-		const swapRoute = moduleEndpointContext.params.swapRoute.map((route) => Buffer.from(route, "hex"));
+		const swapRoute = moduleEndpointContext.params.swapRoute.map(route =>
+			Buffer.from(route, 'hex'),
+		);
 
 		let zeroToOne = false;
 		let IdOut: TokenID = tokenIdIn;
@@ -384,5 +390,5 @@ export class DexEndpoint extends BaseEndpoint {
 			swapRoute,
 		);
 		return [newAmountIn, tokens[tokens.length - 1].amount, priceBefore, priceAfter];
-	};
+	}
 }

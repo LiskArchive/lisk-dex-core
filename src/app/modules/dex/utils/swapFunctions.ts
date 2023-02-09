@@ -12,17 +12,52 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MethodContext, ModuleEndpointContext, TokenMethod } from "lisk-sdk";
-import { SwapFailedEvent } from "../events/swapFailed";
-import { Address, AdjacentEdgesInterface, PoolID, PoolsGraph, routeInterface, TickID, TokenID } from "../types";
+import { MethodContext, ModuleEndpointContext, TokenMethod } from 'lisk-sdk';
+import { SwapFailedEvent } from '../events/swapFailed';
+import {
+	Address,
+	AdjacentEdgesInterface,
+	PoolID,
+	PoolsGraph,
+	routeInterface,
+	TickID,
+	TokenID,
+} from '../types';
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
-import { getToken0Id, getToken1Id, transferFromPool } from "./auxiliaryFunctions";
-import { computeNextPrice, getAmount0Delta, getAmount1Delta, priceToTick, tickToPrice } from "./math";
-import { DexModule } from "../module";
-import { DexEndpoint } from "../endpoint";
-import { addQ96, bytesToQ96, divQ96, invQ96, mulDivQ96, mulDivRoundUpQ96, mulQ96, numberToQ96, q96ToBytes, roundDownQ96, roundUpQ96, subQ96 } from "./q96";
-import { ADDRESS_VALIDATOR_INCENTIVES, FEE_TIER_PARTITION, MAX_NUMBER_CROSSED_TICKS, MODULE_NAME_DEX, NUM_BYTES_POOL_ID, TOKEN_ID_LSK, VALIDATORS_LSK_INCENTIVE_PART } from "../constants";
-import { DexGlobalStore, PriceTicksStore } from "../stores";
+import { getToken0Id, getToken1Id, transferFromPool } from './auxiliaryFunctions';
+import {
+	computeNextPrice,
+	getAmount0Delta,
+	getAmount1Delta,
+	priceToTick,
+	tickToPrice,
+} from './math';
+import { DexModule } from '../module';
+import { DexEndpoint } from '../endpoint';
+import {
+	addQ96,
+	bytesToQ96,
+	divQ96,
+	invQ96,
+	mulDivQ96,
+	mulDivRoundUpQ96,
+	mulQ96,
+	numberToQ96,
+	q96ToBytes,
+	roundDownQ96,
+	roundUpQ96,
+	subQ96,
+} from './q96';
+import {
+	ADDRESS_VALIDATOR_INCENTIVES,
+	FEE_TIER_PARTITION,
+	MAX_NUMBER_CROSSED_TICKS,
+	MODULE_NAME_DEX,
+	NUM_BYTES_POOL_ID,
+	TOKEN_ID_LSK,
+	VALIDATORS_LSK_INCENTIVE_PART,
+} from '../constants';
+import { DexGlobalStore, PriceTicksStore } from '../stores';
 
 export const swapWithin = (
 	sqrtCurrentPrice: bigint,
@@ -175,7 +210,11 @@ export const transferFeesFromPool = (
 	let validatorFee = BigInt(0);
 	if (id.equals(TOKEN_ID_LSK)) {
 		validatorFee = roundDownQ96(
-			mulDivQ96(numberToQ96(BigInt(amount)), numberToQ96(BigInt(VALIDATORS_LSK_INCENTIVE_PART)), numberToQ96(BigInt(FEE_TIER_PARTITION))),
+			mulDivQ96(
+				numberToQ96(BigInt(amount)),
+				numberToQ96(BigInt(VALIDATORS_LSK_INCENTIVE_PART)),
+				numberToQ96(BigInt(FEE_TIER_PARTITION)),
+			),
 		);
 	}
 	if (validatorFee > 0) {
@@ -186,12 +225,21 @@ export const transferFeesFromPool = (
 			ADDRESS_VALIDATOR_INCENTIVES,
 			id,
 			validatorFee,
-		)
-		tokenMethod.lock(methodContext, ADDRESS_VALIDATOR_INCENTIVES, MODULE_NAME_DEX, id, validatorFee);
+		);
+		tokenMethod.lock(
+			methodContext,
+			ADDRESS_VALIDATOR_INCENTIVES,
+			MODULE_NAME_DEX,
+			id,
+			validatorFee,
+		);
 	}
 };
 
-export const getProtocolSettings = async (methodContext: ModuleEndpointContext, stores: NamedRegistry) => {
+export const getProtocolSettings = async (
+	methodContext: ModuleEndpointContext,
+	stores: NamedRegistry,
+) => {
 	const dexModule = new DexModule();
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
 	const dexGlobalStoreData = await endpoint.getDexGlobalData(methodContext);
@@ -407,7 +455,9 @@ export const swap = async (
 	const dexModule = new DexModule();
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
 	const feeTier = endpoint.getFeeTier(poolID);
-	let poolSqrtPriceQ96 = bytesToQ96((await endpoint.getPool(moduleEndpointContext, poolID)).sqrtPrice);
+	let poolSqrtPriceQ96 = bytesToQ96(
+		(await endpoint.getPool(moduleEndpointContext, poolID)).sqrtPrice,
+	);
 	let numCrossedTicks = 0;
 	let amountRemaining = amountSpecified;
 	let amountTotalIn = BigInt(0);
@@ -429,24 +479,40 @@ export const swap = async (
 	}
 
 	while (amountRemaining !== BigInt(0) && poolSqrtPriceQ96 !== sqrtLimitPrice) {
-
 		if (numCrossedTicks >= MAX_NUMBER_CROSSED_TICKS) {
 			throw new Error('Crossed too many ticks');
 		}
 
 		const currentTick = priceToTick(poolSqrtPriceQ96);
-		const currentTickId = await stores.get(PriceTicksStore).getCurrentTickId(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
+		const currentTickId = await stores
+			.get(PriceTicksStore)
+			.getCurrentTickId(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
 		if (zeroToOne && poolSqrtPriceQ96 === tickToPrice(currentTick) && currentTick != 0) {
-			await crossTick(moduleEndpointContext, methodContext, stores, q96ToBytes(BigInt(currentTickId)), false, currentHeight);
+			await crossTick(
+				moduleEndpointContext,
+				methodContext,
+				stores,
+				q96ToBytes(BigInt(currentTickId)),
+				false,
+				currentHeight,
+			);
 			numCrossedTicks += 1;
 		}
 
 		if (zeroToOne) {
-			nextTick = await stores.get(PriceTicksStore).getPrevTick(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
-			nextTickId = await stores.get(PriceTicksStore).getPrevTickId(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
+			nextTick = await stores
+				.get(PriceTicksStore)
+				.getPrevTick(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
+			nextTickId = await stores
+				.get(PriceTicksStore)
+				.getPrevTickId(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
 		} else {
-			nextTick = await stores.get(PriceTicksStore).getNextTick(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
-			nextTickId = await stores.get(PriceTicksStore).getNextTickId(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
+			nextTick = await stores
+				.get(PriceTicksStore)
+				.getNextTick(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
+			nextTickId = await stores
+				.get(PriceTicksStore)
+				.getNextTickId(moduleEndpointContext, [q96ToBytes(BigInt(currentTick))]);
 		}
 
 		const sqrtNextTickPriceQ96 = tickToPrice(nextTick);
@@ -473,19 +539,22 @@ export const swap = async (
 			amountRemainingTemp,
 			exactInput,
 		);
-		console.log("result: ", result);
+		console.log('result: ', result);
 
 		[poolSqrtPriceQ96, amountIn, amountOut] = result;
-		const feeCoeff = divQ96(numberToQ96(BigInt(feeTier / 2)), numberToQ96(BigInt(FEE_TIER_PARTITION - (feeTier / 2))));
-		console.log("amountIn: ", amountIn);
-		console.log("feeCoeff: ", feeCoeff);
+		const feeCoeff = divQ96(
+			numberToQ96(BigInt(feeTier / 2)),
+			numberToQ96(BigInt(FEE_TIER_PARTITION - feeTier / 2)),
+		);
+		console.log('amountIn: ', amountIn);
+		console.log('feeCoeff: ', feeCoeff);
 		const feeIn = roundUpQ96(mulQ96(numberToQ96(amountIn), numberToQ96(feeCoeff)));
 		const feeOut = roundUpQ96(mulQ96(numberToQ96(amountOut), numberToQ96(feeCoeff)));
 
 		if (exactInput) {
-			amountRemaining -= (amountIn + feeIn);
+			amountRemaining -= amountIn + feeIn;
 		} else {
-			amountRemaining -= (amountOut + feeOut);
+			amountRemaining -= amountOut + feeOut;
 		}
 
 		amountTotalOut += amountOut + feeOut;
@@ -496,9 +565,12 @@ export const swap = async (
 		const validatorFeePartIn = tokenIn.equals(TOKEN_ID_LSK) ? VALIDATORS_LSK_INCENTIVE_PART : 0;
 		const validatorFeePartOut = tokenOut.equals(TOKEN_ID_LSK) ? VALIDATORS_LSK_INCENTIVE_PART : 0;
 
-		console.log("feeIn: ", feeIn);
-		console.log("BigInt(FEE_TIER_PARTITION - validatorFeePartIn): ", BigInt(FEE_TIER_PARTITION - validatorFeePartIn));
-		console.log("BigInt(FEE_TIER_PARTITION): ", BigInt(FEE_TIER_PARTITION));
+		console.log('feeIn: ', feeIn);
+		console.log(
+			'BigInt(FEE_TIER_PARTITION - validatorFeePartIn): ',
+			BigInt(FEE_TIER_PARTITION - validatorFeePartIn),
+		);
+		console.log('BigInt(FEE_TIER_PARTITION): ', BigInt(FEE_TIER_PARTITION));
 		const liquidityFeeInQ96 = mulDivQ96(
 			numberToQ96(feeIn),
 			numberToQ96(BigInt(FEE_TIER_PARTITION - validatorFeePartIn)),
@@ -510,26 +582,39 @@ export const swap = async (
 			numberToQ96(BigInt(FEE_TIER_PARTITION)),
 		);
 
-		console.log("liquidityFeeInQ96: ", liquidityFeeInQ96);
-		console.log("liquidityFeeOutQ96: ", liquidityFeeOutQ96);
+		console.log('liquidityFeeInQ96: ', liquidityFeeInQ96);
+		console.log('liquidityFeeOutQ96: ', liquidityFeeOutQ96);
 		const liquidityFee0Q96 = zeroToOne ? liquidityFeeInQ96 : liquidityFeeOutQ96;
 		const liquidityFee1Q96 = zeroToOne ? liquidityFeeOutQ96 : liquidityFeeInQ96;
-		console.log("liquidityFee0Q96: ", liquidityFee0Q96);
-		console.log("poolStoreData.liquidity: ", poolStoreData.liquidity);
-		const globalFees0Q96 = divQ96(numberToQ96(liquidityFee0Q96), numberToQ96(poolStoreData.liquidity));
-		const globalFees1Q96 = divQ96(numberToQ96(liquidityFee1Q96), numberToQ96(poolStoreData.liquidity));
+		console.log('liquidityFee0Q96: ', liquidityFee0Q96);
+		console.log('poolStoreData.liquidity: ', poolStoreData.liquidity);
+		const globalFees0Q96 = divQ96(
+			numberToQ96(liquidityFee0Q96),
+			numberToQ96(poolStoreData.liquidity),
+		);
+		const globalFees1Q96 = divQ96(
+			numberToQ96(liquidityFee1Q96),
+			numberToQ96(poolStoreData.liquidity),
+		);
 		const feeGrowthGlobal0Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal0);
-		console.log("11111111111111");
-		console.log("feeGrowthGlobal0Q96: ", feeGrowthGlobal0Q96);
-		console.log("globalFees0Q96: ", globalFees0Q96);
+		console.log('11111111111111');
+		console.log('feeGrowthGlobal0Q96: ', feeGrowthGlobal0Q96);
+		console.log('globalFees0Q96: ', globalFees0Q96);
 		poolStoreData.feeGrowthGlobal0 = q96ToBytes(addQ96(feeGrowthGlobal0Q96, globalFees0Q96));
-		console.log("222222222222");
+		console.log('222222222222');
 		const feeGrowthGlobal1Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal1);
 		poolStoreData.feeGrowthGlobal1 = q96ToBytes(addQ96(feeGrowthGlobal1Q96, globalFees1Q96));
-		console.log("333333333333333");
+		console.log('333333333333333');
 
 		if (poolSqrtPriceQ96 === sqrtNextTickPriceQ96 && !zeroToOne) {
-			await crossTick(moduleEndpointContext, methodContext, stores, q96ToBytes(nextTickId), true, currentHeight);
+			await crossTick(
+				moduleEndpointContext,
+				methodContext,
+				stores,
+				q96ToBytes(nextTickId),
+				true,
+				currentHeight,
+			);
 			numCrossedTicks += 1;
 		}
 	}

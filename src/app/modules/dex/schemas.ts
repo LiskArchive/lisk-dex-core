@@ -465,7 +465,6 @@ export const addLiquiditySchema = {
 	},
 };
 
-
 export const getAllPoolIdsResponseSchema = {
 	$id: 'dex/getAllPoolIds',
 	type: 'object',
@@ -495,15 +494,15 @@ export const getAllTokenIdsRequestSchema = {
 							minLength: NUM_BYTES_POOL_ID,
 							maxLength: NUM_BYTES_POOL_ID,
 							fieldNumber: 1,
-						}
+						},
 					},
 				},
 			},
 		},
-	}
-}
+	},
+};
 
-//no requestParams for getAllTokenIds so no requestSchema 
+//no requestParams for getAllTokenIds so no requestSchema
 
 export const getAllTokenIdsResponseSchema = {
 	$id: 'dex/getAllTokenIds',
@@ -1048,24 +1047,24 @@ export const dryRunSwapExactInRequestSchema = {
 		},
 		amountIn: {
 			dataType: 'uint64',
-			fieldNumber: 2
+			fieldNumber: 2,
 		},
 		tokenIdOut: {
 			dataType: 'bytes',
-			fieldNumber: 3
+			fieldNumber: 3,
 		},
 		minAmountOut: {
 			dataType: 'uint64',
-			fieldNumber: 4
+			fieldNumber: 4,
 		},
 		swapRoute: {
 			type: 'array',
 			fieldNumber: 5,
 			items: {
-				dataType: 'bytes'
-			}
-		}
-	}
+				dataType: 'bytes',
+			},
+		},
+	},
 };
 
 export const dryRunSwapExactInResponseSchema = {
@@ -1075,19 +1074,19 @@ export const dryRunSwapExactInResponseSchema = {
 	properties: {
 		newAmountIn: {
 			dataType: 'uint64',
-			fieldNumber: 1
+			fieldNumber: 1,
 		},
 		tokensAmount: {
 			dataType: 'uint64',
-			fieldNumber: 2
+			fieldNumber: 2,
 		},
 		priceBefore: {
 			dataType: 'bytes',
-			fieldNumber: 3
+			fieldNumber: 3,
 		},
 		priceAfter: {
 			dataType: 'bytes',
-			fieldNumber: 4
-		}
-	}
+			fieldNumber: 4,
+		},
+	},
 };

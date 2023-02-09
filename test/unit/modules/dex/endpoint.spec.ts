@@ -263,7 +263,6 @@ describe('dex: offChainEndpointFunctions', () => {
 			expect(positionIDs.indexOf(positionId)).not.toBe(-1);
 		});
 
-
 		it('getPool', async () => {
 			await endpoint
 				.getPool(moduleEndpointContext, getPoolIDFromPositionID(positionId))
@@ -298,9 +297,11 @@ describe('dex: offChainEndpointFunctions', () => {
 			const newPositionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
 			await positionsStore.set(methodContext, newPositionId, positionsStoreData);
 			await positionsStore.setKey(methodContext, [newPositionId], positionsStoreData);
-			await endpoint.getPosition(moduleEndpointContext, newPositionId, positionIdsList).then(res => {
-				expect(res).not.toBeNull();
-			});
+			await endpoint
+				.getPosition(moduleEndpointContext, newPositionId, positionIdsList)
+				.then(res => {
+					expect(res).not.toBeNull();
+				});
 		});
 
 		it('getTickWithTickId', async () => {
@@ -376,13 +377,13 @@ describe('dex: offChainEndpointFunctions', () => {
 		it('dryRunSwapExactIn', async () => {
 			const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
 			const currentTickID = q96ToBytes(BigInt(currentTick));
-			await poolsStore.setKey(methodContext, [currentTickID.slice(0, NUM_BYTES_POOL_ID)], poolsStoreData);
-
-			await priceTicksStore.setKey(
+			await poolsStore.setKey(
 				methodContext,
-				[currentTickID],
-				priceTicksStoreDataTickUpper,
+				[currentTickID.slice(0, NUM_BYTES_POOL_ID)],
+				poolsStoreData,
 			);
+
+			await priceTicksStore.setKey(methodContext, [currentTickID], priceTicksStoreDataTickUpper);
 
 			await priceTicksStore.setKey(
 				methodContext,
@@ -397,15 +398,12 @@ describe('dex: offChainEndpointFunctions', () => {
 				amountIn: amountIn,
 				tokenIdOut: token1Id,
 				minAmountOut: minAmountOut,
-				swapRoute: [poolId]
-			}
-			const result = await endpoint.dryRunSwapExactIn(
-				methodContext,
-				moduleEndpointContext
-			);
+				swapRoute: [poolId],
+			};
+			const result = await endpoint.dryRunSwapExactIn(methodContext, moduleEndpointContext);
 
 			expect(result[2]).toEqual(BigInt(0));
 			expect(result[3]).toEqual(BigInt(0));
-		})
+		});
 	});
 });
