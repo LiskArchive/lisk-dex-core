@@ -473,6 +473,18 @@ export const getAllPoolIdsResponseSchema = {
 		poolIDs: {
 			dataType: 'bytes',
 			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['poolID'],
+				properties: {
+					poolID: {
+						dataType: 'bytes',
+						minLength: NUM_BYTES_POOL_ID,
+						maxLength: NUM_BYTES_POOL_ID,
+						fieldNumber: 1,
+					},
+				},
+			},
 		},
 	},
 };

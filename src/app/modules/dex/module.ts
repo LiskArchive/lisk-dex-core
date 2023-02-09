@@ -1,3 +1,7 @@
+/* eslint-disable import/no-cycle */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -71,6 +75,8 @@ import {
 	getAllTicksResponseSchema,
 	getFeeTierRequestSchema,
 	getPositionIndexRequestSchema,
+	getAllTickIDsInPoolRequestSchema,
+	getAllTickIDsInPoolResponseSchema,
 } from './schemas';
 
 import { SwappedEvent } from './events/swapped';
@@ -188,7 +194,6 @@ export class DexModule extends BaseModule {
 					request: getTickWithPoolIdAndTickValueRequestSchema,
 					response: getTickWithPoolIdAndTickValueResponseSchema,
 				},
-
 				{
 					name: this.endpoint.getLSKPrice.name,
 					request: getLSKPriceRequestSchema,
@@ -208,6 +213,11 @@ export class DexModule extends BaseModule {
 					name: this.endpoint.getAllPositionIDsInPool.name,
 					request: getAllPositionIDsInPoolRequestSchema,
 					response: getAllPositionIDsInPoolResponseSchema,
+				},
+				{
+					name: this.endpoint.getAllTickIDsInPool.name,
+					request: getAllTickIDsInPoolRequestSchema,
+					response: getAllTickIDsInPoolResponseSchema,
 				},
 			],
 			commands: this.commands.map(command => ({

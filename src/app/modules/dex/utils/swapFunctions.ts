@@ -1,3 +1,8 @@
+/* eslint-disable import/no-cycle */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable  no-param-reassign */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -120,17 +125,18 @@ export const computeCurrentPrice = async (
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
 	let price = BigInt(1);
 	let tokenInPool = tokenIn;
-	for (const poolId of swapRoute) {
-		const pool = await endpoint.getPool(methodContext, poolId);
-		await endpoint.getPool(methodContext, poolId).catch(() => {
+	for (const poolID of swapRoute) {
+		methodContext.params.poolID = poolID;
+		const pool = await endpoint.getPool(methodContext);
+		await endpoint.getPool(methodContext).catch(() => {
 			throw new Error('Not a valid pool');
 		});
-		if (tokenInPool.equals(getToken0Id(poolId))) {
+		if (tokenInPool.equals(getToken0Id(poolID))) {
 			price = mulQ96(price, bytesToQ96(pool.sqrtPrice));
-			tokenInPool = getToken1Id(poolId);
-		} else if (tokenInPool.equals(getToken1Id(poolId))) {
+			tokenInPool = getToken1Id(poolID);
+		} else if (tokenInPool.equals(getToken1Id(poolID))) {
 			price = mulQ96(price, invQ96(bytesToQ96(pool.sqrtPrice)));
-			tokenInPool = getToken0Id(poolId);
+			tokenInPool = getToken0Id(poolID);
 		} else {
 			throw new Error('Incorrect swap path for price computation');
 		}

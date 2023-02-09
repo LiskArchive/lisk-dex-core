@@ -411,5 +411,65 @@ describe('dex: offChainEndpointFunctions', () => {
 			expect(tickWithPoolIdAndTickValue).not.toBeNull();
 			expect(tickWithPoolIdAndTickValue.liquidityNet).toBe(BigInt(5));
 		});
+
+		it('getLSKPrice', async () => {
+			const tempModuleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: {
+					tokenID: getPoolIDFromPositionID(positionId),
+					poolID: getPoolIDFromPositionID(positionId),
+				},
+			});
+			const result = Buffer.alloc(4);
+			const tempFeTier = q96ToBytes(
+				BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings.feeTier, 0)),
+			);
+			await poolsStore.setKey(
+				methodContext,
+				[getPoolIDFromPositionID(positionId), positionId, tempFeTier],
+				poolsStoreData,
+			);
+			await poolsStore.setKey(methodContext, [poolIdLSK, poolIdLSK, tempFeTier], poolsStoreData);
+			await poolsStore.setKey(methodContext, [poolIdLSK, positionId, tempFeTier], poolsStoreData);
+
+			const res = await endpoint.getLSKPrice(tokenMethod, tempModuleEndpointContext);
+			expect(res).toBe(BigInt(1));
+		});
+
+		it('getTVL', async () => {
+			const tempModuleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: {
+					poolID: getPoolIDFromPositionID(positionId),
+					token0ID: getToken0Id(getPoolIDFromPositionID(positionId)),
+					token1ID: getToken1Id(getPoolIDFromPositionID(positionId)),
+				},
+			});
+			const res = await endpoint.getTVL(tokenMethod, tempModuleEndpointContext);
+			expect(res).toBe(BigInt(5));
+		});
+		it('getAllTicks', async () => {
+			await endpoint.getAllTicks(moduleEndpointContext).then(res => {
+				expect(res).not.toBeNull();
+			});
+		});
+
+		it('getAllTickIDsInPool', async () => {
+			const tempModuleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { tickID: Buffer.from('000000010000000001016431308000000a', 'hex') },
+			});
+			const allTickIDsInPool = await endpoint.getAllTickIDsInPool(
+				tempModuleEndpointContext,
+				endpoint.getPoolIDFromTickID(tempModuleEndpointContext),
+			);
+			let ifKeyExists = false;
+			allTickIDsInPool.forEach(tickIdInPool => {
+				if (tickIdInPool.equals(Buffer.from('000000010000000001016431308000000a', 'hex'))) {
+					ifKeyExists = true;
+				}
+			});
+			expect(ifKeyExists).toBe(true);
+		});
 	});
 });
