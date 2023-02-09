@@ -43,7 +43,7 @@ import { DexGlobalStore, DexGlobalStoreData } from './stores/dexGlobalStore';
 import { PositionsStore, PositionsStoreData } from './stores/positionsStore';
 import { PriceTicksStore, PriceTicksStoreData, tickToBytes } from './stores/priceTicksStore';
 import { uint32beInv } from './utils/bigEndian';
-import { getAllPositionIDsInPoolRequestSchema } from './schemas';
+import { getAllPositionIDsInPoolRequestSchema, getAllTickIDsInPoolRequestSchema, getCurrentSqrtPriceRequestSchema, getFeeTierRequestSchema, getLSKPriceRequestSchema, getPoolIDFromTickIDRequestSchema, getPoolRequestSchema, getPositionIndexRequestSchema, getPositionRequestSchema, getTickWithPoolIdAndTickValueRequestSchema, getTickWithTickIdRequestSchema, getToken0AmountRequestSchema, getToken1AmountRequestSchema, getTVLRequestSchema } from './schemas';
 
 export class DexEndpoint extends BaseEndpoint {
 	public async getAllPoolIDs(methodContext: ModuleEndpointContext): Promise<PoolID[]> {
@@ -71,14 +71,14 @@ export class DexEndpoint extends BaseEndpoint {
 	}
 
 	public getAllPositionIDsInPool(methodContext: ModuleEndpointContext): Buffer[] {
-		validator.validate<{ poolId: Buffer; positionIdsList: PositionID[] }>(
+		validator.validate<{ poolID: Buffer; positionIDsList: PositionID[] }>(
 			getAllPositionIDsInPoolRequestSchema,
 			methodContext.params,
 		);
 		const result: Buffer[] = [];
-		const {poolId, positionIdsList} = methodContext.params;
-		positionIdsList.forEach(positionId => {
-			if (getPoolIDFromPositionID(positionId).equals(poolId)) {
+		const {poolID, positionIDsList} = methodContext.params;
+		positionIDsList.forEach(positionId => {
+			if (getPoolIDFromPositionID(positionId).equals(poolID)) {
 				result.push(positionId);
 			}
 		});
@@ -87,24 +87,24 @@ export class DexEndpoint extends BaseEndpoint {
 
 	public async getPool(
 		methodContext: ModuleEndpointContext,
-		poolID: PoolID,
 	): Promise<PoolsStoreData> {
+		validator.validate<{ poolID: Buffer }>(getPoolRequestSchema, methodContext.params);
 		const poolsStore = this.stores.get(PoolsStore);
-		const key = await poolsStore.getKey(methodContext, [poolID]);
+		const key = await poolsStore.getKey(methodContext, [methodContext.params.poolID]);
 		return key;
 	}
 
-	public async getCurrentSqrtPrice(
-		methodContext: ModuleEndpointContext,
-		poolID: PoolID,
-		priceDirection: boolean,
-	): Promise<Q96> {
-		const pools = await this.getPool(methodContext, poolID);
+	public async getCurrentSqrtPrice(methodContext: ModuleEndpointContext): Promise<Q96> {
+		validator.validate<{ poolID: Buffer; priceDirection: false }>(
+			getCurrentSqrtPriceRequestSchema,
+			methodContext.params,
+		);
+		const pools = await this.getPool(methodContext);
 		if (pools == null) {
 			throw new Error();
 		}
 		const q96SqrtPrice = bytesToQ96(pools.sqrtPrice);
-		if (priceDirection) {
+		if (methodContext.params.priceDirection) {
 			return q96SqrtPrice;
 		}
 		return invQ96(q96SqrtPrice);
@@ -115,39 +115,47 @@ export class DexEndpoint extends BaseEndpoint {
 		return dexGlobalStore.get(methodContext, Buffer.from([]));
 	}
 
-	public async getPosition(
-		methodContext: ModuleEndpointContext,
-		positionID: PositionID,
-		positionIdsList: PositionID[],
-	): Promise<PositionsStoreData> {
-		if (positionIdsList.includes(positionID)) {
+	public async getPosition(methodContext: ModuleEndpointContext): Promise<PositionsStoreData> {
+		validator.validate<{ positionID: Buffer; positionIDsList: PositionID[] }>(
+			getPositionRequestSchema,
+			methodContext.params,
+		);
+		if (methodContext.params.positionIDsList.includes(methodContext.params.positionID)) {
 			throw new Error();
 		}
 		const positionsStore = this.stores.get(PositionsStore);
-		const positionStoreData = await positionsStore.get(methodContext, positionID);
+		const positionStoreData = await positionsStore.get(
+			methodContext,
+			methodContext.params.positionID,
+		);
 		return positionStoreData;
 	}
 
 	public async getTickWithTickId(
 		methodContext: ModuleEndpointContext,
-		tickId: TickID[],
 	): Promise<PriceTicksStoreData> {
+		validator.validate<{ tickIDs: Buffer }>(getTickWithTickIdRequestSchema, methodContext.params);
 		const priceTicksStore = this.stores.get(PriceTicksStore);
-		const priceTicksStoreData = await priceTicksStore.getKey(methodContext, tickId);
+		const priceTicksStoreData = await priceTicksStore.getKey(methodContext, [
+			methodContext.params.tickIDs,
+		]);
 		if (priceTicksStoreData == null) {
 			throw new Error('No tick with the specified poolId');
 		} else {
 			return priceTicksStoreData;
 		}
 	}
-
 	public async getTickWithPoolIdAndTickValue(
 		methodContext: ModuleEndpointContext,
-		poolId: PoolID,
-		tickValue: number,
 	): Promise<PriceTicksStoreData> {
+		validator.validate<{ poolID: Buffer; tickValue: number }>(
+			getTickWithPoolIdAndTickValueRequestSchema,
+			methodContext.params,
+		);
 		const priceTicksStore = this.stores.get(PriceTicksStore);
-		const key = poolId.toLocaleString() + tickToBytes(tickValue).toLocaleString();
+		const key =
+			methodContext.params.poolID.toLocaleString() +
+			tickToBytes(methodContext.params.tickValue).toLocaleString();
 		const priceTicksStoreData = await priceTicksStore.get(methodContext, Buffer.from(key, 'hex'));
 		if (priceTicksStoreData == null) {
 			throw new Error('No tick with the specified poolId and tickValue');
@@ -159,36 +167,41 @@ export class DexEndpoint extends BaseEndpoint {
 	public async getToken1Amount(
 		tokenMethod: TokenMethod,
 		methodContext: ModuleEndpointContext,
-		poolId: PoolID,
 	): Promise<bigint> {
-		const address = poolIdToAddress(poolId);
-		const tokenId = getToken1Id(poolId);
+		validator.validate<{ poolID: Buffer }>(getToken1AmountRequestSchema, methodContext.params);
+		const address = poolIdToAddress(methodContext.params.poolID);
+		const tokenId = getToken1Id(methodContext.params.poolID);
 		return tokenMethod.getLockedAmount(methodContext, address, tokenId, MODULE_ID_DEX.toString());
 	}
 
 	public async getToken0Amount(
 		tokenMethod: TokenMethod,
 		methodContext: ModuleEndpointContext,
-		poolId: PoolID,
 	): Promise<bigint> {
-		const address = poolIdToAddress(poolId);
-		const tokenId = getToken0Id(poolId);
+		validator.validate<{ poolID: Buffer }>(getToken0AmountRequestSchema, methodContext.params);
+		const address = poolIdToAddress(methodContext.params.poolID);
+		const tokenId = getToken0Id(methodContext.params.poolID);
 		return tokenMethod.getLockedAmount(methodContext, address, tokenId, MODULE_ID_DEX.toString());
 	}
 
-	public getFeeTier(poolId: PoolID): number {
-		const _buffer: Buffer = poolId.slice(-4);
+	public getFeeTier(methodContext: ModuleEndpointContext): number {
+		validator.validate<{ poolID: Buffer }>(getFeeTierRequestSchema, methodContext.params);
+		const _buffer: Buffer = methodContext.params.poolID.slice(-4);
 		const _hexBuffer: string = _buffer.toString('hex');
 
 		return uint32beInv(_hexBuffer);
 	}
 
-	public getPoolIDFromTickID(tickID: Buffer) {
+	public getPoolIDFromTickID(methodContext) {
+		validator.validate<{ tickID: Buffer }>(getPoolIDFromTickIDRequestSchema, methodContext.params);
+		const { tickID } = methodContext.params;
 		return tickID.slice(0, NUM_BYTES_POOL_ID);
 	}
 
-	public getPositionIndex(positionId: PositionID): number {
-		const _buffer: Buffer = positionId.slice(-(2 * (NUM_BYTES_POSITION_ID - NUM_BYTES_ADDRESS)));
+	public getPositionIndex(methodContext): number {
+		validator.validate<{ positionID: Buffer }>(getPositionIndexRequestSchema, methodContext.params);
+		const { positionID } = methodContext.params;
+		const _buffer: Buffer = positionID.slice(-(2 * (NUM_BYTES_POSITION_ID - NUM_BYTES_ADDRESS)));
 		const _hexBuffer: string = _buffer.toString('hex');
 		return uint32beInv(_hexBuffer);
 	}
@@ -196,41 +209,41 @@ export class DexEndpoint extends BaseEndpoint {
 	public async getTVL(
 		tokenMethod: TokenMethod,
 		methodContext: ModuleEndpointContext,
-		poolId: PoolID,
 	): Promise<bigint> {
-		const pool = await this.getPool(methodContext, poolId);
-		const token1Amount = await this.getToken1Amount(tokenMethod, methodContext, poolId);
-		const token0Amount = await this.getToken0Amount(tokenMethod, methodContext, poolId);
-		const token0Id = getToken0Id(poolId);
-		const token1Id = getToken1Id(poolId);
+		validator.validate<{ poolID: Buffer; token0ID: Buffer; token1ID: Buffer }>(
+			getTVLRequestSchema,
+			methodContext.params,
+		);
+		const poolID = methodContext.params.poolID;
+		const pool = await this.getPool(methodContext);
+		const token1Amount = await this.getToken1Amount(tokenMethod, methodContext);
+		const token0Amount = await this.getToken0Amount(tokenMethod, methodContext);
 
-		if (getToken0Id(poolId).equals(TOKEN_ID_LSK)) {
+		if (getToken0Id(poolID).equals(TOKEN_ID_LSK)) {
 			const token1ValueQ96 = divQ96(
 				divQ96(BigInt(token1Amount), bytesToQ96(pool.sqrtPrice)),
 				bytesToQ96(pool.sqrtPrice),
 			);
 			return (
-				roundDownQ96(token1ValueQ96) +
-				(await this.getToken0Amount(tokenMethod, methodContext, poolId))
+				roundDownQ96(token1ValueQ96) + (await this.getToken0Amount(tokenMethod, methodContext))
 			);
 		}
-		if (getToken1Id(poolId).equals(TOKEN_ID_LSK)) {
+		if (getToken1Id(poolID).equals(TOKEN_ID_LSK)) {
 			const token0ValueQ96 = mulQ96(
 				mulQ96(BigInt(token0Amount), bytesToQ96(pool.sqrtPrice)),
 				bytesToQ96(pool.sqrtPrice),
 			);
 			return (
-				roundDownQ96(token0ValueQ96) +
-				(await this.getToken1Amount(tokenMethod, methodContext, poolId))
+				roundDownQ96(token0ValueQ96) + (await this.getToken1Amount(tokenMethod, methodContext))
 			);
 		}
 
 		const value0Q96 = mulQ96(
-			await this.getLSKPrice(tokenMethod, methodContext, token0Id),
+			await this.getLSKPrice(tokenMethod, methodContext),
 			BigInt(token0Amount),
 		);
 		const value1Q96 = mulQ96(
-			await this.getLSKPrice(tokenMethod, methodContext, token1Id),
+			await this.getLSKPrice(tokenMethod, methodContext),
 			BigInt(token1Amount),
 		);
 		return roundDownQ96(addQ96(value0Q96, value1Q96));
@@ -239,13 +252,17 @@ export class DexEndpoint extends BaseEndpoint {
 	public async getLSKPrice(
 		tokenMethod: TokenMethod,
 		methodContext: ModuleEndpointContext,
-		tokenId: TokenID,
 	): Promise<bigint> {
-		let tokenRoute = await computeRegularRoute(methodContext, this.stores, tokenId, TOKEN_ID_LSK);
+		validator.validate<{ tokenID: Buffer; poolID: Buffer }>(
+			getLSKPriceRequestSchema,
+			methodContext.params,
+		);
+		const { tokenID } = methodContext.params;
+		let tokenRoute = await computeRegularRoute(methodContext, this.stores, tokenID, TOKEN_ID_LSK);
 		let price = BigInt(1);
 
 		if (tokenRoute.length === 0) {
-			tokenRoute = await computeExceptionalRoute(methodContext, this.stores, tokenId, TOKEN_ID_LSK);
+			tokenRoute = await computeExceptionalRoute(methodContext, this.stores, tokenID, TOKEN_ID_LSK);
 		}
 		if (tokenRoute.length === 0) {
 			throw new Error('No swap route between LSK and the given token');
@@ -286,13 +303,14 @@ export class DexEndpoint extends BaseEndpoint {
 	}
 
 	public async getAllTickIDsInPool(
-		methodContext: ModuleEndpointContext,
-		poolId: PoolID,
+		methodContext,
 	): Promise<TickID[]> {
+		validator.validate<{ poolID: Buffer }>(getAllTickIDsInPoolRequestSchema, methodContext.params);
+		const {poolID} = methodContext.params; 
 		const result: Buffer[] = [];
 		const allTicks = await this.getAllTicks(methodContext);
 		allTicks.forEach(tickID => {
-			if (this.getPoolIDFromTickID(tickID).equals(poolId)) {
+			if (this.getPoolIDFromTickID(methodContext).equals(poolID)) {
 				result.push(tickID);
 			}
 		});
