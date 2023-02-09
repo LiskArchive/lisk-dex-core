@@ -33,7 +33,7 @@ import {
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
 import { NUM_BYTES_POOL_ID } from '../../../../src/app/modules/dex/constants';
 
-import { numberToQ96, q96ToBytes, bytesToQ96, } from '../../../../src/app/modules/dex/utils/q96';
+import { numberToQ96, q96ToBytes, bytesToQ96 } from '../../../../src/app/modules/dex/utils/q96';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 
 import { tickToPrice, priceToTick } from '../../../../src/app/modules/dex/utils/math';
