@@ -72,9 +72,10 @@ export class DexEndpoint extends BaseEndpoint {
 		const poolStore = this.stores.get(PoolsStore);
 		const store = await poolStore.getAll(methodContext);
 		const poolIds: PoolID[] = [];
-		if (store?.length) {
-			store.forEach(poolId => {
-				poolIds.push(poolId.key);
+		// eslint-disable-next-line @typescript-eslint/prefer-optional-chain
+		if (store && store.length) {
+			store.forEach(poolID => {
+				poolIds.push(poolID.key);
 			});
 		}
 		return poolIds;
