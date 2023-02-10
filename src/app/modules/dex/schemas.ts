@@ -471,20 +471,8 @@ export const getAllPoolIdsResponseSchema = {
 	required: ['poolIDs'],
 	properties: {
 		poolIDs: {
-			dataType: 'bytes',
+			dataType: 'object',
 			fieldNumber: 1,
-			items: {
-				type: 'object',
-				required: ['poolID'],
-				properties: {
-					poolID: {
-						dataType: 'bytes',
-						minLength: NUM_BYTES_POOL_ID,
-						maxLength: NUM_BYTES_POOL_ID,
-						fieldNumber: 1,
-					},
-				},
-			},
 		},
 	},
 };
@@ -514,13 +502,13 @@ export const getAllTokenIdsResponseSchema = {
 export const getAllPositionIDsInPoolRequestSchema = {
 	$id: 'dex/endpoint/getAllPositionIDsInPoolRequest',
 	type: 'object',
-	required: ['poolID', 'positionIdsList'],
+	required: ['poolID', 'positionIDsList'],
 	properties: {
 		poolID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
 		},
-		positionIdsList: {
+		positionIDsList: {
 			type: 'array',
 			fieldNumber: 2,
 		},
@@ -530,39 +518,15 @@ export const getAllPositionIDsInPoolRequestSchema = {
 export const getAllPositionIDsInPoolResponseSchema = {
 	$id: 'dex/endpoint/getAllPositionIDsInPoolResponse',
 	type: 'object',
-	required: ['positionIdsList'],
+	required: ['positionIDsInPool'],
 	properties: {
-		positionIdsList: {
+		positionIDsInPool: {
 			type: 'array',
 			fieldNumber: 1,
 			items: {
 				dataType: 'bytes',
 				fieldNumber: 1,
 			},
-		},
-	},
-};
-
-export const getPoolResponseSchema = {
-	$id: 'dex/endpoint/getPoolResponse',
-	type: 'object',
-	required: ['poolsStoreData'],
-	properties: {
-		poolsStoreData: {
-			type: 'object',
-			fieldNumber: 1,
-		},
-	},
-};
-
-export const getPoolRequestSchema = {
-	$id: 'dex/endpoint/getPoolRequest',
-	required: ['poolID'],
-	type: 'object',
-	properties: {
-		poolID: {
-			dataType: 'bytes',
-			fieldNumber: 1,
 		},
 	},
 };
@@ -653,7 +617,7 @@ export const getTickWithTickIdRequestSchema = {
 	required: ['tickIDs'],
 	properties: {
 		tickIDs: {
-			dataType: 'bytes',
+			type: 'object',
 			fieldNumber: 1,
 		},
 	},
@@ -699,20 +663,44 @@ export const getTickWithPoolIdAndTickValueResponseSchema = {
 	},
 };
 
+export const getPoolRequestSchema = {
+	$id: 'dex/endpoint/getPoolRequest',
+	required: ['poolID'],
+	type: 'object',
+	properties: {
+		poolID: {
+			type: 'object',
+			fieldNumber: 1,
+		},
+	},
+};
+
+export const getPoolResponseSchema = {
+	$id: 'dex/endpoint/getPoolResponse',
+	type: 'object',
+	required: ['poolsStoreData'],
+	properties: {
+		poolsStoreData: {
+			type: 'object',
+			fieldNumber: 1,
+		},
+	},
+};
+
 export const getPositionIndexRequestSchema = {
-	$id: 'dex/getPositionIndexRequest',
+	$id: 'dex/endpoint/getPositionIndexRequest',
 	type: 'object',
 	required: ['positionID'],
 	properties: {
 		positionID: {
-			dataType: 'bytes',
+			type: 'object',
 			fieldNumber: 1,
 		},
 	},
 };
 
 export const getPositionIndexResponseSchema = {
-	$id: 'dex/getPositionIndexResponse',
+	$id: 'dex/endpoint/getPositionIndexResponse',
 	type: 'object',
 	required: ['positionIndex'],
 	properties: {
@@ -748,7 +736,7 @@ export const getPoolIDFromTickIDResponseSchema = {
 };
 
 export const getFeeTierRequestSchema = {
-	$id: 'dex/getFeeTierRequest',
+	$id: 'dex/endpoint/getFeeTierRequest',
 	type: 'object',
 	required: ['poolID'],
 	properties: {
@@ -760,7 +748,7 @@ export const getFeeTierRequestSchema = {
 };
 
 export const getFeeTierResponseSchema = {
-	$id: 'dex/getFeeTierResponse',
+	$id: 'dex/endpoint/getFeeTierResponse',
 	type: 'object',
 	required: ['feeTier'],
 	properties: {
@@ -837,11 +825,11 @@ export const getLSKPriceRequestSchema = {
 	required: ['tokenID', 'poolID'],
 	properties: {
 		tokenID: {
-			dataType: 'bytes',
+			type: 'object',
 			fieldNumber: 1,
 		},
 		poolID: {
-			dataType: 'bytes',
+			type: 'object',
 			fieldNumber: 2,
 		},
 	},
@@ -919,7 +907,7 @@ export const getAllTickIDsInPoolRequestSchema = {
 	required: ['poolID'],
 	properties: {
 		poolID: {
-			dataType: 'bytes',
+			type: 'object',
 			fieldNumber: 1,
 		},
 	},
@@ -940,6 +928,48 @@ export const getAllTickIDsInPoolResponseSchema = {
 					tickID: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+					},
+				},
+			},
+		},
+	},
+};
+
+export const getCollectableFeesAndIncentivesRequestSchema = {
+	$id: 'dex/getCollectableFeesAndIncentives',
+	type: 'object',
+	required: ['positionID'],
+	properties: {
+		positionID: {
+			type: 'object',
+			fieldNumber: 1,
+		},
+	},
+};
+
+export const getCollectableFeesAndIncentivesResponseSchema = {
+	$id: 'dex/getCollectableFeesAndIncentives',
+	type: 'object',
+	required: ['feesAndIncentives'],
+	properties: {
+		feesAndIncentives: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['collectableFees0', 'collectableFees1', 'collectableIncentives'],
+				properties: {
+					collectableFees0: {
+						dataType: 'uint64',
+						fieldNumber: 1,
+					},
+					collectableFees1: {
+						dataType: 'uint64',
+						fieldNumber: 2,
+					},
+					collectableIncentives: {
+						dataType: 'uint64',
+						fieldNumber: 3,
 					},
 				},
 			},

@@ -19,11 +19,11 @@
 import { BlockHeader, BlockHeaderAttrs, StateStore } from '@liskhq/lisk-chain';
 
 import { ModuleEndpointContext } from 'lisk-sdk';
+import { InMemoryDatabase } from '@liskhq/lisk-db';
+import { utils } from '@liskhq/lisk-cryptography';
 import { PrefixedStateReadWriter } from '../stateMachine/prefixedStateReadWriter';
 import { InMemoryPrefixedStateDB } from '../unit/modules/dex/inMemoryPrefixedState';
-import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { loggerMock } from '../mocks/loggerMock';
-import { utils } from '@liskhq/lisk-cryptography';
 import { createImmutableMethodContext } from './methodContext';
 import { Logger } from '../logger/logger';
 
