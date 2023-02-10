@@ -145,7 +145,7 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			reverse: false,
 		});
 		allKeys.forEach(oneKey => {
-			keysArray.push(oneKey.key.toString('hex'), 10);
+			keysArray.push(oneKey.key.toString('hex'));
 		});
 
 		const currentKeyIndex = keysArray.indexOf(key.toString('hex'), 0);
@@ -167,7 +167,7 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			reverse: false,
 		});
 		allKeys.forEach(oneKey => {
-			keysArray.push(oneKey.key.toString('hex'), 10);
+			keysArray.push(oneKey.key.toString('hex'));
 		});
 
 		const currentKeyIndex = keysArray.indexOf(key.toString('hex'), 0);

@@ -20,6 +20,7 @@ import { MethodContext, TokenMethod, cryptography, ModuleEndpointContext } from 
 import { MAX_SINT32 } from '@liskhq/lisk-validator';
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 
+import { MAX_SINT32 } from '@liskhq/lisk-validator';
 import {
 	DexGlobalStore,
 	PoolsStore,
@@ -870,6 +871,7 @@ export const getCredibleDirectPrice = async (
 	const allpoolIDs = await endpoint.getAllPoolIDs(methodContext);
 
 	const tokenIDArrays = [tokenID0, tokenID1];
+	// eslint-disable-next-line @typescript-eslint/require-array-sort-compare, no-param-reassign
 	[tokenID0, tokenID1] = tokenIDArrays.sort();
 	const concatedTokenIDs = Buffer.concat([tokenID0, tokenID1]);
 
