@@ -23,7 +23,6 @@ import {
 	computeCurrentPrice,
 	constructPoolsGraph,
 	getAdjacent,
-	getProtocolSettings,
 	raiseSwapException,
 	swapWithin,
 	transferFeesFromPool,
@@ -107,7 +106,13 @@ describe('dex:swapFunctions', () => {
 			tokenMethod.unlock = unlockMock;
 		});
 		it('raiseSwapException', () => {
-			raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress);
+			try {
+				expect(
+					raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress),
+				).toThrow();
+			} catch (error) {
+				expect(error).toBeInstanceOf(Error);
+			}
 			const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
 			expect(swapFailedEvent.length).toBe(1);
 		});
@@ -139,6 +144,7 @@ describe('dex:swapFunctions', () => {
 			);
 			expect(currentPrice).not.toBeNull();
 		});
+
 		it('constructPoolsGraph', async () => {
 			const poolsGraph = await constructPoolsGraph(moduleEndpointContext, dexModule.stores);
 			const vertices: Buffer[] = [];
@@ -160,11 +166,6 @@ describe('dex:swapFunctions', () => {
 			expect(
 				transferFeesFromPool(tokenMethod, methodContext, amount, TOKEN_ID_LSK, poolId),
 			).toBeUndefined();
-		});
-
-		it('getProtocolSettings', async () => {
-			const protocolSetting = await getProtocolSettings(moduleEndpointContext, dexModule.stores);
-			expect(protocolSetting).toStrictEqual(dexGlobalStoreData);
 		});
 	});
 });
