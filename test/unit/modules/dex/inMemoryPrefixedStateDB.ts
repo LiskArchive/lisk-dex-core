@@ -13,6 +13,7 @@
  */
 
 import { InMemoryDatabase, IterateOptions } from '@liskhq/lisk-db';
+
 export class InMemoryPrefixedStateDB {
 	private readonly _db: InMemoryDatabase;
 
