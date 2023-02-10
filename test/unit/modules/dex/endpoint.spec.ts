@@ -61,8 +61,8 @@ describe('dex: offChainEndpointFunctions', () => {
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
 	//const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
 
-	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
+	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	const moduleEndpointContext = createTransientModuleEndpointContext({
 		stateStore,
 		params: { address: INVALID_ADDRESS },
