@@ -95,7 +95,7 @@ export const raiseSwapException = (
 		[senderAddress],
 		true,
 	);
-	throw new Error();
+	throw new Error('SwapFailedEvent');
 };
 
 export const getAdjacent = async (
@@ -197,4 +197,41 @@ export const transferFeesFromPool = (
 			validatorFee,
 		);
 	}
+};
+
+export const computeRegularRoute = async (
+	methodContext: ModuleEndpointContext,
+	stores: NamedRegistry,
+	tokenIn: TokenID,
+	tokenOut: TokenID,
+): Promise<TokenID[]> => {
+	let lskAdjacent = await getAdjacent(methodContext, stores, TOKEN_ID_LSK);
+	let tokenInFlag = false;
+	let tokenOutFlag = false;
+	lskAdjacent.forEach(lskAdjacentEdge => {
+		if (lskAdjacentEdge.edge.equals(tokenIn)) {
+			tokenInFlag = true;
+		}
+		if (lskAdjacentEdge.edge.equals(tokenOut)) {
+			tokenOutFlag = true;
+		}
+	});
+
+	if (tokenInFlag && tokenOutFlag) {
+		return [tokenIn, TOKEN_ID_LSK, tokenOut];
+	}
+
+	tokenOutFlag = false;
+	lskAdjacent = await getAdjacent(methodContext, stores, tokenIn);
+
+	lskAdjacent.forEach(lskAdjacentEdge => {
+		if (lskAdjacentEdge.edge.equals(tokenOut)) {
+			tokenOutFlag = true;
+		}
+	});
+
+	if (tokenOutFlag) {
+		return [tokenIn, tokenOut];
+	}
+	return [];
 };

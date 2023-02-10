@@ -16,17 +16,20 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { TokenMethod } from 'lisk-sdk';
 import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_machine';
 import { MethodContext } from 'lisk-framework/dist-node/state_machine/method_context';
 import { DexModule } from '../../../../src/app/modules';
 import {
 	computeCurrentPrice,
+	computeRegularRoute,
 	constructPoolsGraph,
 	getAdjacent,
 	raiseSwapException,
 	swapWithin,
 	transferFeesFromPool,
 } from '../../../../src/app/modules/dex/utils/swapFunctions';
+
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import { Address, PoolID, TokenID } from '../../../../src/app/modules/dex/types';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
@@ -36,11 +39,12 @@ import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { DexGlobalStore, PoolsStore } from '../../../../src/app/modules/dex/stores';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import { TOKEN_ID_LSK } from '../../../../src/app/modules/dexRewards/constants';
-import { TokenMethod } from 'lisk-sdk';
+
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 
 describe('dex:swapFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
+	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
 	const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
 	const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
@@ -98,6 +102,7 @@ describe('dex:swapFunctions', () => {
 			dexGlobalStore = dexModule.stores.get(DexGlobalStore);
 
 			await poolsStore.setKey(methodContext, [poolId], poolsStoreData);
+			await poolsStore.setKey(methodContext, [poolIdLSK], poolsStoreData);
 
 			await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData);
 
@@ -106,6 +111,24 @@ describe('dex:swapFunctions', () => {
 			tokenMethod.unlock = unlockMock;
 		});
 		it('raiseSwapException', () => {
+			try {
+				raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress);
+			} catch (error) {
+				expect(error.message).toBe('SwapFailedEvent');
+				const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
+				expect(swapFailedEvent.length).toBe(1);
+			}
+		});
+
+		it('computeRegularRoute ', async () => {
+			const adjacentToken = Buffer.from('0000000100000000', 'hex');
+			const regularRoute = await computeRegularRoute(
+				moduleEndpointContext,
+				dexModule.stores,
+				adjacentToken,
+				adjacentToken,
+			);
+			expect(regularRoute).toStrictEqual([adjacentToken, adjacentToken, adjacentToken]);
 			try {
 				expect(
 					raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress),
