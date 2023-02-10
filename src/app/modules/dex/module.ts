@@ -175,11 +175,6 @@ export class DexModule extends BaseModule {
 					response: getAllTokenIdsResponseSchema,
 				},
 				{
-					name: this.endpoint.getAllPositionIDsInPool.name,
-					request: getAllPositionIDsInPoolRequestSchema,
-					response: getAllPositionIDsInPoolResponseSchema,
-				},
-				{
 					name: this.endpoint.getPool.name,
 					request: getPoolRequestSchema,
 					response: getPoolResponseSchema,
@@ -208,6 +203,7 @@ export class DexModule extends BaseModule {
 					request: getTickWithPoolIdAndTickValueRequestSchema,
 					response: getTickWithPoolIdAndTickValueResponseSchema,
 				},
+
 				{
 					name: this.endpoint.getLSKPrice.name,
 					request: getLSKPriceRequestSchema,
@@ -224,14 +220,19 @@ export class DexModule extends BaseModule {
 					response: getAllTicksResponseSchema,
 				},
 				{
-					name: this.endpoint.getAllTickIDsInPool.name,
-					request: getAllTickIDsInPoolRequestSchema,
-					response: getAllTickIDsInPoolResponseSchema,
+					name: this.endpoint.getAllPositionIDsInPool.name,
+					request: getAllPositionIDsInPoolRequestSchema,
+					response: getAllPositionIDsInPoolResponseSchema,
 				},
 				{
 					name: this.endpoint.getCollectableFeesAndIncentives.name,
 					request: getCollectableFeesAndIncentivesRequestSchema,
 					response: getCollectableFeesAndIncentivesResponseSchema,
+				},
+				{
+					name: this.endpoint.getAllTickIDsInPool.name,
+					request: getAllTickIDsInPoolRequestSchema,
+					response: getAllTickIDsInPoolResponseSchema,
 				},
 			],
 			commands: this.commands.map(command => ({

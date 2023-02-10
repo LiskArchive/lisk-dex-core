@@ -511,9 +511,6 @@ export const getAllPositionIDsInPoolRequestSchema = {
 		positionIDsList: {
 			type: 'array',
 			fieldNumber: 2,
-			items: {
-				dataType: 'bytes',
-			},
 		},
 	},
 };
