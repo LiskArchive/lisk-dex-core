@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable  no-param-reassign */
+/* eslint-disable no-param-reassign */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -18,9 +18,9 @@
  */
 
 import { MethodContext, ModuleEndpointContext } from 'lisk-sdk';
+import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { SwapFailedEvent } from '../events/swapFailed';
 import { Address, AdjacentEdgesInterface, PoolID, PoolsGraph, TokenID } from '../types';
-import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { getToken0Id, getToken1Id } from './auxiliaryFunctions';
 import { computeNextPrice, getAmount0Delta, getAmount1Delta } from './math';
 import { DexModule } from '../module';
@@ -127,8 +127,7 @@ export const computeCurrentPrice = async (
 	let tokenInPool = tokenIn;
 	for (const poolID of swapRoute) {
 		methodContext.params.poolID = poolID;
-		const pool = await endpoint.getPool(methodContext);
-		await endpoint.getPool(methodContext).catch(() => {
+		const pool = await endpoint.getPool(methodContext).catch(() => {
 			throw new Error('Not a valid pool');
 		});
 		if (tokenInPool.equals(getToken0Id(poolID))) {
