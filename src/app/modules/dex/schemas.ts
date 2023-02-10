@@ -528,6 +528,7 @@ export const getAllPositionIDsInPoolResponseSchema = {
 			fieldNumber: 1,
 			items: {
 				dataType: 'bytes',
+				fieldNumber: 1,
 			},
 		},
 	},
@@ -683,7 +684,7 @@ export const getPositionIndexRequestSchema = {
 	required: ['positionID'],
 	properties: {
 		positionID: {
-			dataType: 'bytes',
+			type: 'object',
 			fieldNumber: 1,
 		},
 	},
@@ -797,18 +798,6 @@ export const getToken0AmountResponseSchema = {
 	},
 };
 
-export const getLSKPriceRequestSchema = {
-	$id: 'dex/endpoint/getLSKPriceRequest',
-	type: 'object',
-	required: ['tokenID'],
-	properties: {
-		tokenID: {
-			dataType: 'bytes',
-			fieldNumber: 1,
-		},
-	},
-};
-
 export const getLSKPriceResponseSchema = {
 	$id: 'dex/endpoint/getLSKPriceResponse',
 	type: 'object',
@@ -821,14 +810,38 @@ export const getLSKPriceResponseSchema = {
 	},
 };
 
+export const getLSKPriceRequestSchema = {
+	$id: 'dex/endpoint/getLSKPriceRequest',
+	type: 'object',
+	required: ['tokenID', 'poolID'],
+	properties: {
+		tokenID: {
+			type: 'object',
+			fieldNumber: 1,
+		},
+		poolID: {
+			type: 'object',
+			fieldNumber: 2,
+		},
+	},
+};
+
 export const getTVLRequestSchema = {
 	$id: 'dex/endpoint/getTVLRequest',
 	type: 'object',
-	required: ['poolID'],
+	required: ['poolID', 'token0ID', 'token1ID'],
 	properties: {
 		poolID: {
-			type: 'object',
+			dataType: 'bytes',
 			fieldNumber: 1,
+		},
+		token0ID: {
+			dataType: 'bytes',
+			fieldNumber: 2,
+		},
+		token1ID: {
+			dataType: 'bytes',
+			fieldNumber: 3,
 		},
 	},
 };
@@ -885,7 +898,7 @@ export const getAllTickIDsInPoolRequestSchema = {
 	required: ['poolID'],
 	properties: {
 		poolID: {
-			dataType: 'bytes',
+			type: 'object',
 			fieldNumber: 1,
 		},
 	},
