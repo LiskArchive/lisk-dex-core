@@ -41,6 +41,7 @@ import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStor
 import { TOKEN_ID_LSK } from '../../../../src/app/modules/dexRewards/constants';
 
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
+import { computeExceptionalRoute } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 describe('dex:swapFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
@@ -189,6 +190,20 @@ describe('dex:swapFunctions', () => {
 			expect(
 				transferFeesFromPool(tokenMethod, methodContext, amount, TOKEN_ID_LSK, poolId),
 			).toBeUndefined();
+		});
+
+		it('computeExceptionalRoute should return 0', async () => {
+			expect(
+				await computeExceptionalRoute(moduleEndpointContext, dexModule.stores, token0Id, token1Id),
+			).toHaveLength(0);
+		});
+
+		it('computeExceptionalRoute should return route with tokenID', async () => {
+			expect(
+				(
+					await computeExceptionalRoute(moduleEndpointContext, dexModule.stores, token0Id, token0Id)
+				)[0],
+			).toStrictEqual(token0Id);
 		});
 	});
 });

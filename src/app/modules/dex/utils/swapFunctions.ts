@@ -14,7 +14,14 @@
 
 import { MethodContext, ModuleEndpointContext, TokenMethod } from 'lisk-sdk';
 import { SwapFailedEvent } from '../events/swapFailed';
-import { Address, AdjacentEdgesInterface, PoolID, PoolsGraph, TokenID } from '../types';
+import {
+	Address,
+	AdjacentEdgesInterface,
+	PoolID,
+	PoolsGraph,
+	routeInterface,
+	TokenID,
+} from '../types';
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { getToken0Id, getToken1Id, transferFromPool } from './auxiliaryFunctions';
 import { computeNextPrice, getAmount0Delta, getAmount1Delta } from './math';
@@ -232,6 +239,41 @@ export const computeRegularRoute = async (
 
 	if (tokenOutFlag) {
 		return [tokenIn, tokenOut];
+	}
+	return [];
+};
+
+export const computeExceptionalRoute = async (
+	methodContext: ModuleEndpointContext,
+	stores: NamedRegistry,
+	tokenIn: TokenID,
+	tokenOut: TokenID,
+): Promise<TokenID[]> => {
+	const routes: routeInterface[] = [
+		{
+			path: [],
+			endVertex: tokenIn,
+		},
+	];
+	const visited = [tokenIn];
+	while (routes.length > 0) {
+		const routeElement = routes.shift();
+		if (routeElement != null) {
+			if (routeElement.endVertex.equals(tokenOut)) {
+				routeElement.path.push(tokenOut);
+				return routeElement.path;
+			}
+			const adjacent = await getAdjacent(methodContext, stores, routeElement.endVertex);
+			adjacent.forEach(adjacentEdge => {
+				if (visited.includes(adjacentEdge.vertex)) {
+					if (routeElement != null) {
+						routeElement.path.push(adjacentEdge.edge);
+						routes.push({ path: routeElement.path, endVertex: adjacentEdge.vertex });
+						visited.push(adjacentEdge.vertex);
+					}
+				}
+			});
+		}
 	}
 	return [];
 };
