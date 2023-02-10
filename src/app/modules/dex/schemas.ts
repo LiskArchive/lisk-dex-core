@@ -562,6 +562,18 @@ export const getCurrentSqrtPriceResponseSchema = {
 	},
 };
 
+export const getDexGlobalDataRequestSchema = {
+	$id: 'dex/getDexGlobalData',
+	type: 'object',
+	required: ['stores'],
+	properties: {
+		stores: {
+			dataType: 'object',
+			fieldNumber: 1,
+		},
+	},
+};
+
 export const getDexGlobalDataResponseSchema = {
 	$id: 'dex/endpoint/getDexGlobalDataResponse',
 	type: 'object',
