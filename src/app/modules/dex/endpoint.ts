@@ -161,10 +161,11 @@ export class DexEndpoint extends BaseEndpoint {
 			methodContext.params,
 		);
 		const priceTicksStore = this.stores.get(PriceTicksStore);
-		const key =
-			methodContext.params.poolID.toLocaleString() +
-			tickToBytes(methodContext.params.tickValue).toLocaleString();
-		const priceTicksStoreData = await priceTicksStore.get(methodContext, Buffer.from(key, 'hex'));
+		const key = Buffer.concat([
+			methodContext.params.poolID,
+			tickToBytes(methodContext.params.tickValue),
+		]);
+		const priceTicksStoreData = await priceTicksStore.get(methodContext, key);
 		if (priceTicksStoreData == null) {
 			throw new Error('No tick with the specified poolId and tickValue');
 		} else {
@@ -194,9 +195,9 @@ export class DexEndpoint extends BaseEndpoint {
 		return uint32beInv(_hexBuffer);
 	}
 
-	public getPoolIDFromTickID(methodContext) {
+	public getPoolIDFromTickID(methodContext): Buffer {
 		validator.validate<{ tickID: Buffer }>(getPoolIDFromTickIDRequestSchema, methodContext.params);
-		const { tickID } = methodContext.params;
+		const tickID: Buffer = methodContext.params.tickID;
 		return tickID.slice(0, NUM_BYTES_POOL_ID);
 	}
 
@@ -213,7 +214,7 @@ export class DexEndpoint extends BaseEndpoint {
 			getTVLRequestSchema,
 			methodContext.params,
 		);
-		const poolID = methodContext.params.poolID;
+		const { poolID } = methodContext.params;
 		const pool = await this.getPool(methodContext);
 		const token1Amount = await this.getToken1Amount(tokenMethod, methodContext);
 		const token0Amount = await this.getToken0Amount(tokenMethod, methodContext);
