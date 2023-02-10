@@ -713,8 +713,8 @@ export const getPositionIndexResponseSchema = {
 
 export const getPoolIDFromTickIDRequestSchema = {
 	$id: 'dex/endpoint/getPoolIDFromTickIDRequest',
-	type: 'object',
 	required: ['tickID'],
+	type: 'object',
 	properties: {
 		tickID: {
 			dataType: 'bytes',
