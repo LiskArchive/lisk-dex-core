@@ -197,7 +197,8 @@ export class DexEndpoint extends BaseEndpoint {
 
 	public getPoolIDFromTickID(methodContext): Buffer {
 		validator.validate<{ tickID: Buffer }>(getPoolIDFromTickIDRequestSchema, methodContext.params);
-		const { tickID }: { tickID: Buffer } = methodContext.params.tickID;
+		const { tickID } = methodContext.params;
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return tickID.slice(0, NUM_BYTES_POOL_ID);
 	}
 
