@@ -21,6 +21,7 @@ import { MethodContext, TokenMethod, cryptography, ModuleEndpointContext } from 
 
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 
+import { MAX_SINT32 } from '@liskhq/lisk-validator';
 import {
 	DexGlobalStore,
 	PoolsStore,
@@ -79,7 +80,6 @@ import { ADDRESS_VALIDATOR_REWARDS_POOL } from '../../dexRewards/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
 import { DexEndpoint } from '../endpoint';
 import { DexModule } from '../module';
-import { MAX_SINT32 } from '@liskhq/lisk-validator';
 
 const { utils } = cryptography;
 
@@ -294,7 +294,7 @@ export const collectFeesAndIncentives = async (
 
 export const computeCollectableFees = async (
 	stores: NamedRegistry,
-	methodContext: MethodContext,
+	methodContext,
 	positionID: PositionID,
 ): Promise<[bigint, bigint, Q96, Q96]> => {
 	const positionsStore = stores.get(PositionsStore);
@@ -872,6 +872,7 @@ export const getCredibleDirectPrice = async (
 	const allpoolIDs = await endpoint.getAllPoolIDs(methodContext);
 
 	const tokenIDArrays = [tokenID0, tokenID1];
+	// eslint-disable-next-line @typescript-eslint/require-array-sort-compare, no-param-reassign
 	[tokenID0, tokenID1] = tokenIDArrays.sort();
 	const concatedTokenIDs = Buffer.concat([tokenID0, tokenID1]);
 
@@ -890,7 +891,6 @@ export const getCredibleDirectPrice = async (
 	});
 
 	if (directPools.length === 0) {
-		console.log(allpoolIDs);
 		throw new Error('No direct pool between given tokens');
 	}
 
@@ -899,14 +899,13 @@ export const getCredibleDirectPrice = async (
 	for (const directPool of directPools) {
 		methodContext.params.poolD = directPool;
 		const pool = await endpoint.getPool(methodContext);
-		const token0Amount = await endpoint.getToken0Amount(tokenMethod, methodContext, directPool);
+		const token0Amount = await endpoint.getToken0Amount(tokenMethod, methodContext);
 		const token0ValueQ96 = mulQ96(
 			mulQ96(numberToQ96(token0Amount), bytesToQ96(pool.sqrtPrice)),
 			bytesToQ96(pool.sqrtPrice),
 		);
 		token1ValuesLocked.push(
-			roundDownQ96(token0ValueQ96) +
-				(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
+			roundDownQ96(token0ValueQ96) + (await endpoint.getToken1Amount(tokenMethod, methodContext)),
 		);
 	}
 

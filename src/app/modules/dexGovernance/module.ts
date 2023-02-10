@@ -24,6 +24,7 @@ import {
 } from './events';
 
 import { DexGovernanceMethod } from './method';
+import { indexSchema, proposalSchema, votesSchema } from './schemas';
 import { IndexStore, ProposalsStore, VotesStore } from './stores';
 
 export class DexGovernanceModule extends BaseModule {
@@ -48,7 +49,6 @@ export class DexGovernanceModule extends BaseModule {
 
 	public metadata(): ModuleMetadata {
 		return {
-			name: this.name,
 			endpoints: [],
 			commands: this.commands.map((command: BaseCommand) => ({
 				name: command.name,
@@ -59,6 +59,20 @@ export class DexGovernanceModule extends BaseModule {
 				data: v.schema,
 			})),
 			assets: [],
+			stores: [
+				{
+					key: IndexStore.name,
+					data: indexSchema,
+				},
+				{
+					key: ProposalsStore.name,
+					data: proposalSchema,
+				},
+				{
+					key: VotesStore.name,
+					data: votesSchema,
+				},
+			],
 		};
 	}
 
