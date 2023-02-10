@@ -44,7 +44,6 @@ import {
 import { PoolsStoreData } from './stores/poolsStore';
 
 import {
-	getCollectableFeesAndIncentivesRequestSchema,
 	getAllPositionIDsInPoolRequestSchema,
 	getPoolRequestSchema,
 	getAllTickIDsInPoolRequestSchema,
@@ -59,6 +58,7 @@ import {
 	getTickWithTickIdRequestSchema,
 	getPositionRequestSchema,
 	getCurrentSqrtPriceRequestSchema,
+	getCollectableFeesAndIncentivesRequestSchema,
 } from './schemas';
 
 import { addQ96, bytesToQ96, divQ96, invQ96, roundDownQ96, mulQ96 } from './utils/q96';
@@ -107,6 +107,7 @@ export class DexEndpoint extends BaseEndpoint {
 		});
 		return result;
 	}
+
 	public async getCurrentSqrtPrice(methodContext): Promise<Q96> {
 		validator.validate<{ poolID: Buffer; priceDirection: false }>(
 			getCurrentSqrtPriceRequestSchema,

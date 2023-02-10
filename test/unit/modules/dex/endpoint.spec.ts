@@ -310,6 +310,12 @@ describe('dex: offChainEndpointFunctions', () => {
 			});
 		});
 
+		it('getAllTicks', async () => {
+			await endpoint.getAllTicks(moduleEndpointContext).then(res => {
+				expect(res).not.toBeNull();
+			});
+		});
+
 		it('getPosition', async () => {
 			const positionIdsList = [positionId];
 			const newPositionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
@@ -389,12 +395,6 @@ describe('dex: offChainEndpointFunctions', () => {
 			});
 			const res = await endpoint.getTVL(tokenMethod, moduleEndpointContext);
 			expect(res).toBe(BigInt(5));
-		});
-
-		it('getAllTicks', async () => {
-			await endpoint.getAllTicks(moduleEndpointContext).then(res => {
-				expect(res).not.toBeNull();
-			});
 		});
 
 		it('getAllTickIDsInPool', async () => {
