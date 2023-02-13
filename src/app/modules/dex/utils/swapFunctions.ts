@@ -135,10 +135,11 @@ export const raiseSwapException = (
 		[senderAddress],
 		true,
 	);
+	throw new Error('SwapFailedEvent');
 };
 
 export const getAdjacent = async (
-	methodContext: ModuleEndpointContext,
+	methodContext,
 	stores: NamedRegistry,
 	vertex: TokenID,
 ): Promise<AdjacentEdgesInterface[]> => {
@@ -167,6 +168,7 @@ export const computeCurrentPrice = async (
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
 	let price = BigInt(1);
 	let tokenInPool = tokenIn;
+	// eslint-disable-next-line @typescript-eslint/no-misused-promises
 	for (const poolId of swapRoute) {
 		const pool = await endpoint.getPool(methodContext, poolId);
 		await endpoint.getPool(methodContext, poolId).catch(() => {
@@ -237,16 +239,6 @@ export const transferFeesFromPool = (
 	}
 };
 
-export const getProtocolSettings = async (
-	methodContext: ModuleEndpointContext,
-	stores: NamedRegistry,
-) => {
-	const dexModule = new DexModule();
-	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
-	const dexGlobalStoreData = await endpoint.getDexGlobalData(methodContext);
-	return dexGlobalStoreData;
-};
-
 export const computeRegularRoute = async (
 	methodContext: ModuleEndpointContext,
 	stores: NamedRegistry,
@@ -256,7 +248,6 @@ export const computeRegularRoute = async (
 	let lskAdjacent = await getAdjacent(methodContext, stores, TOKEN_ID_LSK);
 	let tokenInFlag = false;
 	let tokenOutFlag = false;
-
 	lskAdjacent.forEach(lskAdjacentEdge => {
 		if (lskAdjacentEdge.edge.equals(tokenIn)) {
 			tokenInFlag = true;

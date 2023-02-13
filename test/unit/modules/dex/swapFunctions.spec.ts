@@ -117,7 +117,31 @@ describe('dex:swapFunctions', () => {
 			tokenMethod.unlock = unlockMock;
 		});
 		it('raiseSwapException', () => {
-			raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress);
+			try {
+				raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress);
+			} catch (error) {
+				expect(error.message).toBe('SwapFailedEvent');
+				const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
+				expect(swapFailedEvent.length).toBe(1);
+			}
+		});
+
+		it('computeRegularRoute ', async () => {
+			const adjacentToken = Buffer.from('0000000100000000', 'hex');
+			const regularRoute = await computeRegularRoute(
+				moduleEndpointContext,
+				dexModule.stores,
+				adjacentToken,
+				adjacentToken,
+			);
+			expect(regularRoute).toStrictEqual([adjacentToken, adjacentToken, adjacentToken]);
+			try {
+				expect(
+					raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress),
+				).toThrow();
+			} catch (error) {
+				expect(error).toBeInstanceOf(Error);
+			}
 			const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
 			expect(swapFailedEvent).toHaveLength(1);
 		});
@@ -149,6 +173,7 @@ describe('dex:swapFunctions', () => {
 			);
 			expect(currentPrice).not.toBeNull();
 		});
+
 		it('constructPoolsGraph', async () => {
 			const poolsGraph = await constructPoolsGraph(moduleEndpointContext, dexModule.stores);
 			const vertices: Buffer[] = [];
@@ -170,11 +195,6 @@ describe('dex:swapFunctions', () => {
 			expect(
 				transferFeesFromPool(tokenMethod, methodContext, amount, TOKEN_ID_LSK, poolId),
 			).toBeUndefined();
-		});
-
-		it('getProtocolSettings', async () => {
-			const protocolSetting = await getProtocolSettings(moduleEndpointContext, dexModule.stores);
-			expect(protocolSetting).toStrictEqual(dexGlobalStoreData);
 		});
 
 		it('computeRegularRoute ', async () => {

@@ -12,9 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-
 import { sha256 } from '../dexRewards/constants';
-import {Q96} from './types';
+import { Q96 } from './types';
 
 export const NUM_BYTES_ADDRESS = 20; // The number of bytes of an address (uint32)
 export const MAX_NUM_BYTES_Q96 = 24; // The number of bytes of a fractional number stored in Q96 format (uint32)
@@ -60,8 +59,8 @@ export const COMMAND_ID_COLLECT_FEES = Buffer.from('0007', 'hex'); // Command ID
 export const MIN_TICK = -887272; // The minimum possible tick value as a sint32.
 export const MAX_TICK = 887272; // The maximum possible tick value as a sint32.
 export const LOG_MAX_TICK = 19;
-export const MIN_SQRT_RATIO = BigInt(4295128735); // Todo: check with devs	The minimum possible price value in the Q96 representation.
-export const MAX_SQRT_RATIO = BigInt('1461446704550679960896629428549052887957817041882'); // Todo: check with devs	The maximum possible price value in the Q96 representation.
+export const MIN_SQRT_RATIO = BigInt(4295128738); // Todo: check with devs	The minimum possible price value in the Q96 representation.
+export const MAX_SQRT_RATIO = BigInt('1461446703529909599612049957420313862569572983184'); // Todo: check with devs	The maximum possible price value in the Q96 representation.
 export const PRICE_VALUE_FOR_BIT_POSITION_IN_Q96: Q96[] = [
 	BigInt('79224201403219477170569942573'),
 	BigInt('79220240490215316061937756560'),
@@ -130,7 +129,3 @@ export const ADDRESS_VALIDATOR_INCENTIVES = sha256('validatorIncentivesAccount')
 );
 
 export const VALIDATORS_LSK_INCENTIVE_PART = 200000;
-
-
-
-
