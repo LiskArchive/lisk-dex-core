@@ -27,7 +27,7 @@ import {
 
 	LOCKING_PERIOD_STAKE,
 	PUNISHMENT_WINDOW_STAKES,
-	TOKEN_ID_POS
+	TOKEN_ID_POS,
 	BOOTSTRAP_PERIOD_OFFSET
 } from '../../../../src/app/modules/dex/constants';
 
