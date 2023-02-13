@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { createHash } from 'crypto';
 import { Q96 } from './types';
 
 export const NUM_BYTES_ADDRESS = 20; // The number of bytes of an address (uint32)
@@ -97,6 +98,47 @@ export const TOKEN_ID_LSK = Buffer.from('0000000100000000', 'hex'); // The token
 export const TOKEN_ID_REWARDS = Buffer.from('0000000100000000', 'hex'); // The token ID of the token used for liquidity provider incentives.           |
 
 export const ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL = Buffer.from([]);
+
+
+// DEX sidechain configurable constants
+export const GENESIS_BLOCK_VERSION = 0;
+export const GENESIS_BLOCK_TIMESTAMP = Buffer.from('TBD', 'hex');
+
+export const NUM_INIT_ROUNDS = 2574;
+export const NUM_BOOTSTRAP_VALIDATORS = 101;
+
+export const MODULE_NAME_POS = "pos";
+export const MODULE_NAME_TOKEN = "token";
+export const ADDRESS_LENGTH = 20;
+export const TOKEN_ID_DEX = Buffer.from('0000', 'hex');
+export const ALL_SUPPORTED_TOKENS_KEY = Buffer.from('', 'hex');
+
+export const sha256 = input => {
+	const inputBytes = new TextEncoder().encode(input);
+	return createHash('sha256').update(inputBytes).digest();
+};
+
+export const ADDRESS_VALIDATOR_INCENTIVES = Buffer.from(sha256('traderRewardsPool')).slice(0, NUM_BYTES_ADDRESS);
+export const LENGTH_EPOCH_REWARDS_INCENTIVES = 3153600;
+export const ED25519_PUBLIC_KEY_LENGTH = 32;
+export const BLS_PUBLIC_KEY_LENGTH = 48;
+export const BLS_POP_LENGTH = 96;
+
+// Engine specific constants
+export const MAX_TRANSACTIONS_SIZE_BYTES = 10000;
+export const MAX_ASSET_DATA_SIZE_BYTES = 18;
+export const BLOCK_TIME = 10;
+export const LSK_BFT_BATCH_SIZE = 103;
+export const MAX_PARAMS_SIZE = 14336;
+
+// module specific constants
+export const LOCKING_PERIOD_STAKE = 260000;
+export const PUNISHMENT_WINDOW_STAKES = 780000;
+export const TOKEN_ID_POS = TOKEN_ID_DEX;
+export const TOKEN_ID_DYNAMIC_BLOCK_REWARD = TOKEN_ID_DEX;
+export const ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES = Buffer.from(sha256('liquidityProviderIncetives')).slice(0, NUM_BYTES_ADDRESS);
+export const BOOTSTRAP_PERIOD_OFFSET = 259975;
+
 
 export const defaultConfig = {
 	feeTiers: {
