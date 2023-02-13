@@ -101,30 +101,31 @@ export const ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL = Buffer.from([]);
 
 
 // DEX sidechain configurable constants
-export const GENESIS_BLOCK_VERSION = 0;
-export const GENESIS_BLOCK_TIMESTAMP = Buffer.from('TBD', 'hex');
+export const GENESIS_BLOCK_VERSION = 0; // version of genesis block
+export const GENESIS_BLOCK_TIMESTAMP = Buffer.from('TBD', 'hex'); // timestamp of genesis block
 
-export const NUM_INIT_ROUNDS = 2574;
-export const NUM_BOOTSTRAP_VALIDATORS = 101;
+export const NUM_INIT_ROUNDS = 2574; // Return code of initial rounds
+export const NUM_BOOTSTRAP_VALIDATORS = 101; // Number of validators of sidechain
 
-export const MODULE_NAME_POS = "pos";
-export const MODULE_NAME_TOKEN = "token";
-export const ADDRESS_LENGTH = 20;
-export const TOKEN_ID_DEX = Buffer.from('0000', 'hex');
-export const ALL_SUPPORTED_TOKENS_KEY = Buffer.from('', 'hex');
+export const MODULE_NAME_POS = "pos"; // Return name of PoS module
+export const MODULE_NAME_TOKEN = "token"; // Return name of token module
+export const ADDRESS_LENGTH = 20; // Length of address in sidechain
+export const TOKEN_ID_DEX = Buffer.from('0000', 'hex'); // Return ID of token module in DEX
+export const ALL_SUPPORTED_TOKENS_KEY = Buffer.from('', 'hex'); // All supported tokens in DEX
 
 export const sha256 = input => {
 	const inputBytes = new TextEncoder().encode(input);
 	return createHash('sha256').update(inputBytes).digest();
 };
 
-export const ADDRESS_VALIDATOR_INCENTIVES = Buffer.from(sha256('traderRewardsPool')).slice(0, NUM_BYTES_ADDRESS);
-export const LENGTH_EPOCH_REWARDS_INCENTIVES = 3153600;
+export const ADDRESS_VALIDATOR_INCENTIVES = Buffer.from(sha256('traderRewardsPool')).slice(0, NUM_BYTES_ADDRESS); // Incentives for address validators
+export const LENGTH_EPOCH_REWARDS_INCENTIVES = 3153600; //
 export const ED25519_PUBLIC_KEY_LENGTH = 32;
 export const BLS_PUBLIC_KEY_LENGTH = 48;
 export const BLS_POP_LENGTH = 96;
 
 // Engine specific constants
+export const CHAIN_ID = Buffer.from('0000', 'hex');
 export const MAX_TRANSACTIONS_SIZE_BYTES = 10000;
 export const MAX_ASSET_DATA_SIZE_BYTES = 18;
 export const BLOCK_TIME = 10;
