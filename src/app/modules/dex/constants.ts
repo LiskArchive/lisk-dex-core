@@ -11,8 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+
 import { sha256 } from '../dexRewards/constants';
-import { Q96 } from './types';
+import {Q96} from './types';
 
 export const NUM_BYTES_ADDRESS = 20; // The number of bytes of an address (uint32)
 export const MAX_NUM_BYTES_Q96 = 24; // The number of bytes of a fractional number stored in Q96 format (uint32)
@@ -128,3 +130,7 @@ export const ADDRESS_VALIDATOR_INCENTIVES = sha256('validatorIncentivesAccount')
 );
 
 export const VALIDATORS_LSK_INCENTIVE_PART = 200000;
+
+
+
+

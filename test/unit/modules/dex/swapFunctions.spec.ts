@@ -16,38 +16,26 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { TokenMethod } from 'lisk-sdk';
-import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_machine';
-import { MethodContext } from 'lisk-framework/dist-node/state_machine/method_context';
-import { DexModule } from '../../../../src/app/modules';
-import {
-	computeCurrentPrice,
-	computeRegularRoute,
-	constructPoolsGraph,
-	getAdjacent,
-	getProtocolSettings,
-	raiseSwapException,
-	swap,
-	swapWithin,
-	transferFeesFromPool,
-} from '../../../../src/app/modules/dex/utils/swapFunctions';
-import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
-import { Address, PoolID, TokenID } from '../../../../src/app/modules/dex/types';
-import { createTransientModuleEndpointContext } from '../../../context/createContext';
+import { createMethodContext, EventQueue } from "lisk-framework/dist-node/state_machine";
+import { MethodContext } from "lisk-framework/dist-node/state_machine/method_context";
+import { DexModule } from "../../../../src/app/modules";
+import { computeCurrentPrice, computeRegularRoute, constructPoolsGraph, getAdjacent, getProtocolSettings, raiseSwapException, swap, swapWithin, transferFeesFromPool } from "../../../../src/app/modules/dex/utils/swapFunctions";
+import { InMemoryPrefixedStateDB } from "./inMemoryPrefixedState";
+import { Address, PoolID, TokenID } from "../../../../src/app/modules/dex/types";
+import { createTransientModuleEndpointContext } from "../../../context/createContext";
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
-import { bytesToQ96, numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
-import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
-import {
-	DexGlobalStore,
-	PoolsStore,
-	PriceTicksStore,
-} from '../../../../src/app/modules/dex/stores';
-import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
-import { TOKEN_ID_LSK } from '../../../../src/app/modules/dexRewards/constants';
-import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
-import { computeExceptionalRoute } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
-import { NUM_BYTES_POOL_ID } from '../../../../src/app/modules/dex/constants';
-import { PriceTicksStoreData } from '../../../../src/app/modules/dex/stores/priceTicksStore';
+import { bytesToQ96, numberToQ96, q96ToBytes } from "../../../../src/app/modules/dex/utils/q96";
+import { priceToTick, tickToPrice } from "../../../../src/app/modules/dex/utils/math";
+import { DexGlobalStore, PoolsStore, PriceTicksStore } from "../../../../src/app/modules/dex/stores";
+import { PoolsStoreData } from "../../../../src/app/modules/dex/stores/poolsStore";
+import { TOKEN_ID_LSK } from "../../../../src/app/modules/dexRewards/constants";
+import { TokenMethod } from "lisk-sdk";
+import { DexGlobalStoreData } from "../../../../src/app/modules/dex/stores/dexGlobalStore";
+import { computeExceptionalRoute } from "../../../../src/app/modules/dex/utils/auxiliaryFunctions";
+import { NUM_BYTES_POOL_ID } from "../../../../src/app/modules/dex/constants";
+import { PriceTicksStoreData } from "../../../../src/app/modules/dex/stores/priceTicksStore";
+
+
 
 describe('dex:swapFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
