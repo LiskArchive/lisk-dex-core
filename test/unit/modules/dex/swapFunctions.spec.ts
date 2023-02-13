@@ -19,7 +19,7 @@
 import { createMethodContext, EventQueue } from "lisk-framework/dist-node/state_machine";
 import { MethodContext } from "lisk-framework/dist-node/state_machine/method_context";
 import { DexModule } from "../../../../src/app/modules";
-import { computeCurrentPrice, computeRegularRoute, constructPoolsGraph, getAdjacent, getProtocolSettings, raiseSwapException, swap, swapWithin, transferFeesFromPool } from "../../../../src/app/modules/dex/utils/swapFunctions";
+import { computeCurrentPrice, computeRegularRoute, constructPoolsGraph, getAdjacent, raiseSwapException, swap, swapWithin, transferFeesFromPool } from "../../../../src/app/modules/dex/utils/swapFunctions";
 import { InMemoryPrefixedStateDB } from "./inMemoryPrefixedState";
 import { Address, PoolID, TokenID } from "../../../../src/app/modules/dex/types";
 import { createTransientModuleEndpointContext } from "../../../context/createContext";
