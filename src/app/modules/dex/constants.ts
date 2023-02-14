@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 import { sha256 } from '../dexRewards/constants';
 import { Q96 } from './types';
 
