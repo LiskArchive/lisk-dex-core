@@ -252,15 +252,15 @@ export const checkPositionExistenceAndOwnership = async (
 export const collectFeesAndIncentives = async (
 	events: NamedRegistry,
 	stores: NamedRegistry,
-	tokenMethod:TokenMethod,
+	tokenMethod: TokenMethod,
 	methodContext,
 	positionID: PositionID,
-	currentHeight:number,
+	currentHeight: number,
 ): Promise<void> => {
 	const poolID = getPoolIDFromPositionID(positionID);
 	const positionsStore = stores.get(PositionsStore);
 	const poolStore = stores.get(PoolsStore);
-	
+
 	const positionInfo = await positionsStore.get(methodContext, positionID);
 	const poolInfo = await poolStore.get(methodContext, poolID);
 	const ownerAddress = await getOwnerAddressOfPosition(methodContext, positionsStore, positionID);
@@ -298,12 +298,12 @@ export const collectFeesAndIncentives = async (
 	updatePoolIncentives(methodContext, stores, poolID, currentHeight);
 
 	const incentivesAccumulatorQ96 = bytesToQ96(poolInfo.incentivesPerLiquidityAccumulator);
+	console.log(incentivesAccumulatorQ96)
 	const [collectableIncentives, incentivesPerLiquidityInside] = await computeCollectableIncentives(
 		methodContext,
 		stores,
 		positionID,
 		incentivesAccumulatorQ96,
-
 	);
 
 	await tokenMethod.unlock(
@@ -322,9 +322,9 @@ export const collectFeesAndIncentives = async (
 		collectableIncentives,
 	);
 
-    positionInfo.incentivesPerLiquidityLast = q96ToBytes(incentivesPerLiquidityInside)
+	positionInfo.incentivesPerLiquidityLast = q96ToBytes(incentivesPerLiquidityInside)
 	await positionsStore.set(methodContext, positionID, positionInfo);
-			
+
 	events.get(FeesIncentivesCollectedEvent).log(methodContext, {
 		senderAddress: ownerAddress,
 		positionID,
@@ -370,24 +370,24 @@ export const computeCollectableIncentives = async (
 	methodContext,
 	stores: NamedRegistry,
 	positionID: PositionID,
-	incentivesPerLiquidityAccumulator,
+	incentivesPerLiquidityAccumulator: bigint,
 ): Promise<[bigint, bigint]> => {
 	let incentivesPLBelow;
 	let incentivesPLAbove;
-	
+
 	const positionsStore = stores.get(PositionsStore)
 	const poolsStore = stores.get(PoolsStore)
 	const priceTicksStore = stores.get(PriceTicksStore);
 
 	const poolID = getPoolIDFromPositionID(positionID);
-	const positionInfo = await positionsStore.get(methodContext,positionID);	
+	const positionInfo = await positionsStore.get(methodContext, positionID);
 	const poolInfo = await poolsStore.get(methodContext, poolID);
 
 
 	const tickLower = positionInfo.tickLower;
-	const tickUpper = positionInfo.tickUpper;	
-	const tickCurrent = priceToTick(bytesToQ96(poolInfo.sqrtPrice))	
-    
+	const tickUpper = positionInfo.tickUpper;
+	const tickCurrent = priceToTick(bytesToQ96(poolInfo.sqrtPrice))
+
 	let priceTicksStoreKey = Buffer.concat([
 		poolID,
 		tickToBytes(tickLower),
@@ -397,18 +397,17 @@ export const computeCollectableIncentives = async (
 		poolID,
 		tickToBytes(tickUpper),
 	]);
-	const upperTickInfo = await priceTicksStore.get(methodContext,priceTicksStoreKey);
-	
-    if (tickCurrent >= tickLower){
-		incentivesPLBelow = bytesToQ96(lowerTickInfo.incentivesPerLiquidityOutside)
-	}       
-    else
-        {incentivesPLBelow = subQ96(incentivesPerLiquidityAccumulator, bytesToQ96(lowerTickInfo.incentivesPerLiquidityOutside))}
-    if (tickCurrent < tickUpper)
-        {incentivesPLAbove = bytesToQ96(upperTickInfo.incentivesPerLiquidityOutside)}
-    else
-       {incentivesPLAbove = subQ96(incentivesPerLiquidityAccumulator, bytesToQ96(upperTickInfo.incentivesPerLiquidityOutside))}
+	const upperTickInfo = await priceTicksStore.get(methodContext, priceTicksStoreKey);
 
+	if (tickCurrent >= tickLower) {
+		incentivesPLBelow = bytesToQ96(lowerTickInfo.incentivesPerLiquidityOutside)
+	}
+	else { incentivesPLBelow = subQ96(incentivesPerLiquidityAccumulator, bytesToQ96(lowerTickInfo.incentivesPerLiquidityOutside)) }
+	if (tickCurrent < tickUpper) { incentivesPLAbove = bytesToQ96(upperTickInfo.incentivesPerLiquidityOutside) }
+	else { incentivesPLAbove = subQ96(incentivesPerLiquidityAccumulator, bytesToQ96(upperTickInfo.incentivesPerLiquidityOutside)) }
+
+
+	console.log(subQ96(incentivesPerLiquidityAccumulator, incentivesPLBelow), incentivesPLAbove)
 	const incentivesPerLiquidityInside = subQ96(subQ96(incentivesPerLiquidityAccumulator, incentivesPLBelow), incentivesPLAbove)
 	const collectableIncentivesPL = subQ96(incentivesPerLiquidityInside, bytesToQ96(positionInfo.incentivesPerLiquidityLast))
 	const collectableIncentives = roundDownQ96(mulQ96(collectableIncentivesPL, (positionInfo.liquidity)))
@@ -523,7 +522,7 @@ export const createPosition = async (
 		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(0))),
 		ownerAddress: senderAddress,
-		incentivesPerLiquidityLast: q96ToBytes(numberToQ96(BigInt(0))),	
+		incentivesPerLiquidityLast: q96ToBytes(numberToQ96(BigInt(0))),
 	};
 	await positionsStore.set(methodContext, positionID, positionValue);
 	return [POSITION_CREATION_SUCCESS, positionID];
@@ -859,7 +858,7 @@ export const updateIncentivizedPools = async (
 	stores: NamedRegistry,
 	poolId: PoolID,
 	multiplier: number,
-	currentHeight: bigint,
+	currentHeight: number,
 ) => {
 	const dexGlobalStoreData = await getDexGlobalData(methodContext, stores);
 
@@ -868,7 +867,7 @@ export const updateIncentivizedPools = async (
 			methodContext,
 			stores,
 			incentivizedPool.poolId,
-			Number(currentHeight),
+			currentHeight,
 		);
 	}
 	dexGlobalStoreData.incentivizedPools.forEach((incentivizedPools, index) => {
@@ -1265,7 +1264,7 @@ export const getCredibleDirectPrice = async (
 	const concatedTokenIDs = Buffer.concat(tokenIDArrays);
 
 	settings.forEach(setting => {
-		const tokenIDAndSettingsArray = [concatedTokenIDs, setting.feeTier];
+		const tokenIDAndSettingsArray = [concatedTokenIDs, q96ToBytes(numberToQ96(setting.feeTier))];
 		const potentialPoolId: Buffer = Buffer.concat(tokenIDAndSettingsArray);
 		allpoolIDs.forEach(poolId => {
 			if (poolId.equals(potentialPoolId)) {

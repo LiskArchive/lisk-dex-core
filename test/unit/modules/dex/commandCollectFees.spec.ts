@@ -114,6 +114,7 @@ describe('dex:command:collectFees', () => {
 			feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(3))),
 			feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(1))),
 			ownerAddress: senderAddress,
+			incentivesPerLiquidityLast: q96ToBytes(numberToQ96(BigInt(10)))
 		};
 
 		beforeEach(async () => {

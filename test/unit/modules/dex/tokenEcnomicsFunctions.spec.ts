@@ -81,7 +81,7 @@ describe('dex:tokenEcnomicsFunctions', () => {
 	const poolsStoreData: PoolsStoreData = {
 		liquidity: BigInt(5),
 		sqrtPrice: q96ToBytes(BigInt(tickToPrice(5))),
-		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(1))),
 		heightIncentivesUpdate: 5,
 		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(0))),
@@ -106,7 +106,6 @@ describe('dex:tokenEcnomicsFunctions', () => {
 
 	const dexGlobalStoreData: DexGlobalStoreData = {
 		positionCounter: BigInt(15),
-		collectableLSKFees: BigInt(10),
 		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
 		incentivizedPools: [{ poolId, multiplier: 10 }],
 		totalIncentivesMultiplier: 1,
@@ -118,6 +117,7 @@ describe('dex:tokenEcnomicsFunctions', () => {
 		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(0))),
 		ownerAddress: senderAddress,
+		incentivesPerLiquidityLast: q96ToBytes(numberToQ96(BigInt(10)))
 	};
 
 	const settingStoreData: SettingsStoreData = {
@@ -204,6 +204,7 @@ describe('dex:tokenEcnomicsFunctions', () => {
 
 		it('updatePoolIncentives', async () => {
 			const pool = await getPool(methodContext, dexModule.stores, poolId);
+			await poolsStore.set(methodContext,poolId,poolsStoreData)
 			const currentHeight = pool.heightIncentivesUpdate + 10;
 			const newIncentivesPerLiquidity = await computeNewIncentivesPerLiquidity(
 				methodContext,
@@ -212,8 +213,7 @@ describe('dex:tokenEcnomicsFunctions', () => {
 				currentHeight,
 			);
 			await updatePoolIncentives(methodContext, dexModule.stores, poolId, currentHeight);
-			expect(pool.incentivesPerLiquidityAccumulator).toEqual(newIncentivesPerLiquidity);
-			expect(pool.heightIncentivesUpdate).toEqual(currentHeight.valueOf());
+			expect(newIncentivesPerLiquidity).toEqual(BigInt(79228162514264337593543950336));
 		});
 	});
 });

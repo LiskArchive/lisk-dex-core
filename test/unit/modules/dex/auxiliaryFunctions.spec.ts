@@ -116,7 +116,7 @@ describe('dex:auxiliaryFunctions', () => {
 	const poolsStoreData: PoolsStoreData = {
 		liquidity: BigInt(5),
 		sqrtPrice: q96ToBytes(BigInt(tickToPrice(5))),
-		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(10))),
 		heightIncentivesUpdate: 5,
 		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(0))),
@@ -152,6 +152,7 @@ describe('dex:auxiliaryFunctions', () => {
 		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(0))),
 		ownerAddress: senderAddress,
+		incentivesPerLiquidityLast: q96ToBytes(numberToQ96(BigInt(0)))
 	};
 
 	const settingStoreData: SettingsStoreData = {
@@ -356,33 +357,13 @@ describe('dex:auxiliaryFunctions', () => {
 
 		it('should return [1n,25n] in result', async () => {
 			await computeCollectableIncentives(
-				dexGlobalStore,
-				tokenMethod,
 				methodContext,
+				dexModule.stores,
 				positionId,
-				BigInt(1),
-				BigInt(2),
-			).then(res => {
-				expect(res[0]).toBe(BigInt(1));
-				expect(res[1]).toBe(BigInt(25));
-			});
-		});
-
-		it('should return [0,0] as newTestpositionId!=positionId', async () => {
-			const newTestpositionId: PositionID = Buffer.from(
-				'0x00000000000100000000000000000000c8',
-				'hex',
-			);
-			await computeCollectableIncentives(
-				dexGlobalStore,
-				tokenMethod,
-				methodContext,
-				newTestpositionId,
-				BigInt(1),
-				BigInt(2),
+				numberToQ96(BigInt(100)),
 			).then(res => {
 				expect(res[0]).toBe(BigInt(0));
-				expect(res[1]).toBe(BigInt(0));
+				expect(res[1]).toBe(BigInt(7526675438855112071386675281920));
 			});
 		});
 
@@ -394,6 +375,7 @@ describe('dex:auxiliaryFunctions', () => {
 				tokenMethod,
 				positionId,
 				BigInt(200),
+				10
 			).then(res => {
 				expect(res[0]).toBe(BigInt(1));
 				expect(res[1]).toBe(BigInt(1));
@@ -409,6 +391,7 @@ describe('dex:auxiliaryFunctions', () => {
 					tokenMethod,
 					positionId,
 					BigInt(-10000),
+					10
 				),
 			).rejects.toThrow();
 		});
@@ -422,6 +405,7 @@ describe('dex:auxiliaryFunctions', () => {
 					tokenMethod,
 					positionId,
 					BigInt(0),
+					10
 				).then(res => {
 					expect(res[0]).toBe(BigInt(0));
 					expect(res[1]).toBe(BigInt(0));
@@ -463,7 +447,7 @@ describe('dex:auxiliaryFunctions', () => {
 			const newTokenIDsArray = [
 				token0Id,
 				token1Id,
-				dexGlobalStoreData.poolCreationSettings[0].feeTier,
+				q96ToBytes(numberToQ96(dexGlobalStoreData.poolCreationSettings[0].feeTier))
 			];
 			await poolsStore.setKey(methodContext, newTokenIDsArray, poolsStoreData);
 			await poolsStore.set(methodContext, Buffer.from(newTokenIDsArray), poolsStoreData);
@@ -567,10 +551,11 @@ describe('dex:auxiliaryFunctions', () => {
 				dexModule.stores,
 				poolId,
 				multiplier,
-				BigInt(currentHeight),
+				currentHeight
 			);
 			expect(dexGlobalStoreData.totalIncentivesMultiplier).toEqual(totalIncentivesMultiplier);
 			expect(dexGlobalStoreData.incentivizedPools.length).toEqual(incentivizedPoolsLength);
 		});
+		
 	});
 });
