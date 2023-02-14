@@ -15,6 +15,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { MethodContext } from 'lisk-sdk';
 import { DexGlobalStore, PoolsStore } from '../stores';
@@ -31,6 +32,7 @@ export const computeNewIncentivesPerLiquidity = async (
 	const dexGlobalStore = stores.get(DexGlobalStore);
 	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
 	let incentivizedPools: { poolId: Buffer; multiplier: number } | undefined;
+	let pooldIDFlag:boolean=false;
 
 	dexGlobalStoreData.incentivizedPools.forEach(incentivizedPool => {
 		if (incentivizedPool.poolId.equals(poolID)) {
@@ -44,7 +46,14 @@ export const computeNewIncentivesPerLiquidity = async (
 
 	const pool = await getPool(methodContext, stores, poolID);
 	const allPoolIds = await getAllPoolIDs(methodContext, stores.get(PoolsStore));
-	if (!allPoolIds.includes(poolID) || pool.heightIncentivesUpdate >= currentHeight) {
+	
+	for(poolID of allPoolIds){
+		if(poolID.equals(poolID)){
+			pooldIDFlag = true;
+		}
+	}
+
+	if (!pooldIDFlag || pool.heightIncentivesUpdate >= currentHeight) {
 		throw new Error('Invalid arguments');
 	}
 

@@ -295,14 +295,14 @@ export const collectFeesAndIncentives = async (
 	positionInfo.feeGrowthInsideLast1 = q96ToBytes(feeGrowthInside1);
 
 	updatePoolIncentives(methodContext, stores, poolID, currentHeight);
-
+	
 	const incentivesAccumulatorQ96 = bytesToQ96(poolInfo.incentivesPerLiquidityAccumulator);
+	console.log(incentivesAccumulatorQ96)
 	const [collectableIncentives, incentivesPerLiquidityInside] = await computeCollectableIncentives(
 		methodContext,
 		stores,
 		positionID,
 		incentivesAccumulatorQ96,
-
 	);
 
 	await tokenMethod.unlock(
@@ -369,7 +369,7 @@ export const computeCollectableIncentives = async (
 	methodContext,
 	stores: NamedRegistry,
 	positionID: PositionID,
-	incentivesPerLiquidityAccumulator,
+	incentivesPerLiquidityAccumulator:bigint,
 ): Promise<[bigint, bigint]> => {
 	let incentivesPLBelow;
 	let incentivesPLAbove;
@@ -408,8 +408,10 @@ export const computeCollectableIncentives = async (
     else
        {incentivesPLAbove = subQ96(incentivesPerLiquidityAccumulator, bytesToQ96(upperTickInfo.incentivesPerLiquidityOutside))}
 
+	
+	console.log(subQ96(incentivesPerLiquidityAccumulator, incentivesPLBelow), incentivesPLAbove )
 	const incentivesPerLiquidityInside = subQ96(subQ96(incentivesPerLiquidityAccumulator, incentivesPLBelow), incentivesPLAbove)
-	const collectableIncentivesPL = subQ96(incentivesPerLiquidityInside, bytesToQ96(positionInfo.incentivesPerLiquidityLast))
+	const collectableIncentivesPL = subQ96(incentivesPerLiquidityInside, bytesToQ96(positionInfo.incentivesPerLiquidityLast))	
 	const collectableIncentives = roundDownQ96(mulQ96(collectableIncentivesPL, (positionInfo.liquidity)))
 	return [collectableIncentives, incentivesPerLiquidityInside]
 };
@@ -858,16 +860,15 @@ export const updateIncentivizedPools = async (
 	stores: NamedRegistry,
 	poolId: PoolID,
 	multiplier: number,
-	currentHeight: bigint,
+	currentHeight: number,
 ) => {
 	const dexGlobalStoreData = await getDexGlobalData(methodContext, stores);
-
+	
 	for (const incentivizedPool of dexGlobalStoreData.incentivizedPools) {
-		await updateIncentivizedPools(
+		await updatePoolIncentives(
 			methodContext,
 			stores,
 			incentivizedPool.poolId,
-			multiplier,
 			currentHeight,
 		);
 	}
@@ -1265,7 +1266,7 @@ export const getCredibleDirectPrice = async (
 	const concatedTokenIDs = Buffer.concat(tokenIDArrays);
 
 	settings.forEach(setting => {
-		const tokenIDAndSettingsArray = [concatedTokenIDs, setting.feeTier];
+		const tokenIDAndSettingsArray = [concatedTokenIDs, q96ToBytes(numberToQ96(setting.feeTier))];
 		const potentialPoolId: Buffer = Buffer.concat(tokenIDAndSettingsArray);
 		allpoolIDs.forEach(poolId => {
 			if (poolId.equals(potentialPoolId)) {
