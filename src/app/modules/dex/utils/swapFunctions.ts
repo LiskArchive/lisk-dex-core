@@ -118,7 +118,7 @@ export const swapWithin = (
 
 export const raiseSwapException = (
 	events: NamedRegistry,
-	methodContext: MethodContext,
+	methodContext,
 	reason: number,
 	tokenIdIn: TokenID,
 	tokenIdOut: TokenID,
@@ -158,7 +158,7 @@ export const getAdjacent = async (
 };
 
 export const computeCurrentPrice = async (
-	methodContext: ModuleEndpointContext | MethodContext,
+	methodContext,
 	stores: NamedRegistry,
 	tokenIn: TokenID,
 	tokenOut: TokenID,
@@ -191,7 +191,7 @@ export const computeCurrentPrice = async (
 };
 
 export const constructPoolsGraph = async (
-	methodContext: ModuleEndpointContext,
+	methodContext,
 	stores: NamedRegistry,
 ): Promise<PoolsGraph> => {
 	const dexModule = new DexModule();
