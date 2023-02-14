@@ -54,7 +54,6 @@ describe('dex:swapFunctions', () => {
 	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
 	const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
 	const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
-	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const amount = 0;
 	const sqrtCurrentPrice = BigInt(5);
 	const sqrtTargetPrice = BigInt(10);
