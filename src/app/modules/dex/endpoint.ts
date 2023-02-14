@@ -13,7 +13,7 @@
  */
 
 import { BaseEndpoint, ModuleEndpointContext, TokenMethod } from 'lisk-sdk';
-
+import { MethodContext } from 'lisk-framework/dist-node/state_machine';
 import {
 	MODULE_ID_DEX,
 	NUM_BYTES_POOL_ID,
@@ -42,7 +42,9 @@ import { PriceTicksStore, PriceTicksStoreData, tickToBytes } from './stores/pric
 import { uint32beInv } from './utils/bigEndian';
 
 export class DexEndpoint extends BaseEndpoint {
-	public async getAllPoolIDs(methodContext: ModuleEndpointContext): Promise<PoolID[]> {
+	public async getAllPoolIDs(
+		methodContext: ModuleEndpointContext | MethodContext,
+	): Promise<PoolID[]> {
 		const poolStore = this.stores.get(PoolsStore);
 		const store = await poolStore.getAll(methodContext);
 		const poolIds: PoolID[] = [];
@@ -77,7 +79,7 @@ export class DexEndpoint extends BaseEndpoint {
 	}
 
 	public async getPool(
-		methodContext: ModuleEndpointContext,
+		methodContext: ModuleEndpointContext | MethodContext,
 		poolID: PoolID,
 	): Promise<PoolsStoreData> {
 		const poolsStore = this.stores.get(PoolsStore);
@@ -120,7 +122,7 @@ export class DexEndpoint extends BaseEndpoint {
 	}
 
 	public async getTickWithTickId(
-		methodContext: ModuleEndpointContext,
+		methodContext: ModuleEndpointContext | MethodContext,
 		tickId: TickID[],
 	): Promise<PriceTicksStoreData> {
 		const priceTicksStore = this.stores.get(PriceTicksStore);
