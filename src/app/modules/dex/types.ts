@@ -138,6 +138,15 @@ export interface SwapExactInParamsData {
 	maxTimestampValid: bigint;
 }
 
+export interface SwapExactOutParamsData {
+	tokenIdIn: Buffer;
+	maxAmountTokenIn: bigint;
+	tokenIdOut: Buffer;
+	amountTokenOut: bigint;
+	swapRoute: Buffer[];
+	maxTimestampValid: bigint;
+}
+
 export type feesInterface = {
 	in: bigint;
 	out: bigint;

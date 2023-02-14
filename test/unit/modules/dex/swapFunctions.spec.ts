@@ -2,6 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable jest/no-try-expect */
+
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -145,6 +147,7 @@ describe('dex:swapFunctions', () => {
 			const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
 			expect(swapFailedEvent).toHaveLength(1);
 		});
+
 		it('swapWithin', () => {
 			const [sqrtUpdatedPrice, amountIn, amountOut] = swapWithin(
 				sqrtCurrentPrice,

@@ -82,6 +82,7 @@ import { poolsStoreSchema } from './stores/poolsStore';
 import { positionsStoreSchema } from './stores/positionsStore';
 import { priceTicksStoreSchema } from './stores/priceTicksStore';
 import { settingsStoreSchema } from './stores/settingsStore';
+import { SwapExactOutCommand } from './commands/swapExactOut';
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
@@ -96,6 +97,7 @@ export class DexModule extends BaseModule {
 	private readonly _createPositionCommand = new CreatePositionCommand(this.stores, this.events);
 	private readonly _collectFeeCommand = new CollectFeesCommand(this.stores, this.events);
 	private readonly _removeLiquidityCommand = new RemoveLiquidityCommand(this.stores, this.events);
+	private readonly _swapExactOutCommand = new SwapExactOutCommand(this.stores, this.events);
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public commands = [
@@ -104,6 +106,7 @@ export class DexModule extends BaseModule {
 		this._removeLiquidityCommand,
 		this._addLiquidityCommand,
 		this._createPositionCommand,
+		this._swapExactOutCommand,
 	];
 
 	public constructor() {
@@ -269,6 +272,10 @@ export class DexModule extends BaseModule {
 		});
 
 		this._removeLiquidityCommand.init({
+			tokenMethod: this._tokenMethod,
+		});
+
+		this._swapExactOutCommand.init({
 			tokenMethod: this._tokenMethod,
 		});
 	}
