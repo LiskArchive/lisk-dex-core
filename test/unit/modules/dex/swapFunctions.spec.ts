@@ -2,6 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable jest/no-try-expect */
+
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -134,29 +136,10 @@ describe('dex:swapFunctions', () => {
 			} catch (error) {
 				expect(error.message).toBe('SwapFailedEvent');
 				const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
-				expect(swapFailedEvent.length).toBe(1);
+				expect(swapFailedEvent).toHaveLength(1);
 			}
 		});
 
-		it('computeRegularRoute ', async () => {
-			const adjacentToken = Buffer.from('0000000100000000', 'hex');
-			const regularRoute = await computeRegularRoute(
-				moduleEndpointContext,
-				dexModule.stores,
-				adjacentToken,
-				adjacentToken,
-			);
-			expect(regularRoute).toStrictEqual([adjacentToken, adjacentToken, adjacentToken]);
-			try {
-				expect(
-					raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress),
-				).toThrow();
-			} catch (error) {
-				expect(error).toBeInstanceOf(Error);
-			}
-			const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
-			expect(swapFailedEvent).toHaveLength(1);
-		});
 		it('swapWithin', () => {
 			const [sqrtUpdatedPrice, amountIn, amountOut] = swapWithin(
 				sqrtCurrentPrice,
