@@ -596,8 +596,9 @@ export const poolExists = async (
 	methodContext,
 	poolsStore: PoolsStore,
 	poolId: PoolID
-): Promise<boolean> => {
-	return await poolsStore.has(methodContext, poolId);
+) => {
+	const result = poolsStore.has(methodContext, poolId);
+	return result;
 }
 
 export const addPoolCreationSettings = async (
@@ -610,21 +611,13 @@ export const addPoolCreationSettings = async (
 		throw new Error("Fee tier can not be greater than 100%");
 	}
 	const settingGlobalStore = stores.get(SettingsStore);
-	console.log("settingGlobalStore: ", settingGlobalStore);
 	const settingGlobalStoreData = await settingGlobalStore.get(methodContext, Buffer.alloc(0));
-	console.log("first: ", settingGlobalStoreData);
 	if (settingGlobalStoreData.poolCreationSettings.feeTier === feeTier) {
 		throw new Error("Can not update fee tier");
 	}
 	settingGlobalStoreData.poolCreationSettings.feeTier = feeTier;
 	settingGlobalStoreData.poolCreationSettings.tickSpacing = tickSpacing;
-	console.log("feeTier: ", settingGlobalStoreData.poolCreationSettings.feeTier);
-	console.log("tickSpacing: ", settingGlobalStoreData.poolCreationSettings.tickSpacing);
-	console.log("settingGlobalStoreData: ", settingGlobalStoreData);
-	console.log("type: ", typeof settingGlobalStoreData.poolCreationSettings);
 	await settingGlobalStore.set(methodContext, Buffer.alloc(0), settingGlobalStoreData);
-	const sss = await settingGlobalStore.get(methodContext, Buffer.alloc(0));
-	console.log("sss: ", sss);
 }
 
 export const updatePosition = async (

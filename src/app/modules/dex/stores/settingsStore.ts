@@ -19,8 +19,8 @@ export interface SettingsStoreData {
 	protocolFeePart: number;
 	validatorsLSKRewardsPart: number;
 	poolCreationSettings: {
-		feeTier: number,
-		tickSpacing: number,
+		feeTier: number;
+		tickSpacing: number;
 	};
 }
 
