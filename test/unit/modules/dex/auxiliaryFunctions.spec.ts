@@ -418,7 +418,7 @@ describe('dex:auxiliaryFunctions', () => {
 			);
 			const exists = await poolsStore.has(methodContext, poolId);
 			expect(poolExistResult).toEqual(exists);
-		})
+		});
 		it('getAdjacent', async () => {
 			const res = await getAdjacent(moduleEndpointContext, dexModule.stores, token0Id);
 			expect(res).not.toBeNull();
@@ -490,9 +490,6 @@ describe('dex:auxiliaryFunctions', () => {
 
 		const settingGlobalStore = dexModule.stores.get(SettingsStore);
 		const settingGlobalStoreData = await settingGlobalStore.get(methodContext, Buffer.alloc(0));
-		// settingGlobalStoreData.poolCreationSettings.feeTier = feeTier;
-		// settingGlobalStoreData.poolCreationSettings.tickSpacing = tickSpacing;
-		// settingGlobalStore.set(methodContext, Buffer.alloc(0), settingGlobalStoreData);
 
 		expect(settingGlobalStoreData.poolCreationSettings.feeTier).toEqual(feeTier);
 	})
