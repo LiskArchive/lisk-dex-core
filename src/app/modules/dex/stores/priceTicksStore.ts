@@ -11,7 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseStore, StoreGetter } from 'lisk-sdk';
+import { MethodContext } from 'lisk-framework/dist-node/state_machine';
+import { BaseStore, ImmutableStoreGetter, ModuleEndpointContext, StoreGetter } from 'lisk-sdk';
 import { MAX_NUM_BYTES_Q96, MAX_TICK, MIN_TICK } from '../constants';
 
 export const tickToBytes = (tickValue: number): Buffer => {
@@ -82,7 +83,7 @@ export const priceTicksStoreSchema = {
 export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 	public schema = priceTicksStoreSchema;
 
-	public async getKey(context: StoreGetter, keys: Buffer[]): Promise<PriceTicksStoreData> {
+	public async getKey(context: ImmutableStoreGetter, keys: Buffer[]): Promise<PriceTicksStoreData> {
 		const key = Buffer.concat(keys);
 		return this.get(context, key);
 	}
@@ -106,7 +107,7 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 		await this.del(context, key);
 	}
 
-	public async getAll(context: StoreGetter) {
+	public async getAll(context: ImmutableStoreGetter) {
 		return this.iterate(context, {
 			gte: Buffer.alloc(16, 0),
 			lte: Buffer.alloc(16, 255),
@@ -114,47 +115,49 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 		});
 	}
 
-	public async getNextTick(context: StoreGetter, keys: Buffer[]){
+	public async getNextTick(context: ModuleEndpointContext | MethodContext, keys: Buffer[]) {
 		const key = Buffer.concat(keys);
-		let nextTick;
-		let nextflag;
+		const keysArray: string[] = [];
 		const allKeys = await this.iterate(context, {
 			gte: Buffer.alloc(16, 0),
 			lte: Buffer.alloc(16, 255),
 			reverse: false,
 		});
-		for(let i  = 0; i<allKeys.length; i++){
-			if(nextflag){
-				nextTick = allKeys[i].key;
-				break; 
-			}
-			if(allKeys[i].key.equals(key)){
-				nextflag = true;
-			}
+		allKeys.forEach(keyItem => {
+			keysArray.push(keyItem.key.toString('hex'));
+		});
+
+		const currentKeyIndex = keysArray.indexOf(key.toString('hex'), 0);
+
+		if (currentKeyIndex < keysArray.length - 1) {
+			const prevKey = Buffer.from(keysArray[currentKeyIndex + 1], 'hex');
+			const resKey = await this.getKey(context, [prevKey]);
+			return resKey;
 		}
-		return this.getKey(context,[nextTick]);	
-			
+		const resKey = await this.getKey(context, keys);
+		return resKey;
 	}
 
-	public async getPrevTick(context: StoreGetter, keys: Buffer[]){
+	public async getPrevTick(context: ModuleEndpointContext | MethodContext, keys: Buffer[]) {
 		const key = Buffer.concat(keys);
-		let prevTick;
-		let prevflag;
+		const keysArray: string[] = [];
 		const allKeys = await this.iterate(context, {
 			gte: Buffer.alloc(16, 0),
 			lte: Buffer.alloc(16, 255),
 			reverse: false,
 		});
-		for(let i  = 0; i<allKeys.length; i++){						
-			if(allKeys[i].key.equals(key)){
-				prevflag = true;
-			}
-			if(prevflag){				
-				break; 
-			}
-			prevTick = allKeys[i].key;
-		}
-		return this.getKey(context,[prevTick]);	
-	}
+		allKeys.forEach(keyItem => {
+			keysArray.push(keyItem.key.toString('hex'));
+		});
 
+		const currentKeyIndex = keysArray.indexOf(key.toString('hex'), 0);
+
+		if (currentKeyIndex > 0) {
+			const prevKey = Buffer.from(keysArray[currentKeyIndex - 1], 'hex');
+			const resKey = await this.getKey(context, [prevKey]);
+			return resKey;
+		}
+		const resKey = await this.getKey(context, keys);
+		return resKey;
+	}
 }

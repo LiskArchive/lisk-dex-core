@@ -139,21 +139,41 @@ export interface InteroperabilityMethod {
 	getChannel(methodContext: MethodContext, chainID: Buffer): Promise<{ messageFeeTokenID: Buffer }>;
 }
 
-export type routeInterface = {
-	path: TokenID[];
-	endVertex: TokenID;
-};
-
-export type TickID = Buffer;
+// Swap Types
+export type TickID = Buffer; // TickID for Swap types
+// PoolsGraph for Swap types
 export type PoolsGraph = {
 	vertices: Set<TokenID>;
 	edges: Set<PoolID>;
+};
+
+export type routeInterface = {
+	path: TokenID[];
+	endVertex: TokenID;
 };
 
 export type AdjacentEdgesInterface = {
 	edge: Buffer;
 	vertex: Buffer;
 };
+
+export interface SwapExactInParamsData {
+	tokenIdIn: Buffer;
+	amountTokenIn: bigint;
+	tokenIdOut: Buffer;
+	minAmountTokenOut: bigint;
+	swapRoute: Buffer[];
+	maxTimestampValid: bigint;
+}
+
+export interface SwapExactOutParamsData {
+	tokenIdIn: Buffer;
+	maxAmountTokenIn: bigint;
+	tokenIdOut: Buffer;
+	amountTokenOut: bigint;
+	swapRoute: Buffer[];
+	maxTimestampValid: bigint;
+}
 
 export type feesInterface = {
 	in: bigint;

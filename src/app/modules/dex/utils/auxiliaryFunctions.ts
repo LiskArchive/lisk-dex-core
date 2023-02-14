@@ -16,10 +16,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MethodContext, TokenMethod, cryptography } from 'lisk-sdk';
+import { MethodContext, TokenMethod, cryptography, ModuleEndpointContext } from 'lisk-sdk';
 
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 
+import { MAX_SINT32 } from '@liskhq/lisk-validator';
 import {
 	DexGlobalStore,
 	PoolsStore,
@@ -96,6 +97,8 @@ import { PriceTicksStoreData, tickToBytes } from '../stores/priceTicksStore';
 import { ADDRESS_VALIDATOR_REWARDS_POOL } from '../../dexRewards/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
 import { PoolsStoreData } from '../stores/poolsStore';
+import { DexEndpoint } from '../endpoint';
+import { DexModule } from '../module';
 
 const { utils } = cryptography;
 
@@ -1086,7 +1089,7 @@ export const computeRegularRoute = async (
 };
 
 export const computeExceptionalRoute = async (
-	methodContext: MethodContext,
+	methodContext: ModuleEndpointContext,
 	stores: NamedRegistry,
 	tokenIn: TokenID,
 	tokenOut: TokenID,
@@ -1255,15 +1258,15 @@ export const getCredibleDirectPrice = async (
 	const token1ValuesLocked: bigint[] = [];
 
 	for (const directPool of directPools) {
-		const pool = await getPool(methodContext, stores, directPool);
-		const token0Amount = await getToken0Amount(tokenMethod, methodContext, directPool);
+		const pool = await endpoint.getPool(methodContext, directPool);
+		const token0Amount = await endpoint.getToken0Amount(tokenMethod, methodContext, directPool);
 		const token0ValueQ96 = mulQ96(
 			mulQ96(numberToQ96(token0Amount), bytesToQ96(pool.sqrtPrice)),
 			bytesToQ96(pool.sqrtPrice),
 		);
 		token1ValuesLocked.push(
 			roundDownQ96(token0ValueQ96) +
-			(await getToken1Amount(tokenMethod, methodContext, directPool)),
+			(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
 		);
 	}
 

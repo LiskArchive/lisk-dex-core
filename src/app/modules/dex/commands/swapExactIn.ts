@@ -1,3 +1,7 @@
+/* eslint-disable import/no-cycle */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * Copyright © 2021 Lisk Foundation
  *
@@ -31,11 +35,8 @@ import {
 import { swapExactInCommandSchema } from '../schemas';
 import { feesInterface, SwapExactInParamsData } from '../types';
 import {
-	computeCurrentPrice,
 	getToken0Id,
 	getToken1Id,
-	swap,
-	transferFeesFromPool,
 	transferFromPool,
 	transferPoolToPool,
 	transferToPool,
@@ -43,6 +44,7 @@ import {
 import { SwapFailedEvent } from '../events/swapFailed';
 import { SwappedEvent } from '../events/swapped';
 import { q96ToBytes } from '../utils/q96';
+import { computeCurrentPrice, swap, transferFeesFromPool } from '../utils/swapFunctions';
 
 export class SwapExactInCommand extends BaseCommand {
 	public id = COMMAND_ID_SWAP_EXACT_INPUT;
@@ -64,27 +66,24 @@ export class SwapExactInCommand extends BaseCommand {
 				error: err as Error,
 			};
 		}
-
 		const { tokenIdIn, tokenIdOut, swapRoute } = ctx.params;
-
 		if (tokenIdIn.equals(tokenIdOut)) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error('tokenIdIn and tokenIdOut are same'),
 			};
 		}
-
 		if (swapRoute === null || swapRoute.length === 0 || swapRoute.length > MAX_HOPS_SWAP) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error(
-					'SwapRout is either null or empty or length is greater than MAX_HOPS_SWAP',
+					'SwapRoute is either null or empty or length is greater than MAX_HOPS_SWAP',
 				),
 			};
 		}
 
 		const firstPool = swapRoute[0];
-		const lastPool = swapRoute[-1];
+		const lastPool = swapRoute[swapRoute.length - 1];
 
 		if (!getToken0Id(firstPool).equals(tokenIdIn) && !getToken1Id(firstPool).equals(tokenIdIn)) {
 			return {
@@ -101,14 +100,14 @@ export class SwapExactInCommand extends BaseCommand {
 		}
 
 		/*
-        TODO: Not yet implemented on SDK
-        if (maxTimestampValid < lastBlockheader.timestamp){
-            return {
+				TODO: Not yet implemented on SDK
+				if (maxTimestampValid < lastBlockheader.timestamp){
+						return {
 				status: VerifyStatus.FAIL,
 				error: new Error('maxTimestampValid is less than lastBlockheader.timestamp'),
 			};
-        }
-        */
+				}
+				*/
 
 		return {
 			status: VerifyStatus.OK,
@@ -123,9 +122,10 @@ export class SwapExactInCommand extends BaseCommand {
 		const fees: feesInterface[] = [];
 		let priceBefore: bigint;
 		/* 
-            const currentHeight = height of the block containing trs
-        */
-		const currentHeight = 0;
+						const currentHeight = height of the block containing trs
+				*/
+
+		const currentHeight = ctx.header.height;
 		try {
 			priceBefore = await computeCurrentPrice(
 				methodContext,
@@ -141,15 +141,15 @@ export class SwapExactInCommand extends BaseCommand {
 					senderAddress,
 					tokenIdIn,
 					tokenIdOut,
-					reason: SwapFailedReasons.SWAPFAILEDINVALIDROUTE,
+					reason: SwapFailedReasons.SWAP_FAILED_INVALID_ROUTE,
 				},
 				[senderAddress],
 				true,
 			);
-			throw new Error();
+			throw new Error('SWAP_FAILED_INVALID_ROUTE');
 		}
-        for (const swapRt of swapRoute) {
-			const currentTokenIn = tokens[-1];
+		for (const swapRt of swapRoute) {
+			const currentTokenIn = tokens[tokens.length - 1];
 			let zeroToOne = false;
 			let IdOut;
 			if (getToken0Id(swapRt).equals(currentTokenIn.id)) {
@@ -159,7 +159,7 @@ export class SwapExactInCommand extends BaseCommand {
 				zeroToOne = false;
 				IdOut = getToken0Id(swapRt);
 			} else {
-				throw new Error ('getToken0Id or getToken1Id is not equal to currentTokenIn.id')
+				throw new Error('getToken0Id or getToken1Id is not equal to currentTokenIn.id');
 			}
 			const sqrtLimitPrice = zeroToOne ? MIN_SQRT_RATIO : MAX_SQRT_RATIO;
 			try {
@@ -167,10 +167,10 @@ export class SwapExactInCommand extends BaseCommand {
 					methodContext,
 					this.stores,
 					swapRt,
-					zeroToOne,
+					true,
 					sqrtLimitPrice,
 					currentTokenIn.amount,
-					false,
+					true,
 					currentHeight,
 					tokenIdIn,
 					tokenIdOut,
@@ -184,23 +184,23 @@ export class SwapExactInCommand extends BaseCommand {
 						senderAddress,
 						tokenIdIn,
 						tokenIdOut,
-						reason: SwapFailedReasons.SWAPFAILEDTOOMANYTICKS,
+						reason: SwapFailedReasons.SWAP_FAILED_TOO_MANY_TICKS,
 					},
 					[senderAddress],
 					true,
 				);
-				throw new Error();
+				throw new Error('SWAP_FAILED_TOO_MANY_TICKS');
 			}
 		}
-		
-		if (tokens[-1].amount < minAmountTokenOut) {
+
+		if (tokens[tokens.length - 1].amount < minAmountTokenOut) {
 			this.events.get(SwapFailedEvent).add(
 				methodContext,
 				{
 					senderAddress,
 					tokenIdIn,
 					tokenIdOut,
-					reason: SwapFailedReasons.SWAPFAILEDNOTENOUGH,
+					reason: SwapFailedReasons.SWAP_FAILED_NOT_ENOUGH,
 				},
 				[senderAddress],
 				true,
@@ -221,9 +221,9 @@ export class SwapExactInCommand extends BaseCommand {
 				swapRoute[0],
 				tokenIdIn,
 				amountTokenIn,
-			).catch((err: string | undefined)=>{
-                throw new Error(err)
-              });
+			).catch((err: string | undefined) => {
+				throw new Error(err);
+			});
 			transferFeesFromPool(
 				this._tokenMethod,
 				methodContext,
@@ -231,7 +231,7 @@ export class SwapExactInCommand extends BaseCommand {
 				tokenIdIn,
 				swapRoute[0],
 			);
-			for (let i = 1; i < swapRoute.length; i+=1) {
+			for (let i = 1; i < swapRoute.length; i += 1) {
 				transferFeesFromPool(
 					this._tokenMethod,
 					methodContext,
@@ -246,9 +246,9 @@ export class SwapExactInCommand extends BaseCommand {
 					swapRoute[i],
 					tokens[i].id,
 					tokens[i].amount,
-				).catch((err: string | undefined)=>{
-					throw new Error(err)
-				  });
+				).catch((err: string | undefined) => {
+					throw new Error(err);
+				});
 				transferFeesFromPool(
 					this._tokenMethod,
 					methodContext,
@@ -260,20 +260,20 @@ export class SwapExactInCommand extends BaseCommand {
 			transferFeesFromPool(
 				this._tokenMethod,
 				methodContext,
-				Number(fees[-1].out),
+				Number(fees[fees.length - 1].out),
 				tokenIdOut,
-				swapRoute[-1],
+				swapRoute[swapRoute.length - 1],
 			);
 			transferFromPool(
 				this._tokenMethod,
 				methodContext,
-				swapRoute[-1],
+				swapRoute[swapRoute.length - 1],
 				senderAddress,
 				tokenIdOut,
-				tokens[-1].amount,
-			).catch((err: string | undefined)=>{
-                throw new Error(err)
-              });
+				tokens[tokens.length - 1].amount,
+			).catch((err: string | undefined) => {
+				throw new Error(err);
+			});
 
 			this.events.get(SwappedEvent).add(
 				methodContext,
@@ -284,7 +284,7 @@ export class SwapExactInCommand extends BaseCommand {
 					tokenIdIn,
 					amountIn: amountTokenIn,
 					tokenIdOut,
-					amountOut: tokens[-1].amount,
+					amountOut: tokens[tokens.length - 1].amount,
 				},
 				[senderAddress],
 			);
