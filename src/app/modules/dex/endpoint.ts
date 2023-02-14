@@ -13,11 +13,18 @@
  */
 
 import { BaseEndpoint, ModuleEndpointContext, TokenMethod } from 'lisk-sdk';
+import { MethodContext } from 'lisk-framework/dist-node/state_machine';
+import {
+	MODULE_ID_DEX,
+	NUM_BYTES_POOL_ID,
+	TOKEN_ID_LSK,
+	NUM_BYTES_ADDRESS,
+	NUM_BYTES_POSITION_ID,
+} from './constants';
 
-import { MODULE_ID_DEX, NUM_BYTES_POOL_ID, TOKEN_ID_LSK } from './constants';
-import { NUM_BYTES_ADDRESS, NUM_BYTES_POSITION_ID } from './constants';
 import { PoolsStore } from './stores';
 import { PoolID, PositionID, Q96, TickID, TokenID } from './types';
+// eslint-disable-next-line import/no-cycle
 import {
 	computeExceptionalRoute,
 	computeRegularRoute,
@@ -35,11 +42,13 @@ import { PriceTicksStore, PriceTicksStoreData, tickToBytes } from './stores/pric
 import { uint32beInv } from './utils/bigEndian';
 
 export class DexEndpoint extends BaseEndpoint {
-	public async getAllPoolIDs(methodContext: ModuleEndpointContext): Promise<PoolID[]> {
+	public async getAllPoolIDs(
+		methodContext: ModuleEndpointContext | MethodContext,
+	): Promise<PoolID[]> {
 		const poolStore = this.stores.get(PoolsStore);
 		const store = await poolStore.getAll(methodContext);
 		const poolIds: PoolID[] = [];
-		if (store && store.length) {
+		if (store?.length) {
 			store.forEach(poolId => {
 				poolIds.push(poolId.key);
 			});
@@ -70,7 +79,7 @@ export class DexEndpoint extends BaseEndpoint {
 	}
 
 	public async getPool(
-		methodContext: ModuleEndpointContext,
+		methodContext: ModuleEndpointContext | MethodContext,
 		poolID: PoolID,
 	): Promise<PoolsStoreData> {
 		const poolsStore = this.stores.get(PoolsStore);
@@ -113,7 +122,7 @@ export class DexEndpoint extends BaseEndpoint {
 	}
 
 	public async getTickWithTickId(
-		methodContext: ModuleEndpointContext,
+		methodContext: ModuleEndpointContext | MethodContext,
 		tickId: TickID[],
 	): Promise<PriceTicksStoreData> {
 		const priceTicksStore = this.stores.get(PriceTicksStore);
@@ -247,6 +256,7 @@ export class DexEndpoint extends BaseEndpoint {
 			);
 
 			const tokenIDArrays = [tokenIn, rt];
+			// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
 			const [tokenID0, tokenID1] = tokenIDArrays.sort();
 
 			if (tokenIn.equals(tokenID0) && rt.equals(tokenID1)) {
