@@ -53,7 +53,6 @@ import {
 	getDexGlobalData,
 	getTickWithPoolIdAndTickValue,
 	getAdjacent,
-	computeCurrentPrice,
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
