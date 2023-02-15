@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+/* eslint-disable @typescript-eslint/unbound-method */
 
 /*
  * Copyright © 2022 Lisk Foundation
@@ -1242,7 +1243,7 @@ export const crossTick = async (
 };
 
 export const getAdjacent = async (
-	methodContext: MethodContext,
+	methodContext,
 	stores: NamedRegistry,
 	vertex: TokenID,
 ): Promise<AdjacentEdgesInterface[]> => {
@@ -1277,6 +1278,7 @@ export const getCredibleDirectPrice = async (
 	settings.forEach(setting => {
 		const tokenIDAndSettingsArray = [concatedTokenIDs, q96ToBytes(numberToQ96(setting.feeTier))];
 		const potentialPoolId: Buffer = Buffer.concat(tokenIDAndSettingsArray);
+
 		allpoolIDs.forEach(poolId => {
 			if (poolId.equals(potentialPoolId)) {
 				directPools.push(potentialPoolId);

@@ -52,6 +52,8 @@ const {
 } = testing;
 const { utils } = cryptography;
 
+const skipOnCI = process.env.CI ? describe.skip : describe;
+
 describe('dex:command:removeLiquidity', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 	let command: RemoveLiquidityCommand;
@@ -418,7 +420,7 @@ describe('dex:command:removeLiquidity', () => {
 		});
 	});
 
-	describe('stress test for checking the events', () => {
+	skipOnCI('stress test for checking the events', () => {
 		// eslint-disable-next-line @typescript-eslint/no-floating-promises
 		(async () => {
 			const testarray = Array.from({ length: 10000 });

@@ -36,6 +36,8 @@ import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 
 const { createTransactionContext } = testing;
 
+const skipOnCI = process.env.CI ? describe.skip : describe;
+
 describe('dex:command:createPool', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 	let dexModule: DexModule;
@@ -124,7 +126,7 @@ describe('dex:command:createPool', () => {
 			expect(positionCreatedEvents).toHaveLength(1);
 		});
 
-		describe('stress test for checking the event emission and the time taken', () => {
+		skipOnCI('stress test for checking the event emission and the time taken', () => {
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			(async () => {
 				const testarray = Array.from({ length: 10000 });

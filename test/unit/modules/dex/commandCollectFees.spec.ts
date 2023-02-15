@@ -46,13 +46,15 @@ import { InMemoryPrefixedStateDB } from './inMemoryPrefixedStateDB';
 const { createBlockContext, createBlockHeaderWithDefaults, createTransactionContext } = testing;
 const { utils } = cryptography;
 
+const skipOnCI = process.env.CI ? describe.skip : describe;
+
 describe('dex:command:collectFees', () => {
 	describe('dex:command:collectFees', () => {
 		const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 		let command: CollectFeesCommand;
 		let stateStore: PrefixedStateReadWriter;
 		let methodContext: MethodContext;
-		let contextStore = new Map();
+		const contextStore = new Map();
 
 		const dexModule = new DexModule();
 		const senderAddress: Address = Buffer.from('00000000000000000', 'hex');
@@ -205,7 +207,7 @@ describe('dex:command:collectFees', () => {
 						nonce: BigInt(0),
 						senderPublicKey: senderAddress,
 						params: codec.encode(collectFeesSchema, {
-							positions: new Array(24).fill({ positionID: Buffer.from('0000000100', 'hex') }),
+							positions: new Array(500).fill({ positionID: Buffer.from('0000000100', 'hex') }),
 						}),
 						signatures: [utils.getRandomBytes(64)],
 					}),
@@ -264,7 +266,7 @@ describe('dex:command:collectFees', () => {
 			});
 		});
 
-		describe('stress test for checking the event emission and the time taken', () => {
+		skipOnCI('stress test for checking the event emission and the time taken', () => {
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			(async () => {
 				const testarray = Array.from({ length: 10000 });

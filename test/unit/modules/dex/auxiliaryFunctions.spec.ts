@@ -17,13 +17,12 @@
  */
 
 import { MethodContext, TokenMethod } from 'lisk-framework';
-import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_machine';
+import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 
 import {
 	getToken0Id,
 	getToken1Id,
-	getFeeTier,
 	getPoolIDFromPositionID,
 	createPool,
 	computePoolID,
@@ -75,6 +74,8 @@ import {
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
+import { createTransientModuleEndpointContext } from '../../../context/createContext';
+import { getAdjacent } from '../../../../src/app/modules/dex/utils/swapFunctions';
 
 describe('dex:auxiliaryFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
@@ -83,13 +84,17 @@ describe('dex:auxiliaryFunctions', () => {
 	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
-	const feeTier = Number('0x00000c8');
 	const sqrtPrice: bigint = numberToQ96(BigInt(1));
 	const dexModule = new DexModule();
-
-	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
+	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
-	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
+
+	const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+
+	const moduleEndpointContext = createTransientModuleEndpointContext({
+		stateStore,
+		params: { address: INVALID_ADDRESS },
+	});
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
@@ -145,6 +150,7 @@ describe('dex:auxiliaryFunctions', () => {
 		incentivizedPools: [{ poolId, multiplier: 10 }],
 		totalIncentivesMultiplier: 1,
 	};
+
 	const positionsStoreData: PositionsStoreData = {
 		tickLower: -10,
 		tickUpper: 10,
@@ -241,9 +247,6 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 		it('should get Token1Id from poolID', () => {
 			expect(getToken1Id(poolId)).toEqual(token1Id);
-		});
-		it('should return the feeTier from the poolID', () => {
-			expect(getFeeTier(poolId)).toEqual(feeTier);
 		});
 
 		it('should transfer and lock using the tokenMethod', async () => {
@@ -412,6 +415,7 @@ describe('dex:auxiliaryFunctions', () => {
 				}),
 			).toBeUndefined();
 		});
+
 		it('priceToTick', () => {
 			expect(priceToTick(tickToPrice(-735247))).toEqual(-735247);
 		});
@@ -441,6 +445,11 @@ describe('dex:auxiliaryFunctions', () => {
 			await getAllTicks(methodContext, dexModule.stores).then(res => {
 				expect(res).not.toBeNull();
 			});
+		});
+
+		it('getAdjacent', async () => {
+			const res = await getAdjacent(moduleEndpointContext, dexModule.stores, token0Id);
+			expect(res).not.toBeNull();
 		});
 
 		it('getCredibleDirectPrice', async () => {
