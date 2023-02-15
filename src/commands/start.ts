@@ -41,7 +41,7 @@ const setPluginConfig = (config: ApplicationConfig, flags: Flags): void => {
 };
 
 export class StartCommand extends BaseStartCommand {
-	static flags: any = {
+	static flags = {
 		...BaseStartCommand.flags,
 		'enable-forger-plugin': flagParser.boolean({
 			description:

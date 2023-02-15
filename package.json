@@ -127,14 +127,14 @@
 =======
 =======
 		"@liskhq/lisk-chain": "0.4.0-alpha.12",
+		"@liskhq/lisk-codec": "0.3.0-alpha.7",
 		"@liskhq/lisk-cryptography": "4.0.0-alpha.6",
 		"@liskhq/lisk-db": "0.3.4",
 		"@liskhq/lisk-framework-chain-connector-plugin": "0.1.0-alpha.3",
-		"@liskhq/lisk-framework-dashboard-plugin": "0.2.0-alpha.13",
-		"@liskhq/lisk-framework-faucet-plugin": "0.2.0-alpha.13",
-		"@liskhq/lisk-framework-forger-plugin": "0.3.0-alpha.13",
-		"@liskhq/lisk-framework-monitor-plugin": "0.3.0-alpha.13",
-		"@liskhq/lisk-framework-report-misbehavior-plugin": "0.3.0-alpha.13",
+		"@liskhq/lisk-framework-dashboard-plugin": "0.2.0-alpha.14",
+		"@liskhq/lisk-framework-faucet-plugin": "0.2.0-alpha.14",
+		"@liskhq/lisk-framework-forger-plugin": "0.3.0-alpha.14",
+		"@liskhq/lisk-framework-monitor-plugin": "0.3.0-alpha.14",
 		"@liskhq/lisk-validator": "0.7.0-alpha.6",
 		"@oclif/command": "1.8.20",
 		"@oclif/config": "1.18.8",
@@ -163,8 +163,9 @@
 =======
 		"fs-extra": "11.1.0",
 		"inquirer": "8.2.5",
-		"lisk-commander": "6.0.0-alpha.13",
-		"lisk-sdk": "6.0.0-alpha.13",
+		"lisk-commander": "6.0.0-alpha.14",
+		"lisk-framework": "0.10.0-alpha.14",
+		"lisk-sdk": "6.0.0-alpha.14",
 		"tar": "6.1.11",
 		"tslib": "2.4.1"
 >>>>>>> 83c1b6c (Fixes)

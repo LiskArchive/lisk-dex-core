@@ -318,7 +318,8 @@ describe('dex: offChainEndpointFunctions', () => {
 
 		it('getLSKPrice', async () => {
 			const feeTier = q96ToBytes(
-				BigInt(numberToQ96(dexGlobalStoreData.poolCreationSettings[0].feeTier)),
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+				BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings.feeTier, 0)),
 			);
 			await poolsStore.setKey(
 				methodContext,
