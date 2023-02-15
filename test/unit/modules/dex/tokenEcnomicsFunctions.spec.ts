@@ -117,7 +117,7 @@ describe('dex:tokenEcnomicsFunctions', () => {
 		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(0))),
 		ownerAddress: senderAddress,
-		incentivesPerLiquidityLast: q96ToBytes(numberToQ96(BigInt(10)))
+		incentivesPerLiquidityLast: q96ToBytes(numberToQ96(BigInt(10))),
 	};
 
 	const settingStoreData: SettingsStoreData = {
@@ -204,7 +204,7 @@ describe('dex:tokenEcnomicsFunctions', () => {
 
 		it('updatePoolIncentives', async () => {
 			const pool = await getPool(methodContext, dexModule.stores, poolId);
-			await poolsStore.set(methodContext,poolId,poolsStoreData)
+			await poolsStore.set(methodContext, poolId, poolsStoreData);
 			const currentHeight = pool.heightIncentivesUpdate + 10;
 			const newIncentivesPerLiquidity = await computeNewIncentivesPerLiquidity(
 				methodContext,

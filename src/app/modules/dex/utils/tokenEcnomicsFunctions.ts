@@ -32,7 +32,7 @@ export const computeNewIncentivesPerLiquidity = async (
 	const dexGlobalStore = stores.get(DexGlobalStore);
 	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
 	let incentivizedPools: { poolId: Buffer; multiplier: number } | undefined;
-	let pooldIDFlag:boolean=false;
+	let pooldIDFlag = false;
 
 	dexGlobalStoreData.incentivizedPools.forEach(incentivizedPool => {
 		if (incentivizedPool.poolId.equals(poolID)) {
@@ -46,9 +46,9 @@ export const computeNewIncentivesPerLiquidity = async (
 
 	const pool = await getPool(methodContext, stores, poolID);
 	const allPoolIds = await getAllPoolIDs(methodContext, stores.get(PoolsStore));
-	
-	for(poolID of allPoolIds){
-		if(poolID.equals(poolID)){
+
+	for (const poolIDItem of allPoolIds) {
+		if (poolIDItem.equals(poolID)) {
 			pooldIDFlag = true;
 		}
 	}

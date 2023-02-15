@@ -123,7 +123,7 @@ export class AddLiquidityCommand extends BaseCommand {
 			this._tokenMethod,
 			positionID,
 			liquidity,
-			ctx.header.height
+			ctx.header.height,
 		);
 
 		if (amount0 < amount0Min || amount1 < amount1Min) {

@@ -116,8 +116,6 @@ export const FEE_TIER_PARTITION = 1000000;
 export const ADDRESS_VALIDATOR_INCENTIVES = sha256('validatorIncentivesAccount').slice(0, 20);
 export const VALIDATORS_LSK_INCENTIVE_PART = 20000;
 
-
-
 export enum SwapFailedReasons {
 	SWAP_FAILED_INVALID_ROUTE,
 	SWAP_FAILED_TOO_MANY_TICKS,
