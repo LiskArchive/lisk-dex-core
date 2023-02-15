@@ -108,7 +108,6 @@ export class DexEndpoint extends BaseEndpoint {
 		return result;
 	}
 
-
 	public async getCurrentSqrtPrice(methodContext): Promise<Q96> {
 		validator.validate<{ poolID: Buffer; priceDirection: false }>(
 			getCurrentSqrtPriceRequestSchema,
@@ -317,9 +316,7 @@ export class DexEndpoint extends BaseEndpoint {
 		return result;
 	}
 
-	public async getPool(
-		methodContext,
-	): Promise<PoolsStoreData> {
+	public async getPool(methodContext): Promise<PoolsStoreData> {
 		validator.validate<{ poolID: Buffer }>(getPoolRequestSchema, methodContext.params);
 		const poolsStore = this.stores.get(PoolsStore);
 		const key = await poolsStore.getKey(methodContext, [methodContext.params.poolID]);

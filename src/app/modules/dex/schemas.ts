@@ -534,7 +534,6 @@ export const getAllPositionIDsInPoolResponseSchema = {
 	},
 };
 
-
 export const getCurrentSqrtPriceRequestSchema = {
 	$id: 'dex/endpoint/getCurrentSqrtPriceRequest',
 	type: 'object',
@@ -715,7 +714,6 @@ export const getPositionIndexResponseSchema = {
 	},
 };
 
-
 export const getPoolIDFromTickIDResponseSchema = {
 	$id: 'dex/endpoint/getPoolIDFromTickIDResponse',
 	type: 'object',
@@ -893,8 +891,6 @@ export const getAllTicksResponseSchema = {
 		},
 	},
 };
-
-
 
 export const getAllTickIDsInPoolRequestSchema = {
 	$id: 'dex/endpoint/getAllTickIDsInPoolRequest',
