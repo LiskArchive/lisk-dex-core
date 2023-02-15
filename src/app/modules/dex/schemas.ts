@@ -927,7 +927,7 @@ export const getAllTickIDsInPoolResponseSchema = {
 };
 
 export const getCollectableFeesAndIncentivesRequestSchema = {
-	$id: 'dex/getCollectableFeesAndIncentives',
+	$id: 'dex/endpoint/getCollectableFeesAndIncentivesRequest',
 	type: 'object',
 	required: ['positionID'],
 	properties: {
@@ -939,7 +939,7 @@ export const getCollectableFeesAndIncentivesRequestSchema = {
 };
 
 export const getCollectableFeesAndIncentivesResponseSchema = {
-	$id: 'dex/getCollectableFeesAndIncentives',
+	$id: 'dex/endpoint/getCollectableFeesAndIncentivesResponse',
 	type: 'object',
 	required: ['feesAndIncentives'],
 	properties: {
