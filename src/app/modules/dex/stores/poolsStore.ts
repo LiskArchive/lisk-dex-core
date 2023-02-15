@@ -90,11 +90,11 @@ export class PoolsStore extends BaseStore<PoolsStoreData> {
 		await this.set(context, key, value);
 	}
 
-	public async getAll(context: ImmutableStoreGetter) {
+	public async getAll(context: StoreGetter) {
 		return this.iterate(context, {
 			gte: Buffer.alloc(16, 0),
 			lte: Buffer.alloc(16, 255),
-			reverse: false,
+			reverse: true,
 		});
 	}
 }

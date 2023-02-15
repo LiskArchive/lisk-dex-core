@@ -90,7 +90,7 @@ describe('dex: offChainEndpointFunctions', () => {
 	const poolsStoreData: PoolsStoreData = {
 		liquidity: BigInt(5),
 		sqrtPrice: q96ToBytes(BigInt(tickToPrice(5))),
-		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(1000))),
 		heightIncentivesUpdate: 5,
 		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(0))),
@@ -115,7 +115,6 @@ describe('dex: offChainEndpointFunctions', () => {
 
 	const dexGlobalStoreData: DexGlobalStoreData = {
 		positionCounter: BigInt(15),
-		collectableLSKFees: BigInt(10),
 		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
 		incentivizedPools: [{ poolId, multiplier: 10 }],
 		totalIncentivesMultiplier: 1,
@@ -127,6 +126,7 @@ describe('dex: offChainEndpointFunctions', () => {
 		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(0))),
 		ownerAddress: senderAddress,
+		incentivesPerLiquidityLast: q96ToBytes(numberToQ96(BigInt(0))),
 	};
 
 	const settingStoreData: SettingsStoreData = {
@@ -213,9 +213,7 @@ describe('dex: offChainEndpointFunctions', () => {
 
 		it('getAllPoolIDs', async () => {
 			await endpoint.getAllPoolIDs(moduleEndpointContext).then(res => {
-				expect(res[0]).toStrictEqual(
-					Buffer.from('000000000000000000000001000000000101643130', 'hex'),
-				);
+				expect(res[0]).toStrictEqual(Buffer.from('00000001000000000101643130', 'hex'));
 			});
 		});
 
@@ -283,7 +281,6 @@ describe('dex: offChainEndpointFunctions', () => {
 			await endpoint.getDexGlobalData(moduleEndpointContext).then(res => {
 				expect(res).not.toBeNull();
 				expect(res.positionCounter).toBe(BigInt(15));
-				expect(res.collectableLSKFees).toBe(BigInt(10));
 			});
 		});
 
@@ -319,9 +316,8 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getLSKPrice', async () => {
-			const result = Buffer.alloc(4);
 			const feeTier = q96ToBytes(
-				BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings.feeTier, 0)),
+				BigInt(numberToQ96(dexGlobalStoreData.poolCreationSettings[0].feeTier)),
 			);
 			await poolsStore.setKey(
 				methodContext,
@@ -330,12 +326,14 @@ describe('dex: offChainEndpointFunctions', () => {
 			);
 			await poolsStore.setKey(methodContext, [poolIdLSK, poolIdLSK, feeTier], poolsStoreData);
 			await poolsStore.setKey(methodContext, [poolIdLSK, positionId, feeTier], poolsStoreData);
+			await poolsStore.setKey(methodContext, [positionId, positionId, feeTier], poolsStoreData);
 
 			const res = await endpoint.getLSKPrice(
 				tokenMethod,
-				moduleEndpointContext,
+				methodContext,
 				getPoolIDFromPositionID(positionId),
 			);
+
 			expect(res).toBe(BigInt(1));
 		});
 

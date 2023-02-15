@@ -164,6 +164,7 @@ export class CreatePositionCommand extends BaseCommand {
 			this._tokenMethod,
 			positionID,
 			liquidity,
+			ctx.header.height,
 		);
 
 		const tokenID0 = getToken0Id(poolID);

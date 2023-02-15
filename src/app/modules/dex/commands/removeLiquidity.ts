@@ -85,6 +85,7 @@ export class RemoveLiquidityCommand extends BaseCommand {
 			this._tokenMethod,
 			positionID,
 			liquidityToRemove,
+			ctx.header.height,
 		);
 		const poolID = getPoolIDFromPositionID(positionID);
 		const tokenID0 = getToken0Id(poolID);
