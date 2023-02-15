@@ -120,7 +120,7 @@ describe('dex:command:removeLiquidity', () => {
 		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(3))),
 		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(1))),
 		ownerAddress: senderAddress,
-		incentivesPerLiquidityLast: q96ToBytes(numberToQ96(BigInt(0)))
+		incentivesPerLiquidityLast: q96ToBytes(numberToQ96(BigInt(0))),
 	};
 
 	beforeEach(async () => {
@@ -421,7 +421,7 @@ describe('dex:command:removeLiquidity', () => {
 	describe('stress test for checking the events', () => {
 		// eslint-disable-next-line @typescript-eslint/no-floating-promises
 		(async () => {
-			const testarray = Array.from({ length: 1000 });
+			const testarray = Array.from({ length: 10000 });
 			await Promise.all(testarray.map(() => stress()));
 		})();
 

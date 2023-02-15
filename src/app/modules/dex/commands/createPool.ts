@@ -214,7 +214,7 @@ export class CreatePoolCommand extends BaseCommand {
 			this._tokenMethod,
 			positionID,
 			liquidity,
-			ctx.header.height
+			ctx.header.height,
 		);
 
 		if (amount0 === BigInt(0) || amount1 === BigInt(0)) {

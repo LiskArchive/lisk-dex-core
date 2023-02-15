@@ -78,7 +78,7 @@ describe('dex:command:collectFees', () => {
 		const poolsStoreData: PoolsStoreData = {
 			liquidity: BigInt(5),
 			sqrtPrice: q96ToBytes(BigInt('327099227039063106')),
-			incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+			incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(1000))),
 			heightIncentivesUpdate: 5,
 			feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
 			feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(6))),
@@ -90,7 +90,7 @@ describe('dex:command:collectFees', () => {
 			liquidityGross: BigInt(5),
 			feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(8))),
 			feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(5))),
-			incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(2))),
+			incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(0))),
 		};
 
 		const priceTicksStoreDataTickUpper: PriceTicksStoreData = {
@@ -98,7 +98,7 @@ describe('dex:command:collectFees', () => {
 			liquidityGross: BigInt(5),
 			feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(4))),
 			feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(3))),
-			incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(3))),
+			incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(0))),
 		};
 
 		const dexGlobalStoreData: DexGlobalStoreData = {
@@ -114,7 +114,7 @@ describe('dex:command:collectFees', () => {
 			feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(3))),
 			feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(1))),
 			ownerAddress: senderAddress,
-			incentivesPerLiquidityLast: q96ToBytes(numberToQ96(BigInt(10)))
+			incentivesPerLiquidityLast: q96ToBytes(numberToQ96(BigInt(0))),
 		};
 
 		beforeEach(async () => {

@@ -2,6 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-floating-promises */
+
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -19,6 +21,8 @@
 import { MethodContext, TokenMethod, cryptography } from 'lisk-sdk';
 
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
+
+import { MIN_SINT32 } from '@liskhq/lisk-validator';
 
 import {
 	DexGlobalStore,
@@ -96,10 +100,9 @@ import { ADDRESS_VALIDATOR_REWARDS_POOL } from '../../dexRewards/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
 import { PoolsStoreData } from '../stores/poolsStore';
 
-const { utils } = cryptography;
-
-import { MIN_SINT32 } from '@liskhq/lisk-validator';
 import { updatePoolIncentives } from './tokenEcnomicsFunctions';
+
+const { utils } = cryptography;
 
 const abs = (x: bigint) => (x < BigInt(0) ? -x : x);
 
@@ -251,15 +254,15 @@ export const checkPositionExistenceAndOwnership = async (
 export const collectFeesAndIncentives = async (
 	events: NamedRegistry,
 	stores: NamedRegistry,
-	tokenMethod:TokenMethod,
+	tokenMethod: TokenMethod,
 	methodContext,
 	positionID: PositionID,
-	currentHeight:number,
+	currentHeight: number,
 ): Promise<void> => {
 	const poolID = getPoolIDFromPositionID(positionID);
 	const positionsStore = stores.get(PositionsStore);
 	const poolStore = stores.get(PoolsStore);
-	
+
 	const positionInfo = await positionsStore.get(methodContext, positionID);
 	const poolInfo = await poolStore.get(methodContext, poolID);
 	const ownerAddress = await getOwnerAddressOfPosition(methodContext, positionsStore, positionID);
@@ -295,9 +298,8 @@ export const collectFeesAndIncentives = async (
 	positionInfo.feeGrowthInsideLast1 = q96ToBytes(feeGrowthInside1);
 
 	updatePoolIncentives(methodContext, stores, poolID, currentHeight);
-	
+
 	const incentivesAccumulatorQ96 = bytesToQ96(poolInfo.incentivesPerLiquidityAccumulator);
-	console.log(incentivesAccumulatorQ96)
 	const [collectableIncentives, incentivesPerLiquidityInside] = await computeCollectableIncentives(
 		methodContext,
 		stores,
@@ -321,9 +323,9 @@ export const collectFeesAndIncentives = async (
 		collectableIncentives,
 	);
 
-    positionInfo.incentivesPerLiquidityLast = q96ToBytes(incentivesPerLiquidityInside)
+	positionInfo.incentivesPerLiquidityLast = q96ToBytes(incentivesPerLiquidityInside);
 	await positionsStore.set(methodContext, positionID, positionInfo);
-			
+
 	events.get(FeesIncentivesCollectedEvent).log(methodContext, {
 		senderAddress: ownerAddress,
 		positionID,
@@ -369,51 +371,56 @@ export const computeCollectableIncentives = async (
 	methodContext,
 	stores: NamedRegistry,
 	positionID: PositionID,
-	incentivesPerLiquidityAccumulator:bigint,
+	incentivesPerLiquidityAccumulator: bigint,
 ): Promise<[bigint, bigint]> => {
 	let incentivesPLBelow;
 	let incentivesPLAbove;
-	
-	const positionsStore = stores.get(PositionsStore)
-	const poolsStore = stores.get(PoolsStore)
+
+	const positionsStore = stores.get(PositionsStore);
+	const poolsStore = stores.get(PoolsStore);
 	const priceTicksStore = stores.get(PriceTicksStore);
 
 	const poolID = getPoolIDFromPositionID(positionID);
-	const positionInfo = await positionsStore.get(methodContext,positionID);	
+	const positionInfo = await positionsStore.get(methodContext, positionID);
 	const poolInfo = await poolsStore.get(methodContext, poolID);
 
+	const { tickLower, tickUpper } = positionInfo;
+	const tickCurrent = priceToTick(bytesToQ96(poolInfo.sqrtPrice));
 
-	const tickLower = positionInfo.tickLower;
-	const tickUpper = positionInfo.tickUpper;	
-	const tickCurrent = priceToTick(bytesToQ96(poolInfo.sqrtPrice))	
-    
-	let priceTicksStoreKey = Buffer.concat([
-		poolID,
-		tickToBytes(tickLower),
-	]);
+	let priceTicksStoreKey = Buffer.concat([poolID, tickToBytes(tickLower)]);
 	const lowerTickInfo = await priceTicksStore.get(methodContext, priceTicksStoreKey);
-	priceTicksStoreKey = Buffer.concat([
-		poolID,
-		tickToBytes(tickUpper),
-	]);
-	const upperTickInfo = await priceTicksStore.get(methodContext,priceTicksStoreKey);
-	
-    if (tickCurrent >= tickLower){
-		incentivesPLBelow = bytesToQ96(lowerTickInfo.incentivesPerLiquidityOutside)
-	}       
-    else
-        {incentivesPLBelow = subQ96(incentivesPerLiquidityAccumulator, bytesToQ96(lowerTickInfo.incentivesPerLiquidityOutside))}
-    if (tickCurrent < tickUpper)
-        {incentivesPLAbove = bytesToQ96(upperTickInfo.incentivesPerLiquidityOutside)}
-    else
-       {incentivesPLAbove = subQ96(incentivesPerLiquidityAccumulator, bytesToQ96(upperTickInfo.incentivesPerLiquidityOutside))}
+	priceTicksStoreKey = Buffer.concat([poolID, tickToBytes(tickUpper)]);
+	const upperTickInfo = await priceTicksStore.get(methodContext, priceTicksStoreKey);
 
-	
-	console.log(subQ96(incentivesPerLiquidityAccumulator, incentivesPLBelow), incentivesPLAbove )
-	const incentivesPerLiquidityInside = subQ96(subQ96(incentivesPerLiquidityAccumulator, incentivesPLBelow), incentivesPLAbove)
-	const collectableIncentivesPL = subQ96(incentivesPerLiquidityInside, bytesToQ96(positionInfo.incentivesPerLiquidityLast))	
-	const collectableIncentives = roundDownQ96(mulQ96(collectableIncentivesPL, (positionInfo.liquidity)))
-	return [collectableIncentives, incentivesPerLiquidityInside]
+	if (tickCurrent >= tickLower) {
+		incentivesPLBelow = bytesToQ96(lowerTickInfo.incentivesPerLiquidityOutside);
+	} else {
+		incentivesPLBelow = subQ96(
+			incentivesPerLiquidityAccumulator,
+			bytesToQ96(lowerTickInfo.incentivesPerLiquidityOutside),
+		);
+	}
+	if (tickCurrent < tickUpper) {
+		incentivesPLAbove = bytesToQ96(upperTickInfo.incentivesPerLiquidityOutside);
+	} else {
+		incentivesPLAbove = subQ96(
+			incentivesPerLiquidityAccumulator,
+			bytesToQ96(upperTickInfo.incentivesPerLiquidityOutside),
+		);
+	}
+
+	const incentivesPerLiquidityInside = subQ96(
+		subQ96(incentivesPerLiquidityAccumulator, incentivesPLBelow),
+		incentivesPLAbove,
+	);
+	const collectableIncentivesPL = subQ96(
+		incentivesPerLiquidityInside,
+		bytesToQ96(positionInfo.incentivesPerLiquidityLast),
+	);
+	const collectableIncentives = roundDownQ96(
+		mulQ96(collectableIncentivesPL, positionInfo.liquidity),
+	);
+	return [collectableIncentives, incentivesPerLiquidityInside];
 };
 
 export const computePoolID = (tokenID0: TokenID, tokenID1: TokenID, feeTier: number): Buffer => {
@@ -524,7 +531,7 @@ export const createPosition = async (
 		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(0))),
 		ownerAddress: senderAddress,
-		incentivesPerLiquidityLast: q96ToBytes(numberToQ96(BigInt(0))),	
+		incentivesPerLiquidityLast: q96ToBytes(numberToQ96(BigInt(0))),
 	};
 	await positionsStore.set(methodContext, positionID, positionValue);
 	return [POSITION_CREATION_SUCCESS, positionID];
@@ -714,7 +721,14 @@ export const updatePosition = async (
 		throw new Error();
 	}
 
-	await collectFeesAndIncentives(events, stores, tokenMethod, methodContext, positionID, currentHeight);
+	await collectFeesAndIncentives(
+		events,
+		stores,
+		tokenMethod,
+		methodContext,
+		positionID,
+		currentHeight,
+	);
 
 	if (liquidityDelta === BigInt(0)) {
 		amount0 = BigInt(0);
@@ -863,14 +877,9 @@ export const updateIncentivizedPools = async (
 	currentHeight: number,
 ) => {
 	const dexGlobalStoreData = await getDexGlobalData(methodContext, stores);
-	
+
 	for (const incentivizedPool of dexGlobalStoreData.incentivizedPools) {
-		await updatePoolIncentives(
-			methodContext,
-			stores,
-			incentivizedPool.poolId,
-			currentHeight,
-		);
+		await updatePoolIncentives(methodContext, stores, incentivizedPool.poolId, currentHeight);
 	}
 	dexGlobalStoreData.incentivizedPools.forEach((incentivizedPools, index) => {
 		if (incentivizedPools.poolId.equals(poolId)) {

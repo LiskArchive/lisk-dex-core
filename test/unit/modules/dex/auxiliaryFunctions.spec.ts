@@ -152,7 +152,7 @@ describe('dex:auxiliaryFunctions', () => {
 		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(0))),
 		ownerAddress: senderAddress,
-		incentivesPerLiquidityLast: q96ToBytes(numberToQ96(BigInt(0)))
+		incentivesPerLiquidityLast: q96ToBytes(numberToQ96(BigInt(0))),
 	};
 
 	const settingStoreData: SettingsStoreData = {
@@ -375,7 +375,7 @@ describe('dex:auxiliaryFunctions', () => {
 				tokenMethod,
 				positionId,
 				BigInt(200),
-				10
+				10,
 			).then(res => {
 				expect(res[0]).toBe(BigInt(1));
 				expect(res[1]).toBe(BigInt(1));
@@ -391,7 +391,7 @@ describe('dex:auxiliaryFunctions', () => {
 					tokenMethod,
 					positionId,
 					BigInt(-10000),
-					10
+					10,
 				),
 			).rejects.toThrow();
 		});
@@ -405,7 +405,7 @@ describe('dex:auxiliaryFunctions', () => {
 					tokenMethod,
 					positionId,
 					BigInt(0),
-					10
+					10,
 				).then(res => {
 					expect(res[0]).toBe(BigInt(0));
 					expect(res[1]).toBe(BigInt(0));
@@ -447,7 +447,7 @@ describe('dex:auxiliaryFunctions', () => {
 			const newTokenIDsArray = [
 				token0Id,
 				token1Id,
-				q96ToBytes(numberToQ96(dexGlobalStoreData.poolCreationSettings[0].feeTier))
+				q96ToBytes(numberToQ96(dexGlobalStoreData.poolCreationSettings[0].feeTier)),
 			];
 			await poolsStore.setKey(methodContext, newTokenIDsArray, poolsStoreData);
 			await poolsStore.set(methodContext, Buffer.from(newTokenIDsArray), poolsStoreData);
@@ -543,7 +543,7 @@ describe('dex:auxiliaryFunctions', () => {
 
 		it('updateIncentivizedPools', async () => {
 			const incentivizedPoolsLength = dexGlobalStoreData.incentivizedPools.length;
-			const totalIncentivesMultiplier = dexGlobalStoreData.totalIncentivesMultiplier;
+			const { totalIncentivesMultiplier } = dexGlobalStoreData;
 			const multiplier = 20;
 			const currentHeight = 100;
 			await updateIncentivizedPools(
@@ -551,11 +551,10 @@ describe('dex:auxiliaryFunctions', () => {
 				dexModule.stores,
 				poolId,
 				multiplier,
-				currentHeight
+				currentHeight,
 			);
 			expect(dexGlobalStoreData.totalIncentivesMultiplier).toEqual(totalIncentivesMultiplier);
-			expect(dexGlobalStoreData.incentivizedPools.length).toEqual(incentivizedPoolsLength);
+			expect(dexGlobalStoreData.incentivizedPools).toHaveLength(incentivizedPoolsLength);
 		});
-		
 	});
 });

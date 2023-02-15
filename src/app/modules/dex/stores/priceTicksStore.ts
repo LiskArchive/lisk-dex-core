@@ -123,7 +123,7 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			lte: Buffer.alloc(16, 255),
 			reverse: false,
 		});
-		for (let i = 0; i < allKeys.length; i++) {
+		for (let i = 0; i < allKeys.length; i += 1) {
 			if (nextflag) {
 				nextTick = allKeys[i].key;
 				break;
@@ -144,11 +144,11 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			lte: Buffer.alloc(16, 255),
 			reverse: false,
 		});
-		for (let i = 0; i < allKeys.length; i++) {
+		for (let i = 0; i < allKeys.length; i += 1) {
 			if (allKeys[i].key.equals(key)) {
 				prevflag = true;
 			}
-			if (prevflag == true) {
+			if (prevflag === true) {
 				break;
 			}
 			prevTick = allKeys[i].key;

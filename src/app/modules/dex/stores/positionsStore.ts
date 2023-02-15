@@ -21,7 +21,7 @@ export interface PositionsStoreData {
 	feeGrowthInsideLast0: Buffer;
 	feeGrowthInsideLast1: Buffer;
 	ownerAddress: Buffer;
-	incentivesPerLiquidityLast
+	incentivesPerLiquidityLast;
 }
 
 export const positionsStoreSchema = {
@@ -64,10 +64,10 @@ export const positionsStoreSchema = {
 			fieldNumber: 6,
 		},
 		incentivesPerLiquidityLast: {
-            dataType: 'bytes',
-            maxLength: MAX_NUM_BYTES_Q96,
-            fieldNumber: 7
-        }
+			dataType: 'bytes',
+			maxLength: MAX_NUM_BYTES_Q96,
+			fieldNumber: 7,
+		},
 	},
 };
 
