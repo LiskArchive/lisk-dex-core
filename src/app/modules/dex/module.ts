@@ -36,7 +36,7 @@ import {
 import { CreatePoolCommand } from './commands/createPool';
 import { PoolsStore, PositionsStore, PriceTicksStore, SettingsStore } from './stores';
 import { DexMethod } from './method';
-import { DexGlobalStore } from './stores/dexGlobalStore';
+import { DexGlobalStore, dexGlobalStoreSchema } from './stores/dexGlobalStore';
 import { AddLiquidityCommand } from './commands/addLiquidity';
 import { CreatePositionCommand } from './commands/createPosition';
 
@@ -52,37 +52,44 @@ import {
 	getToken0AmountRequestSchema,
 	getToken0AmountResponseSchema,
 	getFeeTierResponseSchema,
-	getFeeTierResquestSchema,
+	getFeeTierRequestSchema,
 	getPoolIDFromTickIDRequestSchema,
+	getPoolIDFromTickIDResponseSchema,
 	getPositionIndexResponseSchema,
-	ggetPositionIndexResquestSchema,
-	getAllTokenIdsRequestSchema,
+	getPositionIndexRequestSchema,
 	getAllTokenIdsResponseSchema,
 	getAllPositionIDsInPoolRequestSchema,
 	getAllPositionIDsInPoolResponseSchema,
+	getPoolResponseSchema,
+	getPoolRequestSchema,
 	getCurrentSqrtPriceRequestSchema,
 	getCurrentSqrtPriceResponseSchema,
-	getDexGlobalDataRequestSchema,
 	getDexGlobalDataResponseSchema,
-	getPoolRequestSchema,
-	getPoolResponseSchema,
-	getTickWithPoolIdAndTickValueRequestSchema,
-	getTickWithPoolIdAndTickValueResponseSchema,
+	getPositionRequestSchema,
+	getPositionResponseSchema,
 	getTickWithTickIdRequestSchema,
 	getTickWithTickIdResponseSchema,
+	getTickWithPoolIdAndTickValueRequestSchema,
+	getTickWithPoolIdAndTickValueResponseSchema,
 	getLSKPriceRequestSchema,
 	getLSKPriceResponseSchema,
 	getTVLRequestSchema,
 	getTVLResponseSchema,
 	getAllTicksRequestSchema,
 	getAllTicksResponseSchema,
+	getAllTickIDsInPoolResponseSchema,
 	getAllTickIDsInPoolRequestSchema,
-	getAllTickIDsInPoolRsponseSchema,
+	getCollectableFeesAndIncentivesRequestSchema,
+	getCollectableFeesAndIncentivesResponseSchema,
 } from './schemas';
 
 import { SwappedEvent } from './events/swapped';
 import { SwapFailedEvent } from './events/swapFailed';
 import { DexEndpoint } from './endpoint';
+import { poolsStoreSchema } from './stores/poolsStore';
+import { positionsStoreSchema } from './stores/positionsStore';
+import { priceTicksStoreSchema } from './stores/priceTicksStore';
+import { settingsStoreSchema } from './stores/settingsStore';
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
@@ -131,7 +138,13 @@ export class DexModule extends BaseModule {
 
 	public metadata(): ModuleMetadata {
 		return {
-			name: this.name,
+			stores: [
+				{ key: DexGlobalStore.name, data: dexGlobalStoreSchema },
+				{ key: PoolsStore.name, data: poolsStoreSchema },
+				{ key: PositionsStore.name, data: positionsStoreSchema },
+				{ key: PriceTicksStore.name, data: priceTicksStoreSchema },
+				{ key: SettingsStore.name, data: settingsStoreSchema },
+			],
 			endpoints: [
 				{
 					name: this.endpoint.getAllPoolIDs.name,
@@ -149,33 +162,27 @@ export class DexModule extends BaseModule {
 				},
 				{
 					name: this.endpoint.getFeeTier.name,
-					request: getFeeTierResquestSchema,
+					request: getFeeTierRequestSchema,
 					response: getFeeTierResponseSchema,
 				},
 				{
 					name: this.endpoint.getPoolIDFromTickID.name,
 					request: getPoolIDFromTickIDRequestSchema,
-					response: getPoolIDFromTickIDRequestSchema,
+					response: getPoolIDFromTickIDResponseSchema,
 				},
 				{
 					name: this.endpoint.getPositionIndex.name,
-					request: ggetPositionIndexResquestSchema,
+					request: getPositionIndexRequestSchema,
 					response: getPositionIndexResponseSchema,
 				},
 				{
 					name: this.endpoint.getAllTokenIDs.name,
-					request: getAllTokenIdsRequestSchema,
 					response: getAllTokenIdsResponseSchema,
 				},
 				{
-					name: this.endpoint.getAllPositionIDsInPool.name,
-					request: getAllPositionIDsInPoolRequestSchema,
-					response: getAllPositionIDsInPoolResponseSchema,
-				},
-				{
 					name: this.endpoint.getPool.name,
-					request: getPoolResponseSchema,
-					response: getPoolRequestSchema,
+					request: getPoolRequestSchema,
+					response: getPoolResponseSchema,
 				},
 				{
 					name: this.endpoint.getCurrentSqrtPrice.name,
@@ -184,13 +191,12 @@ export class DexModule extends BaseModule {
 				},
 				{
 					name: this.endpoint.getDexGlobalData.name,
-					request: getDexGlobalDataRequestSchema,
 					response: getDexGlobalDataResponseSchema,
 				},
 				{
 					name: this.endpoint.getPosition.name,
-					request: getDexGlobalDataRequestSchema,
-					response: getDexGlobalDataResponseSchema,
+					request: getPositionRequestSchema,
+					response: getPositionResponseSchema,
 				},
 				{
 					name: this.endpoint.getTickWithTickId.name,
@@ -202,6 +208,7 @@ export class DexModule extends BaseModule {
 					request: getTickWithPoolIdAndTickValueRequestSchema,
 					response: getTickWithPoolIdAndTickValueResponseSchema,
 				},
+
 				{
 					name: this.endpoint.getLSKPrice.name,
 					request: getLSKPriceRequestSchema,
@@ -218,9 +225,19 @@ export class DexModule extends BaseModule {
 					response: getAllTicksResponseSchema,
 				},
 				{
+					name: this.endpoint.getAllPositionIDsInPool.name,
+					request: getAllPositionIDsInPoolRequestSchema,
+					response: getAllPositionIDsInPoolResponseSchema,
+				},
+				{
+					name: this.endpoint.getCollectableFeesAndIncentives.name,
+					request: getCollectableFeesAndIncentivesRequestSchema,
+					response: getCollectableFeesAndIncentivesResponseSchema,
+				},
+				{
 					name: this.endpoint.getAllTickIDsInPool.name,
 					request: getAllTickIDsInPoolRequestSchema,
-					response: getAllTickIDsInPoolRsponseSchema,
+					response: getAllTickIDsInPoolResponseSchema,
 				},
 			],
 			commands: this.commands.map(command => ({

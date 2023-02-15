@@ -465,19 +465,17 @@ export const addLiquiditySchema = {
 	},
 };
 
-
 export const getAllPoolIdsResponseSchema = {
 	$id: 'dex/endpoint/getAllPoolIdsResponse',
 	type: 'object',
 	required: ['poolIDs'],
 	properties: {
 		poolIDs: {
-			dataType: 'bytes',
+			dataType: 'object',
 			fieldNumber: 1,
 		},
 	},
 };
-
 
 export const getAllTokenIdsResponseSchema = {
 	$id: 'dex/endpoint/getAllTokenIdsResponse',
@@ -530,34 +528,12 @@ export const getAllPositionIDsInPoolResponseSchema = {
 			fieldNumber: 1,
 			items: {
 				dataType: 'bytes',
+				fieldNumber: 1,
 			},
 		},
 	},
 };
 
-export const getPoolResponseSchema = {
-	$id: 'dex/endpoint/getPoolResponse',
-	type: 'object',
-	required: ['poolsStoreData'],
-	properties: {
-		poolsStoreData: {
-			type: 'object',
-			fieldNumber: 1,
-		},
-	},
-};
-
-export const getPoolRequestSchema = {
-	$id: 'dex/endpoint/getPoolRequest',
-	required: ['poolID'],
-	type: 'object',
-	properties: {
-		poolID: {
-			type: 'object',
-			fieldNumber: 1,
-		},
-	},
-};
 
 export const getCurrentSqrtPriceRequestSchema = {
 	$id: 'dex/endpoint/getCurrentSqrtPriceRequest',
@@ -575,6 +551,18 @@ export const getCurrentSqrtPriceRequestSchema = {
 	},
 };
 
+export const getCurrentSqrtPriceResponseSchema = {
+	$id: 'dex/endpoint/getCurrentSqrtPriceResponse',
+	type: 'object',
+	required: ['currentSqrtPrice'],
+	properties: {
+		currentSqrtPrice: {
+			dataType: 'uint64',
+			fieldNumber: 1,
+		},
+	},
+};
+
 export const getPoolIDFromTickIDRequestSchema = {
 	$id: 'dex/endpoint/getPoolIDFromTickIDRequest',
 	required: ['tickID'],
@@ -587,8 +575,8 @@ export const getPoolIDFromTickIDRequestSchema = {
 	},
 };
 
-export const getPoolIDFromTickIDResponseSchema = {
-	$id: 'dex/endpoint/getPoolIDFromTickIDResponse',
+export const getDexGlobalDataResponseSchema = {
+	$id: 'dex/endpoint/getDexGlobalDataResponse',
 	type: 'object',
 	required: ['poolID'],
 	properties: {
@@ -627,13 +615,25 @@ export const getPositionResponseSchema = {
 	},
 };
 
-export const getFeeTierRequestSchema = {
-	$id: 'dex/getFeeTierRequest',
+export const getTickWithTickIdRequestSchema = {
+	$id: 'dex/endpoint/getTickWithTickIdRequest',
 	type: 'object',
-	required: ['poolID'],
+	required: ['tickIDs'],
 	properties: {
-		poolID: {
-			dataType: 'bytes',
+		tickIDs: {
+			type: 'object',
+			fieldNumber: 1,
+		},
+	},
+};
+
+export const getTickWithTickIdResponseSchema = {
+	$id: 'dex/endpoint/getTickWithTickIdResponse',
+	type: 'object',
+	required: ['priceTicksStoreData'],
+	properties: {
+		priceTicksStoreData: {
+			type: 'object',
 			fieldNumber: 1,
 		},
 	},
@@ -655,20 +655,56 @@ export const getTickWithPoolIdAndTickValueRequestSchema = {
 	},
 };
 
-export const getTickWithTickIdRequestSchema = {
-	$id: 'dex/endpoint/getTickWithTickIdRequest',
+export const getTickWithPoolIdAndTickValueResponseSchema = {
+	$id: 'dex/endpoint/getTickWithPoolIdAndTickValueResponse',
 	type: 'object',
-	required: ['tickIDs'],
+	required: ['priceTicksStoreData'],
 	properties: {
-		tickIDs: {
-			dataType: 'bytes',
+		priceTicksStoreData: {
+			dataType: 'object',
 			fieldNumber: 1,
 		},
 	},
 };
 
-export const getTickWithTickIdResponseSchema = {
-	$id: 'dex/endpoint/getTickWithTickIdResponse',
+export const getPoolRequestSchema = {
+	$id: 'dex/endpoint/getPoolRequest',
+	required: ['poolID'],
+	type: 'object',
+	properties: {
+		poolID: {
+			type: 'object',
+			fieldNumber: 1,
+		},
+	},
+};
+
+export const getPoolResponseSchema = {
+	$id: 'dex/endpoint/getPoolResponse',
+	type: 'object',
+	required: ['poolsStoreData'],
+	properties: {
+		poolsStoreData: {
+			type: 'object',
+			fieldNumber: 1,
+		},
+	},
+};
+
+export const getPositionIndexRequestSchema = {
+	$id: 'dex/endpoint/getPositionIndexRequest',
+	type: 'object',
+	required: ['positionID'],
+	properties: {
+		positionID: {
+			type: 'object',
+			fieldNumber: 1,
+		},
+	},
+};
+
+export const getPositionIndexResponseSchema = {
+	$id: 'dex/endpoint/getPositionIndexResponse',
 	type: 'object',
 	required: ['priceTicksStoreData'],
 	properties: {
@@ -680,13 +716,37 @@ export const getTickWithTickIdResponseSchema = {
 };
 
 
-export const getTickWithPoolIdAndTickValueResponseSchema = {
-	$id: 'dex/endpoint/getTickWithPoolIdAndTickValueResponse',
+export const getPoolIDFromTickIDResponseSchema = {
+	$id: 'dex/endpoint/getPoolIDFromTickIDResponse',
 	type: 'object',
-	required: ['priceTicksStoreData'],
+	required: ['poolID'],
 	properties: {
-		priceTicksStoreData: {
-			dataType: 'object',
+		poolID: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+	},
+};
+
+export const getFeeTierRequestSchema = {
+	$id: 'dex/endpoint/getFeeTierRequest',
+	type: 'object',
+	required: ['poolID'],
+	properties: {
+		poolID: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+	},
+};
+
+export const getFeeTierResponseSchema = {
+	$id: 'dex/endpoint/getFeeTierResponse',
+	type: 'object',
+	required: ['feeTier'],
+	properties: {
+		feeTier: {
+			dataType: 'uint32',
 			fieldNumber: 1,
 		},
 	},
@@ -707,22 +767,10 @@ export const getToken1AmountRequestSchema = {
 export const getToken1AmountResponseSchema = {
 	$id: 'dex/endpoint/getToken1AmountResponse',
 	type: 'object',
-	required: ['token1Amount'],
+	required: ['token0Amount'],
 	properties: {
 		token1Amount: {
 			dataType: 'uint64',
-			fieldNumber: 1,
-		},
-	},
-};
-
-export const getFeeTierResponseSchema = {
-	$id: 'dex/getFeeTierResponse',
-	type: 'object',
-	required: ['feeTier'],
-	properties: {
-		feeTier: {
-			dataType: 'uint32',
 			fieldNumber: 1,
 		},
 	},
@@ -743,7 +791,7 @@ export const getToken0AmountRequestSchema = {
 export const getToken0AmountResponseSchema = {
 	$id: 'dex/endpoint/getToken0AmountResponse',
 	type: 'object',
-	required: ['token0Amount'],
+	required: ['currentSqrtPrice'],
 	properties: {
 		token0Amount: {
 			dataType: 'uint64',
@@ -752,39 +800,30 @@ export const getToken0AmountResponseSchema = {
 	},
 };
 
-
-export const getCurrentSqrtPriceResponseSchema = {
-	$id: 'dex/endpoint/getCurrentSqrtPriceResponse',
+export const getLSKPriceResponseSchema = {
+	$id: 'dex/endpoint/getLSKPriceResponse',
 	type: 'object',
-	required: ['currentSqrtPrice'],
+	required: ['lskPrice'],
 	properties: {
-		currentSqrtPrice: {
+		lskPrice: {
 			dataType: 'uint64',
 			fieldNumber: 1,
 		},
 	},
 };
 
-export const getPositionIndexRequestSchema = {
-	$id: 'dex/getPositionIndexRequest',
+export const getLSKPriceRequestSchema = {
+	$id: 'dex/endpoint/getLSKPriceRequest',
 	type: 'object',
-	required: ['positionID'],
+	required: ['tokenID', 'poolID'],
 	properties: {
-		positionID: {
-			dataType: 'bytes',
+		tokenID: {
+			type: 'object',
 			fieldNumber: 1,
 		},
-	},
-};
-
-export const getPositionIndexResponseSchema = {
-	$id: 'dex/getPositionIndexResponse',
-	type: 'object',
-	required: ['positionIndex'],
-	properties: {
-		positionIndex: {
-			dataType: 'unit32',
-			fieldNumber: 1,
+		poolID: {
+			type: 'object',
+			fieldNumber: 2,
 		},
 	},
 };
@@ -821,30 +860,36 @@ export const getTVLResponseSchema = {
 	},
 };
 
-export const getLSKPriceResponseSchema = {
-	$id: 'dex/endpoint/getLSKPriceResponse',
+export const getAllTicksRequestSchema = {
+	$id: 'dex/endpoint/getAllTicksRequest',
 	type: 'object',
-	required: ['lskPrice'],
+	required: ['poolID'],
 	properties: {
-		lskPrice: {
-			dataType: 'uint64',
+		poolID: {
+			dataType: 'bytes',
 			fieldNumber: 1,
 		},
 	},
 };
 
-export const getLSKPriceRequestSchema = {
-	$id: 'dex/endpoint/getLSKPriceRequest',
+export const getAllTicksResponseSchema = {
+	$id: 'dex/endpoint/getAllTicksResponse',
 	type: 'object',
 	required: ['tokenID', 'poolID'],
 	properties: {
 		tokenID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
-		},
-		poolID: {
-			dataType: 'bytes',
-			fieldNumber: 2,
+			items: {
+				type: 'object',
+				required: ['tickID'],
+				properties: {
+					tickID: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+				},
+			},
 		},
 	},
 };
@@ -857,7 +902,7 @@ export const getAllTickIDsInPoolRequestSchema = {
 	required: ['poolID'],
 	properties: {
 		poolID: {
-			dataType: 'bytes',
+			type: 'object',
 			fieldNumber: 1,
 		},
 	},
@@ -878,6 +923,48 @@ export const getAllTickIDsInPoolResponseSchema = {
 					tickID: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+					},
+				},
+			},
+		},
+	},
+};
+
+export const getCollectableFeesAndIncentivesRequestSchema = {
+	$id: 'dex/getCollectableFeesAndIncentives',
+	type: 'object',
+	required: ['positionID'],
+	properties: {
+		positionID: {
+			type: 'object',
+			fieldNumber: 1,
+		},
+	},
+};
+
+export const getCollectableFeesAndIncentivesResponseSchema = {
+	$id: 'dex/getCollectableFeesAndIncentives',
+	type: 'object',
+	required: ['feesAndIncentives'],
+	properties: {
+		feesAndIncentives: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['collectableFees0', 'collectableFees1', 'collectableIncentives'],
+				properties: {
+					collectableFees0: {
+						dataType: 'uint64',
+						fieldNumber: 1,
+					},
+					collectableFees1: {
+						dataType: 'uint64',
+						fieldNumber: 2,
+					},
+					collectableIncentives: {
+						dataType: 'uint64',
+						fieldNumber: 3,
 					},
 				},
 			},
