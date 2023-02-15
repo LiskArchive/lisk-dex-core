@@ -94,13 +94,14 @@ describe('dex:command:createPool', () => {
 		it.each(createPoolFixtures)('%s', async (...args) => {
 			const [_desc, input, err] = args;
 			const context = createTransactionContext({
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				transaction: new Transaction(input as any),
 			});
 
 			const result = await command.verify(context.createCommandVerifyContext(createPoolSchema));
 
 			if (err === false) {
-				expect(result.error?.message).not.toBeDefined();
+				expect(result.error?.message).toBeUndefined();
 				expect(result.status).toEqual(VerifyStatus.OK);
 			} else {
 				expect(result.error?.message).toBe(err);
@@ -115,6 +116,7 @@ describe('dex:command:createPool', () => {
 		beforeEach(async () => {
 			context = createTransactionContext({
 				stateStore,
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				transaction: new Transaction(createPoolFixtures[0][1] as any),
 			});
 
@@ -156,6 +158,7 @@ describe('dex:command:createPool', () => {
 				it(`should emit poolCreatedEvent and positionCreatedEvent for every iteration`, async () => {
 					context = createTransactionContext({
 						stateStore,
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 						transaction: new Transaction(createRandomPoolFixturesGenerator()[0][1] as any),
 					});
 					await command.execute(context.createCommandExecuteContext(createPoolSchema));
