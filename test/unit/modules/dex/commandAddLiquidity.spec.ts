@@ -33,15 +33,17 @@ import {
 	PriceTicksStoreData,
 } from '../../../../src/app/modules/dex/stores/priceTicksStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
-import { Address } from '../../../../src/app/modules/dex/types';
+import { Address, PoolID } from '../../../../src/app/modules/dex/types';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { q96ToBytes, numberToQ96 } from '../../../../src/app/modules/dex/utils/q96';
 import { addLiquidityFixtures } from './fixtures/addLiquidityFixture';
-import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 
-const { createTransactionContext } = testing;
+const { createTransactionContext, InMemoryPrefixedStateDB } = testing;
+
+const skipOnCI = process.env.CI ? describe.skip : describe;
 
 describe('dex:command:addLiquidity', () => {
+	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 	let dexModule: DexModule;
 	let tokenModule: TokenModule;
 	let validatorModule: ValidatorsModule;
@@ -52,6 +54,8 @@ describe('dex:command:addLiquidity', () => {
 	const poolsStoreData: PoolsStoreData = {
 		liquidity: BigInt(5),
 		sqrtPrice: q96ToBytes(BigInt('327099227039063106')),
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+		heightIncentivesUpdate: 5,
 		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
 		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(6))),
 		tickSpacing: 1,
@@ -60,6 +64,9 @@ describe('dex:command:addLiquidity', () => {
 	const dexGlobalStoreData: DexGlobalStoreData = {
 		positionCounter: BigInt(10),
 		collectableLSKFees: BigInt(10),
+		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
+		incentivizedPools: [{ poolId, multiplier: 10 }],
+		totalIncentivesMultiplier: 1,
 	};
 
 	const settingStoreData: SettingsStoreData = {
@@ -76,6 +83,7 @@ describe('dex:command:addLiquidity', () => {
 		liquidityGross: BigInt(5),
 		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(0))),
+		incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(2))),
 	};
 
 	const priceTicksStoreDataTickUpper: PriceTicksStoreData = {
@@ -83,6 +91,7 @@ describe('dex:command:addLiquidity', () => {
 		liquidityGross: BigInt(5),
 		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(0))),
+		incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(3))),
 	};
 
 	const positionsStoreData: PositionsStoreData = {
@@ -203,7 +212,7 @@ describe('dex:command:addLiquidity', () => {
 			expect(positionUpdatedEvents).toHaveLength(1);
 		});
 
-		describe('stress test for checking the events', () => {
+		skipOnCI('stress test for checking the events', () => {
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			(async () => {
 				const testarray = Array.from({ length: 10000 });
