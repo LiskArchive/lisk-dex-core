@@ -23,60 +23,60 @@ import { PoolsStore } from './stores';
 
 export const globalDataSchema = {
 	$id: '/dex/settings',
-	type: "object",
+	type: 'object',
 	required: [
-		"positionCounter",
-		"poolCreationSettings",
-		"incentivizedPools",
-		"totalIncentivesMultiplier"
+		'positionCounter',
+		'poolCreationSettings',
+		'incentivizedPools',
+		'totalIncentivesMultiplier',
 	],
 	properties: {
 		positionCounter: {
-			dataType: "uint64",
-			fieldNumber: 1
+			dataType: 'uint64',
+			fieldNumber: 1,
 		},
 		poolCreationSettings: {
-			type: "array",
+			type: 'array',
 			fieldNumber: 2,
 			items: {
-				type: "object",
-				required: ["feeTier", "tickSpacing"],
+				type: 'object',
+				required: ['feeTier', 'tickSpacing'],
 				properties: {
 					feeTier: {
-						dataType: "uint32",
-						fieldNumber: 1
+						dataType: 'uint32',
+						fieldNumber: 1,
 					},
 					tickSpacing: {
-						dataType: "uint32",
-						fieldNumber: 2
-					}
-				}
-			}
+						dataType: 'uint32',
+						fieldNumber: 2,
+					},
+				},
+			},
 		},
 		incentivizedPools: {
-			type: "array",
+			type: 'array',
 			fieldNumber: 3,
 			items: {
-				type: "object",
-				required: ["poolId", "multiplier"],
+				type: 'object',
+				required: ['poolId', 'multiplier'],
 				properties: {
 					poolId: {
-						dataType: "bytes",
+						dataType: 'bytes',
 						length: NUM_BYTES_POOL_ID,
-						fieldNumber: 1
+						fieldNumber: 1,
 					},
 					multiplier: {
-						dataType: "uint32",
-						fieldNumber: 2
-					}
-				}
-			}
+						dataType: 'uint32',
+						fieldNumber: 2,
+					},
+				},
+			},
 		},
 		totalIncentivesMultiplier: {
-			dataType: "uint32",
-			fieldNumber: 4
-		}
-	}
+			dataType: 'uint32',
+			fieldNumber: 4,
+		},
+	},
 };
 
 export const genesisDEXSchema = {
@@ -343,39 +343,39 @@ export const createPoolSchema = {
 };
 
 export const priceTickSchema = {
-	"type": "object",
-	"required": [
-		"liquidityNet",
-		"liquidityGross",
-		"feeGrowthOutside0",
-		"feeGrowthOutside1",
-		"incentivesPerLiquidityOutside"
+	type: 'object',
+	required: [
+		'liquidityNet',
+		'liquidityGross',
+		'feeGrowthOutside0',
+		'feeGrowthOutside1',
+		'incentivesPerLiquidityOutside',
 	],
-	"properties": {
-		"liquidityNet": {
-			"dataType": "sint64",
-			"fieldNumber": 1
+	properties: {
+		liquidityNet: {
+			dataType: 'sint64',
+			fieldNumber: 1,
 		},
-		"liquidityGross": {
-			"dataType": "uint64",
-			"fieldNumber": 2
+		liquidityGross: {
+			dataType: 'uint64',
+			fieldNumber: 2,
 		},
-		"feeGrowthOutside0": {
-			"dataType": "bytes",
-			"maxLength": MAX_NUM_BYTES_Q96,
-			"fieldNumber": 3
+		feeGrowthOutside0: {
+			dataType: 'bytes',
+			maxLength: MAX_NUM_BYTES_Q96,
+			fieldNumber: 3,
 		},
-		"feeGrowthOutside1": {
-			"dataType": "bytes",
-			"maxLength": MAX_NUM_BYTES_Q96,
-			"fieldNumber": 4
+		feeGrowthOutside1: {
+			dataType: 'bytes',
+			maxLength: MAX_NUM_BYTES_Q96,
+			fieldNumber: 4,
 		},
-		"incentivesPerLiquidityOutside": {
-			"dataType": "bytes",
-			"maxLength": MAX_NUM_BYTES_Q96,
-			"fieldNumber": 5
-		}
-	}
+		incentivesPerLiquidityOutside: {
+			dataType: 'bytes',
+			maxLength: MAX_NUM_BYTES_Q96,
+			fieldNumber: 5,
+		},
+	},
 };
 
 export const createPositionSchema = {
