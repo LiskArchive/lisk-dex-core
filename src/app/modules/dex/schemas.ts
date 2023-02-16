@@ -765,7 +765,7 @@ export const getToken1AmountRequestSchema = {
 export const getToken1AmountResponseSchema = {
 	$id: 'dex/endpoint/getToken1AmountResponse',
 	type: 'object',
-	required: ['token0Amount'],
+	required: ['token1Amount'],
 	properties: {
 		token1Amount: {
 			dataType: 'uint64',
@@ -789,7 +789,7 @@ export const getToken0AmountRequestSchema = {
 export const getToken0AmountResponseSchema = {
 	$id: 'dex/endpoint/getToken0AmountResponse',
 	type: 'object',
-	required: ['currentSqrtPrice'],
+	required: ['token0Amount'],
 	properties: {
 		token0Amount: {
 			dataType: 'uint64',
