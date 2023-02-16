@@ -615,9 +615,8 @@ export const addPoolCreationSettings = async (
 	if (settingGlobalStoreData.poolCreationSettings.feeTier === feeTier) {
 		throw new Error("Can not update fee tier");
 	}
-	settingGlobalStoreData.poolCreationSettings.feeTier = feeTier;
-	settingGlobalStoreData.poolCreationSettings.tickSpacing = tickSpacing;
-	await settingGlobalStore.set(methodContext, Buffer.alloc(0), settingGlobalStoreData);
+	settingGlobalStoreData.poolCreationSettings[0] = { feeTier, tickSpacing };
+	await settingGlobalStore.set(methodContext, Buffer.alloc(0), settingGlobalStoreData)
 }
 
 export const updatePosition = async (

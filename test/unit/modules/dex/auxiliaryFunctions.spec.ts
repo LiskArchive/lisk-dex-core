@@ -651,6 +651,7 @@ describe('dex:auxiliaryFunctions', () => {
 		const settingGlobalStore = dexModule.stores.get(SettingsStore);
 		const settingGlobalStoreData = await settingGlobalStore.get(methodContext, Buffer.alloc(0));
 
-		expect(settingGlobalStoreData.poolCreationSettings.feeTier).toEqual(feeTier);
+		expect(settingGlobalStoreData.poolCreationSettings[0].feeTier).toEqual(feeTier);
+		expect(settingGlobalStoreData.poolCreationSettings[0].feeTier).toEqual(tickSpacing);
 	})
 });
