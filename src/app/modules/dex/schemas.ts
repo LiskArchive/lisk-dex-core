@@ -380,6 +380,200 @@ export const genesisDEXSchema = {
     },
 };
 
+export const createPoolSchema = {
+    $id: '/dex/createPoolSchema',
+    type: 'object',
+    required: [
+        'tokenID0',
+        'tokenID1',
+        'feeTier',
+        'tickInitialPrice',
+        'initialPosition',
+        'maxTimestampValid',
+    ],
+    properties: {
+        tokenID0: {
+            dataType: 'bytes',
+            fieldNumber: 1,
+        },
+        tokenID1: {
+            dataType: 'bytes',
+            fieldNumber: 2,
+        },
+        feeTier: {
+            dataType: 'uint32',
+            fieldNumber: 3,
+        },
+        tickInitialPrice: {
+            dataType: 'sint32',
+            fieldNumber: 4,
+        },
+        initialPosition: {
+            type: 'object',
+            fieldNumber: 5,
+            required: ['tickLower', 'tickUpper', 'amount0Desired', 'amount1Desired'],
+            properties: {
+                tickLower: {
+                    dataType: 'sint32',
+                    fieldNumber: 1,
+                },
+                tickUpper: {
+                    dataType: 'sint32',
+                    fieldNumber: 2,
+                },
+                amount0Desired: {
+                    dataType: 'uint64',
+                    fieldNumber: 3,
+                },
+                amount1Desired: {
+                    dataType: 'uint64',
+                    fieldNumber: 4,
+                },
+            },
+        },
+        maxTimestampValid: {
+            dataType: 'uint64',
+            fieldNumber: 6,
+        },
+    },
+};
+
+export const priceTickSchema = {
+    $id: '/dex/priceTick',
+    type: 'object',
+    required: [
+        'liquidityNet',
+        'liquidityGross',
+        'feeGrowthOutside0',
+        'feeGrowthOutside1',
+        'incentivesPerLiquidityOutside',
+    ],
+    properties: {
+        liquidityNet: {
+            dataType: 'sint64',
+            fieldNumber: 1,
+        },
+        liquidityGross: {
+            dataType: 'uint64',
+            fieldNumber: 2,
+        },
+        feeGrowthOutside0: {
+            dataType: 'bytes',
+            maxLength: MAX_NUM_BYTES_Q96,
+            fieldNumber: 3,
+        },
+        feeGrowthOutside1: {
+            dataType: 'bytes',
+            maxLength: MAX_NUM_BYTES_Q96,
+            fieldNumber: 4,
+        },
+        incentivesPerLiquidityOutside: {
+            dataType: 'bytes',
+            maxLength: MAX_NUM_BYTES_Q96,
+            fieldNumber: 5,
+        },
+    },
+};
+
+export const createPositionSchema = {
+    $id: '/dex/createPositionSchema',
+    type: 'object',
+    required: [
+        'poolID',
+        'tickLower',
+        'tickUpper',
+        'amount0Desired',
+        'amount1Desired',
+        'amount0Min',
+        'amount1Min',
+        'maxTimestampValid',
+    ],
+    properties: {
+        poolID: {
+            dataType: 'bytes',
+            fieldNumber: 1,
+        },
+        tickLower: {
+            dataType: 'sint32',
+            fieldNumber: 2,
+        },
+        tickUpper: {
+            dataType: 'sint32',
+            fieldNumber: 3,
+        },
+        amount0Desired: {
+            dataType: 'uint64',
+            fieldNumber: 4,
+        },
+        amount1Desired: {
+            dataType: 'uint64',
+            fieldNumber: 5,
+        },
+        amount0Min: {
+            dataType: 'uint64',
+            fieldNumber: 6,
+        },
+        amount1Min: {
+            dataType: 'uint64',
+            fieldNumber: 7,
+        },
+        maxTimestampValid: {
+            dataType: 'uint64',
+            fieldNumber: 8,
+        },
+    },
+};
+
+export const collectFeesSchema = {
+    $id: '/dex/collectFees',
+    type: 'object',
+    required: ['positions'],
+    properties: {
+        positions: {
+            type: 'array',
+            fieldNumber: 1,
+            items: {
+                type: 'object',
+                required: ['positionID'],
+                properties: {
+                    positionID: {
+                        dataType: 'bytes',
+                        fieldNumber: 1,
+                    },
+                },
+            },
+        },
+    },
+};
+
+export const removeLiquiditySchema = {
+    $id: '/dex/removeLiquidity',
+    type: 'object',
+    required: ['positionID', 'liquidityToRemove', 'amount0Min', 'amount1Min', 'maxTimestampValid'],
+    properties: {
+        positionID: {
+            dataType: 'bytes',
+            fieldNumber: 1,
+        },
+        liquidityToRemove: {
+            dataType: 'uint64',
+            fieldNumber: 2,
+        },
+        amount0Min: {
+            dataType: 'uint64',
+            fieldNumber: 3,
+        },
+        amount1Min: {
+            dataType: 'uint64',
+            fieldNumber: 4,
+        },
+        maxTimestampValid: {
+            dataType: 'uint64',
+            fieldNumber: 5,
+        },
+    },
+};
+
 export const addLiquiditySchema = {
     $id: '/dex/addLiquiditySchema',
     type: 'object',
