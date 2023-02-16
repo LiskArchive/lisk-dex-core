@@ -3,19 +3,6 @@ on:
   pull_request:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Install
-        uses: ./.github/actions/prepare-install
-      - name: Build
-        uses: ./.github/actions/prepare-build
-        with:
-          cache-key: ${{ github.event.number }}
-
   lint:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -42,6 +29,19 @@ jobs:
             exit 1
           fi
       - run: npm run lint
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install
+        uses: ./.github/actions/prepare-install
+      - name: Build
+        uses: ./.github/actions/prepare-build
+        with:
+          cache-key: ${{ github.event.number }}
 
   unit-test:
     runs-on: ubuntu-latest

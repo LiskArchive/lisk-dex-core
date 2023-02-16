@@ -8,8 +8,8 @@ import {
 describe('dex:bigEndian', () => {
 	describe('constructor', () => {
 		it('int32be/int32beInv should convert and revert to original values', () => {
-			expect(int32be(2147483647)).toEqual('7fffffff');
-			expect(int32beInv('7fffffff')).toEqual(2147483647);
+			expect(int32be(2147483647)).toBe('7fffffff');
+			expect(int32beInv('7fffffff')).toBe(2147483647);
 		});
 		it('uint32be/uint32beInv should convert and revert to original values', () => {
 			expect(uint32be(4294967295)).toBe('ffffffff');

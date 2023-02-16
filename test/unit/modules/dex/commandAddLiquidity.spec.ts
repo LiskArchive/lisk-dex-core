@@ -37,9 +37,8 @@ import { Address, PoolID } from '../../../../src/app/modules/dex/types';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { q96ToBytes, numberToQ96 } from '../../../../src/app/modules/dex/utils/q96';
 import { addLiquidityFixtures } from './fixtures/addLiquidityFixture';
-import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 
-const { createTransactionContext } = testing;
+const { createTransactionContext, InMemoryPrefixedStateDB } = testing;
 
 const skipOnCI = process.env.CI ? describe.skip : describe;
 
@@ -123,6 +122,7 @@ describe('dex:command:addLiquidity', () => {
 		it.each(addLiquidityFixtures)('%s', async (...args) => {
 			const [_desc, input, err] = args;
 			const context = createTransactionContext({
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				transaction: new Transaction(input as any),
 			});
 
@@ -131,7 +131,7 @@ describe('dex:command:addLiquidity', () => {
 			);
 
 			if (err === false) {
-				expect(result.error?.message).not.toBeDefined();
+				expect(result.error?.message).toBeUndefined();
 				expect(result.status).toEqual(VerifyStatus.OK);
 			} else {
 				expect(result.error?.message).toBe(err);
@@ -147,6 +147,7 @@ describe('dex:command:addLiquidity', () => {
 		beforeEach(async () => {
 			context = createTransactionContext({
 				stateStore,
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				transaction: new Transaction(addLiquidityFixtures[0][1] as any),
 			});
 
@@ -223,6 +224,7 @@ describe('dex:command:addLiquidity', () => {
 			function stress() {
 				context = createTransactionContext({
 					stateStore,
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 					transaction: new Transaction(addLiquidityFixtures[0][1] as any),
 				});
 				it('should call execute methods and emit positionUpdatedEvent', async () => {
