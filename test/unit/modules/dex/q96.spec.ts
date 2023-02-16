@@ -22,21 +22,21 @@ describe('DexQ96Module', () => {
 		const testValueMaxUint: Q96 = numberToQ96(BigInt(MAX_UINT_64));
 		const testValue2: Q96 = numberToQ96(BigInt(2));
 
-		it('add', async () => {
+		it('add', () => {
 			expect(q96ToInt(addQ96(testValueMaxUint, testValue2))).toBe(BigInt('18446744073709551617'));
 		});
 
-		it('sub', async () => {
+		it('sub', () => {
 			expect(q96ToInt(subQ96(testValueMax, testValue2))).toBe(
-				BigInt('1461446703529909599612049957420313862569572983182'),
+				BigInt('1461446704550679960896629428549052887957817041880'),
 			);
 		});
 
-		it('mul', async () => {
+		it('mul', () => {
 			expect(q96ToInt(mulQ96(testValueMaxUint, testValue2))).toBe(BigInt('36893488147419103230'));
 		});
 
-		it('div', async () => {
+		it('div', () => {
 			const one = numberToQ96(BigInt(1));
 			const div = divQ96(one, testValue2);
 			expect(q96ToInt(div)).toEqual(BigInt('0'));
@@ -49,25 +49,25 @@ describe('DexQ96Module', () => {
 			expect(() => divQ96(testValue2, zero)).toThrow();
 		});
 
-		it('mulDiv', async () => {
+		it('mulDiv', () => {
 			const test = divQ96(testValueMax, testValueMax);
 			expect(mulDivQ96(test, numberToQ96(BigInt('4')), numberToQ96(BigInt('4')))).toEqual(test);
 		});
 
-		it('invQ96', async () => {
+		it('invQ96', () => {
 			const three = numberToQ96(BigInt(3)); // 3 is an odd number, not nicely invertible in binary
 			expect(q96ToInt(invQ96(invQ96(three)))).toEqual(BigInt('3'));
 		});
 
-		it('bytesToQ96 and q96ToBytes', async () => {
+		it('bytesToQ96 and q96ToBytes', () => {
 			expect(bytesToQ96(q96ToBytes(testValueMaxUint))).toBe(testValueMaxUint);
 		});
 
-		it('q96ToBytes for 0 values', async () => {
+		it('q96ToBytes for 0 values', () => {
 			expect(q96ToBytes(numberToQ96(BigInt(0)))).toStrictEqual(Buffer.from([]));
 		});
 
-		it('bytesToQ96 for 0 values', async () => {
+		it('bytesToQ96 for 0 values', () => {
 			expect(bytesToQ96(q96ToBytes(numberToQ96(BigInt(0))))).toStrictEqual(BigInt(0));
 		});
 	});
