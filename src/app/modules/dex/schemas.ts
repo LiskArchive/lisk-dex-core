@@ -35,9 +35,13 @@ export const globalDataSchema = {
 			dataType: 'uint64',
 			fieldNumber: 1,
 		},
+		collectableLSKFees: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
 		poolCreationSettings: {
 			type: 'array',
-			fieldNumber: 2,
+			fieldNumber: 3,
 			items: {
 				type: 'object',
 				required: ['feeTier', 'tickSpacing'],
@@ -55,7 +59,7 @@ export const globalDataSchema = {
 		},
 		incentivizedPools: {
 			type: 'array',
-			fieldNumber: 3,
+			fieldNumber: 4,
 			items: {
 				type: 'object',
 				required: ['poolId', 'multiplier'],
@@ -74,7 +78,7 @@ export const globalDataSchema = {
 		},
 		totalIncentivesMultiplier: {
 			dataType: 'uint32',
-			fieldNumber: 4,
+			fieldNumber: 5,
 		},
 	},
 };

@@ -37,9 +37,13 @@ export const dexGlobalStoreSchema = {
 			dataType: 'uint64',
 			fieldNumber: 1,
 		},
+		collectableLSKFees: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
 		poolCreationSettings: {
 			type: 'array',
-			fieldNumber: 2,
+			fieldNumber: 3,
 			items: {
 				type: 'object',
 				required: ['feeTier', 'tickSpacing'],
@@ -57,7 +61,7 @@ export const dexGlobalStoreSchema = {
 		},
 		incentivizedPools: {
 			type: 'array',
-			fieldNumber: 3,
+			fieldNumber: 4,
 			items: {
 				type: 'object',
 				required: ['poolId', 'multiplier'],
@@ -77,7 +81,7 @@ export const dexGlobalStoreSchema = {
 		},
 		totalIncentivesMultiplier: {
 			dataType: 'uint32',
-			fieldNumber: 4,
+			fieldNumber: 5,
 		},
 	},
 };
