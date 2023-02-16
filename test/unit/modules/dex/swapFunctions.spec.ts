@@ -26,6 +26,7 @@ import {
 	computeCurrentPrice,
 	computeRegularRoute,
 	constructPoolsGraph,
+	crossTick,
 	getAdjacent,
 	raiseSwapException,
 	swap,
@@ -184,6 +185,19 @@ describe('dex:swapFunctions', () => {
 			expect(vertices.filter(vertex => vertex.equals(token1Id))).toHaveLength(1);
 			expect(edges.filter(edge => edge.equals(poolId))).toHaveLength(1);
 		});
+		it('crossTick', async () => {
+			const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
+			const currentTickID = q96ToBytes(BigInt(currentTick));
+			await poolsStore.setKey(
+				methodContext,
+				[currentTickID.slice(0, NUM_BYTES_POOL_ID)],
+				poolsStoreData,
+			);
+			await priceTicksStore.setKey(methodContext, [currentTickID], priceTicksStoreDataTickUpper);
+			const crossTickRes = crossTick(methodContext, dexModule.stores, currentTickID, false, 10);
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises, jest/valid-expect
+			expect(crossTickRes).resolves.toBeUndefined();
+		});
 
 		it('transferFeesFromPool', () => {
 			expect(
@@ -219,11 +233,6 @@ describe('dex:swapFunctions', () => {
 		it('swap', async () => {
 			const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
 			const currentTickID = q96ToBytes(BigInt(currentTick));
-			await poolsStore.setKey(
-				methodContext,
-				[currentTickID.slice(0, NUM_BYTES_POOL_ID)],
-				poolsStoreData,
-			);
 
 			await priceTicksStore.setKey(methodContext, [currentTickID], priceTicksStoreDataTickUpper);
 
