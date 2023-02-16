@@ -43,7 +43,7 @@ export interface PriceTicksStoreData {
 }
 
 export const priceTicksStoreSchema = {
-	$id: '/dex/store/priceTicks',
+	$id: '/dex/store/priceTicksStore',
 	type: 'object',
 	required: [
 		'liquidityNet',

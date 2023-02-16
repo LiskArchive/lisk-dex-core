@@ -343,6 +343,7 @@ export const createPoolSchema = {
 };
 
 export const priceTickSchema = {
+	$id: '/dex/priceTick',
 	type: 'object',
 	required: [
 		'liquidityNet',
