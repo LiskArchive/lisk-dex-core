@@ -43,4 +43,4 @@ export const sqrt = (value: bigint): bigint => {
 	return z;
 };
 
-export const PRICE_VALUE_FOR_TICK_1 = BigInt("79232123823359799118286999567");
+export const PRICE_VALUE_FOR_TICK_1 = BigInt('79232123823359799118286999567');

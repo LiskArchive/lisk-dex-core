@@ -22,10 +22,7 @@ import {
 	MAX_TICK,
 	LOG_MAX_TICK,
 } from '../constants';
-import {
-	sqrt,
-	PRICE_VALUE_FOR_TICK_1
-} from './mathConstants';
+import { sqrt, PRICE_VALUE_FOR_TICK_1 } from './mathConstants';
 
 import { Q96, SqrtPrice } from '../types';
 import {

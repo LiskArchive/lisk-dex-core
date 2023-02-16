@@ -556,11 +556,7 @@ describe('dex:auxiliaryFunctions', () => {
 
 
 		it('poolExists', async () => {
-			const poolExistResult = await poolExists(
-				methodContext,
-				poolsStore,
-				poolId
-			);
+			const poolExistResult = await poolExists(methodContext, poolsStore, poolId);
 			const exists = await poolsStore.has(methodContext, poolId);
 			expect(poolExistResult).toEqual(exists);
 		});
@@ -641,17 +637,12 @@ describe('dex:auxiliaryFunctions', () => {
 	it('addPoolCreationSettings', async () => {
 		const tickSpacing = 10;
 		const feeTier = 10;
-		await addPoolCreationSettings(
-			methodContext,
-			dexModule.stores,
-			feeTier,
-			tickSpacing
-		);
+		await addPoolCreationSettings(methodContext, dexModule.stores, feeTier, tickSpacing);
 
 		const settingGlobalStore = dexModule.stores.get(SettingsStore);
 		const settingGlobalStoreData = await settingGlobalStore.get(methodContext, Buffer.alloc(0));
 
 		expect(settingGlobalStoreData.poolCreationSettings[0].feeTier).toEqual(feeTier);
 		expect(settingGlobalStoreData.poolCreationSettings[0].feeTier).toEqual(tickSpacing);
-	})
+	});
 });

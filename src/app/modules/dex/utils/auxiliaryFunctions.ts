@@ -589,35 +589,30 @@ export const getOwnerAddressOfPositionWithMethodContext = async (
 export const getPoolIDFromPositionID = (positionId: PositionID): Buffer =>
 	positionId.slice(-NUM_BYTES_POOL_ID, 14);
 
-export const getPoolIDFromTickID = (tickId: TickID): Buffer =>
-	tickId.slice(-NUM_BYTES_POOL_ID, 14)
+export const getPoolIDFromTickID = (tickId: TickID): Buffer => tickId.slice(-NUM_BYTES_POOL_ID, 14);
 
-export const poolExists = async (
-	methodContext,
-	poolsStore: PoolsStore,
-	poolId: PoolID
-) => {
+export const poolExists = async (methodContext, poolsStore: PoolsStore, poolId: PoolID) => {
 	const result = poolsStore.has(methodContext, poolId);
 	return result;
-}
+};
 
 export const addPoolCreationSettings = async (
 	methodContext: MethodContext,
 	stores: NamedRegistry,
 	feeTier: number,
-	tickSpacing: number
+	tickSpacing: number,
 ) => {
 	if (feeTier > 1000000) {
-		throw new Error("Fee tier can not be greater than 100%");
+		throw new Error('Fee tier can not be greater than 100%');
 	}
 	const settingGlobalStore = stores.get(SettingsStore);
 	const settingGlobalStoreData = await settingGlobalStore.get(methodContext, Buffer.alloc(0));
 	if (settingGlobalStoreData.poolCreationSettings.feeTier === feeTier) {
-		throw new Error("Can not update fee tier");
+		throw new Error('Can not update fee tier');
 	}
 	settingGlobalStoreData.poolCreationSettings[0] = { feeTier, tickSpacing };
-	await settingGlobalStore.set(methodContext, Buffer.alloc(0), settingGlobalStoreData)
-}
+	await settingGlobalStore.set(methodContext, Buffer.alloc(0), settingGlobalStoreData);
+};
 
 export const updatePosition = async (
 	methodContext: MethodContext,
