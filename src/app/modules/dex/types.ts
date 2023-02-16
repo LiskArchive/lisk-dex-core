@@ -151,3 +151,13 @@ export type feesInterface = {
 	in: bigint;
 	out: bigint;
 };
+
+export interface swapWithPriceLimitParamsData {
+	tokenIdIn: Buffer;
+	maxAmountTokenIn: bigint;
+	tokenIdOut: Buffer;
+	minAmountTokenOut: bigint;
+	poolId: Buffer;
+	maxTimestampValid: bigint;
+	sqrtLimitPrice: bigint;
+}
