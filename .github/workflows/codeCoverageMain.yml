@@ -2,12 +2,12 @@ name: code-coverage-action
 on: [push]
 
 jobs:
-  run_hardhat_test:
+  run_code_coverage_test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [16.x]
-    name: A job to run code coverage
+    name: Codecov Test
 
     steps:
       - name: Checkout
