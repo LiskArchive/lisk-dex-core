@@ -21,3 +21,12 @@ jobs:
         run: npm install
       - name: Run testing
         run: npm run test:coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: 47dedcaf-f48a-4d27-9159-87a5c2a62e66
+          fail_ci_if_error: true
+          flags: unittests
+          name: codecov-umbrella
+          path_to_write_report: ./coverage/codecov_report.txt
+          verbose: true
