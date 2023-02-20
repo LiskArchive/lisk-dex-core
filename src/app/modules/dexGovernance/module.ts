@@ -176,6 +176,7 @@ export class DexGovernanceModule extends BaseModule {
 			genesisDEXGovernanceSchema,
 			assetBytes,
 		);
+		// console.log("genesisData: ", genesisData);
 		const proposalsStore: Proposal[] = genesisData.proposalsStore;
 		const votesStore: Vote[] = genesisData.votesStore;
 		const height: Number = context.header.height;
@@ -184,44 +185,37 @@ export class DexGovernanceModule extends BaseModule {
 		let previousCreationHeight = 0;
 		for (let i = 0; i < proposalsStore.length; i += 1) {
 			if (proposalsStore[i].creationHeight < previousCreationHeight) {
-				console.log("1111");
 				throw new Error('Proposals must be indexed in the creation order');
 			}
 			previousCreationHeight = proposalsStore[i].creationHeight;
 		}
 		for (let i = 0; i < proposalsStore.length; i += 1) {
 			if (proposalsStore[i].creationHeight >= height) {
-				console.log("22222");
 				throw new Error('Proposal can not be created in the future');
 			}
 			if (proposalsStore[i].type > 1) {
-				console.log("33333");
 				throw new Error('Invalid proposal type');
 			}
 			if (
 				proposalsStore[i].type === PROPOSAL_TYPE_INCENTIVIZATION &&
 				proposalsStore[i].content.poolID.length !== NUM_BYTES_POOL_ID
 			) {
-				console.log("44444");
 				throw new Error('Incentivization proposal must contain a valid pool ID');
 			}
 			if (proposalsStore[i].type === PROPOSAL_TYPE_UNIVERSAL) {
 				if (proposalsStore[i].content.text.length === 0) {
-					console.log("55555");
 					throw new Error('Proposal text can not be empty for universal proposal');
 				}
 				if (
 					proposalsStore[i].content.poolID.length !== 0 ||
 					proposalsStore[i].content.multiplier !== 0
 				) {
-					console.log("66666");
 					throw new Error(
 						'For universal proposals, pool ID must be empty and multiplier must be set to 0',
 					);
 				}
 			}
 			if (proposalsStore[i].status > 3) {
-				console.log("77777");
 				throw new Error('Invalid proposal status');
 			}
 		}
@@ -235,7 +229,6 @@ export class DexGovernanceModule extends BaseModule {
 				return false;
 			});
 			if (exist) {
-				console.log("88888");
 				throw new Error('All addresses in votes store must be unique');
 			}
 		}
@@ -243,11 +236,9 @@ export class DexGovernanceModule extends BaseModule {
 		votesStore.forEach((votes) => {
 			votes.voteInfos.forEach(voteInfo => {
 				if (voteInfo.proposalIndex >= proposalsStore.length) {
-					console.log("9999");
 					throw new Error('Vote info references incorrect proposal index');
 				}
 				if (voteInfo.decision > 2) {
-					console.log("0000");
 					throw new Error('Incorrect vote decision');
 				}
 			});

@@ -19,8 +19,8 @@ import {
 	MAX_LENGTH_METADATA_AUTHOR,
 	MAX_LENGTH_METADATA_SUMMARY,
 	MAX_LENGTH_METADATA_LINK,
-	MAX_NUMBER_LIVE_PROPOSALS,
-	// LENGTH_ADDRESS,
+	// MAX_NUMBER_LIVE_PROPOSALS,
+	LENGTH_ADDRESS,
 } from './constants';
 
 export const proposalContentSchema = {
@@ -117,7 +117,6 @@ export const votesSchema = {
 		voteInfos: {
 			fieldNumber: 1,
 			type: 'array',
-			maxLength: MAX_NUMBER_LIVE_PROPOSALS,
 			items: {
 				type: 'object',
 				required: ['proposalIndex', 'decision', 'amount'],
@@ -161,13 +160,13 @@ export const genesisDEXGovernanceSchema = {
 				properties: {
 					address: {
 						dataType: 'bytes',
-						// length: LENGTH_ADDRESS,
+						length: LENGTH_ADDRESS,
 						fieldNumber: 1,
 					},
 					votes: {
 						fieldNumber: 2,
-						...votesSchema,
-					},
+						...votesSchema
+					}
 				},
 			},
 		},
