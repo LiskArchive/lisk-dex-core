@@ -102,7 +102,7 @@ export const ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL = Buffer.from([]);
 
 // DEX sidechain configurable constants
 export const GENESIS_BLOCK_VERSION = 0; // version of genesis block
-export const GENESIS_BLOCK_TIMESTAMP = Buffer.from('TBD', 'hex'); // timestamp of genesis block
+export const GENESIS_BLOCK_TIMESTAMP = 0; // timestamp of genesis block
 
 export const NUM_INIT_ROUNDS = 2574; // Return code of initial rounds
 export const NUM_BOOTSTRAP_VALIDATORS = 101; // Number of validators of sidechain
@@ -118,26 +118,25 @@ export const sha256 = input => {
 	return createHash('sha256').update(inputBytes).digest();
 };
 
-export const ADDRESS_VALIDATOR_INCENTIVES = Buffer.from(sha256('traderRewardsPool')).slice(0, NUM_BYTES_ADDRESS); // Incentives for address validators
-export const LENGTH_EPOCH_REWARDS_INCENTIVES = 3153600; //
+export const ADDRESS_VALIDATOR_INCENTIVES = Buffer.from(sha256('validatorIncentivesAccount')).slice(0, NUM_BYTES_ADDRESS); // The address of the validator incentives account
 export const ED25519_PUBLIC_KEY_LENGTH = 32;
 export const BLS_PUBLIC_KEY_LENGTH = 48;
 export const BLS_POP_LENGTH = 96;
 
 // Engine specific constants
 export const CHAIN_ID = Buffer.from('0000', 'hex'); // chain id of sidechain
-export const MAX_TRANSACTIONS_SIZE_BYTES = 10000; // Max size of transaction in bytes
+export const MAX_TRANSACTIONS_SIZE_BYTES = 15360; // Max size of transaction in bytes
 export const MAX_ASSET_DATA_SIZE_BYTES = 18; // Max asset data size in bytes
 export const BLOCK_TIME = 10; // Blocking time
 export const LSK_BFT_BATCH_SIZE = 103; // LSK BFT batch size
 export const MAX_PARAMS_SIZE = 14336; // Maximum size of parameters.
 
 // module specific constants
-export const LOCKING_PERIOD_STAKE = 260000; // Period of locking time
-export const PUNISHMENT_WINDOW_STAKES = 780000;
+export const LOCKING_PERIOD_STAKING = 260000; // Period of locking time
+export const PUNISHMENT_WINDOW_STAKING = 780000;
 export const TOKEN_ID_POS = TOKEN_ID_DEX; // Token id of PoS
 export const TOKEN_ID_DYNAMIC_BLOCK_REWARD = TOKEN_ID_DEX; // Token id of dynamic block reward
-export const ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES = Buffer.from(sha256('liquidityProviderIncetives')).slice(0, NUM_BYTES_ADDRESS); // Address for liquidity provider incentives
+export const ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES = Buffer.from(sha256('liquidityProviderIncentivesAccount')).slice(0, NUM_BYTES_ADDRESS); // Address for liquidity provider incentives
 export const BOOTSTRAP_PERIOD_OFFSET = 259975;
 
 
