@@ -19,6 +19,7 @@ export const NUM_BYTES_ADDRESS = 20; // The number of bytes of an address (uint3
 export const MAX_NUM_BYTES_Q96 = 24; // The number of bytes of a fractional number stored in Q96 format (uint32)
 export const MAX_UINT_32 = 4294967295;
 export const MAX_UINT_64 = BigInt('18446744073709551615');
+import { TextEncoder } from 'util';
 
 // DEX Module Constants
 export const MODULE_ID_DEX = Buffer.from('0000', 'hex'); // TBA	ID of the DEX module (bytes)
@@ -110,7 +111,7 @@ export const NUM_BOOTSTRAP_VALIDATORS = 101; // Number of validators of sidechai
 export const MODULE_NAME_POS = "pos"; // Return name of PoS module
 export const MODULE_NAME_TOKEN = "token"; // Return name of token module
 export const ADDRESS_LENGTH = 20; // Length of address in sidechain
-export const TOKEN_ID_DEX = Buffer.from('0000', 'hex'); // Return ID of token module in DEX
+export const TOKEN_ID_DEX = Buffer.from('0000', 'hex'); // Return ID of token in DEX
 export const ALL_SUPPORTED_TOKENS_KEY = Buffer.from('', 'hex'); // All supported tokens in DEX
 
 export const sha256 = input => {
