@@ -165,7 +165,32 @@ export const genesisDEXGovernanceSchema = {
 					},
 					votes: {
 						fieldNumber: 2,
-						...votesSchema
+						type: 'object',
+						required: ['voteInfos'],
+						properties: {
+							voteInfos: {
+								fieldNumber: 1,
+								type: 'array',
+								items: {
+									type: 'object',
+									required: ['proposalIndex', 'decision', 'amount'],
+									properties: {
+										proposalIndex: {
+											dataType: 'uint32',
+											fieldNumber: 1,
+										},
+										decision: {
+											dataType: 'uint32',
+											fieldNumber: 2,
+										},
+										amount: {
+											dataType: 'uint64',
+											fieldNumber: 3,
+										},
+									},
+								},
+							},
+						},
 					}
 				},
 			},
