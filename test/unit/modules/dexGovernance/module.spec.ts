@@ -22,8 +22,7 @@ import {
 	codec
 } from 'lisk-sdk';
 
-import { ProposalsStore, VotesStore } from '../../../../src/app/modules/dexGovernance/stores';
-// import { IndexStore, ProposalsStore, VotesStore } from '../../../../src/app/modules/dexGovernance/stores';
+import { IndexStore, ProposalsStore, VotesStore } from '../../../../src/app/modules/dexGovernance/stores';
 
 import { DexGovernanceModule } from '../../../../src/app/modules/dexGovernance/module';
 import { DexGovernanceEndpoint } from '../../../../src/app/modules/dexGovernance/endpoint';
@@ -36,17 +35,17 @@ import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import { MODULE_NAME_DEX_GOVERNANCE } from '../../../../src/app/modules/dexGovernance/constants';
 
 import { DexGovernanceMethod } from '../../../../src/app/modules/dexGovernance/method';
-// import { IndexStoreData } from '../../../../src/app/modules/dexGovernance/stores/indexStore';
+import { IndexStoreData } from '../../../../src/app/modules/dexGovernance/stores/indexStore';
 import { Proposal, Vote } from '../../../../src/app/modules/dexGovernance/types';
-import { PoolID } from '../../../../src/app/modules/dex/types';
+// import { PoolID } from '../../../../src/app/modules/dex/types';
 import { genesisDEXGovernanceSchema } from '../../../../src/app/modules/dexGovernance/schemas';
-import { GenesisDEXGovernanceData } from '../../../../src/app/modules/dexGovernance/types';
+// import { GenesisDEXGovernanceData } from '../../../../src/app/modules/dexGovernance/types';
 
 const { createBlockHeaderWithDefaults } = testing;
 const { utils } = cryptography;
 
 describe('DexGovernanceModule', () => {
-	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
+	// const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 	let dexGovernanceModule: DexGovernanceModule;
 	let tokenModule: TokenModule;
 	let posModule: PoSModule;
@@ -61,19 +60,19 @@ describe('DexGovernanceModule', () => {
 
 	const proposalsStoreData: Proposal = {
 		creationHeight: 100,
-		votesYes: BigInt(10),
+		votesYes: BigInt(0),
 		votesNo: BigInt(10),
-		votesPass: BigInt(10),
-		type: 1,
+		votesPass: BigInt(0),
+		type: 0,
 		content: {
-			text: Buffer.from('proposalsStoreData', 'hex'),
-			poolID: poolId,
-			multiplier: 3,
+			text: Buffer.from('proposalsStoreData'),
+			poolID: Buffer.from(''),
+			multiplier: 0,
 			metadata: {
-				title: Buffer.from('proposals metadata', 'hex'),
-				author: Buffer.from('Daniel Salo', 'hex'),
-				summary: Buffer.from('proposal', 'hex'),
-				discussionsTo: Buffer.from('Lightcurve', 'hex')
+				title: Buffer.from('proposals metadata'),
+				author: Buffer.from('Daniel Salo'),
+				summary: Buffer.from('proposal'),
+				discussionsTo: Buffer.from('Lightcurve')
 			}
 		},
 		status: 1
@@ -83,7 +82,7 @@ describe('DexGovernanceModule', () => {
 		address: Buffer.from("00000000", 'hex'),
 		voteInfos: [
 			{
-				proposalIndex: 1,
+				proposalIndex: 0,
 				decision: 1,
 				amount: BigInt(10)
 			}
@@ -141,54 +140,37 @@ describe('DexGovernanceModule', () => {
 			expect(dexGovernanceModule.method).toBeInstanceOf(DexGovernanceMethod);
 		});
 
-		// it('initGenesisState', async () => {
-		// 	await dexGovernanceModule.initGenesisState(genesisBlockExecuteContext);
-		// 	const indexStore = dexGovernanceModule.stores.get(IndexStore);
-		// 	const indexStoreData: IndexStoreData = await indexStore.get(genesisBlockExecuteContext, Buffer.alloc(0));
-		// 	expect(indexStoreData.newestIndex).toEqual(0);
-		// 	expect(indexStoreData.nextOutcomeCheckIndex).toEqual(0);
-		// 	expect(indexStoreData.nextQuorumCheckIndex).toEqual(0);
-		// });
+		it('initGenesisState', async () => {
+			await dexGovernanceModule.initGenesisState(genesisBlockExecuteContext);
+			const indexStore = dexGovernanceModule.stores.get(IndexStore);
+			const indexStoreData: IndexStoreData = await indexStore.get(genesisBlockExecuteContext, Buffer.alloc(0));
+			expect(indexStoreData.newestIndex).toEqual(0);
+			expect(indexStoreData.nextOutcomeCheckIndex).toEqual(0);
+			expect(indexStoreData.nextQuorumCheckIndex).toEqual(0);
+		});
 
 		it('verifyGenesisBlock', async () => {
-			// const proposal = await proposalsStore.get(genesisBlockExecuteContext, Buffer.alloc(0));
-			// console.log("proposals: ", proposal);
-			const genesisDEXGovernanceData: GenesisDEXGovernanceData = {
-				proposalsStore: [proposalsStoreData],
-				votesStore: [votesStoreData]
-			}
+			const proposalsStoreData1 = proposalsStoreData;
+			const proposalsStoreData2 = proposalsStoreData;
 
-			console.log("genesisDEXGovernanceData: ", genesisDEXGovernanceData);
-			const mockAssets = codec.encode(genesisDEXGovernanceSchema, genesisDEXGovernanceData);
-			console.log("mockAssets: ", mockAssets);
-			// console.log("proposalsStore: ", proposalsStore);
-			// console.log("votesStore: ", votesStore);
-			// genesisBlockExecuteContext.assets.getAsset = () => { return mockAssets() };
-			console.log("getAssets: ", genesisBlockExecuteContext.assets.getAsset);
-			const proposalData: Proposal = {
-				creationHeight: 100,
-				votesYes: BigInt(10),
-				votesNo: BigInt(10),
-				votesPass: BigInt(10),
-				type: 1,
-				content: {
-					text: Buffer.from('proposalsStoreData', 'hex'),
-					poolID: poolId,
-					multiplier: 3,
-					metadata: {
-						title: Buffer.from('proposals metadata', 'hex'),
-						author: Buffer.from('Daniel Salo', 'hex'),
-						summary: Buffer.from('proposal', 'hex'),
-						discussionsTo: Buffer.from('Lightcurve', 'hex')
-					}
-				},
-				status: 4
+			proposalsStoreData1.type = 1;
+			const genesisDEXGovernanceData = {
+				proposalsStore: [proposalsStoreData1],
+				votesStore: [{
+					address: votesStoreData.address,
+					votes: votesStoreData
+				}]
 			}
-			const proposalStore = dexGovernanceModule.stores.get(ProposalsStore);
-			await proposalStore.set(genesisBlockExecuteContext, Buffer.alloc(0), proposalData);
-			// const result = genesisBlockExecuteContext.assets.getAsset("dexGovernance");
-			await dexGovernanceModule.verifyGenesisBlock(genesisBlockExecuteContext);
-			// expect(() => dexGovernanceModule.verifyGenesisBlock(genesisBlockExecuteContext)).toThrow(Error("Invalid proposal status"));
+			let mockAssets = codec.encode(genesisDEXGovernanceSchema, genesisDEXGovernanceData);
+			genesisBlockExecuteContext.assets.getAsset = () => mockAssets;
+			expect(() => dexGovernanceModule.verifyGenesisBlock(genesisBlockExecuteContext)).toThrow(Error("Incentivization proposal must contain a valid pool ID"));
+
+			proposalsStoreData2.creationHeight = 10000;
+			proposalsStoreData2.type = 0;
+			genesisDEXGovernanceData.proposalsStore = [proposalsStoreData2];
+			mockAssets = codec.encode(genesisDEXGovernanceSchema, genesisDEXGovernanceData);
+			genesisBlockExecuteContext.assets.getAsset = () => mockAssets;
+			expect(() => dexGovernanceModule.verifyGenesisBlock(genesisBlockExecuteContext)).toThrow(Error("Proposal can not be created in the future"));
 		});
 	});
 });

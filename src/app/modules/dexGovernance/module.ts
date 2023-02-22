@@ -35,7 +35,7 @@ import {
 import { DexGovernanceMethod } from './method';
 import { genesisDEXGovernanceSchema } from './schemas';
 import { IndexStore, ProposalsStore, VotesStore } from './stores';
-import { Proposal, Vote, GenesisDEXGovernanceData } from './types';
+import { Proposal, VoteStore, GenesisDEXGovernanceData } from './types';
 import {
 	PROPOSAL_TYPE_INCENTIVIZATION,
 	PROPOSAL_TYPE_UNIVERSAL,
@@ -176,9 +176,8 @@ export class DexGovernanceModule extends BaseModule {
 			genesisDEXGovernanceSchema,
 			assetBytes,
 		);
-		// console.log("genesisData: ", genesisData);
 		const proposalsStore: Proposal[] = genesisData.proposalsStore;
-		const votesStore: Vote[] = genesisData.votesStore;
+		const votesStore: VoteStore[] = genesisData.votesStore;
 		const height: Number = context.header.height;
 
 		// creation heights can not decrease in the array
@@ -228,13 +227,13 @@ export class DexGovernanceModule extends BaseModule {
 				}
 				return false;
 			});
-			if (exist) {
+			if (!exist) {
 				throw new Error('All addresses in votes store must be unique');
 			}
 		}
 
 		votesStore.forEach((votes) => {
-			votes.voteInfos.forEach(voteInfo => {
+			votes.votes.voteInfos.forEach(voteInfo => {
 				if (voteInfo.proposalIndex >= proposalsStore.length) {
 					throw new Error('Vote info references incorrect proposal index');
 				}
@@ -257,7 +256,7 @@ export class DexGovernanceModule extends BaseModule {
 		}
 
 		votesStore.forEach((votes) => {
-			votes.voteInfos.forEach(voteInfo => {
+			votes.votes.voteInfos.forEach(voteInfo => {
 				if (
 					voteInfo.proposalIndex >= firstWithRecordedVotes &&
 					voteInfo.proposalIndex < proposalsStore.length

@@ -45,8 +45,12 @@ export interface Vote {
 	];
 }
 
+export interface VoteStore {
+	address: Buffer;
+	votes: Vote;
+}
 
 export interface GenesisDEXGovernanceData {
 	proposalsStore: Proposal[];
-	votesStore: Vote[];
+	votesStore: VoteStore[];
 }
