@@ -19,7 +19,7 @@ import {
 	MAX_LENGTH_METADATA_AUTHOR,
 	MAX_LENGTH_METADATA_SUMMARY,
 	MAX_LENGTH_METADATA_LINK,
-	// MAX_NUMBER_LIVE_PROPOSALS,
+	MAX_NUM_RECORDED_VOTES,
 } from './constants';
 
 export const proposalContentSchema = {
@@ -116,6 +116,7 @@ export const votesSchema = {
 		voteInfos: {
 			fieldNumber: 1,
 			type: 'array',
+			maxLength: MAX_NUM_RECORDED_VOTES,
 			items: {
 				type: 'object',
 				required: ['proposalIndex', 'decision', 'amount'],
