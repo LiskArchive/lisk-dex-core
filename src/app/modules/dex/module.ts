@@ -12,8 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseModule, utils, TokenMethod, ValidatorsMethod } from 'lisk-sdk';
-import { RootModuleMetadata } from 'lisk-framework/dist-node/modules/base_module';
+import { BaseModule, ModuleMetadata, utils, TokenMethod, ValidatorsMethod } from 'lisk-sdk';
 
 import { MODULE_ID_DEX, defaultConfig } from './constants';
 
@@ -125,7 +124,7 @@ export class DexModule extends BaseModule {
 		this.events.register(SwappedEvent, new SwappedEvent(this.name));
 	}
 
-	public metadata(): RootModuleMetadata {
+	public metadata(): ModuleMetadata {
 		return {
 			name: this.name,
 			endpoints: [
