@@ -35,7 +35,7 @@ import {
 import { DexGovernanceMethod } from './method';
 import { genesisDEXGovernanceSchema } from './schemas';
 import { IndexStore, ProposalsStore, VotesStore } from './stores';
-import { Proposal, VoteStore, GenesisDEXGovernanceData } from './types';
+import { GenesisDEXGovernanceData } from './types';
 import {
 	PROPOSAL_TYPE_INCENTIVIZATION,
 	PROPOSAL_TYPE_UNIVERSAL,
@@ -92,19 +92,19 @@ export class DexGovernanceModule extends BaseModule {
 	public hasEnded(
 		index: number,
 		currentHeight: number,
-		duration: Number,
+		duration: number,
 		context: GenesisBlockExecuteContext,
 	) {
 		if (index < 0) return true;
 		const assetBytes = context.assets.getAsset(this.name);
 		if (!assetBytes) {
-			return;
+			return false;
 		}
 		const genesisData = codec.decode<GenesisDEXGovernanceData>(
 			genesisDEXGovernanceSchema,
 			assetBytes,
 		);
-		const proposalsStore: Proposal[] = genesisData.proposalsStore;
+		const { proposalsStore } = genesisData;
 		if (!proposalsStore[index]) return false;
 		return currentHeight - proposalsStore[index].creationHeight >= duration;
 	}
@@ -112,16 +112,16 @@ export class DexGovernanceModule extends BaseModule {
 	public async initGenesisState(context: GenesisBlockExecuteContext) {
 		this.verifyGenesisBlock(context);
 
-		const proposalsStore = await this.stores.get(ProposalsStore);
-		const votesStore = await this.stores.get(VotesStore);
+		const proposalsStore = this.stores.get(ProposalsStore);
+		const votesStore = this.stores.get(VotesStore);
 		const proposalsData = await proposalsStore.getAll(context);
 		const votesData = await votesStore.getAll(context);
 		const indexStore: IndexStore = this.stores.get(IndexStore);
-		const height = context.header.height;
+		const { height } = context.header;
 
 		// initialize proposals subsotre and compute values for index substore
 		for (const [index, proposal] of proposalsData.entries()) {
-			proposalsStore.set(context, Buffer.alloc(index), {
+			await proposalsStore.set(context, Buffer.alloc(index), {
 				creationHeight: proposal.value.creationHeight,
 				votesYes: proposal.value.votesYes,
 				votesNo: proposal.value.votesNo,
@@ -134,7 +134,7 @@ export class DexGovernanceModule extends BaseModule {
 
 		// initialize votes substore
 		for (const [voteId, votes] of votesData.entries()) {
-			votesStore.set(context, Buffer.alloc(voteId), {
+			await votesStore.set(context, Buffer.alloc(voteId), {
 				...votes.value
 			})
 		}
@@ -143,7 +143,7 @@ export class DexGovernanceModule extends BaseModule {
 		let nextoutcomeCheckIndex = 0;
 		let nextQuorumCheckIndex = 0;
 		const newestIndex = proposalsData.length - 1;
-		for (let i = 0; i < proposalsData.length; i++) {
+		for (let i = 0; i < proposalsData.length; i += 1) {
 			// proposals substore is already initialized
 			if (!this.hasEnded(i, height, VOTE_DURATION, context)) {
 				nextoutcomeCheckIndex = i;
@@ -151,7 +151,7 @@ export class DexGovernanceModule extends BaseModule {
 			}
 		}
 
-		for (let i = 0; i < proposalsData.length; i++) {
+		for (let i = 0; i < proposalsData.length; i += 1) {
 			if (!this.hasEnded(i, height, QUORUM_DURATION, context)) {
 				nextQuorumCheckIndex = i;
 				break;
@@ -159,9 +159,9 @@ export class DexGovernanceModule extends BaseModule {
 		}
 
 		const indexStoreData: IndexStoreData = {
-			newestIndex: newestIndex,
+			newestIndex,
 			nextOutcomeCheckIndex: nextoutcomeCheckIndex,
-			nextQuorumCheckIndex: nextQuorumCheckIndex,
+			nextQuorumCheckIndex,
 		};
 
 		await indexStore.set(context, Buffer.from([]), indexStoreData);
@@ -176,53 +176,52 @@ export class DexGovernanceModule extends BaseModule {
 			genesisDEXGovernanceSchema,
 			assetBytes,
 		);
-		const proposalsStore: Proposal[] = genesisData.proposalsStore;
-		const votesStore: VoteStore[] = genesisData.votesStore;
-		const height: Number = context.header.height;
+		const { proposalsStore, votesStore } = genesisData;
+		const { height } = context.header;
 
 		// creation heights can not decrease in the array
 		let previousCreationHeight = 0;
-		for (let i = 0; i < proposalsStore.length; i += 1) {
-			if (proposalsStore[i].creationHeight < previousCreationHeight) {
+		for (const proposal of proposalsStore) {
+			if (proposal.creationHeight < previousCreationHeight) {
 				throw new Error('Proposals must be indexed in the creation order');
 			}
-			previousCreationHeight = proposalsStore[i].creationHeight;
+			previousCreationHeight = proposal.creationHeight;
 		}
-		for (let i = 0; i < proposalsStore.length; i += 1) {
-			if (proposalsStore[i].creationHeight >= height) {
+		for (const proposal of proposalsStore) {
+			if (proposal.creationHeight >= height) {
 				throw new Error('Proposal can not be created in the future');
 			}
-			if (proposalsStore[i].type > 1) {
+			if (proposal.type > 1) {
 				throw new Error('Invalid proposal type');
 			}
 			if (
-				proposalsStore[i].type === PROPOSAL_TYPE_INCENTIVIZATION &&
-				proposalsStore[i].content.poolID.length !== NUM_BYTES_POOL_ID
+				proposal.type === PROPOSAL_TYPE_INCENTIVIZATION &&
+				proposal.content.poolID.length !== NUM_BYTES_POOL_ID
 			) {
 				throw new Error('Incentivization proposal must contain a valid pool ID');
 			}
-			if (proposalsStore[i].type === PROPOSAL_TYPE_UNIVERSAL) {
-				if (proposalsStore[i].content.text.length === 0) {
+			if (proposal.type === PROPOSAL_TYPE_UNIVERSAL) {
+				if (proposal.content.text.length === 0) {
 					throw new Error('Proposal text can not be empty for universal proposal');
 				}
 				if (
-					proposalsStore[i].content.poolID.length !== 0 ||
-					proposalsStore[i].content.multiplier !== 0
+					proposal.content.poolID.length !== 0 ||
+					proposal.content.multiplier !== 0
 				) {
 					throw new Error(
 						'For universal proposals, pool ID must be empty and multiplier must be set to 0',
 					);
 				}
 			}
-			if (proposalsStore[i].status > 3) {
+			if (proposal.status > 3) {
 				throw new Error('Invalid proposal status');
 			}
 		}
 
 		// checks for votesStore
-		for (let i = 0; i < votesStore.length; i += 1) {
+		for (const vote of votesStore) {
 			const exist = votesStore.find(votes => {
-				if (votes.address === votesStore[i].address) {
+				if (votes.address === vote.address) {
 					return true;
 				}
 				return false;
@@ -262,8 +261,7 @@ export class DexGovernanceModule extends BaseModule {
 					voteInfo.proposalIndex < proposalsStore.length
 				) {
 					const index = voteInfo.proposalIndex;
-					const decision = voteInfo.decision;
-					const amount = voteInfo.amount;
+					const { decision, amount } = voteInfo;
 					switch (decision) {
 						case DECISION_YES:
 							votesYes[index] += amount;

@@ -21,15 +21,14 @@ import {
 	cryptography,
 	codec
 } from 'lisk-sdk';
+import { GenesisBlockContext, EventQueue } from 'lisk-framework/dist-node/state_machine/';
+import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
+import { loggerMock } from 'lisk-framework/dist-node/testing/mocks';
 
 import { IndexStore, ProposalsStore, VotesStore } from '../../../../src/app/modules/dexGovernance/stores';
-
 import { DexGovernanceModule } from '../../../../src/app/modules/dexGovernance/module';
 import { DexGovernanceEndpoint } from '../../../../src/app/modules/dexGovernance/endpoint';
-import { GenesisBlockContext } from 'lisk-framework/dist-node/state_machine/';
-import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
-import { EventQueue } from 'lisk-framework/dist-node/state_machine';
-import { loggerMock } from 'lisk-framework/dist-node/testing/mocks';
+
 
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import { MODULE_NAME_DEX_GOVERNANCE } from '../../../../src/app/modules/dexGovernance/constants';
@@ -37,9 +36,7 @@ import { MODULE_NAME_DEX_GOVERNANCE } from '../../../../src/app/modules/dexGover
 import { DexGovernanceMethod } from '../../../../src/app/modules/dexGovernance/method';
 import { IndexStoreData } from '../../../../src/app/modules/dexGovernance/stores/indexStore';
 import { Proposal, Vote } from '../../../../src/app/modules/dexGovernance/types';
-// import { PoolID } from '../../../../src/app/modules/dex/types';
 import { genesisDEXGovernanceSchema } from '../../../../src/app/modules/dexGovernance/schemas';
-// import { GenesisDEXGovernanceData } from '../../../../src/app/modules/dexGovernance/types';
 
 const { createBlockHeaderWithDefaults } = testing;
 const { utils } = cryptography;
@@ -49,11 +46,20 @@ describe('DexGovernanceModule', () => {
 	let dexGovernanceModule: DexGovernanceModule;
 	let tokenModule: TokenModule;
 	let posModule: PoSModule;
-	let genesisBlockContext: GenesisBlockContext;
 
 	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
 	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
 	const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
+	const getAsset = jest.fn();
+
+	const genesisBlockContext: GenesisBlockContext = new GenesisBlockContext({
+		logger: loggerMock,
+		stateStore,
+		header: blockHeader,
+		assets: { getAsset },
+		eventQueue: new EventQueue(0),
+		chainID: utils.getRandomBytes(32)
+	});
 
 	let proposalsStore: ProposalsStore;
 	let votesStore: VotesStore;
@@ -88,17 +94,6 @@ describe('DexGovernanceModule', () => {
 			}
 		]
 	}
-
-	const getAsset = jest.fn();
-
-	genesisBlockContext = new GenesisBlockContext({
-		logger: loggerMock,
-		stateStore,
-		header: blockHeader,
-		assets: { getAsset: getAsset },
-		eventQueue: new EventQueue(0),
-		chainID: utils.getRandomBytes(32)
-	});
 
 	const genesisBlockExecuteContext: GenesisBlockExecuteContext = genesisBlockContext.createInitGenesisStateContext();
 
@@ -149,7 +144,7 @@ describe('DexGovernanceModule', () => {
 			expect(indexStoreData.nextQuorumCheckIndex).toEqual(0);
 		});
 
-		it('verifyGenesisBlock', async () => {
+		it('verifyGenesisBlock', () => {
 			const proposalsStoreData1 = proposalsStoreData;
 			const proposalsStoreData2 = proposalsStoreData;
 
