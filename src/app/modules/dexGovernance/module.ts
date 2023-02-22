@@ -17,10 +17,10 @@ import {
 	BaseCommand,
 	BaseModule,
 	GenesisBlockExecuteContext,
-	ModuleMetadata,
 	PoSMethod,
 	TokenMethod,
 } from 'lisk-sdk';
+import { RootModuleMetadata } from 'lisk-framework/dist-node/modules/base_module';
 import { NUM_BYTES_POOL_ID } from '../dex/constants';
 
 import { DexGovernanceEndpoint } from './endpoint';
@@ -68,7 +68,7 @@ export class DexGovernanceModule extends BaseModule {
 		this.events.register(ProposalVotedEvent, new ProposalVotedEvent(this.name));
 	}
 
-	public metadata(): ModuleMetadata {
+	public metadata(): RootModuleMetadata {
 		return {
 			name: this.name,
 			endpoints: [],

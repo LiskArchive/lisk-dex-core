@@ -16,11 +16,11 @@ import {
 	BaseCommand,
 	BaseModule,
 	BlockAfterExecuteContext,
-	ModuleMetadata,
 	RandomMethod,
 	TokenMethod,
 	ValidatorsMethod,
 } from 'lisk-sdk';
+import { RootModuleMetadata } from 'lisk-framework/dist-node/modules/base_module';
 import {
 	ADDRESS_LIQUIDITY_PROVIDER_REWARDS_POOL,
 	ADDRESS_TRADER_REWARDS_POOL,
@@ -54,7 +54,7 @@ export class DexRewardsModule extends BaseModule {
 		this.events.register(GeneratorRewardMintedEvent, new GeneratorRewardMintedEvent(this.name));
 	}
 
-	public metadata(): ModuleMetadata {
+	public metadata(): RootModuleMetadata {
 		return {
 			name: this.name,
 			endpoints: [],
