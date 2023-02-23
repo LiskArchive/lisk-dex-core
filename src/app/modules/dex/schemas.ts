@@ -511,6 +511,9 @@ export const getAllPositionIDsInPoolRequestSchema = {
 		positionIDsList: {
 			type: 'array',
 			fieldNumber: 2,
+			items: {
+				dataType: 'bytes',
+			},
 		},
 	},
 };
@@ -559,13 +562,13 @@ export const getCurrentSqrtPriceResponseSchema = {
 	},
 };
 
-export const getDexGlobalDataRequestSchema = {
-	$id: 'dex/getDexGlobalData',
+export const getPoolIDFromTickIDRequestSchema = {
+	$id: 'dex/endpoint/getPoolIDFromTickIDRequest',
+	required: ['tickID'],
 	type: 'object',
-	required: ['stores'],
 	properties: {
-		stores: {
-			dataType: 'object',
+		tickID: {
+			type: 'object',
 			fieldNumber: 1,
 		},
 	},
@@ -574,10 +577,10 @@ export const getDexGlobalDataRequestSchema = {
 export const getDexGlobalDataResponseSchema = {
 	$id: 'dex/endpoint/getDexGlobalDataResponse',
 	type: 'object',
-	required: ['dexGlobalData'],
+	required: ['poolID'],
 	properties: {
-		dexGlobalData: {
-			dataType: 'object',
+		poolID: {
+			type: 'object',
 			fieldNumber: 1,
 		},
 	},
@@ -702,22 +705,10 @@ export const getPositionIndexRequestSchema = {
 export const getPositionIndexResponseSchema = {
 	$id: 'dex/endpoint/getPositionIndexResponse',
 	type: 'object',
-	required: ['positionIndex'],
+	required: ['priceTicksStoreData'],
 	properties: {
-		positionIndex: {
-			dataType: 'unit32',
-			fieldNumber: 1,
-		},
-	},
-};
-
-export const getPoolIDFromTickIDRequestSchema = {
-	$id: 'dex/endpoint/getPoolIDFromTickIDRequest',
-	required: ['tickID'],
-	type: 'object',
-	properties: {
-		tickID: {
-			dataType: 'bytes',
+		priceTicksStoreData: {
+			type: 'object',
 			fieldNumber: 1,
 		},
 	},
@@ -882,10 +873,10 @@ export const getAllTicksRequestSchema = {
 export const getAllTicksResponseSchema = {
 	$id: 'dex/endpoint/getAllTicksResponse',
 	type: 'object',
-	required: ['tickIDs'],
+	required: ['tokenID'],
 	properties: {
-		tickIDs: {
-			type: 'array',
+		tokenID: {
+			dataType: 'bytes',
 			fieldNumber: 1,
 			items: {
 				type: 'object',
@@ -936,7 +927,7 @@ export const getAllTickIDsInPoolResponseSchema = {
 };
 
 export const getCollectableFeesAndIncentivesRequestSchema = {
-	$id: 'dex/getCollectableFeesAndIncentives',
+	$id: 'dex/endpoint/getCollectableFeesAndIncentivesRequest',
 	type: 'object',
 	required: ['positionID'],
 	properties: {
@@ -948,7 +939,7 @@ export const getCollectableFeesAndIncentivesRequestSchema = {
 };
 
 export const getCollectableFeesAndIncentivesResponseSchema = {
-	$id: 'dex/getCollectableFeesAndIncentives',
+	$id: 'dex/endpoint/getCollectableFeesAndIncentivesResponse',
 	type: 'object',
 	required: ['feesAndIncentives'],
 	properties: {

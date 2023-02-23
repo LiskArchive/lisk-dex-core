@@ -20,7 +20,6 @@ import { BaseModule, ModuleMetadata, utils, TokenMethod, ValidatorsMethod } from
 
 import { MODULE_ID_DEX, defaultConfig } from './constants';
 
-import { DexEndpoint } from './endpoint';
 import { ModuleConfig, ModuleInitArgs } from './types';
 
 import {
@@ -45,6 +44,7 @@ import { CollectFeesCommand } from './commands/collectFees';
 import { RemoveLiquidityFailedEvent } from './events/removeLiquidityFailed';
 import { RemoveLiquidityEvent } from './events/removeLiquidity';
 import { RemoveLiquidityCommand } from './commands/removeLiquidity';
+
 import {
 	getAllPoolIdsResponseSchema,
 	getToken1AmountRequestSchema,
@@ -85,6 +85,7 @@ import {
 
 import { SwappedEvent } from './events/swapped';
 import { SwapFailedEvent } from './events/swapFailed';
+import { DexEndpoint } from './endpoint';
 import { poolsStoreSchema } from './stores/poolsStore';
 import { positionsStoreSchema } from './stores/positionsStore';
 import { priceTicksStoreSchema } from './stores/priceTicksStore';
