@@ -873,7 +873,7 @@ export const getAllTicksRequestSchema = {
 export const getAllTicksResponseSchema = {
 	$id: 'dex/endpoint/getAllTicksResponse',
 	type: 'object',
-	required: ['tokenID', 'poolID'],
+	required: ['tokenID'],
 	properties: {
 		tokenID: {
 			dataType: 'bytes',
