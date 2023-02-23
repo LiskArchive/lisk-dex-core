@@ -20,13 +20,22 @@ import { MethodContext, TokenMethod, testing } from 'lisk-framework';
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_machine';
 
-
 import { PoolID } from '../../../../src/app/modules/dex/types';
 import { DexGovernanceModule } from '../../../../src/app/modules';
 import { Proposal } from '../../../../src/app/modules/dexGovernance/types';
-import { DECISION_YES, PROPOSAL_STATUS_ACTIVE, PROPOSAL_STATUS_FINISHED_FAILED, PROPOSAL_TYPE_INCENTIVIZATION } from '../../../../src/app/modules/dexGovernance/constants';
+import {
+	DECISION_YES,
+	PROPOSAL_STATUS_ACTIVE,
+	PROPOSAL_STATUS_FINISHED_FAILED,
+	PROPOSAL_TYPE_INCENTIVIZATION,
+} from '../../../../src/app/modules/dexGovernance/constants';
 import { ProposalsStore } from '../../../../src/app/modules/dexGovernance/stores';
-import { addVotes, checkNonNegative, getVoteOutcome, hasEnded } from '../../../../src/app/modules/dexGovernance/utils/auxiliaryFunctions';
+import {
+	addVotes,
+	checkNonNegative,
+	getVoteOutcome,
+	hasEnded,
+} from '../../../../src/app/modules/dexGovernance/utils/auxiliaryFunctions';
 
 const { InMemoryPrefixedStateDB } = testing;
 
@@ -35,7 +44,11 @@ describe('dexGovernance:auxiliaryFunctions', () => {
 	const dexGovernanceModule = new DexGovernanceModule();
 
 	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
-	const tokenMethod = new TokenMethod(dexGovernanceModule.stores, dexGovernanceModule.events, dexGovernanceModule.name);
+	const tokenMethod = new TokenMethod(
+		dexGovernanceModule.stores,
+		dexGovernanceModule.events,
+		dexGovernanceModule.name,
+	);
 	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
 
 	const methodContext: MethodContext = createMethodContext({
@@ -50,7 +63,6 @@ describe('dexGovernance:auxiliaryFunctions', () => {
 	const lockMock = jest.fn();
 	const unlockMock = jest.fn();
 	const getAvailableBalanceMock = jest.fn().mockReturnValue(BigInt(250));
-
 
 	const proposal: Proposal = {
 		creationHeight: 1,
@@ -69,7 +81,7 @@ describe('dexGovernance:auxiliaryFunctions', () => {
 				discussionsTo: Buffer.alloc(1),
 			},
 		},
-		status: PROPOSAL_STATUS_ACTIVE
+		status: PROPOSAL_STATUS_ACTIVE,
 	};
 
 	const indexBuffer = Buffer.alloc(4);
@@ -86,10 +98,14 @@ describe('dexGovernance:auxiliaryFunctions', () => {
 			tokenMethod.unlock = unlockMock;
 			tokenMethod.getAvailableBalance = getAvailableBalanceMock.mockReturnValue(BigInt(250));
 
-			tokenMethod.getTotalSupply = jest.fn().mockReturnValue({ totalSupply: [{ totalSupply: BigInt(10000) }] });
+			tokenMethod.getTotalSupply = jest
+				.fn()
+				.mockReturnValue({ totalSupply: [{ totalSupply: BigInt(10000) }] });
 		});
 		it('getVoteOutcome', async () => {
-			expect(await getVoteOutcome(methodContext, tokenMethod, BigInt(1), BigInt(1), BigInt(1))).toEqual(PROPOSAL_STATUS_FINISHED_FAILED);
+			expect(
+				await getVoteOutcome(methodContext, tokenMethod, BigInt(1), BigInt(1), BigInt(1)),
+			).toEqual(PROPOSAL_STATUS_FINISHED_FAILED);
 		});
 		it('checkNonNegative', () => {
 			expect(() => checkNonNegative(BigInt(1))).not.toThrow();
@@ -99,7 +115,9 @@ describe('dexGovernance:auxiliaryFunctions', () => {
 			expect(await hasEnded(methodContext, proposalsStore, 0, 1000, 500)).toBe(true);
 		});
 		it('addVotes', async () => {
-			await expect(addVotes(methodContext, proposalsStore, 0, BigInt(1), DECISION_YES)).resolves.not.toThrow();
+			await expect(
+				addVotes(methodContext, proposalsStore, 0, BigInt(1), DECISION_YES),
+			).resolves.not.toThrow();
 		});
 	});
 });

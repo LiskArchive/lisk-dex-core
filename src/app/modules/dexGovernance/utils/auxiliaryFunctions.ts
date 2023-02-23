@@ -31,7 +31,10 @@ export const getVoteOutcome = async (
 ) => {
 	const electorate = await tokenMethod.getTotalSupply(methodContext);
 	const turnout = amountYes + amountNo + amountPass;
-	if (amountYes * amountYes * turnout > amountNo * amountNo * electorate.totalSupply[0].totalSupply) {
+	if (
+		amountYes * amountYes * turnout >
+		amountNo * amountNo * electorate.totalSupply[0].totalSupply
+	) {
 		return PROPOSAL_STATUS_FINISHED_ACCEPTED;
 	}
 	return PROPOSAL_STATUS_FINISHED_FAILED;
