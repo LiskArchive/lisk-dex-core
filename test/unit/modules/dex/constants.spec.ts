@@ -45,7 +45,9 @@ describe('dex:constants', () => {
 		// expect(TOKEN_ID_DEX).toBe(Buffer.from('0000', 'hex'));
 		expect(ALL_SUPPORTED_TOKENS_KEY).toEqual(Buffer.from('', 'hex'));
 
-		expect(ADDRESS_VALIDATOR_INCENTIVES).toEqual(Buffer.from("760799bbccac2a03617a9561c47256a806b522bb", 'hex'));
+		expect(ADDRESS_VALIDATOR_INCENTIVES).toEqual(
+			Buffer.from('760799bbccac2a03617a9561c47256a806b522bb', 'hex'),
+		);
 		expect(ED25519_PUBLIC_KEY_LENGTH).toBe(32);
 		expect(BLS_PUBLIC_KEY_LENGTH).toBe(48);
 		expect(BLS_POP_LENGTH).toBe(96);
