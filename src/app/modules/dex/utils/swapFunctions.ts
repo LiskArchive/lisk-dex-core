@@ -1,8 +1,11 @@
 /* eslint-disable import/no-cycle */
+/* eslint-disable one-var */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
+
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -47,7 +50,6 @@ import {
 	divQ96,
 	invQ96,
 	mulDivQ96,
-	mulDivRoundUpQ96,
 	mulQ96,
 	numberToQ96,
 	q96ToBytes,
@@ -65,6 +67,7 @@ import {
 	VALIDATORS_LSK_INCENTIVE_PART,
 } from '../constants';
 import { DexGlobalStore, PriceTicksStore } from '../stores';
+import { tickToBytes } from '../stores/priceTicksStore';
 
 export const swapWithin = (
 	sqrtCurrentPrice: bigint,
@@ -435,122 +438,185 @@ export const swap = async (
 	amountSpecified: bigint,
 	exactInput: boolean,
 	currentHeight: number,
-	tokenIn: TokenID,
-	tokenOut: TokenID,
-): Promise<[bigint, bigint, bigint, bigint]> => {
+): Promise<[bigint, bigint, bigint, bigint, number]> => {
 	const dexModule = new DexModule();
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
 	const feeTier = endpoint.getFeeTier(poolID);
-	let poolSqrtPriceQ96 = bytesToQ96((await endpoint.getPool(methodContext, poolID)).sqrtPrice);
-	let numCrossedTicks = 0;
-	let amountRemaining = amountSpecified;
-	let amountTotalIn = BigInt(0);
-	let amountTotalOut = BigInt(0);
-	let totalFeesIn = BigInt(0);
-	let totalFeesOut = BigInt(0);
-	let nextTick;
-	let sqrtTargetPrice;
-	let amountIn: bigint;
-	let amountOut: bigint;
-	const poolStoreData = await endpoint.getPool(methodContext, poolID);
+	const poolInfo = await endpoint.getPool(methodContext, poolID);
+	const priceTicksStore = stores.get(PriceTicksStore);
+
+	let poolSqrtPriceQ96 = bytesToQ96(poolInfo.sqrtPrice),
+		numCrossedTicks = 0,
+		amountRemaining = amountSpecified,
+		amountTotalIn = BigInt(0),
+		amountTotalOut = BigInt(0),
+		totalFeesIn = BigInt(0),
+		totalFeesOut = BigInt(0),
+		nextTick,
+		sqrtTargetPrice,
+		amountIn: bigint,
+		amountOut: bigint,
+		tokenIn,
+		tokenOut,
+		tickExist,
+		amountRemainingTemp,
+		feeIn,
+		feeOut;
 
 	if (
 		(zeroToOne && sqrtLimitPrice >= poolSqrtPriceQ96) ||
 		(!zeroToOne && sqrtLimitPrice <= poolSqrtPriceQ96)
 	) {
-		return [BigInt(0), BigInt(0), BigInt(0), BigInt(0)];
+		return [BigInt(0), BigInt(0), BigInt(0), BigInt(0), 0];
+	}
+
+	if (zeroToOne) {
+		tokenIn = getToken0Id(poolID);
+		tokenOut = getToken1Id(poolID);
+	} else {
+		tokenIn = getToken1Id(poolID);
+		tokenOut = getToken0Id(poolID);
 	}
 
 	while (amountRemaining !== BigInt(0) && poolSqrtPriceQ96 !== sqrtLimitPrice) {
 		if (numCrossedTicks >= MAX_NUMBER_CROSSED_TICKS) {
 			throw new Error('Crossed too many ticks');
 		}
-
 		const currentTick = priceToTick(poolSqrtPriceQ96);
-		if (zeroToOne && poolSqrtPriceQ96 === tickToPrice(currentTick) && currentTick !== 0) {
+
+		if (await endpoint.getTickWithPoolIdAndTickValue(methodContext, poolID, currentTick)) {
+			tickExist = true;
+		}
+
+		if (
+			zeroToOne &&
+			tickExist &&
+			poolSqrtPriceQ96 === tickToPrice(currentTick) &&
+			currentTick !== 0
+		) {
 			await crossTick(methodContext, stores, q96ToBytes(BigInt(currentTick)), false, currentHeight);
 			numCrossedTicks += 1;
 		}
 
 		if (zeroToOne) {
-			nextTick = await stores
-				.get(PriceTicksStore)
-				.getPrevTick(methodContext, [q96ToBytes(BigInt(currentTick))]);
+			nextTick = await priceTicksStore.getPrevTick(methodContext, [
+				q96ToBytes(BigInt(currentTick)),
+			]);
 		} else {
-			nextTick = await stores
-				.get(PriceTicksStore)
-				.getNextTick(methodContext, [q96ToBytes(BigInt(currentTick))]);
+			nextTick = await priceTicksStore.getNextTick(methodContext, [
+				q96ToBytes(BigInt(currentTick)),
+			]);
 		}
 
 		const sqrtNextTickPriceQ96 = tickToPrice(nextTick);
-		if (
-			(zeroToOne && sqrtNextTickPriceQ96 < sqrtLimitPrice) ||
-			(!zeroToOne && sqrtNextTickPriceQ96 > sqrtLimitPrice)
-		) {
-			sqrtTargetPrice = sqrtLimitPrice;
+
+		if (nextTick === null) {
+			if (
+				zeroToOne &&
+				tickExist &&
+				poolSqrtPriceQ96 === tickToPrice(currentTick) &&
+				currentTick !== 0
+			) {
+				numCrossedTicks -= 1;
+			}
+			break;
+		}
+
+		if (poolInfo.liquidity !== BigInt(0)) {
+			if (
+				(zeroToOne && sqrtNextTickPriceQ96 < sqrtLimitPrice) ||
+				(!zeroToOne && sqrtNextTickPriceQ96 > sqrtLimitPrice)
+			) {
+				sqrtTargetPrice = sqrtLimitPrice;
+			} else {
+				sqrtTargetPrice = sqrtNextTickPriceQ96;
+			}
+
+			const feeCoeffAmountAfter = divQ96(
+				BigInt(feeTier / 2),
+				BigInt(FEE_TIER_PARTITION - feeTier / 2),
+			);
+			const feeCoeffAmountBefore = divQ96(BigInt(feeTier / 2), BigInt(FEE_TIER_PARTITION));
+
+			if (exactInput) {
+				const firstInFee = roundUpQ96(mulQ96(BigInt(amountRemaining), feeCoeffAmountBefore));
+				amountRemainingTemp = amountRemaining - firstInFee;
+			} else if (!exactInput) {
+				const firstOutFee = roundUpQ96(mulQ96(BigInt(amountRemaining), feeCoeffAmountAfter));
+				amountRemainingTemp = amountRemaining + firstOutFee;
+			}
+
+			[poolSqrtPriceQ96, amountIn, amountOut] = swapWithin(
+				poolSqrtPriceQ96,
+				sqrtTargetPrice,
+				poolInfo.liquidity,
+				amountRemainingTemp,
+				exactInput,
+			);
+
+			if (poolSqrtPriceQ96 !== sqrtTargetPrice) {
+				if (exactInput) {
+					feeIn = amountRemaining - amountIn;
+					feeOut = roundUpQ96(mulQ96(BigInt(amountOut), feeCoeffAmountBefore));
+				} else if (!exactInput) {
+					feeIn = roundUpQ96(mulQ96(BigInt(amountIn), feeCoeffAmountAfter));
+					feeOut = amountOut - amountRemaining;
+				}
+			} else {
+				feeIn = roundUpQ96(mulQ96(BigInt(amountIn), feeCoeffAmountAfter));
+				feeOut = roundUpQ96(mulQ96(BigInt(amountOut), feeCoeffAmountBefore));
+			}
+			if (exactInput) {
+				amountRemaining -= amountIn + feeIn;
+			} else {
+				amountRemaining -= amountOut - feeOut;
+			}
+
+			amountTotalOut += amountOut - feeOut;
+			amountTotalIn += amountIn + feeIn;
+
+			totalFeesIn += feeIn;
+			totalFeesOut += feeOut;
+
+			const validatorFeePartIn = tokenIn.equals(TOKEN_ID_LSK) ? VALIDATORS_LSK_INCENTIVE_PART : 0;
+			const validatorFeePartOut = tokenOut.equals(TOKEN_ID_LSK) ? VALIDATORS_LSK_INCENTIVE_PART : 0;
+
+			const liquidityFeeInQ96 = mulDivQ96(
+				BigInt(feeIn),
+				BigInt(FEE_TIER_PARTITION - validatorFeePartIn),
+				BigInt(FEE_TIER_PARTITION),
+			);
+			const liquidityFeeOutQ96 = mulDivQ96(
+				BigInt(feeOut),
+				BigInt(FEE_TIER_PARTITION - validatorFeePartOut),
+				BigInt(FEE_TIER_PARTITION),
+			);
+
+			const liquidityFee0Q96 = zeroToOne ? liquidityFeeInQ96 : liquidityFeeOutQ96;
+			const liquidityFee1Q96 = zeroToOne ? liquidityFeeOutQ96 : liquidityFeeInQ96;
+
+			const globalFees0Q96 = divQ96(liquidityFee0Q96, BigInt(poolInfo.liquidity));
+			const globalFees1Q96 = divQ96(liquidityFee1Q96, BigInt(poolInfo.liquidity));
+
+			const feeGrowthGlobal0Q96 = bytesToQ96(poolInfo.feeGrowthGlobal0);
+			poolInfo.feeGrowthGlobal0 = q96ToBytes(addQ96(feeGrowthGlobal0Q96, globalFees0Q96));
+			const feeGrowthGlobal1Q96 = bytesToQ96(poolInfo.feeGrowthGlobal1);
+			poolInfo.feeGrowthGlobal1 = q96ToBytes(addQ96(feeGrowthGlobal1Q96, globalFees1Q96));
 		} else {
-			sqrtTargetPrice = sqrtNextTickPriceQ96;
+			poolSqrtPriceQ96 = sqrtNextTickPriceQ96;
 		}
-
-		const firstFee = mulDivRoundUpQ96(
-			amountRemaining,
-			BigInt(feeTier / 2),
-			BigInt(FEE_TIER_PARTITION),
-		);
-
-		const amountRemainingTemp = amountRemaining - firstFee;
-		const result = swapWithin(
-			poolSqrtPriceQ96,
-			sqrtTargetPrice,
-			poolStoreData.liquidity,
-			amountRemainingTemp,
-			exactInput,
-		);
-
-		[poolSqrtPriceQ96, amountIn, amountOut] = result;
-		const feeCoeff = divQ96(BigInt(feeTier / 2), BigInt(FEE_TIER_PARTITION - feeTier / 2));
-		const feeIn = roundUpQ96(mulQ96(numberToQ96(amountIn), feeCoeff));
-		const feeOut = roundUpQ96(mulQ96(numberToQ96(amountOut), feeCoeff));
-
-		if (exactInput) {
-			amountRemaining -= amountIn + feeIn;
-		} else if (!exactInput) {
-			amountRemaining -= amountOut + feeOut;
-		}
-		amountTotalOut += amountOut + feeOut;
-		amountTotalIn += amountIn + feeIn;
-		totalFeesIn += feeIn;
-		totalFeesOut += feeOut;
-
-		const validatorFeePartIn = tokenIn.equals(TOKEN_ID_LSK) ? VALIDATORS_LSK_INCENTIVE_PART : 0;
-		const validatorFeePartOut = tokenOut.equals(TOKEN_ID_LSK) ? VALIDATORS_LSK_INCENTIVE_PART : 0;
-
-		const liquidityFeeInQ96 = mulDivQ96(
-			BigInt(feeIn),
-			BigInt(FEE_TIER_PARTITION - validatorFeePartIn),
-			BigInt(FEE_TIER_PARTITION),
-		);
-		const liquidityFeeOutQ96 = mulDivQ96(
-			BigInt(feeOut),
-			BigInt(FEE_TIER_PARTITION - validatorFeePartOut),
-			BigInt(FEE_TIER_PARTITION),
-		);
-
-		const liquidityFee0Q96 = zeroToOne ? liquidityFeeInQ96 : liquidityFeeOutQ96;
-		const liquidityFee1Q96 = zeroToOne ? liquidityFeeOutQ96 : liquidityFeeInQ96;
-		const globalFees0Q96 = divQ96(liquidityFee0Q96, BigInt(poolStoreData.liquidity));
-		const globalFees1Q96 = divQ96(liquidityFee1Q96, BigInt(poolStoreData.liquidity));
-		const feeGrowthGlobal0Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal0);
-		poolStoreData.feeGrowthGlobal0 = q96ToBytes(addQ96(feeGrowthGlobal0Q96, globalFees0Q96));
-		const feeGrowthGlobal1Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal1);
-		poolStoreData.feeGrowthGlobal1 = q96ToBytes(addQ96(feeGrowthGlobal1Q96, globalFees1Q96));
 
 		if (poolSqrtPriceQ96 === sqrtNextTickPriceQ96 && !zeroToOne) {
-			await crossTick(methodContext, stores, nextTick, true, currentHeight);
+			await crossTick(
+				methodContext,
+				stores,
+				Buffer.concat([poolID, tickToBytes(nextTick)]),
+				true,
+				currentHeight,
+			);
 			numCrossedTicks += 1;
 		}
 	}
-
-	poolStoreData.sqrtPrice = q96ToBytes(poolSqrtPriceQ96);
-	return [amountTotalIn, amountTotalOut, totalFeesIn, totalFeesOut];
+	poolInfo.sqrtPrice = q96ToBytes(poolSqrtPriceQ96);
+	return [amountTotalIn, amountTotalOut, totalFeesIn, totalFeesOut, numCrossedTicks];
 };

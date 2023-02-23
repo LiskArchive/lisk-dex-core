@@ -49,10 +49,13 @@ import { TOKEN_ID_LSK } from '../../../../src/app/modules/dexRewards/constants';
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { computeExceptionalRoute } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import { NUM_BYTES_POOL_ID } from '../../../../src/app/modules/dex/constants';
-import { PriceTicksStoreData } from '../../../../src/app/modules/dex/stores/priceTicksStore';
+import {
+	PriceTicksStoreData,
+	tickToBytes,
+} from '../../../../src/app/modules/dex/stores/priceTicksStore';
 
 describe('dex:swapFunctions', () => {
-	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
+	const poolID: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
 	const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
 	const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
@@ -103,7 +106,7 @@ describe('dex:swapFunctions', () => {
 		positionCounter: BigInt(15),
 		collectableLSKFees: BigInt(10),
 		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
-		incentivizedPools: [{ poolId, multiplier: 10 }],
+		incentivizedPools: [{ poolId: poolID, multiplier: 10 }],
 		totalIncentivesMultiplier: 1,
 	};
 
@@ -121,7 +124,7 @@ describe('dex:swapFunctions', () => {
 			dexGlobalStore = dexModule.stores.get(DexGlobalStore);
 			priceTicksStore = dexModule.stores.get(PriceTicksStore);
 
-			await poolsStore.setKey(methodContext, [poolId], poolsStoreData);
+			await poolsStore.setKey(methodContext, [poolID], poolsStoreData);
 			await poolsStore.setKey(methodContext, [poolIdLSK], poolsStoreData);
 
 			await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData);
@@ -158,7 +161,7 @@ describe('dex:swapFunctions', () => {
 		});
 
 		it('computeCurrentPrice', async () => {
-			const swapRoute = [poolId];
+			const swapRoute = [poolID];
 			const currentPrice = await computeCurrentPrice(
 				moduleEndpointContext,
 				dexModule.stores,
@@ -183,7 +186,7 @@ describe('dex:swapFunctions', () => {
 
 			expect(vertices.filter(vertex => vertex.equals(token0Id))).toHaveLength(1);
 			expect(vertices.filter(vertex => vertex.equals(token1Id))).toHaveLength(1);
-			expect(edges.filter(edge => edge.equals(poolId))).toHaveLength(1);
+			expect(edges.filter(edge => edge.equals(poolID))).toHaveLength(1);
 		});
 		it('crossTick', async () => {
 			const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
@@ -201,7 +204,7 @@ describe('dex:swapFunctions', () => {
 
 		it('transferFeesFromPool', () => {
 			expect(
-				transferFeesFromPool(tokenMethod, methodContext, amount, TOKEN_ID_LSK, poolId),
+				transferFeesFromPool(tokenMethod, methodContext, amount, TOKEN_ID_LSK, poolID),
 			).toBeUndefined();
 		});
 
@@ -233,28 +236,49 @@ describe('dex:swapFunctions', () => {
 		it('swap', async () => {
 			const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
 			const currentTickID = q96ToBytes(BigInt(currentTick));
+			const poolIDAndTickID = Buffer.concat([poolID, tickToBytes(currentTick)]);
+
+			await poolsStore.setKey(
+				methodContext,
+				[currentTickID.slice(0, NUM_BYTES_POOL_ID)],
+				poolsStoreData,
+			);
 
 			await priceTicksStore.setKey(methodContext, [currentTickID], priceTicksStoreDataTickUpper);
+
+			await priceTicksStore.setKey(methodContext, [poolIDAndTickID], priceTicksStoreDataTickUpper);
 
 			await priceTicksStore.setKey(
 				methodContext,
 				[Buffer.from('000000000000000000000000000000000000000000000006', 'hex')],
 				priceTicksStoreDataTickUpper,
 			);
+
 			q96ToBytes(BigInt(currentTick));
-			const res = await swap(
-				methodContext,
-				dexModule.stores,
-				poolId,
-				true,
-				sqrtLimitPrice,
-				BigInt(5),
-				true,
-				10,
-				token0Id,
-				token1Id,
-			);
-			expect(res).toStrictEqual([BigInt(5), BigInt(5), BigInt(1), BigInt(1)]);
+			expect(
+				await swap(
+					methodContext,
+					dexModule.stores,
+					poolID,
+					true,
+					sqrtLimitPrice,
+					BigInt(5),
+					true,
+					10,
+				),
+			).toStrictEqual([BigInt(5), BigInt(5), BigInt(0), BigInt(0), 1]);
+			expect(
+				await swap(
+					methodContext,
+					dexModule.stores,
+					poolID,
+					true,
+					sqrtLimitPrice,
+					BigInt(5),
+					false,
+					10,
+				),
+			).toStrictEqual([BigInt(6), BigInt(5), BigInt(0), BigInt(0), 1]);
 		});
 	});
 });
