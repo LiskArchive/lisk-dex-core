@@ -113,7 +113,7 @@ export const ADDRESS_LENGTH = 20; // Length of address in sidechain
 export const TOKEN_ID_DEX = Buffer.from('0000000000000001', 'hex'); // Return ID of token in DEX
 export const ALL_SUPPORTED_TOKENS_KEY = Buffer.from('', 'hex'); // All supported tokens in DEX
 
-export const sha256 = input => {
+export const sha256 = (input: string) => {
 	const inputBytes = new TextEncoder().encode(input);
 	return createHash('sha256').update(inputBytes).digest();
 };
