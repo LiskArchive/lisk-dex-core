@@ -6,7 +6,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 
-
 /*
  * Copyright © 2022 Lisk Foundation
  *
