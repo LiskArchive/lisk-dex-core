@@ -61,7 +61,7 @@ describe('dex:constants', () => {
 
 		expect(LOCKING_PERIOD_STAKING).toBe(260000);
 		expect(PUNISHMENT_WINDOW_STAKING).toBe(780000);
-		expect(TOKEN_ID_POS).toEqual(Buffer.from('0000', 'hex'));
+		expect(TOKEN_ID_POS).toEqual(Buffer.from('0000000000000001', 'hex'));
 		expect(BOOTSTRAP_PERIOD_OFFSET).toBe(259975);
 	});
 });
