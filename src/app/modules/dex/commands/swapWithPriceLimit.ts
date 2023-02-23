@@ -179,8 +179,6 @@ export class SwapExactWithPriceLimitCommand extends BaseCommand {
 				maxAmountTokenIn,
 				true,
 				currentHeight,
-				tokenIdIn,
-				tokenIdOut,
 			);
 			if (amountOut < minAmountTokenOut) {
 				this.events.get(SwapFailedEvent).add(
