@@ -21,6 +21,7 @@ import {
 	cryptography,
 	codec,
 } from 'lisk-sdk';
+
 import { GenesisBlockContext, EventQueue } from 'lisk-framework/dist-node/state_machine/';
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { loggerMock } from 'lisk-framework/dist-node/testing/mocks';
@@ -33,7 +34,6 @@ import {
 import { DexGovernanceModule } from '../../../../src/app/modules/dexGovernance/module';
 import { DexGovernanceEndpoint } from '../../../../src/app/modules/dexGovernance/endpoint';
 
-import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import { MODULE_NAME_DEX_GOVERNANCE } from '../../../../src/app/modules/dexGovernance/constants';
 
 import { DexGovernanceMethod } from '../../../../src/app/modules/dexGovernance/method';
@@ -41,7 +41,7 @@ import { IndexStoreData } from '../../../../src/app/modules/dexGovernance/stores
 import { Proposal, Vote } from '../../../../src/app/modules/dexGovernance/types';
 import { genesisDEXGovernanceSchema } from '../../../../src/app/modules/dexGovernance/schemas';
 
-const { createBlockHeaderWithDefaults } = testing;
+const { createBlockHeaderWithDefaults, InMemoryPrefixedStateDB } = testing;
 const { utils } = cryptography;
 
 describe('DexGovernanceModule', () => {

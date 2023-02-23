@@ -33,7 +33,6 @@ import {
 } from './events';
 
 import { DexGovernanceMethod } from './method';
-import { genesisDEXGovernanceSchema } from './schemas';
 import { IndexStore, ProposalsStore, VotesStore } from './stores';
 import { GenesisDEXGovernanceData } from './types';
 import {
@@ -46,9 +45,8 @@ import {
 	VOTE_DURATION,
 	QUORUM_DURATION,
 } from './constants';
-import { IndexStoreData } from './stores/indexStore';
-import { proposalSchema, votesSchema } from './schemas';
-import { indexStoreSchema } from './stores/indexStore';
+import { proposalSchema, votesSchema, genesisDEXGovernanceSchema } from './schemas';
+import { indexStoreSchema, IndexStoreData } from './stores/indexStore';
 
 export class DexGovernanceModule extends BaseModule {
 	public endpoint = new DexGovernanceEndpoint(this.stores, this.offchainStores);
