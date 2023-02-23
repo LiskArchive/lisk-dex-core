@@ -1037,4 +1037,3 @@ export const getAllTickIDsInPoolRsponseSchema = {
 		},
 	},
 };
-

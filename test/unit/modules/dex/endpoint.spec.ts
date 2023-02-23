@@ -310,10 +310,17 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getTickWithPoolIdAndTickValue', async () => {
+			const tickValue = 5;
+			priceTicksStore.setKey(
+				methodContext,
+				[getPoolIDFromPositionID(positionId), tickToBytes(tickValue)],
+				priceTicksStoreDataTickUpper,
+			);
+
 			const tickWithPoolIdAndTickValue = await endpoint.getTickWithPoolIdAndTickValue(
 				moduleEndpointContext,
 				getPoolIDFromPositionID(positionId),
-				5,
+				tickValue,
 			);
 			expect(tickWithPoolIdAndTickValue).not.toBeNull();
 			expect(tickWithPoolIdAndTickValue.liquidityNet).toBe(BigInt(5));

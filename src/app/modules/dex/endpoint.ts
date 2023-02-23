@@ -131,8 +131,8 @@ export class DexEndpoint extends BaseEndpoint {
 		tickValue: number,
 	): Promise<PriceTicksStoreData> {
 		const priceTicksStore = this.stores.get(PriceTicksStore);
-		const key = poolId.toLocaleString() + tickToBytes(tickValue).toLocaleString();
-		const priceTicksStoreData = await priceTicksStore.get(methodContext, Buffer.from(key, 'hex'));
+		const key = Buffer.concat([poolId, tickToBytes(tickValue)]);
+		const priceTicksStoreData = await priceTicksStore.get(methodContext, key);
 		if (priceTicksStoreData == null) {
 			throw new Error('No tick with the specified poolId and tickValue');
 		} else {
