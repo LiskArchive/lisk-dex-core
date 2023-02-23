@@ -164,8 +164,8 @@ export const genesisDEXGovernanceSchema = {
 					},
 					votes: {
 						fieldNumber: 2,
-						...votesSchema
-					}
+						...votesSchema,
+					},
 				},
 			},
 		},

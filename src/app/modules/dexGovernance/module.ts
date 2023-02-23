@@ -95,7 +95,7 @@ export class DexGovernanceModule extends BaseModule {
 				name: v.name,
 				data: v.schema,
 			})),
-			assets: []
+			assets: [],
 		};
 	}
 
@@ -150,8 +150,8 @@ export class DexGovernanceModule extends BaseModule {
 		// initialize votes substore
 		for (const [voteId, votes] of votesData.entries()) {
 			await votesStore.set(context, Buffer.alloc(voteId), {
-				...votes.value
-			})
+				...votes.value,
+			});
 		}
 
 		// initialize index substore
@@ -219,10 +219,7 @@ export class DexGovernanceModule extends BaseModule {
 				if (proposal.content.text.length === 0) {
 					throw new Error('Proposal text can not be empty for universal proposal');
 				}
-				if (
-					proposal.content.poolID.length !== 0 ||
-					proposal.content.multiplier !== 0
-				) {
+				if (proposal.content.poolID.length !== 0 || proposal.content.multiplier !== 0) {
 					throw new Error(
 						'For universal proposals, pool ID must be empty and multiplier must be set to 0',
 					);
@@ -246,7 +243,7 @@ export class DexGovernanceModule extends BaseModule {
 			}
 		}
 
-		votesStore.forEach((votes) => {
+		votesStore.forEach(votes => {
 			votes.votes.voteInfos.forEach(voteInfo => {
 				if (voteInfo.proposalIndex >= proposalsStore.length) {
 					throw new Error('Vote info references incorrect proposal index');
@@ -255,7 +252,7 @@ export class DexGovernanceModule extends BaseModule {
 					throw new Error('Incorrect vote decision');
 				}
 			});
-		})
+		});
 
 		// check vote calculation for the proposals with recorded votes
 		const firstWithRecordedVotes = Math.max(0, proposalsStore.length - MAX_NUM_RECORDED_VOTES);
@@ -269,7 +266,7 @@ export class DexGovernanceModule extends BaseModule {
 			votesPass[index] = BigInt(0);
 		}
 
-		votesStore.forEach((votes) => {
+		votesStore.forEach(votes => {
 			votes.votes.voteInfos.forEach(voteInfo => {
 				if (
 					voteInfo.proposalIndex >= firstWithRecordedVotes &&
@@ -292,7 +289,7 @@ export class DexGovernanceModule extends BaseModule {
 					}
 				}
 			});
-		})
+		});
 
 		for (let index = firstWithRecordedVotes; index < proposalsStore.length; index += 1) {
 			if (

@@ -19,16 +19,19 @@ import {
 	GenesisBlockExecuteContext,
 	testing,
 	cryptography,
-	codec
+	codec,
 } from 'lisk-sdk';
 import { GenesisBlockContext, EventQueue } from 'lisk-framework/dist-node/state_machine/';
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { loggerMock } from 'lisk-framework/dist-node/testing/mocks';
 
-import { IndexStore, ProposalsStore, VotesStore } from '../../../../src/app/modules/dexGovernance/stores';
+import {
+	IndexStore,
+	ProposalsStore,
+	VotesStore,
+} from '../../../../src/app/modules/dexGovernance/stores';
 import { DexGovernanceModule } from '../../../../src/app/modules/dexGovernance/module';
 import { DexGovernanceEndpoint } from '../../../../src/app/modules/dexGovernance/endpoint';
-
 
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import { MODULE_NAME_DEX_GOVERNANCE } from '../../../../src/app/modules/dexGovernance/constants';
@@ -58,7 +61,7 @@ describe('DexGovernanceModule', () => {
 		header: blockHeader,
 		assets: { getAsset },
 		eventQueue: new EventQueue(0),
-		chainID: utils.getRandomBytes(32)
+		chainID: utils.getRandomBytes(32),
 	});
 
 	let proposalsStore: ProposalsStore;
@@ -78,22 +81,22 @@ describe('DexGovernanceModule', () => {
 				title: Buffer.from('proposals metadata'),
 				author: Buffer.from('Daniel Salo'),
 				summary: Buffer.from('proposal'),
-				discussionsTo: Buffer.from('Lightcurve')
-			}
+				discussionsTo: Buffer.from('Lightcurve'),
+			},
 		},
-		status: 1
+		status: 1,
 	};
 
 	const votesStoreData: Vote = {
-		address: Buffer.from("00000000", 'hex'),
+		address: Buffer.from('00000000', 'hex'),
 		voteInfos: [
 			{
 				proposalIndex: 0,
 				decision: 1,
-				amount: BigInt(10)
-			}
-		]
-	}
+				amount: BigInt(10),
+			},
+		],
+	};
 
 	const genesisBlockExecuteContext: GenesisBlockExecuteContext = genesisBlockContext.createInitGenesisStateContext();
 
@@ -138,7 +141,10 @@ describe('DexGovernanceModule', () => {
 		it('initGenesisState', async () => {
 			await dexGovernanceModule.initGenesisState(genesisBlockExecuteContext);
 			const indexStore = dexGovernanceModule.stores.get(IndexStore);
-			const indexStoreData: IndexStoreData = await indexStore.get(genesisBlockExecuteContext, Buffer.alloc(0));
+			const indexStoreData: IndexStoreData = await indexStore.get(
+				genesisBlockExecuteContext,
+				Buffer.alloc(0),
+			);
 			expect(indexStoreData.newestIndex).toEqual(0);
 			expect(indexStoreData.nextOutcomeCheckIndex).toEqual(0);
 			expect(indexStoreData.nextQuorumCheckIndex).toEqual(0);
@@ -151,21 +157,27 @@ describe('DexGovernanceModule', () => {
 			proposalsStoreData1.type = 1;
 			const genesisDEXGovernanceData = {
 				proposalsStore: [proposalsStoreData1],
-				votesStore: [{
-					address: votesStoreData.address,
-					votes: votesStoreData
-				}]
-			}
+				votesStore: [
+					{
+						address: votesStoreData.address,
+						votes: votesStoreData,
+					},
+				],
+			};
 			let mockAssets = codec.encode(genesisDEXGovernanceSchema, genesisDEXGovernanceData);
 			genesisBlockExecuteContext.assets.getAsset = () => mockAssets;
-			expect(() => dexGovernanceModule.verifyGenesisBlock(genesisBlockExecuteContext)).toThrow(Error("Incentivization proposal must contain a valid pool ID"));
+			expect(() => dexGovernanceModule.verifyGenesisBlock(genesisBlockExecuteContext)).toThrow(
+				Error('Incentivization proposal must contain a valid pool ID'),
+			);
 
 			proposalsStoreData2.creationHeight = 10000;
 			proposalsStoreData2.type = 0;
 			genesisDEXGovernanceData.proposalsStore = [proposalsStoreData2];
 			mockAssets = codec.encode(genesisDEXGovernanceSchema, genesisDEXGovernanceData);
 			genesisBlockExecuteContext.assets.getAsset = () => mockAssets;
-			expect(() => dexGovernanceModule.verifyGenesisBlock(genesisBlockExecuteContext)).toThrow(Error("Proposal can not be created in the future"));
+			expect(() => dexGovernanceModule.verifyGenesisBlock(genesisBlockExecuteContext)).toThrow(
+				Error('Proposal can not be created in the future'),
+			);
 		});
 	});
 });
