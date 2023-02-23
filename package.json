@@ -27,7 +27,7 @@
 		"start": "echo Run \"./bin/run start\" to start the app",
 		"build": "tsc",
 		"test": "jest --passWithNoTests",
-		"test:coverage": "jest --passWithNoTests --coverage=true --coverage-reporters=text",
+		"test:coverage": "jest --passWithNoTests --coverage=true --coverage-reporters=json",
 		"test:ci": "jest --passWithNoTests --coverage=true --coverage-reporters=json --verbose",
 		"version": "oclif readme --multi --dir=docs/commands && git add README.md docs",
 		"prepublishOnly": "npm ci && npm run lint && npm run build"

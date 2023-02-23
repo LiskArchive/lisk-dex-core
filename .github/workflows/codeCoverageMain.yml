@@ -1,0 +1,32 @@
+name: code-coverage-action
+on: [push]
+
+jobs:
+  run_code_coverage_test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
+    name: Codecov Test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install node modules
+        run: npm install
+      - name: Run testing
+        run: npm run test:coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          files: ./coverage/coverage-final.json
+          flags: unittests
+          name: codecov-umbrella
+          verbose: true
