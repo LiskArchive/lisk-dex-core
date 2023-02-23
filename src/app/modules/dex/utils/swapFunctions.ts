@@ -489,14 +489,11 @@ export const swap = async (
 			throw new Error('Crossed too many ticks');
 		}
 		const currentTick = priceToTick(poolSqrtPriceQ96);
-
-		try {
-			await endpoint.getTickWithPoolIdAndTickValue(moduleEndpointContext, poolID, currentTick);
-			tickExist = true;
-		} catch (error) {
-			throw new Error('Error:' + error);
+		
+		if(await endpoint.getTickWithPoolIdAndTickValue(moduleEndpointContext, poolID, currentTick)){
+			tickExist = true
 		}
-
+				
 		if (
 			zeroToOne &&
 			tickExist &&
