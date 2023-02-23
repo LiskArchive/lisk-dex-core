@@ -2,6 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-floating-promises */
+
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -16,6 +18,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import {
+	createMethodContext,
+	EventQueue,
+	MethodContext,
+} from 'lisk-framework/dist-node/state_machine';
+import { TokenMethod } from 'lisk-sdk';
 import { DexModule } from '../../../../src/app/modules';
 import {
 	DexGlobalStore,
@@ -29,18 +37,15 @@ import { Address, PoolID, PositionID } from '../../../../src/app/modules/dex/typ
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 
-import {
-	createMethodContext,
-	EventQueue,
-	MethodContext,
-} from 'lisk-framework/dist-node/state_machine';
-import { TokenMethod } from 'lisk-sdk';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import {
 	PriceTicksStoreData,
 	tickToBytes,
 } from '../../../../src/app/modules/dex/stores/priceTicksStore';
-import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
+import {
+	DexGlobalStoreData,
+	PoolCreationSettings,
+} from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
@@ -54,15 +59,14 @@ describe('dex: offChainEndpointFunctions', () => {
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
 	const dexModule = new DexModule();
-	const feeTier = Number('0x00000c8');
+	const feeTierNumber = Number('0x00000c8');
 	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
 
 	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
-	//const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
+	// const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
 
-	let stateStore: PrefixedStateReadWriter;
-	stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+	const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
 	const moduleEndpointContext = createTransientModuleEndpointContext({
 		stateStore,
@@ -74,6 +78,11 @@ describe('dex: offChainEndpointFunctions', () => {
 		stateStore,
 		eventQueue: new EventQueue(0),
 	});
+
+	const poolCreationSettingsData: PoolCreationSettings = {
+		feeTier: 100,
+		tickSpacing: 1,
+	};
 
 	let poolsStore: PoolsStore;
 	let priceTicksStore: PriceTicksStore;
@@ -117,7 +126,7 @@ describe('dex: offChainEndpointFunctions', () => {
 	const dexGlobalStoreData: DexGlobalStoreData = {
 		positionCounter: BigInt(15),
 		collectableLSKFees: BigInt(10),
-		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
+		poolCreationSettings: [poolCreationSettingsData],
 		incentivizedPools: [{ poolId, multiplier: 10 }],
 		totalIncentivesMultiplier: 1,
 	};
@@ -233,7 +242,7 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('should return the feeTier from the poolID', () => {
-			expect(endpoint.getFeeTier(poolId)).toEqual(feeTier);
+			expect(endpoint.getFeeTier(poolId)).toEqual(feeTierNumber);
 		});
 
 		it('getPoolIDFromTickID', () => {
@@ -328,16 +337,16 @@ describe('dex: offChainEndpointFunctions', () => {
 
 		it('getLSKPrice', async () => {
 			const result = Buffer.alloc(4);
-			const feeTier = q96ToBytes(
-				BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings.feeTier, 0)),
+			const tempFeeTier = q96ToBytes(
+				BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings[0].feeTier, 0)),
 			);
 			await poolsStore.setKey(
 				methodContext,
-				[getPoolIDFromPositionID(positionId), positionId, feeTier],
+				[getPoolIDFromPositionID(positionId), positionId, tempFeeTier],
 				poolsStoreData,
 			);
-			await poolsStore.setKey(methodContext, [poolIdLSK, poolIdLSK, feeTier], poolsStoreData);
-			await poolsStore.setKey(methodContext, [poolIdLSK, positionId, feeTier], poolsStoreData);
+			await poolsStore.setKey(methodContext, [poolIdLSK, poolIdLSK, tempFeeTier], poolsStoreData);
+			await poolsStore.setKey(methodContext, [poolIdLSK, positionId, tempFeeTier], poolsStoreData);
 
 			const res = await endpoint.getLSKPrice(
 				tokenMethod,

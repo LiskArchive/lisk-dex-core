@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { MethodContext } from 'lisk-framework/dist-node/state_machine';
 import { BaseStore, ImmutableStoreGetter, ModuleEndpointContext, StoreGetter } from 'lisk-sdk';
 import { MAX_NUM_BYTES_Q96, MAX_TICK, MIN_TICK } from '../constants';
 
@@ -114,7 +115,7 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 		});
 	}
 
-	public async getNextTick(context: ModuleEndpointContext, keys: Buffer[]) {
+	public async getNextTick(context: ModuleEndpointContext | MethodContext, keys: Buffer[]) {
 		const key = Buffer.concat(keys);
 		const keysArray: string[] = [];
 		const allKeys = await this.iterate(context, {
@@ -122,8 +123,8 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			lte: Buffer.alloc(16, 255),
 			reverse: false,
 		});
-		allKeys.forEach(key => {
-			keysArray.push(key.key.toString('hex'));
+		allKeys.forEach(keyItem => {
+			keysArray.push(keyItem.key.toString('hex'));
 		});
 
 		const currentKeyIndex = keysArray.indexOf(key.toString('hex'), 0);
@@ -132,12 +133,11 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			const prevKey = Buffer.from(keysArray[currentKeyIndex + 1], 'hex');
 			const resKey = await this.getKey(context, [prevKey]);
 			return resKey;
-		} else {
-			return null;
 		}
+		return null;
 	}
 
-	public async getPrevTick(context: ModuleEndpointContext, keys: Buffer[]) {
+	public async getPrevTick(context: ModuleEndpointContext | MethodContext, keys: Buffer[]) {
 		const key = Buffer.concat(keys);
 		const keysArray: string[] = [];
 		const allKeys = await this.iterate(context, {
@@ -145,8 +145,8 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			lte: Buffer.alloc(16, 255),
 			reverse: false,
 		});
-		allKeys.forEach(key => {
-			keysArray.push(key.key.toString('hex'));
+		allKeys.forEach(keyItem => {
+			keysArray.push(keyItem.key.toString('hex'));
 		});
 
 		const currentKeyIndex = keysArray.indexOf(key.toString('hex'), 0);
@@ -155,8 +155,7 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			const prevKey = Buffer.from(keysArray[currentKeyIndex - 1], 'hex');
 			const resKey = await this.getKey(context, [prevKey]);
 			return resKey;
-		} else {
-			return null;
 		}
+		return null;
 	}
 }

@@ -1,3 +1,12 @@
+/* eslint-disable import/no-cycle */
+/* eslint-disable one-var */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-floating-promises */
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
+
+
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -12,8 +21,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MethodContext, ModuleEndpointContext, TokenMethod } from 'lisk-sdk';
-import { SwapFailedEvent } from '../events/swapFailed';
+import { ModuleEndpointContext, TokenMethod } from 'lisk-sdk';
+
+import { MethodContext } from 'lisk-framework/dist-node/state_machine';
+import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import {
 	Address,
 	AdjacentEdgesInterface,
@@ -23,7 +34,7 @@ import {
 	TickID,
 	TokenID,
 } from '../types';
-import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
+import { SwapFailedEvent } from '../events/swapFailed';
 import { getToken0Id, getToken1Id, transferFromPool } from './auxiliaryFunctions';
 import {
 	computeNextPrice,
@@ -78,12 +89,10 @@ export const swapWithin = (
 		} else {
 			amountIn = getAmount1Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, true);
 		}
+	} else if (zeroToOne) {
+		amountOut = getAmount1Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, false);
 	} else {
-		if (zeroToOne) {
-			amountOut = getAmount1Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, false);
-		} else {
-			amountOut = getAmount0Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, false);
-		}
+		amountOut = getAmount0Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, false);
 	}
 
 	if (
@@ -113,7 +122,7 @@ export const swapWithin = (
 
 export const raiseSwapException = (
 	events: NamedRegistry,
-	methodContext: MethodContext,
+	methodContext,
 	reason: number,
 	tokenIdIn: TokenID,
 	tokenIdOut: TokenID,
@@ -130,10 +139,11 @@ export const raiseSwapException = (
 		[senderAddress],
 		true,
 	);
+	throw new Error('SwapFailedEvent');
 };
 
 export const getAdjacent = async (
-	methodContext: ModuleEndpointContext,
+	methodContext,
 	stores: NamedRegistry,
 	vertex: TokenID,
 ): Promise<AdjacentEdgesInterface[]> => {
@@ -152,7 +162,7 @@ export const getAdjacent = async (
 };
 
 export const computeCurrentPrice = async (
-	methodContext: ModuleEndpointContext,
+	methodContext,
 	stores: NamedRegistry,
 	tokenIn: TokenID,
 	tokenOut: TokenID,
@@ -162,6 +172,7 @@ export const computeCurrentPrice = async (
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
 	let price = BigInt(1);
 	let tokenInPool = tokenIn;
+	// eslint-disable-next-line @typescript-eslint/no-misused-promises
 	for (const poolId of swapRoute) {
 		const pool = await endpoint.getPool(methodContext, poolId);
 		await endpoint.getPool(methodContext, poolId).catch(() => {
@@ -184,7 +195,7 @@ export const computeCurrentPrice = async (
 };
 
 export const constructPoolsGraph = async (
-	methodContext: ModuleEndpointContext,
+	methodContext,
 	stores: NamedRegistry,
 ): Promise<PoolsGraph> => {
 	const dexModule = new DexModule();
@@ -232,16 +243,6 @@ export const transferFeesFromPool = (
 	}
 };
 
-export const getProtocolSettings = async (
-	methodContext: ModuleEndpointContext,
-	stores: NamedRegistry,
-) => {
-	const dexModule = new DexModule();
-	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
-	const dexGlobalStoreData = await endpoint.getDexGlobalData(methodContext);
-	return dexGlobalStoreData;
-};
-
 export const computeRegularRoute = async (
 	methodContext: ModuleEndpointContext,
 	stores: NamedRegistry,
@@ -251,7 +252,6 @@ export const computeRegularRoute = async (
 	let lskAdjacent = await getAdjacent(methodContext, stores, TOKEN_ID_LSK);
 	let tokenInFlag = false;
 	let tokenOutFlag = false;
-
 	lskAdjacent.forEach(lskAdjacentEdge => {
 		if (lskAdjacentEdge.edge.equals(tokenIn)) {
 			tokenInFlag = true;
@@ -316,8 +316,7 @@ export const computeExceptionalRoute = async (
 };
 
 export const updatePoolIncentives = async (
-	moduleEndpointContext: ModuleEndpointContext,
-	methodContext: MethodContext,
+	methodContext: ModuleEndpointContext | MethodContext,
 	stores: NamedRegistry,
 	poolID: PoolID,
 	currentHeight: number,
@@ -338,14 +337,13 @@ export const updatePoolIncentives = async (
 		return;
 	}
 
-	const pool = await endpoint.getPool(moduleEndpointContext, poolID);
-	const allPoolIds = await endpoint.getAllPoolIDs(moduleEndpointContext);
+	const pool = await endpoint.getPool(methodContext, poolID);
+	const allPoolIds = await endpoint.getAllPoolIDs(methodContext);
 	if (!allPoolIds.includes(poolID) || pool.heightIncentivesUpdate >= currentHeight) {
 		return;
 	}
 
 	const newIncentivesPerLiquidity = await computeNewIncentivesPerLiquidity(
-		moduleEndpointContext,
 		methodContext,
 		stores,
 		poolID,
@@ -356,8 +354,7 @@ export const updatePoolIncentives = async (
 };
 
 export const computeNewIncentivesPerLiquidity = async (
-	moduleEndpointContext: ModuleEndpointContext,
-	methodContext: MethodContext,
+	methodContext: ModuleEndpointContext | MethodContext,
 	stores: NamedRegistry,
 	poolID: PoolID,
 	currentHeight: number,
@@ -378,8 +375,8 @@ export const computeNewIncentivesPerLiquidity = async (
 		throw new Error('Invalid arguments');
 	}
 
-	const pool = await endpoint.getPool(moduleEndpointContext, poolID);
-	const allPoolIds = await endpoint.getAllPoolIDs(moduleEndpointContext);
+	const pool = await endpoint.getPool(methodContext, poolID);
+	const allPoolIds = await endpoint.getAllPoolIDs(methodContext);
 	if (!allPoolIds.includes(poolID) || pool.heightIncentivesUpdate >= currentHeight) {
 		throw new Error('Invalid arguments');
 	}
@@ -398,8 +395,7 @@ export const computeNewIncentivesPerLiquidity = async (
 };
 
 export const crossTick = async (
-	moduleEnpointContext: ModuleEndpointContext,
-	methodContext: MethodContext,
+	methodContext: ModuleEndpointContext | MethodContext,
 	stores: NamedRegistry,
 	tickId: TickID,
 	leftToRight: boolean,
@@ -408,9 +404,9 @@ export const crossTick = async (
 	const dexModule = new DexModule();
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
 	const poolId = tickId.slice(0, NUM_BYTES_POOL_ID);
-	await updatePoolIncentives(moduleEnpointContext, methodContext, stores, poolId, currentHeight);
-	const poolStoreData = await endpoint.getPool(moduleEnpointContext, poolId);
-	const priceTickStoreData = await endpoint.getTickWithTickId(moduleEnpointContext, [tickId]);
+	await updatePoolIncentives(methodContext, stores, poolId, currentHeight);
+	const poolStoreData = await endpoint.getPool(methodContext, poolId);
+	const priceTickStoreData = await endpoint.getTickWithTickId(methodContext, [tickId]);
 	if (leftToRight) {
 		poolStoreData.liquidity += priceTickStoreData.liquidityNet;
 	} else {
@@ -435,8 +431,7 @@ export const crossTick = async (
 };
 
 export const swap = async (
-	moduleEndpointContext: ModuleEndpointContext,
-	methodContext: MethodContext,
+	methodContext: ModuleEndpointContext | MethodContext,
 	stores: NamedRegistry,
 	poolID: PoolID,
 	zeroToOne: boolean,
@@ -448,7 +443,7 @@ export const swap = async (
 	const dexModule = new DexModule();
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
 	const feeTier = endpoint.getFeeTier(poolID);
-	const poolInfo = await endpoint.getPool(moduleEndpointContext, poolID);
+	const poolInfo = await endpoint.getPool(methodContext, poolID);
 	const priceTicksStore = stores.get(PriceTicksStore);
 
 	let poolSqrtPriceQ96 = bytesToQ96(poolInfo.sqrtPrice),
@@ -489,34 +484,27 @@ export const swap = async (
 			throw new Error('Crossed too many ticks');
 		}
 		const currentTick = priceToTick(poolSqrtPriceQ96);
-		
-		if(await endpoint.getTickWithPoolIdAndTickValue(moduleEndpointContext, poolID, currentTick)){
-			tickExist = true
+
+		if (await endpoint.getTickWithPoolIdAndTickValue(methodContext, poolID, currentTick)) {
+			tickExist = true;
 		}
-				
+
 		if (
 			zeroToOne &&
 			tickExist &&
 			poolSqrtPriceQ96 === tickToPrice(currentTick) &&
-			currentTick != 0
+			currentTick !== 0
 		) {
-			await crossTick(
-				moduleEndpointContext,
-				methodContext,
-				stores,
-				q96ToBytes(BigInt(currentTick)),
-				false,
-				currentHeight,
-			);
+			await crossTick(methodContext, stores, q96ToBytes(BigInt(currentTick)), false, currentHeight);
 			numCrossedTicks += 1;
 		}
 
 		if (zeroToOne) {
-			nextTick = await priceTicksStore.getPrevTick(moduleEndpointContext, [
+			nextTick = await priceTicksStore.getPrevTick(methodContext, [
 				q96ToBytes(BigInt(currentTick)),
 			]);
 		} else {
-			nextTick = await priceTicksStore.getNextTick(moduleEndpointContext, [
+			nextTick = await priceTicksStore.getNextTick(methodContext, [
 				q96ToBytes(BigInt(currentTick)),
 			]);
 		}
@@ -528,14 +516,14 @@ export const swap = async (
 				zeroToOne &&
 				tickExist &&
 				poolSqrtPriceQ96 === tickToPrice(currentTick) &&
-				currentTick != 0
+				currentTick !== 0
 			) {
 				numCrossedTicks -= 1;
 			}
 			break;
 		}
 
-		if (poolInfo.liquidity != BigInt(0)) {
+		if (poolInfo.liquidity !== BigInt(0)) {
 			if (
 				(zeroToOne && sqrtNextTickPriceQ96 < sqrtLimitPrice) ||
 				(!zeroToOne && sqrtNextTickPriceQ96 > sqrtLimitPrice)
@@ -567,7 +555,7 @@ export const swap = async (
 				exactInput,
 			);
 
-			if (poolSqrtPriceQ96 != sqrtTargetPrice) {
+			if (poolSqrtPriceQ96 !== sqrtTargetPrice) {
 				if (exactInput) {
 					feeIn = amountRemaining - amountIn;
 					feeOut = roundUpQ96(mulQ96(BigInt(amountOut), feeCoeffAmountBefore));
@@ -621,7 +609,6 @@ export const swap = async (
 
 		if (poolSqrtPriceQ96 === sqrtNextTickPriceQ96 && !zeroToOne) {
 			await crossTick(
-				moduleEndpointContext,
 				methodContext,
 				stores,
 				Buffer.concat([poolID, tickToBytes(nextTick)]),

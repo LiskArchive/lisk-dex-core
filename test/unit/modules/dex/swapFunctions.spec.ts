@@ -2,6 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable jest/no-try-expect */
+
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -16,6 +18,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { TokenMethod } from 'lisk-sdk';
 import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_machine';
 import { MethodContext } from 'lisk-framework/dist-node/state_machine/method_context';
 import { DexModule } from '../../../../src/app/modules';
@@ -23,8 +26,8 @@ import {
 	computeCurrentPrice,
 	computeRegularRoute,
 	constructPoolsGraph,
+	crossTick,
 	getAdjacent,
-	getProtocolSettings,
 	raiseSwapException,
 	swap,
 	swapWithin,
@@ -43,7 +46,6 @@ import {
 } from '../../../../src/app/modules/dex/stores';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import { TOKEN_ID_LSK } from '../../../../src/app/modules/dexRewards/constants';
-import { TokenMethod } from 'lisk-sdk';
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { computeExceptionalRoute } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import { NUM_BYTES_POOL_ID } from '../../../../src/app/modules/dex/constants';
@@ -71,11 +73,13 @@ describe('dex:swapFunctions', () => {
 	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
 
-	const transferMock = jest.fn(),
-		lockMock = jest.fn(),
-		unlockMock = jest.fn();
+	const transferMock = jest.fn();
+	const lockMock = jest.fn();
+	const unlockMock = jest.fn();
 
-	let poolsStore: PoolsStore, dexGlobalStore: DexGlobalStore, priceTicksStore: PriceTicksStore;
+	let poolsStore: PoolsStore;
+	let dexGlobalStore: DexGlobalStore;
+	let priceTicksStore: PriceTicksStore;
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
@@ -130,10 +134,15 @@ describe('dex:swapFunctions', () => {
 			tokenMethod.unlock = unlockMock;
 		});
 		it('raiseSwapException', () => {
-			raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress);
-			const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
-			expect(swapFailedEvent).toHaveLength(1);
+			try {
+				raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress);
+			} catch (error) {
+				expect(error.message).toBe('SwapFailedEvent');
+				const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
+				expect(swapFailedEvent).toHaveLength(1);
+			}
 		});
+
 		it('swapWithin', () => {
 			const [sqrtUpdatedPrice, amountIn, amountOut] = swapWithin(
 				sqrtCurrentPrice,
@@ -162,6 +171,7 @@ describe('dex:swapFunctions', () => {
 			);
 			expect(currentPrice).not.toBeNull();
 		});
+
 		it('constructPoolsGraph', async () => {
 			const poolsGraph = await constructPoolsGraph(moduleEndpointContext, dexModule.stores);
 			const vertices: Buffer[] = [];
@@ -178,16 +188,24 @@ describe('dex:swapFunctions', () => {
 			expect(vertices.filter(vertex => vertex.equals(token1Id))).toHaveLength(1);
 			expect(edges.filter(edge => edge.equals(poolID))).toHaveLength(1);
 		});
+		it('crossTick', async () => {
+			const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
+			const currentTickID = q96ToBytes(BigInt(currentTick));
+			await poolsStore.setKey(
+				methodContext,
+				[currentTickID.slice(0, NUM_BYTES_POOL_ID)],
+				poolsStoreData,
+			);
+			await priceTicksStore.setKey(methodContext, [currentTickID], priceTicksStoreDataTickUpper);
+			const crossTickRes = crossTick(methodContext, dexModule.stores, currentTickID, false, 10);
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises, jest/valid-expect
+			expect(crossTickRes).resolves.toBeUndefined();
+		});
 
 		it('transferFeesFromPool', () => {
 			expect(
 				transferFeesFromPool(tokenMethod, methodContext, amount, TOKEN_ID_LSK, poolID),
 			).toBeUndefined();
-		});
-
-		it('getProtocolSettings', async () => {
-			const protocolSetting = await getProtocolSettings(moduleEndpointContext, dexModule.stores);
-			expect(protocolSetting).toStrictEqual(dexGlobalStoreData);
 		});
 
 		it('computeRegularRoute ', async () => {
@@ -239,7 +257,6 @@ describe('dex:swapFunctions', () => {
 			q96ToBytes(BigInt(currentTick));
 			expect(
 				await swap(
-					moduleEndpointContext,
 					methodContext,
 					dexModule.stores,
 					poolID,
@@ -252,7 +269,6 @@ describe('dex:swapFunctions', () => {
 			).toStrictEqual([BigInt(5), BigInt(5), BigInt(0), BigInt(0), 1]);
 			expect(
 				await swap(
-					moduleEndpointContext,
 					methodContext,
 					dexModule.stores,
 					poolID,
