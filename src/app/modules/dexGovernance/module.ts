@@ -47,6 +47,8 @@ import {
 	QUORUM_DURATION,
 } from './constants';
 import { IndexStoreData } from './stores/indexStore';
+import { proposalSchema, votesSchema } from './schemas';
+import { indexStoreSchema } from './stores/indexStore';
 
 export class DexGovernanceModule extends BaseModule {
 	public endpoint = new DexGovernanceEndpoint(this.stores, this.offchainStores);
@@ -70,7 +72,20 @@ export class DexGovernanceModule extends BaseModule {
 
 	public metadata(): ModuleMetadata {
 		return {
-			name: this.name,
+			stores: [
+				{
+					key: IndexStore.name,
+					data: indexStoreSchema,
+				},
+				{
+					key: ProposalsStore.name,
+					data: proposalSchema,
+				},
+				{
+					key: VotesStore.name,
+					data: votesSchema,
+				},
+			],
 			endpoints: [],
 			commands: this.commands.map((command: BaseCommand) => ({
 				name: command.name,
