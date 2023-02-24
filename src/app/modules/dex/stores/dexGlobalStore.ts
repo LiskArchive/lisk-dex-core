@@ -13,11 +13,21 @@
  */
 import { BaseStore } from 'lisk-sdk';
 
+export interface IncentivizedPools {
+	poolId: Buffer;
+	multiplier: number;
+}
+
+export interface PoolCreationSettings {
+	feeTier: number;
+	tickSpacing: number;
+}
+
 export interface DexGlobalStoreData {
 	positionCounter: bigint;
 	collectableLSKFees: bigint;
-	poolCreationSettings;
-	incentivizedPools;
+	poolCreationSettings: PoolCreationSettings[];
+	incentivizedPools: IncentivizedPools[];
 	totalIncentivesMultiplier: number;
 }
 

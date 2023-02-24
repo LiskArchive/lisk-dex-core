@@ -18,38 +18,15 @@
 
 import { MethodContext } from 'lisk-sdk';
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
-import { PoolsStore, PriceTicksStore } from '../stores';
-import { PoolID, PositionID, Q96, TickID, TokenID } from '../types';
+import { PriceTicksStore } from '../stores';
+import { PoolID, PositionID, TickID } from '../types';
 import {
-	getAllPoolIDs,
-	getAllTicks,
-	getPool,
 	getPoolIDFromPositionID,
-	getToken0Id,
-	getToken1Id,
 } from './auxiliaryFunctions';
-import { bytesToQ96, invQ96 } from './q96';
 import { DexGlobalStore, DexGlobalStoreData } from '../stores/dexGlobalStore';
 import { NUM_BYTES_POOL_ID } from '../constants';
 import { PositionsStore, PositionsStoreData } from '../stores/positionsStore';
 import { PriceTicksStoreData, tickToBytes } from '../stores/priceTicksStore';
-
-export const getAllTokenIDs = async (
-	methodContext: MethodContext,
-	stores: NamedRegistry,
-): Promise<Set<TokenID>> => {
-	const tokens = new Set<TokenID>();
-	const allPoolIds = await getAllPoolIDs(methodContext, stores.get(PoolsStore));
-
-	if (allPoolIds != null && allPoolIds.length > 0) {
-		allPoolIds.forEach(poolID => {
-			tokens.add(getToken0Id(poolID));
-			tokens.add(getToken1Id(poolID));
-		});
-	}
-
-	return tokens;
-};
 
 export const getAllPositionIDsInPool = (
 	poolId: PoolID,
@@ -62,38 +39,6 @@ export const getAllPositionIDsInPool = (
 		}
 	});
 	return result;
-};
-
-export const getAllTickIDsInPool = async (
-	methodContext: MethodContext,
-	stores: NamedRegistry,
-	poolId: PoolID,
-): Promise<TickID[]> => {
-	const result: Buffer[] = [];
-	const allTicks = await getAllTicks(methodContext, stores);
-	allTicks.forEach(tickID => {
-		if (getPoolIDFromTickID(tickID).equals(poolId)) {
-			result.push(tickID);
-		}
-	});
-	return result;
-};
-
-export const getCurrentSqrtPrice = async (
-	methodContext: MethodContext,
-	stores: NamedRegistry,
-	poolID: PoolID,
-	priceDirection: boolean,
-): Promise<Q96> => {
-	const pools = await getPool(methodContext, stores, poolID);
-	if (pools == null) {
-		throw new Error();
-	}
-	const q96SqrtPrice = bytesToQ96(pools.sqrtPrice);
-	if (priceDirection) {
-		return q96SqrtPrice;
-	}
-	return invQ96(q96SqrtPrice);
 };
 
 export const getDexGlobalData = async (

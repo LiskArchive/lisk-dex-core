@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { MethodContext } from 'lisk-framework/dist-node/state_machine';
 import { BaseStore, ImmutableStoreGetter, ModuleEndpointContext, StoreGetter } from 'lisk-sdk';
 import { MAX_NUM_BYTES_Q96, MAX_TICK, MIN_TICK } from '../constants';
 
@@ -114,7 +115,7 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 		});
 	}
 
-	public async getNextTickId(context: ModuleEndpointContext, keys: Buffer[]) {
+	public async getNextTick(context: ModuleEndpointContext | MethodContext, keys: Buffer[]) {
 		const key = Buffer.concat(keys);
 		const keysArray: string[] = [];
 		const allKeys = await this.iterate(context, {
@@ -122,67 +123,8 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			lte: Buffer.alloc(16, 255),
 			reverse: false,
 		});
-		allKeys.forEach(oneKey => {
-			keysArray.push(oneKey.key.toString('hex'));
-		});
-
-		const currentKeyIndex = keysArray.indexOf(key.toString('hex'), 0);
-
-		if (currentKeyIndex < keysArray.length - 1) {
-			const nextKey = Buffer.from(keysArray[currentKeyIndex + 1], 'hex');
-			return parseInt(`0x${nextKey.toString('hex')}`, 10);
-		}
-		return parseInt(`0x${key.toString('hex')}`, 10);
-	}
-
-	public async getPrevTickId(context: ModuleEndpointContext, keys: Buffer[]) {
-		const key = Buffer.concat(keys);
-		const keysArray: string[] = [];
-		const allKeys = await this.iterate(context, {
-			gte: Buffer.alloc(16, 0),
-			lte: Buffer.alloc(16, 255),
-			reverse: false,
-		});
-		allKeys.forEach(oneKey => {
-			keysArray.push(oneKey.key.toString('hex'));
-		});
-
-		const currentKeyIndex = keysArray.indexOf(key.toString('hex'), 0);
-
-		if (currentKeyIndex > 0) {
-			const prevKey = Buffer.from(keysArray[currentKeyIndex - 1], 'hex');
-			return parseInt(`0x${prevKey.toString('hex')}`, 10);
-		}
-		return parseInt(`0x${key.toString('hex')}`, 10);
-	}
-
-	public async getCurrentTickId(context: ModuleEndpointContext, keys: Buffer[]) {
-		const key = Buffer.concat(keys);
-		const keysArray: string[] = [];
-		const allKeys = await this.iterate(context, {
-			gte: Buffer.alloc(16, 0),
-			lte: Buffer.alloc(16, 255),
-			reverse: false,
-		});
-		allKeys.forEach(oneKey => {
-			keysArray.push(oneKey.key.toString('hex'));
-		});
-
-		const currentKeyIndex = keysArray.indexOf(key.toString('hex'), 0);
-		const currentKey = Buffer.from(keysArray[currentKeyIndex], 'hex');
-		return parseInt(`0x${currentKey.toString('hex')}`, 10);
-	}
-
-	public async getNextTick(context: ModuleEndpointContext, keys: Buffer[]) {
-		const key = Buffer.concat(keys);
-		const keysArray: string[] = [];
-		const allKeys = await this.iterate(context, {
-			gte: Buffer.alloc(16, 0),
-			lte: Buffer.alloc(16, 255),
-			reverse: false,
-		});
-		allKeys.forEach(oneKey => {
-			keysArray.push(oneKey.key.toString('hex'));
+		allKeys.forEach(keyItem => {
+			keysArray.push(keyItem.key.toString('hex'));
 		});
 
 		const currentKeyIndex = keysArray.indexOf(key.toString('hex'), 0);
@@ -192,11 +134,10 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			const resKey = await this.getKey(context, [prevKey]);
 			return resKey;
 		}
-		const resKey = await this.getKey(context, keys);
-		return resKey;
+		return null;
 	}
 
-	public async getPrevTick(context: ModuleEndpointContext, keys: Buffer[]) {
+	public async getPrevTick(context: ModuleEndpointContext | MethodContext, keys: Buffer[]) {
 		const key = Buffer.concat(keys);
 		const keysArray: string[] = [];
 		const allKeys = await this.iterate(context, {
@@ -204,8 +145,8 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			lte: Buffer.alloc(16, 255),
 			reverse: false,
 		});
-		allKeys.forEach(oneKey => {
-			keysArray.push(oneKey.key.toString('hex'));
+		allKeys.forEach(keyItem => {
+			keysArray.push(keyItem.key.toString('hex'));
 		});
 
 		const currentKeyIndex = keysArray.indexOf(key.toString('hex'), 0);
@@ -215,7 +156,6 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			const resKey = await this.getKey(context, [prevKey]);
 			return resKey;
 		}
-		const resKey = await this.getKey(context, keys);
-		return resKey;
+		return null;
 	}
 }

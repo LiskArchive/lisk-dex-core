@@ -60,7 +60,7 @@ import {
 	Q96,
 	routeInterface,
 	AdjacentEdgesInterface,
-	TickID,
+	// TickID,
 } from '../types';
 
 import {
@@ -78,7 +78,7 @@ import { FeesIncentivesCollectedEvent, PositionUpdateFailedEvent } from '../even
 import { tickToBytes } from '../stores/priceTicksStore';
 import { ADDRESS_VALIDATOR_REWARDS_POOL } from '../../dexRewards/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
-import { PoolsStoreData } from '../stores/poolsStore';
+// import { PoolsStoreData } from '../stores/poolsStore';
 import { DexEndpoint } from '../endpoint';
 import { DexModule } from '../module';
 
@@ -906,7 +906,7 @@ export const getCredibleDirectPrice = async (
 		);
 		token1ValuesLocked.push(
 			roundDownQ96(token0ValueQ96) +
-				(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
+			(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
 		);
 	}
 
@@ -923,61 +923,4 @@ export const getCredibleDirectPrice = async (
 		await endpoint.getPool(methodContext, directPools[minToken1ValueLockedIndex])
 	).sqrtPrice;
 	return mulQ96(bytesToQ96(poolSqrtPrice), bytesToQ96(poolSqrtPrice));
-};
-
-export const getAllPoolIDs = async (
-	methodContext: MethodContext,
-	poolStore: PoolsStore,
-): Promise<PoolID[]> => {
-	const poolIds: PoolID[] = [];
-	const allPoolIds = await poolStore.getAll(methodContext);
-	if (allPoolIds != null && allPoolIds.length > 0) {
-		allPoolIds.forEach(poolId => {
-			poolIds.push(poolId.key);
-		});
-	}
-	return poolIds;
-};
-
-export const getAllTicks = async (
-	methodContext: MethodContext,
-	stores: NamedRegistry,
-): Promise<TickID[]> => {
-	const tickIds: Buffer[] = [];
-	const priceTicksStore = stores.get(PriceTicksStore);
-	const allTickIds = await priceTicksStore.getAll(methodContext);
-	allTickIds.forEach(tickId => {
-		tickIds.push(tickId.key);
-	});
-	return tickIds;
-};
-
-export const getPool = async (
-	methodContext,
-	stores: NamedRegistry,
-	poolID: PoolID,
-): Promise<PoolsStoreData> => {
-	const poolsStore = stores.get(PoolsStore);
-	const poolStoreData = await poolsStore.getKey(methodContext, [poolID]);
-	return poolStoreData;
-};
-
-export const getToken0Amount = async (
-	tokenMethod: TokenMethod,
-	methodContext: MethodContext,
-	poolId: PoolID,
-): Promise<bigint> => {
-	const address = poolIdToAddress(poolId);
-	const tokenId = getToken0Id(poolId);
-	return tokenMethod.getLockedAmount(methodContext, address, tokenId, MODULE_ID_DEX.toString());
-};
-
-export const getToken1Amount = async (
-	tokenMethod: TokenMethod,
-	methodContext: MethodContext,
-	poolId: PoolID,
-): Promise<bigint> => {
-	const address = poolIdToAddress(poolId);
-	const tokenId = getToken1Id(poolId);
-	return tokenMethod.getLockedAmount(methodContext, address, tokenId, MODULE_ID_DEX.toString());
 };

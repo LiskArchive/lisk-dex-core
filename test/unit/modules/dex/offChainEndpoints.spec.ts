@@ -47,9 +47,6 @@ import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settin
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import {
 	getAllPositionIDsInPool,
-	getAllTickIDsInPool,
-	getAllTokenIDs,
-	getCurrentSqrtPrice,
 	getPoolIDFromTickID,
 } from '../../../../src/app/modules/dex/utils/offChainEndpoints';
 import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
@@ -202,12 +199,6 @@ describe('dex:offChainEndpointFunctions', () => {
 			tokenMethod.getLockedAmount = lockedAmountMock.mockReturnValue(BigInt(5));
 		});
 
-		it('getAllTokenIDs', async () => {
-			await getAllTokenIDs(methodContext, dexModule.stores).then(res => {
-				expect(res.size).toBeGreaterThan(0);
-			});
-		});
-
 		it('getAllPositionIDsInPool', () => {
 			const positionIDs = getAllPositionIDsInPool(getPoolIDFromPositionID(positionId), [
 				positionId,
@@ -219,35 +210,6 @@ describe('dex:offChainEndpointFunctions', () => {
 			expect(
 				getPoolIDFromTickID(Buffer.from('000000010000000001016431308000000a', 'hex')),
 			).toStrictEqual(Buffer.from('00000001000000000101643130800000', 'hex'));
-		});
-
-		it('getAllTickIDsInPool', async () => {
-			const key = Buffer.from('000000010000000001016431308000000a', 'hex');
-			const allTickIDsInPool = await getAllTickIDsInPool(
-				methodContext,
-				dexModule.stores,
-				getPoolIDFromTickID(key),
-			);
-			let ifKeyExists = false;
-			allTickIDsInPool.forEach(tickIdInPool => {
-				if (tickIdInPool.equals(key)) {
-					ifKeyExists = true;
-				}
-			});
-			expect(ifKeyExists).toBe(true);
-		});
-
-		it('getCurrentSqrtPrice', async () => {
-			expect(
-				(
-					await getCurrentSqrtPrice(
-						methodContext,
-						dexModule.stores,
-						getPoolIDFromPositionID(positionId),
-						false,
-					)
-				).toString(),
-			).toBe('79208358939348018173455069823');
 		});
 	});
 });
