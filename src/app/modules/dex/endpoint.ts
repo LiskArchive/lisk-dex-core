@@ -301,7 +301,7 @@ export class DexEndpoint extends BaseEndpoint {
 	}
 
 	public async dryRunSwapExactIn(
-		methodContext: MethodContext,
+		// methodContext: MethodContext,
 		moduleEndpointContext: ModuleEndpointContext,
 	): Promise<[bigint, bigint, bigint, bigint]> {
 		validator.validate<{

@@ -33,14 +33,14 @@ import {
 	SettingsStore,
 } from '../../../../src/app/modules/dex/stores';
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
-// import { NUM_BYTES_POOL_ID } from '../../../../src/app/modules/dex/constants';
+import { NUM_BYTES_POOL_ID } from '../../../../src/app/modules/dex/constants';
 
-import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
-// import { numberToQ96, q96ToBytes, bytesToQ96 } from '../../../../src/app/modules/dex/utils/q96';
+// import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
+import { numberToQ96, q96ToBytes, bytesToQ96 } from '../../../../src/app/modules/dex/utils/q96';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 
-import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
-// import { tickToPrice, priceToTick } from '../../../../src/app/modules/dex/utils/math';
+// import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
+import { tickToPrice, priceToTick } from '../../../../src/app/modules/dex/utils/math';
 import {
 	PriceTicksStoreData,
 	tickToBytes,
@@ -202,18 +202,22 @@ describe('dex: offChainEndpointFunctions', () => {
 			);
 			await priceTicksStore.setKey(
 				methodContext,
-				[
-					getPoolIDFromPositionID(positionId),
-					q96ToBytes(tickToPrice(positionsStoreData.tickLower)),
-				],
-				priceTicksStoreDataTickLower,
+				[poolId, tickToBytes(100)],
+				priceTicksStoreDataTickUpper,
 			);
 			await priceTicksStore.setKey(
 				methodContext,
-				[
-					getPoolIDFromPositionID(positionId),
-					q96ToBytes(tickToPrice(positionsStoreData.tickUpper)),
-				],
+				[getPoolIDFromPositionID(positionId), tickToBytes(positionsStoreData.tickUpper)],
+				priceTicksStoreDataTickUpper,
+			);
+			await priceTicksStore.setKey(
+				methodContext,
+				[getPoolIDFromPositionID(positionId), tickToBytes(positionsStoreData.tickUpper)],
+				priceTicksStoreDataTickUpper,
+			);
+			await priceTicksStore.setKey(
+				methodContext,
+				[getPoolIDFromPositionID(positionId), tickToBytes(positionsStoreData.tickUpper)],
 				priceTicksStoreDataTickUpper,
 			);
 
@@ -395,21 +399,21 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('dryRunSwapExactIn', async () => {
-			// const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
-			// const currentTickID = q96ToBytes(BigInt(currentTick));
-			// await poolsStore.setKey(
-			// 	methodContext,
-			// 	[currentTickID.slice(0, NUM_BYTES_POOL_ID)],
-			// 	poolsStoreData,
-			// );
+			const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
+			const currentTickID = q96ToBytes(BigInt(currentTick));
+			await poolsStore.setKey(
+				methodContext,
+				[currentTickID.slice(0, NUM_BYTES_POOL_ID)],
+				poolsStoreData,
+			);
 
-			// await priceTicksStore.setKey(methodContext, [currentTickID], priceTicksStoreDataTickUpper);
+			await priceTicksStore.setKey(methodContext, [currentTickID], priceTicksStoreDataTickUpper);
 
-			// await priceTicksStore.setKey(
-			// 	methodContext,
-			// 	[Buffer.from('000000000000000000000000000000000000000000000006', 'hex')],
-			// 	priceTicksStoreDataTickUpper,
-			// );
+			await priceTicksStore.setKey(
+				methodContext,
+				[Buffer.from('000000000000000000000000000000000000000000000006', 'hex')],
+				priceTicksStoreDataTickUpper,
+			);
 
 			const amountIn = BigInt(50);
 			const minAmountOut = BigInt(10);
