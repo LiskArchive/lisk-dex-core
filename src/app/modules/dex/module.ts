@@ -82,6 +82,8 @@ import { poolsStoreSchema } from './stores/poolsStore';
 import { positionsStoreSchema } from './stores/positionsStore';
 import { priceTicksStoreSchema } from './stores/priceTicksStore';
 import { settingsStoreSchema } from './stores/settingsStore';
+import { SwapExactWithPriceLimitCommand } from './commands/swapWithPriceLimit';
+import { SwapExactOutCommand } from './commands/swapExactOut';
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
@@ -96,6 +98,11 @@ export class DexModule extends BaseModule {
 	private readonly _createPositionCommand = new CreatePositionCommand(this.stores, this.events);
 	private readonly _collectFeeCommand = new CollectFeesCommand(this.stores, this.events);
 	private readonly _removeLiquidityCommand = new RemoveLiquidityCommand(this.stores, this.events);
+	private readonly _swapExactWithPriceLimitCommand = new SwapExactWithPriceLimitCommand(
+		this.stores,
+		this.events,
+	);
+	private readonly _swapExactOutCommand = new SwapExactOutCommand(this.stores, this.events);
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public commands = [
@@ -104,6 +111,8 @@ export class DexModule extends BaseModule {
 		this._removeLiquidityCommand,
 		this._addLiquidityCommand,
 		this._createPositionCommand,
+		this._swapExactWithPriceLimitCommand,
+		this._swapExactOutCommand,
 	];
 
 	public constructor() {
@@ -124,7 +133,6 @@ export class DexModule extends BaseModule {
 		this.events.register(RemoveLiquidityEvent, new RemoveLiquidityEvent(this.name));
 		this.events.register(RemoveLiquidityFailedEvent, new RemoveLiquidityFailedEvent(this.name));
 		this.events.register(SwapFailedEvent, new SwapFailedEvent(this.name));
-
 		this.events.register(SwappedEvent, new SwappedEvent(this.name));
 	}
 
@@ -269,6 +277,13 @@ export class DexModule extends BaseModule {
 		});
 
 		this._removeLiquidityCommand.init({
+			tokenMethod: this._tokenMethod,
+		});
+
+		this._swapExactWithPriceLimitCommand.init({
+			tokenMethod: this._tokenMethod,
+		});
+		this._swapExactOutCommand.init({
 			tokenMethod: this._tokenMethod,
 		});
 	}

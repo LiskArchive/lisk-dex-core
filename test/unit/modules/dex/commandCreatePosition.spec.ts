@@ -35,8 +35,9 @@ import { Address, PoolID } from '../../../../src/app/modules/dex/types';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { q96ToBytes, numberToQ96 } from '../../../../src/app/modules/dex/utils/q96';
 import { createPositionFixtures } from './fixtures/createPositionFixture';
+import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 
-const { createTransactionContext, InMemoryPrefixedStateDB } = testing;
+const { createTransactionContext } = testing;
 
 const skipOnCI = process.env.CI ? describe.skip : describe;
 
@@ -128,7 +129,7 @@ describe('dex:command:createPosition', () => {
 			);
 
 			if (err === false) {
-				expect(result.error?.message).toBeUndefined();
+				expect(result.error?.message).not.toBeDefined();
 				expect(result.status).toEqual(VerifyStatus.OK);
 			} else {
 				expect(result.error?.message).toBe(err);
@@ -212,6 +213,7 @@ describe('dex:command:createPosition', () => {
 		});
 
 		skipOnCI('stress test for checking the events', () => {
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			(async () => {
 				const testarray = Array.from({ length: 10000 });
 				await Promise.all(testarray.map(() => stress()));
@@ -220,7 +222,6 @@ describe('dex:command:createPosition', () => {
 			function stress() {
 				contextPosition = createTransactionContext({
 					stateStore,
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 					transaction: new Transaction(createPositionFixtures[0][1] as any),
 				});
 				it('should call execute methods and emit events', async () => {

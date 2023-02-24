@@ -71,8 +71,14 @@ export class CreatePositionCommand extends BaseCommand {
 			};
 		}
 
-		const { tickLower, tickUpper, amount0Desired, amount1Desired, amount0Min, amount1Min } =
-			ctx.params;
+		const {
+			tickLower,
+			tickUpper,
+			amount0Desired,
+			amount1Desired,
+			amount0Min,
+			amount1Min,
+		} = ctx.params;
 
 		if (MIN_TICK > tickLower || tickLower >= tickUpper || tickUpper > MAX_TICK) {
 			return {
@@ -101,8 +107,15 @@ export class CreatePositionCommand extends BaseCommand {
 
 	public async execute(ctx: CommandExecuteContext<CreatePositionParamsData>): Promise<void> {
 		const { senderAddress } = ctx.transaction;
-		const { poolID, tickLower, tickUpper, amount0Desired, amount1Desired, amount0Min, amount1Min } =
-			ctx.params;
+		const {
+			poolID,
+			tickLower,
+			tickUpper,
+			amount0Desired,
+			amount1Desired,
+			amount0Min,
+			amount1Min,
+		} = ctx.params;
 		const methodContext = ctx.getMethodContext();
 
 		const [positionCreationResult, positionID] = await createPosition(
