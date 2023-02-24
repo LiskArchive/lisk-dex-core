@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -28,7 +30,6 @@ import { PoolID, PositionID, Q96, TickID, TokenID } from './types';
 import {
 	computeExceptionalRoute,
 	computeRegularRoute,
-	getCredibleDirectPrice,
 	getPoolIDFromPositionID,
 	getToken0Id,
 	getToken1Id,
@@ -40,6 +41,7 @@ import { DexGlobalStore, DexGlobalStoreData } from './stores/dexGlobalStore';
 import { PositionsStore, PositionsStoreData } from './stores/positionsStore';
 import { PriceTicksStore, PriceTicksStoreData, tickToBytes } from './stores/priceTicksStore';
 import { uint32beInv } from './utils/bigEndian';
+import { getCredibleDirectPrice } from './utils/tokenEcnomicsFunctions';
 
 export class DexEndpoint extends BaseEndpoint {
 	public async getAllPoolIDs(methodContext): Promise<PoolID[]> {

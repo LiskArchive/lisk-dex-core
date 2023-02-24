@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable  @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -41,8 +42,6 @@ import {
 	getToken0Amount,
 	getPool,
 	getAllTicks,
-	addPoolCreationSettings,
-	getCredibleDirectPrice,
 	getProtocolSettings,
 	getPositionIndex,
 	computeExceptionalRoute,
@@ -51,7 +50,6 @@ import {
 	getTickWithTickId,
 	getDexGlobalData,
 	getTickWithPoolIdAndTickValue,
-	updateIncentivizedPools,
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
@@ -417,7 +415,7 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('priceToTick', () => {
-			expect(priceToTick(tickToPrice(-735247))).toEqual(-735247);
+			expect(priceToTick(tickToPrice(-735247))).toBe(-735247);
 		});
 
 		it('getToken0Amount', async () => {
@@ -450,31 +448,6 @@ describe('dex:auxiliaryFunctions', () => {
 		it('getAdjacent', async () => {
 			const res = await getAdjacent(moduleEndpointContext, dexModule.stores, token0Id);
 			expect(res).not.toBeNull();
-		});
-
-		it('getCredibleDirectPrice', async () => {
-			const newTokenIDsArray = [
-				token0Id,
-				token1Id,
-				q96ToBytes(numberToQ96(dexGlobalStoreData.poolCreationSettings[0].feeTier)),
-			];
-			await poolsStore.setKey(methodContext, newTokenIDsArray, poolsStoreData);
-			await poolsStore.set(methodContext, Buffer.from(newTokenIDsArray), poolsStoreData);
-			await getCredibleDirectPrice(
-				tokenMethod,
-				methodContext,
-				dexModule.stores,
-				token0Id,
-				token1Id,
-			).then(res => {
-				expect(res.toString()).toBe('79267784519130042428790663800');
-			});
-		});
-
-		it('addPoolCreationSettings', async () => {
-			await expect(
-				addPoolCreationSettings(methodContext, dexModule.stores, 101, 300),
-			).resolves.toBeUndefined();
 		});
 
 		it('getProtocolSettings', async () => {
@@ -548,22 +521,6 @@ describe('dex:auxiliaryFunctions', () => {
 			);
 			expect(tickWithPoolIdAndTickValue).not.toBeNull();
 			expect(tickWithPoolIdAndTickValue.liquidityNet).toBe(BigInt(5));
-		});
-
-		it('updateIncentivizedPools', async () => {
-			const incentivizedPoolsLength = dexGlobalStoreData.incentivizedPools.length;
-			const { totalIncentivesMultiplier } = dexGlobalStoreData;
-			const multiplier = 20;
-			const currentHeight = 100;
-			await updateIncentivizedPools(
-				methodContext,
-				dexModule.stores,
-				poolId,
-				multiplier,
-				currentHeight,
-			);
-			expect(dexGlobalStoreData.totalIncentivesMultiplier).toEqual(totalIncentivesMultiplier);
-			expect(dexGlobalStoreData.incentivizedPools).toHaveLength(incentivizedPoolsLength);
 		});
 	});
 });

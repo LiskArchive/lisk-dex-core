@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright © 2022 Lisk Foundation
  *

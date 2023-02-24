@@ -2,6 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -16,8 +18,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { MethodContext, TokenMethod } from 'lisk-framework';
-import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_machine';
+import { TokenID } from 'lisk-framework/dist-node/modules/token/types';
+import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
+
 
 import {
 	getPoolIDFromPositionID,
@@ -29,6 +33,7 @@ import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
 import { DexModule } from '../../../../src/app/modules';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
+
 import {
 	DexGlobalStore,
 	PoolsStore,
@@ -45,20 +50,25 @@ import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGl
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import {
+	addPoolCreationSettings,
 	computeNewIncentivesPerLiquidity,
+	getCredibleDirectPrice,
+	updateIncentivizedPools,
 	updatePoolIncentives,
 } from '../../../../src/app/modules/dex/utils/tokenEcnomicsFunctions';
 
+
 describe('dex:tokenEcnomicsFunctions', () => {
-	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
-	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
+	const poolID: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
+	const poolIDLSK = Buffer.from('0000000100000000', 'hex');
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
 	const dexModule = new DexModule();
-
-	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
+	const tokenID0: TokenID = Buffer.from('0000000000000000', 'hex');
+	const tokenID1: TokenID = Buffer.from('0000010000000000', 'hex');
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
-	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
+
+	const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
@@ -107,7 +117,7 @@ describe('dex:tokenEcnomicsFunctions', () => {
 	const dexGlobalStoreData: DexGlobalStoreData = {
 		positionCounter: BigInt(15),
 		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
-		incentivizedPools: [{ poolId, multiplier: 10 }],
+		incentivizedPools: [{ poolId: poolID, multiplier: 10 }],
 		totalIncentivesMultiplier: 1,
 	};
 	const positionsStoreData: PositionsStoreData = {
@@ -148,9 +158,9 @@ describe('dex:tokenEcnomicsFunctions', () => {
 				poolsStoreData,
 			);
 
-			await poolsStore.setKey(methodContext, [poolId], poolsStoreData);
-			await poolsStore.setKey(methodContext, [poolIdLSK], poolsStoreData);
-			await poolsStore.set(methodContext, poolIdLSK, poolsStoreData);
+			await poolsStore.setKey(methodContext, [poolID], poolsStoreData);
+			await poolsStore.setKey(methodContext, [poolIDLSK], poolsStoreData);
+			await poolsStore.set(methodContext, poolIDLSK, poolsStoreData);
 			await poolsStore.set(methodContext, getPoolIDFromPositionID(positionId), poolsStoreData);
 
 			await priceTicksStore.setKey(
@@ -203,17 +213,63 @@ describe('dex:tokenEcnomicsFunctions', () => {
 		});
 
 		it('updatePoolIncentives', async () => {
-			const pool = await getPool(methodContext, dexModule.stores, poolId);
-			await poolsStore.set(methodContext, poolId, poolsStoreData);
+			const pool = await getPool(methodContext, dexModule.stores, poolID);
+			await poolsStore.set(methodContext, poolID, poolsStoreData);
 			const currentHeight = pool.heightIncentivesUpdate + 10;
 			const newIncentivesPerLiquidity = await computeNewIncentivesPerLiquidity(
 				methodContext,
 				dexModule.stores,
-				poolId,
+				poolID,
 				currentHeight,
 			);
-			await updatePoolIncentives(methodContext, dexModule.stores, poolId, currentHeight);
+			await updatePoolIncentives(methodContext, dexModule.stores, poolID, currentHeight);
 			expect(newIncentivesPerLiquidity).toEqual(BigInt(79228162514264337593543950336));
+		});
+
+		it('addPoolCreationSettings', async () => {
+			await expect(
+				addPoolCreationSettings(methodContext, dexModule.stores, 101, 300),
+			).resolves.toBeUndefined();
+		});
+
+		it('getCredibleDirectPrice', async () => {
+			const tokenIDArrays = [tokenID0, tokenID1].sort((a, b) => (a < b ? -1 : 1));
+			const concatedTokenIDs = Buffer.concat(tokenIDArrays);
+			const tokenIDAndSettingsArray = [
+				concatedTokenIDs,
+				q96ToBytes(
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+					numberToQ96(dexGlobalStoreData.poolCreationSettings[0].feeTier),
+				),
+			];
+
+			await poolsStore.setKey(methodContext, tokenIDAndSettingsArray, poolsStoreData);
+
+			await getCredibleDirectPrice(
+				tokenMethod,
+				methodContext,
+				dexModule.stores,
+				tokenID0,
+				tokenID1,
+			).then(res => {
+				expect(res.toString()).toBe('79267784519130042428790663800');
+			});
+		});
+
+		it('updateIncentivizedPools', async () => {
+			const incentivizedPoolsLength = dexGlobalStoreData.incentivizedPools.length;
+			const { totalIncentivesMultiplier } = dexGlobalStoreData;
+			const multiplier = 20;
+			const currentHeight = 100;
+			await updateIncentivizedPools(
+				methodContext,
+				dexModule.stores,
+				poolID,
+				multiplier,
+				currentHeight,
+			);
+			expect(dexGlobalStoreData.totalIncentivesMultiplier).toEqual(totalIncentivesMultiplier);
+			expect(dexGlobalStoreData.incentivizedPools).toHaveLength(incentivizedPoolsLength);
 		});
 	});
 });
