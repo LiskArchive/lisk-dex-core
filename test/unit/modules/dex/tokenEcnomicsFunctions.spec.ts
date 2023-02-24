@@ -22,7 +22,6 @@ import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_
 import { TokenID } from 'lisk-framework/dist-node/modules/token/types';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 
-
 import {
 	getPoolIDFromPositionID,
 	getPool,
@@ -56,7 +55,6 @@ import {
 	updateIncentivizedPools,
 	updatePoolIncentives,
 } from '../../../../src/app/modules/dex/utils/tokenEcnomicsFunctions';
-
 
 describe('dex:tokenEcnomicsFunctions', () => {
 	const poolID: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
