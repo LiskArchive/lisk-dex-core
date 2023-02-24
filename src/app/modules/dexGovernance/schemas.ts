@@ -193,7 +193,6 @@ export const genesisDEXGovernanceSchema = {
 	},
 };
 
-
 export const getProposalRequestSchema = {
 	$id: '/dexGovernance/endpoint/getProposal',
 	type: 'object',
@@ -201,7 +200,7 @@ export const getProposalRequestSchema = {
 		proposal: {
 			type: 'number',
 			format: 'uint32',
-		}
+		},
 	},
 	required: ['proposal'],
 };
@@ -216,23 +215,23 @@ export const getProposalResponseSchema = {
 		properties: {
 			creationHeight: {
 				type: 'string',
-				format: 'uint32'
+				format: 'uint32',
 			},
 			votesYes: {
 				type: 'string',
-				format: 'uint64'
+				format: 'uint64',
 			},
 			votesNo: {
 				type: 'string',
-				format: 'uint64'
+				format: 'uint64',
 			},
 			votesPass: {
 				type: 'string',
-				format: 'uint64'
+				format: 'uint64',
 			},
 			type: {
 				type: 'string',
-				format: 'uint32'
+				format: 'uint32',
 			},
 			content: {
 				type: 'object',
@@ -270,13 +269,11 @@ export const getProposalResponseSchema = {
 			},
 			status: {
 				type: 'string',
-				format: 'uint32'
+				format: 'uint32',
 			},
-		}
-	}
+		},
+	},
 };
-
-
 
 export const getUserVotesRequestSchema = {
 	$id: '/dexGovernance/endpoint/getUserVotes',
@@ -284,7 +281,7 @@ export const getUserVotesRequestSchema = {
 	properties: {
 		voterAddress: {
 			type: 'string',
-		}
+		},
 	},
 	required: ['voterAddress'],
 };
@@ -301,17 +298,17 @@ export const getUserVotesResponseSchema = {
 				required: ['proposalIndex', 'decision', 'amount'],
 				proposalIndex: {
 					type: 'string',
-					format: 'uint32'
+					format: 'uint32',
 				},
 				decision: {
 					type: 'string',
-					format: 'uint32'
+					format: 'uint32',
 				},
 				amount: {
 					type: 'string',
-					format: 'uint64'
+					format: 'uint64',
 				},
-			}
+			},
 		},
 	},
 };
@@ -326,16 +323,16 @@ export const getIndexStoreResponseSchema = {
 			required: ['newestIndex', 'nextOutcomeCheckIndex', 'nextQuorumCheckIndex'],
 			newestIndex: {
 				type: 'string',
-				format: 'uint32'
+				format: 'uint32',
 			},
 			nextOutcomeCheckIndex: {
 				type: 'string',
-				format: 'uint32'
+				format: 'uint32',
 			},
 			nextQuorumCheckIndex: {
 				type: 'string',
-				format: 'uint32'
+				format: 'uint32',
 			},
-		}
+		},
 	},
 };
