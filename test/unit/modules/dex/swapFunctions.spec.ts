@@ -161,9 +161,17 @@ describe('dex:swapFunctions', () => {
 		});
 
 		it('computeCurrentPrice', async () => {
+<<<<<<< HEAD
 			const swapRoute = [poolID];
+=======
+			const tempModuleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { poolID: poolId },
+			});
+			const swapRoute = [poolId];
+>>>>>>> feature/endpoints
 			const currentPrice = await computeCurrentPrice(
-				moduleEndpointContext,
+				tempModuleEndpointContext,
 				dexModule.stores,
 				token0Id,
 				token1Id,

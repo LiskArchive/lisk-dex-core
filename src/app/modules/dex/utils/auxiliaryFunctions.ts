@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable no-param-reassign */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -295,7 +296,7 @@ export const collectFeesAndIncentives = async (
 
 export const computeCollectableFees = async (
 	stores: NamedRegistry,
-	methodContext: MethodContext,
+	methodContext,
 	positionID: PositionID,
 ): Promise<[bigint, bigint, Q96, Q96]> => {
 	const positionsStore = stores.get(PositionsStore);
@@ -898,15 +899,20 @@ export const getCredibleDirectPrice = async (
 	const token1ValuesLocked: bigint[] = [];
 
 	for (const directPool of directPools) {
-		const pool = await endpoint.getPool(methodContext, directPool);
-		const token0Amount = await endpoint.getToken0Amount(tokenMethod, methodContext, directPool);
+		methodContext.params.poolD = directPool;
+		const pool = await endpoint.getPool(methodContext);
+		const token0Amount = await endpoint.getToken0Amount(tokenMethod, methodContext);
 		const token0ValueQ96 = mulQ96(
 			mulQ96(numberToQ96(token0Amount), bytesToQ96(pool.sqrtPrice)),
 			bytesToQ96(pool.sqrtPrice),
 		);
 		token1ValuesLocked.push(
+<<<<<<< HEAD
 			roundDownQ96(token0ValueQ96) +
 			(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
+=======
+			roundDownQ96(token0ValueQ96) + (await endpoint.getToken1Amount(tokenMethod, methodContext)),
+>>>>>>> feature/endpoints
 		);
 	}
 
@@ -918,9 +924,7 @@ export const getCredibleDirectPrice = async (
 			minToken1ValueLockedIndex = index;
 		}
 	});
-
-	const poolSqrtPrice = (
-		await endpoint.getPool(methodContext, directPools[minToken1ValueLockedIndex])
-	).sqrtPrice;
+	methodContext.params.poolID = directPools[minToken1ValueLockedIndex];
+	const poolSqrtPrice = (await endpoint.getPool(methodContext)).sqrtPrice;
 	return mulQ96(bytesToQ96(poolSqrtPrice), bytesToQ96(poolSqrtPrice));
 };
