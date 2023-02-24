@@ -27,12 +27,11 @@ export class DexGovernanceEndpoint extends BaseEndpoint {
     public async getProposal(
         context: ModuleEndpointContext,
     ): Promise<{ proposal: Proposal }> {
-        validator.validate<{ index: number }>(getProposalRequestSchema, context.params);
-
+        validator.validate<{ proposal: number }>(getProposalRequestSchema, context.params);
         const proposalsStore = this.stores.get(ProposalsStore);
 
         const index = Buffer.alloc(4);
-        index.writeUInt32BE(context.params.index, 0);
+        index.writeUInt32BE(context.params.proposal, 0);
 
         if (!(await proposalsStore.has(context, index))) {
             throw new Error('Proposal with the given index does not exist');
@@ -46,12 +45,11 @@ export class DexGovernanceEndpoint extends BaseEndpoint {
     public async getUserVotes(
         context: ModuleEndpointContext,
     ): Promise<Vote> {
-        validator.validate<{ voterAddress: number }>(getUserVotesRequestSchema, context.params);
+        validator.validate<{ voterAddress: string }>(getUserVotesRequestSchema, context.params);
 
         const votesStore = this.stores.get(VotesStore);
 
-        const voterAddress = Buffer.alloc(4);
-        voterAddress.writeUInt32BE(context.params.voterAddress, 0);
+        const voterAddress = Buffer.from(context.params.voterAddress, 'hex');
 
         if (!(await votesStore.has(context, voterAddress))) {
             return { voteInfos: [] }

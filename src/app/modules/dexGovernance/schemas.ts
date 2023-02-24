@@ -146,15 +146,15 @@ export const indexSchema = {
 	required: ['newestIndex', 'nextOutcomeCheckIndex', 'nextQuorumCheckIndex'],
 	properties: {
 		newestIndex: {
-			type: 'uint32',
+			dataType: 'uint32',
 			fieldNumber: 1,
 		},
 		nextOutcomeCheckIndex: {
-			type: 'uint32',
+			dataType: 'uint32',
 			fieldNumber: 2,
 		},
 		nextQuorumCheckIndex: {
-			type: 'uint32',
+			dataType: 'uint32',
 			fieldNumber: 3,
 		},
 	},
@@ -199,7 +199,7 @@ export const getProposalRequestSchema = {
 	type: 'object',
 	properties: {
 		proposal: {
-			type: 'string',
+			type: 'number',
 			format: 'uint32',
 		}
 	},
@@ -209,67 +209,71 @@ export const getProposalRequestSchema = {
 export const getProposalResponseSchema = {
 	$id: '/dexGovernance/endpoint/getProposalResponse',
 	type: 'object',
-	required: ['creationHeight', 'votesYes', 'votesNo', 'votesPass', 'type', 'content', 'status'],
+	required: ['proposal'],
 	properties: {
-		creationHeight: {
-			type: 'string',
-			format: 'uint32'
-		},
-		votesYes: {
-			type: 'string',
-			format: 'uint64'
-		},
-		votesNo: {
-			type: 'string',
-			format: 'uint64'
-		},
-		votesPass: {
-			type: 'string',
-			format: 'uint64'
-		},
-		type: {
-			type: 'string',
-			format: 'uint32'
-		},
-		content: {
-			type: 'object',
-			required: ['text', 'poolID', 'multiplier', 'metadata'],
-			properties: {
-				text: {
-					type: 'string',
-				},
-				poolID: {
-					type: 'string',
-				},
-				multiplier: {
-					type: 'string',
-				},
-				metadata: {
-					type: 'object',
-					required: ['title', 'author', 'summary', 'discussionsTo'],
-					fieldNumber: 4,
-					properties: {
-						title: {
-							type: 'string',
-						},
-						author: {
-							type: 'string',
-						},
-						summary: {
-							type: 'string',
-						},
-						discussionsTo: {
-							type: 'string',
+		type: 'object',
+		required: ['creationHeight', 'votesYes', 'votesNo', 'votesPass', 'type', 'content', 'status'],
+		properties: {
+			creationHeight: {
+				type: 'string',
+				format: 'uint32'
+			},
+			votesYes: {
+				type: 'string',
+				format: 'uint64'
+			},
+			votesNo: {
+				type: 'string',
+				format: 'uint64'
+			},
+			votesPass: {
+				type: 'string',
+				format: 'uint64'
+			},
+			type: {
+				type: 'string',
+				format: 'uint32'
+			},
+			content: {
+				type: 'object',
+				required: ['text', 'poolID', 'multiplier', 'metadata'],
+				properties: {
+					text: {
+						type: 'string',
+					},
+					poolID: {
+						type: 'string',
+					},
+					multiplier: {
+						type: 'string',
+					},
+					metadata: {
+						type: 'object',
+						required: ['title', 'author', 'summary', 'discussionsTo'],
+						fieldNumber: 4,
+						properties: {
+							title: {
+								type: 'string',
+							},
+							author: {
+								type: 'string',
+							},
+							summary: {
+								type: 'string',
+							},
+							discussionsTo: {
+								type: 'string',
+							},
 						},
 					},
 				},
 			},
-		},
-		status: {
-			type: 'string',
-			format: 'uint32'
-		},
-	},
+			status: {
+				type: 'string',
+				format: 'uint32'
+			},
+		}
+	}
 };
 
 
@@ -280,7 +284,6 @@ export const getUserVotesRequestSchema = {
 	properties: {
 		voterAddress: {
 			type: 'string',
-			format: 'lisk32',
 		}
 	},
 	required: ['voterAddress'],
