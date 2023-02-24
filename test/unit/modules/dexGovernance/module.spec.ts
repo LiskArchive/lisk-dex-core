@@ -151,6 +151,7 @@ describe('DexGovernanceModule', () => {
 		});
 
 		it('verifyGenesisBlock', () => {
+			expect(dexGovernanceModule.verifyGenesisBlock(genesisBlockExecuteContext)).toBe(void 0);
 			const proposalsStoreData1 = proposalsStoreData;
 			const proposalsStoreData2 = proposalsStoreData;
 
