@@ -35,11 +35,11 @@ export interface Proposal {
 }
 
 export interface Vote {
-	voteInfos: {
+	voteInfos: [{
 		proposalIndex: number;
 		decision: number;
 		amount: bigint;
-	};
+	}?];
 }
 
 export interface Index {
