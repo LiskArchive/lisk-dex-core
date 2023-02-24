@@ -61,6 +61,7 @@ import {
 	ADDRESS_VALIDATOR_INCENTIVES,
 	FEE_TIER_PARTITION,
 	MAX_NUMBER_CROSSED_TICKS,
+	MAX_UINT_64,
 	MODULE_NAME_DEX,
 	NUM_BYTES_POOL_ID,
 	TOKEN_ID_LSK,
@@ -619,4 +620,93 @@ export const swap = async (
 	}
 	poolInfo.sqrtPrice = q96ToBytes(poolSqrtPriceQ96);
 	return [amountTotalIn, amountTotalOut, totalFeesIn, totalFeesOut, numCrossedTicks];
+};
+
+export const getOptimalSwapPool = async (
+	methodContext,
+	stores: NamedRegistry,
+	tokenIn: TokenID,
+	tokenOut: TokenID,
+	amount: bigint,
+	exactIn: boolean,
+): Promise<[PoolID, bigint]> => {
+	let tokensArray  = [tokenIn, tokenOut].sort((a, b) => (a < b ? -1 : 1));
+	const token0 =  tokensArray[0];
+	const token1 = tokensArray[1]
+	const candidatePools: Buffer[] = [];
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	const dexGlobalData = await endpoint.getDexGlobalData(methodContext);
+	let searchindex;
+	let searchElement;
+
+	for (const settings of dexGlobalData.poolCreationSettings) {
+		tokensArray = [token0, token1];
+		const concatedTokenIDs = Buffer.concat(tokensArray);
+		const tokenIDAndSettingsArray = [
+			concatedTokenIDs,
+			q96ToBytes(numberToQ96(BigInt(settings.feeTier))),
+		];
+		const potentialPoolId: Buffer = Buffer.concat(tokenIDAndSettingsArray);
+		if(await endpoint.getPool(methodContext, potentialPoolId)){
+			candidatePools.push(potentialPoolId);
+		}
+		if (candidatePools.length === 0) {
+			throw new Error('No pool swapping this pair of tokens');
+		}
+	}
+
+	const computedAmounts: bigint[] = [];
+	for (const pool of candidatePools) {
+		if (exactIn) {
+			try {
+				const amountOut = (await dryRunSwapExactIn(
+					methodContext,
+					stores,
+					tokenIn,
+					amount,
+					tokenOut,
+					BigInt(0),
+					[pool],
+				))[1];
+				computedAmounts.push(amountOut);
+			} catch (error) {
+				continue;
+			}
+		} else {
+			try {
+				const amountIn = (await dryRunSwapExactOut(
+					methodContext,
+					stores,
+					tokenIn,
+					MAX_UINT_64,
+					tokenOut,
+					amount,
+					[pool],
+				))[0];
+				computedAmounts.push(amountIn);
+			} catch (error) {
+				continue;
+			}
+		}
+	}
+
+	if (exactIn) {
+		searchElement = BigInt(Number.MIN_SAFE_INTEGER);
+		for (let i = 0; i < computedAmounts.length; i += 1) {
+			if (computedAmounts[i] > searchElement) {
+				searchindex = i;
+				searchElement = computedAmounts[i];
+			}
+		}
+	} else {
+		searchElement = MAX_UINT_64;
+		for (let i = 0; i < computedAmounts.length; i += 1) {
+			if (computedAmounts[i] < searchElement) {
+				searchindex = i;
+				searchElement = computedAmounts[i];
+			}
+		}
+	}
+	return [candidatePools[searchindex], searchElement];
 };
