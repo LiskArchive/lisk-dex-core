@@ -139,6 +139,26 @@ export const votesSchema = {
 	},
 };
 
+export const indexSchema = {
+	$id: '/dexGovernance/index',
+	type: 'object',
+	required: ['newestIndex', 'nextOutcomeCheckIndex', 'nextQuorumCheckIndex'],
+	properties: {
+		newestIndex: {
+			type: 'uint32',
+			fieldNumber: 1,
+		},
+		nextOutcomeCheckIndex: {
+			type: 'uint32',
+			fieldNumber: 2,
+		},
+		nextQuorumCheckIndex: {
+			type: 'uint32',
+			fieldNumber: 3,
+		},
+	},
+};
+
 export const genesisDEXGovernanceSchema = {
 	$id: '/dexGovernance/genesisDEXGovernance',
 	type: 'object',

@@ -45,8 +45,8 @@ import {
 	VOTE_DURATION,
 	QUORUM_DURATION,
 } from './constants';
-import { proposalSchema, votesSchema, genesisDEXGovernanceSchema } from './schemas';
-import { indexStoreSchema, IndexStoreData } from './stores/indexStore';
+import { proposalSchema, votesSchema, genesisDEXGovernanceSchema, indexSchema } from './schemas';
+import { IndexStoreData } from './stores/indexStore';
 
 export class DexGovernanceModule extends BaseModule {
 	public endpoint = new DexGovernanceEndpoint(this.stores, this.offchainStores);
@@ -72,15 +72,15 @@ export class DexGovernanceModule extends BaseModule {
 		return {
 			stores: [
 				{
-					key: IndexStore.name,
-					data: indexStoreSchema,
+					key: 'IndexStore',
+					data: indexSchema,
 				},
 				{
-					key: ProposalsStore.name,
+					key: 'ProposalsStore',
 					data: proposalSchema,
 				},
 				{
-					key: VotesStore.name,
+					key: 'VotesStore',
 					data: votesSchema,
 				},
 			],

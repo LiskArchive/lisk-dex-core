@@ -321,6 +321,7 @@ describe('dex: offChainEndpointFunctions', () => {
 		it('getLSKPrice', async () => {
 			const result = Buffer.alloc(4);
 			const feeTier = q96ToBytes(
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings.feeTier, 0)),
 			);
 			await poolsStore.setKey(

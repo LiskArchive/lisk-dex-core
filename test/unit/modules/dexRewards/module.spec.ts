@@ -67,6 +67,7 @@ describe('DexRewardsModule', () => {
 
 		dexRewardsModule.addDependencies(
 			tokenModule.method,
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 			validatorModule.method,
 			randomModule.method,
 		);
