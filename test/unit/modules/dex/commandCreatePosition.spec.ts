@@ -120,7 +120,6 @@ describe('dex:command:createPosition', () => {
 		it.each(createPositionFixtures)('%s', async (...args) => {
 			const [_desc, input, err] = args;
 			const context = createTransactionContext({
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				transaction: new Transaction(input as any),
 			});
 
@@ -145,7 +144,6 @@ describe('dex:command:createPosition', () => {
 		beforeEach(async () => {
 			contextPosition = createTransactionContext({
 				stateStore,
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				transaction: new Transaction(createPositionFixtures[0][1] as any),
 			});
 
@@ -214,7 +212,6 @@ describe('dex:command:createPosition', () => {
 		});
 
 		skipOnCI('stress test for checking the events', () => {
-			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			(async () => {
 				const testarray = Array.from({ length: 10000 });
 				await Promise.all(testarray.map(() => stress()));
