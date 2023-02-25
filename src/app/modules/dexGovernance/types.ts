@@ -36,11 +36,13 @@ export interface Proposal {
 }
 
 export interface Vote {
-	voteInfos: {
-		proposalIndex: number;
-		decision: number;
-		amount: bigint;
-	};
+	voteInfos: [
+		{
+			proposalIndex: number;
+			decision: number;
+			amount: bigint;
+		}?,
+	];
 }
 
 export interface Index {
