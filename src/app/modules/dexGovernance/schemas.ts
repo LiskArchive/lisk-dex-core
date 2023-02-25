@@ -192,3 +192,20 @@ export const genesisDEXGovernanceSchema = {
 		},
 	},
 };
+
+export const createProposalParamsSchema = {
+	$id: '/dexGovernance/index',
+    "type": "object",
+    "required": ["type", "content"],
+    "properties": {
+        "type": {
+            "dataType": "uint32",
+            "fieldNumber": 1
+        },
+        "content": {
+            "fieldNumber": 2,
+            ...proposalContentSchema
+        }
+    }
+}
+

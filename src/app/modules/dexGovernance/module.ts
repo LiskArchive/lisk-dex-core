@@ -12,7 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseCommand, BaseModule, ModuleMetadata, PoSMethod, TokenMethod } from 'lisk-sdk';
+import { BaseCommand, BaseModule, ModuleInitArgs, ModuleMetadata, PoSMethod, TokenMethod, utils, ValidatorsMethod } from 'lisk-sdk';
+import { MODULE_ID_DEX_GOVERNANCE } from '../dex/constants';
+import { ModuleConfig } from '../dex/types';
+import { CreatePorposalCommand } from './commands/createPorposal';
+import { defaultConfig } from './constants';
 
 import { DexGovernanceEndpoint } from './endpoint';
 import {
@@ -28,12 +32,20 @@ import { indexSchema, proposalSchema, votesSchema } from './schemas';
 import { IndexStore, ProposalsStore, VotesStore } from './stores';
 
 export class DexGovernanceModule extends BaseModule {
+	public id = MODULE_ID_DEX_GOVERNANCE;
 	public endpoint = new DexGovernanceEndpoint(this.stores, this.offchainStores);
 	public method = new DexGovernanceMethod(this.stores, this.events);
 	public _tokenMethod!: TokenMethod;
 	public _posMethod!: PoSMethod;
+	public _validatorsMethod!: ValidatorsMethod;
+	public _moduleConfig!: ModuleConfig;
 
-	public commands = [];
+	private readonly __createPorposalCommand = new CreatePorposalCommand(this.stores, this.events);
+	
+
+	public commands = [
+		this.__createPorposalCommand,
+	];
 
 	public constructor() {
 		super();
@@ -76,8 +88,20 @@ export class DexGovernanceModule extends BaseModule {
 		};
 	}
 
-	public addDependencies(tokenMethod: TokenMethod, posMethod: PoSMethod) {
+	public addDependencies(tokenMethod: TokenMethod, posMethod: PoSMethod, validatorsMethod: ValidatorsMethod) {
 		this._tokenMethod = tokenMethod;
 		this._posMethod = posMethod;
+		this._validatorsMethod = validatorsMethod;
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async init(args: ModuleInitArgs) {
+		const { moduleConfig } = args;
+		this._moduleConfig = utils.objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfig;
+
+		this.__createPorposalCommand.init({
+			tokenMethod: this._tokenMethod,
+		});
+		
 	}
 }

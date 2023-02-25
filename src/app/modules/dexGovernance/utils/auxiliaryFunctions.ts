@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { MethodContext, TokenMethod } from 'lisk-sdk';
 import {
 	DECISION_YES,
@@ -95,3 +96,16 @@ export const addVotes = async (
 	}
 	await proposalsStore.set(methodContext, indexBuffer, proposal);
 };
+
+export const emitProposalCreationFailedEvent =(methodContext: MethodContext, reason: number, events:NamedRegistry) => {
+	
+	events.get(ProposalCreationFailedEvent).add(
+		methodContext,
+		{
+			"reason": reason
+		},
+		[],
+		true,
+	);
+}
+    

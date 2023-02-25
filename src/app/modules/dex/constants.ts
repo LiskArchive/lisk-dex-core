@@ -117,3 +117,7 @@ export enum SwapFailedReasons {
 }
 
 export const FEE_TIER_PARTITION = 1000000;
+
+// DEXGOVERNANCE Module Constants
+export const MODULE_ID_DEX_GOVERNANCE = Buffer.from('00000', 'hex'); // TBA	ID of the DEXGOVERNANCE module (bytes)
+export const COMMAND_ID_CREATE_PORPOSAL = Buffer.from('00001', 'hex'); // Command ID of CREATE_PORPOSAL command.

@@ -77,7 +77,7 @@ export class DexEndpoint extends BaseEndpoint {
 	}
 
 	public async getPool(
-		methodContext: ModuleEndpointContext,
+		methodContext,
 		poolID: PoolID,
 	): Promise<PoolsStoreData> {
 		const poolsStore = this.stores.get(PoolsStore);

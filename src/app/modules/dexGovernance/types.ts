@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+
 export type Address = Buffer;
 
 export interface Proposal {
@@ -46,4 +47,29 @@ export interface Index {
 	newestIndex: number;
 	nextOutcomeCheckIndex: number;
 	nextQuorumCheckIndex: number;
+}
+
+export interface AddLiquidityParamsData {
+	positionID: Buffer;
+	amount0Desired: bigint;
+	amount1Desired: bigint;
+	amount0Min: bigint;
+	amount1Min: bigint;
+	maxTimestampValid: bigint;
+}
+export interface proposalContentSchema {
+	text:Buffer;
+	poolID:Buffer;
+	multiplier:number;
+	metadata:{
+		title:Buffer;
+		author:Buffer;
+		summary:Buffer;
+		discussionsTo:Buffer;
+	}
+}
+
+export interface CreateProposalParamsData {
+	type: number;
+	content: proposalContentSchema;
 }
