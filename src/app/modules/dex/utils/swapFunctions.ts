@@ -580,8 +580,8 @@ export const swap = async (
 				amountRemaining -= amountOut - BigInt(feeOut);
 			}
 
-			amountTotalOut += amountOut - feeOut;
-			amountTotalIn += amountIn + feeIn;
+			amountTotalOut += amountOut - BigInt(feeOut);
+			amountTotalIn += amountIn + BigInt(feeIn);
 
 			totalFeesIn += feeIn;
 			totalFeesOut += feeOut;
