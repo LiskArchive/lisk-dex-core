@@ -41,30 +41,19 @@ import {
 	getToken0Id,
 	getToken1Id,
 	poolIdToAddress,
-	computeCollectableFees,
-	computeCollectableIncentives,
 } from './utils/auxiliaryFunctions';
 
-import { dryRunSwapExactInRequestSchema, getAllPositionIDsInPoolRequestSchema } from './schemas';
 import { computeCurrentPrice, swap } from './utils/swapFunctions';
 import { PoolsStoreData } from './stores/poolsStore';
 
 import {
-	getAllPositionIDsInPoolRequestSchema,
-	getPoolRequestSchema,
 	getAllTickIDsInPoolRequestSchema,
-	getLSKPriceRequestSchema,
-	getTVLRequestSchema,
 	getPositionIndexRequestSchema,
 	getPoolIDFromTickIDRequestSchema,
 	getFeeTierRequestSchema,
-	getToken0AmountRequestSchema,
-	getToken1AmountRequestSchema,
-	getTickWithPoolIdAndTickValueRequestSchema,
-	getTickWithTickIdRequestSchema,
 	getPositionRequestSchema,
-	getCurrentSqrtPriceRequestSchema,
-	getCollectableFeesAndIncentivesRequestSchema,
+	dryRunSwapExactInRequestSchema,
+	getAllPositionIDsInPoolRequestSchema
 } from './schemas';
 
 import { addQ96, bytesToQ96, divQ96, invQ96, roundDownQ96, mulQ96 } from './utils/q96';
@@ -132,7 +121,7 @@ export class DexEndpoint extends BaseEndpoint {
 			throw new Error();
 		}
 		const q96SqrtPrice = bytesToQ96(pools.sqrtPrice);
-		if (methodContext.params.priceDirection) {
+		if (priceDirection) {
 			return q96SqrtPrice;
 		}
 		return invQ96(q96SqrtPrice);
@@ -164,9 +153,7 @@ export class DexEndpoint extends BaseEndpoint {
 		tickId: TickID[],
 	): Promise<PriceTicksStoreData> {
 		const priceTicksStore = this.stores.get(PriceTicksStore);
-		const priceTicksStoreData = await priceTicksStore.getKey(methodContext, [
-			methodContext.params.tickIDs,
-		]);
+		const priceTicksStoreData = await priceTicksStore.getKey(methodContext, tickId);
 		if (priceTicksStoreData == null) {
 			throw new Error('No tick with the specified poolId');
 		} else {
@@ -189,17 +176,23 @@ export class DexEndpoint extends BaseEndpoint {
 		}
 	}
 
-	public async getToken1Amount(tokenMethod: TokenMethod, methodContext): Promise<bigint> {
-		validator.validate<{ poolID: Buffer }>(getToken1AmountRequestSchema, methodContext.params);
-		const address = poolIdToAddress(methodContext.params.poolID);
-		const tokenId = getToken1Id(methodContext.params.poolID);
+	public async getToken1Amount(
+		tokenMethod: TokenMethod,
+		methodContext: ModuleEndpointContext,
+		poolId: PoolID,
+	): Promise<bigint> {
+		const address = poolIdToAddress(poolId);
+		const tokenId = getToken1Id(poolId);
 		return tokenMethod.getLockedAmount(methodContext, address, tokenId, MODULE_ID_DEX.toString());
 	}
 
-	public async getToken0Amount(tokenMethod: TokenMethod, methodContext): Promise<bigint> {
-		validator.validate<{ poolID: Buffer }>(getToken0AmountRequestSchema, methodContext.params);
-		const address = poolIdToAddress(methodContext.params.poolID);
-		const tokenId = getToken0Id(methodContext.params.poolID);
+	public async getToken0Amount(
+		tokenMethod: TokenMethod,
+		methodContext: ModuleEndpointContext,
+		poolId: PoolID,
+	): Promise<bigint> {
+		const address = poolIdToAddress(poolId);
+		const tokenId = getToken0Id(poolId);
 		return tokenMethod.getLockedAmount(methodContext, address, tokenId, MODULE_ID_DEX.toString());
 	}
 
@@ -226,57 +219,60 @@ export class DexEndpoint extends BaseEndpoint {
 		return uint32beInv(_hexBuffer);
 	}
 
-	public async getTVL(tokenMethod: TokenMethod, methodContext): Promise<bigint> {
-		validator.validate<{ poolID: Buffer; token0ID: Buffer; token1ID: Buffer }>(
-			getTVLRequestSchema,
-			methodContext.params,
-		);
-		const { poolID } = methodContext.params;
-		const pool = await this.getPool(methodContext);
-		const token1Amount = await this.getToken1Amount(tokenMethod, methodContext);
-		const token0Amount = await this.getToken0Amount(tokenMethod, methodContext);
+	public async getTVL(
+		tokenMethod: TokenMethod,
+		methodContext: ModuleEndpointContext,
+		poolId: PoolID,
+	): Promise<bigint> {
+		const pool = await this.getPool(methodContext, poolId);
+		const token1Amount = await this.getToken1Amount(tokenMethod, methodContext, poolId);
+		const token0Amount = await this.getToken0Amount(tokenMethod, methodContext, poolId);
+		const token0Id = getToken0Id(poolId);
+		const token1Id = getToken1Id(poolId);
 
-		if (getToken0Id(poolID).equals(TOKEN_ID_LSK)) {
+		if (getToken0Id(poolId).equals(TOKEN_ID_LSK)) {
 			const token1ValueQ96 = divQ96(
 				divQ96(BigInt(token1Amount), bytesToQ96(pool.sqrtPrice)),
 				bytesToQ96(pool.sqrtPrice),
 			);
 			return (
-				roundDownQ96(token1ValueQ96) + (await this.getToken0Amount(tokenMethod, methodContext))
+				roundDownQ96(token1ValueQ96) +
+				(await this.getToken0Amount(tokenMethod, methodContext, poolId))
 			);
 		}
-		if (getToken1Id(poolID).equals(TOKEN_ID_LSK)) {
+		if (getToken1Id(poolId).equals(TOKEN_ID_LSK)) {
 			const token0ValueQ96 = mulQ96(
 				mulQ96(BigInt(token0Amount), bytesToQ96(pool.sqrtPrice)),
 				bytesToQ96(pool.sqrtPrice),
 			);
 			return (
-				roundDownQ96(token0ValueQ96) + (await this.getToken1Amount(tokenMethod, methodContext))
+				roundDownQ96(token0ValueQ96) +
+				(await this.getToken1Amount(tokenMethod, methodContext, poolId))
 			);
 		}
 
 		const value0Q96 = mulQ96(
-			await this.getLSKPrice(tokenMethod, methodContext),
+			await this.getLSKPrice(tokenMethod, methodContext, token0Id),
 			BigInt(token0Amount),
 		);
 		const value1Q96 = mulQ96(
-			await this.getLSKPrice(tokenMethod, methodContext),
+			await this.getLSKPrice(tokenMethod, methodContext, token1Id),
 			BigInt(token1Amount),
 		);
 		return roundDownQ96(addQ96(value0Q96, value1Q96));
 	}
 
-	public async getLSKPrice(tokenMethod: TokenMethod, methodContext): Promise<bigint> {
-		validator.validate<{ tokenID: Buffer; poolID: Buffer }>(
-			getLSKPriceRequestSchema,
-			methodContext.params,
-		);
-		const { tokenID } = methodContext.params;
-		let tokenRoute = await computeRegularRoute(methodContext, this.stores, tokenID, TOKEN_ID_LSK);
+
+	public async getLSKPrice(
+		tokenMethod: TokenMethod,
+		methodContext: ModuleEndpointContext,
+		tokenId: TokenID,
+	): Promise<bigint> {
+		let tokenRoute = await computeRegularRoute(methodContext, this.stores, tokenId, TOKEN_ID_LSK);
 		let price = BigInt(1);
 
 		if (tokenRoute.length === 0) {
-			tokenRoute = await computeExceptionalRoute(methodContext, this.stores, tokenID, TOKEN_ID_LSK);
+			tokenRoute = await computeExceptionalRoute(methodContext, this.stores, tokenId, TOKEN_ID_LSK);
 		}
 		if (tokenRoute.length === 0) {
 			throw new Error('No swap route between LSK and the given token');
@@ -306,6 +302,7 @@ export class DexEndpoint extends BaseEndpoint {
 		}
 		return price;
 	}
+
 
 	public async getAllTicks(methodContext): Promise<TickID[]> {
 		const tickIds: Buffer[] = [];

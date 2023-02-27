@@ -900,14 +900,14 @@ export const getCredibleDirectPrice = async (
 
 	for (const directPool of directPools) {
 		methodContext.params.poolD = directPool;
-		const pool = await endpoint.getPool(methodContext);
-		const token0Amount = await endpoint.getToken0Amount(tokenMethod, methodContext);
+		const pool = await endpoint.getPool(methodContext, directPool);
+		const token0Amount = await endpoint.getToken0Amount(tokenMethod, methodContext, directPool);
 		const token0ValueQ96 = mulQ96(
 			mulQ96(numberToQ96(token0Amount), bytesToQ96(pool.sqrtPrice)),
 			bytesToQ96(pool.sqrtPrice),
 		);
 		token1ValuesLocked.push(
-			roundDownQ96(token0ValueQ96) + (await endpoint.getToken1Amount(tokenMethod, methodContext)),
+			roundDownQ96(token0ValueQ96) + (await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
 		);
 	}
 
@@ -920,6 +920,8 @@ export const getCredibleDirectPrice = async (
 		}
 	});
 	methodContext.params.poolID = directPools[minToken1ValueLockedIndex];
-	const poolSqrtPrice = (await endpoint.getPool(methodContext)).sqrtPrice;
+	const poolSqrtPrice = (
+		await endpoint.getPool(methodContext, directPools[minToken1ValueLockedIndex])
+	).sqrtPrice;
 	return mulQ96(bytesToQ96(poolSqrtPrice), bytesToQ96(poolSqrtPrice));
 };

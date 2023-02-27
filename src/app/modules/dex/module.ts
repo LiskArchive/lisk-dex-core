@@ -79,7 +79,6 @@ import {
 	getAllTicksResponseSchema,
 	getAllTickIDsInPoolResponseSchema,
 	getAllTickIDsInPoolRequestSchema,
-	getAllTickIDsInPoolRsponseSchema,
 	dryRunSwapExactInRequestSchema,
 	dryRunSwapExactInResponseSchema,
 } from './schemas';
@@ -239,11 +238,11 @@ export class DexModule extends BaseModule {
 					request: getAllPositionIDsInPoolRequestSchema,
 					response: getAllPositionIDsInPoolResponseSchema,
 				},
-				{
-					name: this.endpoint.getCollectableFeesAndIncentives.name,
-					request: getCollectableFeesAndIncentivesRequestSchema,
-					response: getCollectableFeesAndIncentivesResponseSchema,
-				},
+				// {
+				// 	name: this.endpoint.getCollectableFeesAndIncentives.name,
+				// 	request: getCollectableFeesAndIncentivesRequestSchema,
+				// 	response: getCollectableFeesAndIncentivesResponseSchema,
+				// },
 				{
 					name: this.endpoint.getAllTickIDsInPool.name,
 					request: getAllTickIDsInPoolRequestSchema,
