@@ -140,7 +140,7 @@ export const getAmount1Delta = (
 	}
 
 	const liquidityQ96 = numberToQ96(liquidity);
-	
+
 	let amount1 = mulQ96(liquidityQ96, subQ96(sqrtPrice2, sqrtPrice1));
 	if (!roundUp) {
 		amount1 = q96ToInt(amount1);

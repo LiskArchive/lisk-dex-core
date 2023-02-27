@@ -76,7 +76,9 @@ describe('dex:auxiliaryFunctions', () => {
 	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
 
-	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(
+		new InMemoryPrefixedStateDB(),
+	);
 
 	const moduleEndpointContext = createTransientModuleEndpointContext({
 		stateStore,

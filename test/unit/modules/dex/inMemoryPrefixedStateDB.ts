@@ -65,5 +65,5 @@ export class InMemoryPrefixedStateDB {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public restoreSnapshot(): void { }
+	public restoreSnapshot(): void {}
 }

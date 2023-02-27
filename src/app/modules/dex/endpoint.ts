@@ -11,11 +11,11 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { getAllPositionIDsInPoolRequestSchema } from './schemas';
-
 import { BaseEndpoint, ModuleEndpointContext, TokenMethod, MethodContext } from 'lisk-sdk';
-import { computeCurrentPrice, swap } from './utils/swapFunctions';
 import { validator } from '@liskhq/lisk-validator';
+
+import { getAllPositionIDsInPoolRequestSchema, dryRunSwapExactOutRequestSchema } from './schemas';
+import { computeCurrentPrice, swap } from './utils/swapFunctions';
 
 import {
 	MODULE_ID_DEX,
@@ -25,7 +25,7 @@ import {
 	NUM_BYTES_ADDRESS,
 	NUM_BYTES_POSITION_ID,
 	MIN_SQRT_RATIO,
-	MAX_SQRT_RATIO
+	MAX_SQRT_RATIO,
 } from './constants';
 import { PoolsStore } from './stores';
 import { PoolID, PositionID, Q96, TickID, TokenID } from './types';
@@ -40,8 +40,6 @@ import {
 	poolIdToAddress,
 } from './utils/auxiliaryFunctions';
 
-import { dryRunSwapExactOutRequestSchema } from './schemas';
-
 import { PoolsStoreData } from './stores/poolsStore';
 import { addQ96, bytesToQ96, divQ96, invQ96, roundDownQ96, mulQ96 } from './utils/q96';
 import { DexGlobalStore, DexGlobalStoreData } from './stores/dexGlobalStore';
@@ -50,7 +48,9 @@ import { PriceTicksStore, PriceTicksStoreData, tickToBytes } from './stores/pric
 import { uint32beInv } from './utils/bigEndian';
 
 export class DexEndpoint extends BaseEndpoint {
-	public async getAllPoolIDs(methodContext: ModuleEndpointContext): Promise<PoolID[]> {
+	public async getAllPoolIDs(
+		methodContext: ModuleEndpointContext | MethodContext,
+	): Promise<PoolID[]> {
 		const poolStore = this.stores.get(PoolsStore);
 		const store = await poolStore.getAll(methodContext);
 		const poolIds: PoolID[] = [];
@@ -80,8 +80,7 @@ export class DexEndpoint extends BaseEndpoint {
 			methodContext.params,
 		);
 		const result: Buffer[] = [];
-		const poolId = methodContext.params.poolId;
-		const positionIdsList = methodContext.params.positionIdsList;
+		const { poolId, positionIdsList } = methodContext.params;
 		positionIdsList.forEach(positionId => {
 			if (getPoolIDFromPositionID(positionId).equals(poolId)) {
 				result.push(positionId);
@@ -90,14 +89,11 @@ export class DexEndpoint extends BaseEndpoint {
 		return result;
 	}
 
-	public async getPool(
-		methodContext: ModuleEndpointContext,
-		poolID: PoolID,
-	): Promise<PoolsStoreData> {
+	public async getPool(methodContext, poolID: PoolID): Promise<PoolsStoreData> {
 		const poolsStore = this.stores.get(PoolsStore);
 		const key = await poolsStore.getKey(methodContext, [poolID]);
 		return key;
-	};
+	}
 
 	public async getCurrentSqrtPrice(
 		methodContext: ModuleEndpointContext,
@@ -113,14 +109,12 @@ export class DexEndpoint extends BaseEndpoint {
 			return q96SqrtPrice;
 		}
 		return invQ96(q96SqrtPrice);
-	};
+	}
 
-	public async getDexGlobalData(
-		methodContext: ModuleEndpointContext,
-	): Promise<DexGlobalStoreData> {
+	public async getDexGlobalData(methodContext: ModuleEndpointContext): Promise<DexGlobalStoreData> {
 		const dexGlobalStore = this.stores.get(DexGlobalStore);
 		return dexGlobalStore.get(methodContext, Buffer.from([]));
-	};
+	}
 
 	public async getPosition(
 		methodContext: ModuleEndpointContext,
@@ -133,10 +127,10 @@ export class DexEndpoint extends BaseEndpoint {
 		const positionsStore = this.stores.get(PositionsStore);
 		const positionStoreData = await positionsStore.get(methodContext, positionID);
 		return positionStoreData;
-	};
+	}
 
 	public async getTickWithTickId(
-		methodContext: ModuleEndpointContext,
+		methodContext: ModuleEndpointContext | MethodContext,
 		tickId: TickID[],
 	): Promise<PriceTicksStoreData> {
 		const priceTicksStore = this.stores.get(PriceTicksStore);
@@ -149,13 +143,13 @@ export class DexEndpoint extends BaseEndpoint {
 	}
 
 	public async getTickWithPoolIdAndTickValue(
-		methodContext: ModuleEndpointContext,
+		methodContext,
 		poolId: PoolID,
 		tickValue: number,
 	): Promise<PriceTicksStoreData> {
 		const priceTicksStore = this.stores.get(PriceTicksStore);
-		const key = poolId.toLocaleString() + tickToBytes(tickValue).toLocaleString();
-		const priceTicksStoreData = await priceTicksStore.get(methodContext, Buffer.from(key, 'hex'));
+		const key = Buffer.concat([poolId, tickToBytes(tickValue)]);
+		const priceTicksStoreData = await priceTicksStore.get(methodContext, key);
 		if (priceTicksStoreData == null) {
 			throw new Error('No tick with the specified poolId and tickValue');
 		} else {
@@ -308,22 +302,22 @@ export class DexEndpoint extends BaseEndpoint {
 	}
 
 	public async dryRunSwapExactOut(
-		methodContext: MethodContext,
-		moduleEndpointContext: ModuleEndpointContext
+		moduleEndpointContext: ModuleEndpointContext,
 	): Promise<[bigint, bigint, bigint, bigint]> {
 		validator.validate<{
-			tokenIdIn: string,
-			maxAmountIn: bigint,
-			tokenIdOut: string,
-			amountOut: bigint,
-			swapRoute: string[]
+			tokenIdIn: string;
+			maxAmountIn: bigint;
+			tokenIdOut: string;
+			amountOut: bigint;
+			swapRoute: string[];
 		}>(dryRunSwapExactOutRequestSchema, moduleEndpointContext.params);
 
-		const tokenIdIn = Buffer.from(moduleEndpointContext.params.tokenIdIn, "hex");
-		const maxAmountIn = moduleEndpointContext.params.maxAmountIn;
-		const tokenIdOut = Buffer.from(moduleEndpointContext.params.tokenIdOut, "hex");
-		const amountOut = moduleEndpointContext.params.amountOut;
-		const swapRoute = moduleEndpointContext.params.swapRoute.map((route) => Buffer.from(route, "hex"));
+		const tokenIdIn = Buffer.from(moduleEndpointContext.params.tokenIdIn, 'hex');
+		const { maxAmountIn, amountOut } = moduleEndpointContext.params;
+		const tokenIdOut = Buffer.from(moduleEndpointContext.params.tokenIdOut, 'hex');
+		const swapRoute = moduleEndpointContext.params.swapRoute.map(route =>
+			Buffer.from(route, 'hex'),
+		);
 
 		let zeroToOne = false;
 		let IdIn = tokenIdIn;
@@ -335,7 +329,11 @@ export class DexEndpoint extends BaseEndpoint {
 		let priceBefore: bigint;
 		let newAmountOut = BigInt(0);
 
-		if (tokenIdIn.equals(tokenIdOut) || swapRoute.length === 0 || swapRoute.length > MAX_HOPS_SWAP) {
+		if (
+			tokenIdIn.equals(tokenIdOut) ||
+			swapRoute.length === 0 ||
+			swapRoute.length > MAX_HOPS_SWAP
+		) {
 			throw new Error('Invalid parameters');
 		}
 		try {
@@ -366,7 +364,6 @@ export class DexEndpoint extends BaseEndpoint {
 			try {
 				[amountIn, newAmountOut, feesIn, feesOut] = await swap(
 					moduleEndpointContext,
-					methodContext,
 					this.stores,
 					poolId,
 					zeroToOne,
@@ -374,8 +371,6 @@ export class DexEndpoint extends BaseEndpoint {
 					currentTokenOut.amount,
 					true,
 					currentHeight,
-					tokenIdIn,
-					tokenIdOut,
 				);
 			} catch (error) {
 				throw new Error('Crossed too many ticks');
@@ -395,5 +390,5 @@ export class DexEndpoint extends BaseEndpoint {
 		);
 
 		return [tokens[tokens.length - 1].amount, newAmountOut, priceBefore, priceAfter];
-	};
+	}
 }

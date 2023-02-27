@@ -58,7 +58,7 @@ import {
 	TokenID,
 	Q96,
 	routeInterface,
-	AdjacentEdgesInterface
+	AdjacentEdgesInterface,
 } from '../types';
 
 import {
@@ -68,7 +68,7 @@ import {
 	numberToQ96,
 	roundDownQ96,
 	q96ToBytes,
-	bytesToQ96
+	bytesToQ96,
 } from './q96';
 
 import { getAmount0Delta, getAmount1Delta, priceToTick, tickToPrice } from './math';
@@ -903,7 +903,7 @@ export const getCredibleDirectPrice = async (
 		);
 		token1ValuesLocked.push(
 			roundDownQ96(token0ValueQ96) +
-			(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
+				(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
 		);
 	}
 
