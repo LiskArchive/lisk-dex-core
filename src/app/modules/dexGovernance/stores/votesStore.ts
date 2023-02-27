@@ -24,6 +24,14 @@ export class VotesStore extends BaseStore<Vote> {
 		return this.get(context, key);
 	}
 
+	public async getAll(context: StoreGetter) {
+		return this.iterate(context, {
+			gte: Buffer.alloc(0, 16),
+			lte: Buffer.alloc(16, 255),
+			reverse: true,
+		});
+	}
+
 	public async hasKey(context: StoreGetter, keys: Buffer[]): Promise<boolean> {
 		const key = Buffer.concat(keys);
 		return this.has(context, key);
