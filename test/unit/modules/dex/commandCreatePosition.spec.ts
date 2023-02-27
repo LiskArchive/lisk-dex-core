@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright © 2020 Lisk Foundation
  *
@@ -129,7 +130,7 @@ describe('dex:command:createPosition', () => {
 			);
 
 			if (err === false) {
-				expect(result.error?.message).not.toBeDefined();
+				expect(result.error?.message).toBeUndefined();
 				expect(result.status).toEqual(VerifyStatus.OK);
 			} else {
 				expect(result.error?.message).toBe(err);

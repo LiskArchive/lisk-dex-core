@@ -145,9 +145,9 @@ describe('DexGovernanceModule', () => {
 				genesisBlockExecuteContext,
 				Buffer.alloc(0),
 			);
-			expect(indexStoreData.newestIndex).toEqual(0);
-			expect(indexStoreData.nextOutcomeCheckIndex).toEqual(0);
-			expect(indexStoreData.nextQuorumCheckIndex).toEqual(0);
+			expect(indexStoreData.newestIndex).toBe(0);
+			expect(indexStoreData.nextOutcomeCheckIndex).toBe(0);
+			expect(indexStoreData.nextQuorumCheckIndex).toBe(0);
 		});
 
 		it('verifyGenesisBlock', () => {
