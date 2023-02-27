@@ -23,7 +23,6 @@ import {
 	VerifyStatus,
 	TokenMethod,
 	FeeMethod,
-	codec,
 } from 'lisk-sdk';
 
 import { PoSEndpoint } from 'lisk-framework/dist-node/modules/pos/endpoint';
@@ -40,8 +39,8 @@ import { sha256, TOKEN_ID_DEX_NATIVE } from '../../dexRewards/constants';
 import { DexModule } from '../../dex/module';
 import { DexEndpoint } from '../../dex/endpoint';
 import { addQ96, numberToQ96, q96ToBytes } from '../../dex/utils/q96';
-import { ProposalCreatedEvent, ProposalCreationFailedEvent } from '../events';
-import { createProposalParamsSchema, proposalSchema } from '../schemas';
+import { ProposalCreatedEvent } from '../events';
+import { createProposalParamsSchema } from '../schemas';
 import {
 	FEE_PROPOSAL_CREATION,
 	LENGTH_ADDRESS,
@@ -59,33 +58,39 @@ export class CreatePorposalCommand extends BaseCommand {
 	public schema = createProposalParamsSchema;
 	private _tokenMethod!: TokenMethod;
 	private _posEndpoint!: PoSEndpoint;
+	private _feeMethod!: FeeMethod;
 
-	public init({ tokenMethod, posEndpoint }): void {
+
+	public init({ tokenMethod, posEndpoint, feeMethod }): void {
 		this._tokenMethod = tokenMethod;
 		this._posEndpoint = posEndpoint;
+		this._feeMethod = feeMethod;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verify(
 		ctx: CommandVerifyContext<CreateProposalParamsData>,
 	): Promise<VerificationResult> {
+		console.log(ctx)
 		const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-
-		const moduleEndpointContext = createTransientModuleEndpointContext({
-			stateStore,
-			params: { address: true },
-		});
-
-		const methodContext = ctx.getMethodContext();
 		const senderAddress = sha256(ctx.transaction.senderPublicKey.toString()).slice(
 			0,
 			LENGTH_ADDRESS,
 		);
+		const moduleEndpointContext = createTransientModuleEndpointContext({
+			stateStore,
+			params: { address: senderAddress },
+		});
+		
+
+		const methodContext = ctx.getMethodContext();
+		
 		const availableBalance = await this._tokenMethod.getAvailableBalance(
 			methodContext,
 			senderAddress,
 			TOKEN_ID_DEX_NATIVE,
 		);
+		
 		const lockedBalance = (await this._posEndpoint.getLockedStakedAmount(moduleEndpointContext))
 			.amount;
 
@@ -141,7 +146,6 @@ export class CreatePorposalCommand extends BaseCommand {
 			LENGTH_ADDRESS,
 		);
 		const dexModule = new DexModule();
-		const feeMethod = new FeeMethod(this.stores, this.events);
 		const endpoint = new DexEndpoint(this.stores, dexModule.offchainStores);
 		const methodContext = ctx.getMethodContext();
 
@@ -161,28 +165,37 @@ export class CreatePorposalCommand extends BaseCommand {
 			throw new Error('Limit of proposals with recoded votes is reached');
 		}
 
+	
+		
+	
+		
 		if (!(await endpoint.getPool(methodContext, ctx.params.content.poolID))) {
 			if (ctx.params.type === PROPOSAL_TYPE_INCENTIVIZATION) {
 				emitProposalCreationFailedEvent(methodContext, 0, this.events);
 				throw new Error('Limit of proposals with recoded votes is reached');
 			}
-		}
+		}		
 
-		feeMethod.payFee(methodContext, FEE_PROPOSAL_CREATION);
+		this._feeMethod.payFee(methodContext, FEE_PROPOSAL_CREATION);
 		const index = newestIndexTemp + 1;
 		const currentHeight = ctx.header.height;
-		this.stores.get(ProposalsStore)[index] = codec.encode(proposalSchema, {
+		const indexBuffer = Buffer.alloc(4);
+		indexBuffer.writeUInt32BE(index, 0);
+		
+		const porposal = {
 			creationHeight: currentHeight,
-			votesYes: 0,
-			votesNo: 0,
-			votesPass: 0,
+			votesYes: BigInt(0),
+			votesNo: BigInt(0),
+			votesPass: BigInt(0),
 			type: ctx.params.type,
 			content: ctx.params.content,
 			status: PROPOSAL_STATUS_ACTIVE,
-		});
-
+		}
+		const proposalsStore = this.stores.get(ProposalsStore);
+		await proposalsStore.set(methodContext,indexBuffer,porposal);
+		
 		newestIndexTemp = index;
-
+		
 		this.events.get(ProposalCreatedEvent).add(
 			methodContext,
 			{
@@ -192,14 +205,6 @@ export class CreatePorposalCommand extends BaseCommand {
 			},
 			[q96ToBytes(numberToQ96(BigInt(index)))],
 			true,
-		);
-
-		this.events.get(ProposalCreationFailedEvent).add(
-			methodContext,
-			{
-				reason: 1,
-			},
-			[],
 		);
 	}
 }

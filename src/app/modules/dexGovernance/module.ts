@@ -16,6 +16,7 @@ import { PoSEndpoint } from 'lisk-framework/dist-node/modules/pos/endpoint';
 import {
 	BaseCommand,
 	BaseModule,
+	FeeMethod,
 	ModuleInitArgs,
 	ModuleMetadata,
 	PoSMethod,
@@ -23,6 +24,7 @@ import {
 	utils,
 } from 'lisk-sdk';
 import { MODULE_ID_DEX_GOVERNANCE } from '../dex/constants';
+import { PoolsStore } from '../dex/stores';
 import { ModuleConfig } from '../dex/types';
 import { CreatePorposalCommand } from './commands/createPorposal';
 import { defaultConfig } from './constants';
@@ -57,6 +59,8 @@ export class DexGovernanceModule extends BaseModule {
 	public _posMethod!: PoSMethod;
 	public _moduleConfig!: ModuleConfig;
 	public _posEndpoint!: PoSEndpoint;
+	public _feeMethod!: FeeMethod;
+
 
 	private readonly __createPorposalCommand = new CreatePorposalCommand(this.stores, this.events);
 
@@ -67,6 +71,7 @@ export class DexGovernanceModule extends BaseModule {
 		this.stores.register(IndexStore, new IndexStore(this.name));
 		this.stores.register(ProposalsStore, new ProposalsStore(this.name));
 		this.stores.register(VotesStore, new VotesStore(this.name));
+		this.stores.register(PoolsStore, new PoolsStore(this.name));
 		this.events.register(ProposalCreatedEvent, new ProposalCreatedEvent(this.name));
 		this.events.register(ProposalCreationFailedEvent, new ProposalCreationFailedEvent(this.name));
 		this.events.register(ProposalOutcomeCheckedEvent, new ProposalOutcomeCheckedEvent(this.name));
@@ -118,9 +123,10 @@ export class DexGovernanceModule extends BaseModule {
 		};
 	}
 
-	public addDependencies(tokenMethod: TokenMethod, posMethod: PoSMethod) {
+	public addDependencies(tokenMethod: TokenMethod, posMethod: PoSMethod, feeMethod:FeeMethod) {
 		this._tokenMethod = tokenMethod;
 		this._posMethod = posMethod;
+		this._feeMethod = feeMethod;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -131,6 +137,7 @@ export class DexGovernanceModule extends BaseModule {
 		this.__createPorposalCommand.init({
 			tokenMethod: this._tokenMethod,
 			posEndpoint: this._posEndpoint,
+			feeMethod : this._feeMethod,
 		});
 	}
 }
