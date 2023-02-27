@@ -46,10 +46,7 @@ import {
 import { computeCurrentPrice, swap } from './utils/swapFunctions';
 import { PoolsStoreData } from './stores/poolsStore';
 
-import {
-	getPositionIndexRequestSchema,
-	dryRunSwapExactInRequestSchema,
-} from './schemas';
+import { getPositionIndexRequestSchema, dryRunSwapExactInRequestSchema } from './schemas';
 
 import { addQ96, bytesToQ96, divQ96, invQ96, roundDownQ96, mulQ96 } from './utils/q96';
 import { DexGlobalStore, DexGlobalStoreData } from './stores/dexGlobalStore';
@@ -245,7 +242,6 @@ export class DexEndpoint extends BaseEndpoint {
 		return roundDownQ96(addQ96(value0Q96, value1Q96));
 	}
 
-
 	public async getLSKPrice(
 		tokenMethod: TokenMethod,
 		methodContext: ModuleEndpointContext,
@@ -285,7 +281,6 @@ export class DexEndpoint extends BaseEndpoint {
 		}
 		return price;
 	}
-
 
 	public async getAllTicks(methodContext): Promise<TickID[]> {
 		const tickIds: Buffer[] = [];

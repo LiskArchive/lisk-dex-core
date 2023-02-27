@@ -20,9 +20,7 @@ import { MethodContext } from 'lisk-sdk';
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { PriceTicksStore } from '../stores';
 import { PoolID, PositionID, TickID } from '../types';
-import {
-	getPoolIDFromPositionID,
-} from './auxiliaryFunctions';
+import { getPoolIDFromPositionID } from './auxiliaryFunctions';
 import { DexGlobalStore, DexGlobalStoreData } from '../stores/dexGlobalStore';
 import { NUM_BYTES_POOL_ID } from '../constants';
 import { PositionsStore, PositionsStoreData } from '../stores/positionsStore';

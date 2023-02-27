@@ -907,7 +907,8 @@ export const getCredibleDirectPrice = async (
 			bytesToQ96(pool.sqrtPrice),
 		);
 		token1ValuesLocked.push(
-			roundDownQ96(token0ValueQ96) + (await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
+			roundDownQ96(token0ValueQ96) +
+				(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
 		);
 	}
 

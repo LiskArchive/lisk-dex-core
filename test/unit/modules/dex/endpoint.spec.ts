@@ -35,17 +35,14 @@ import {
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
 
 import { numberToQ96, q96ToBytes, bytesToQ96 } from '../../../../src/app/modules/dex/utils/q96';
-import { priceToTick } from '../../../../src/app/modules/dex/utils/math';
+import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 
-import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import {
 	PriceTicksStoreData,
 	tickToBytes,
 } from '../../../../src/app/modules/dex/stores/priceTicksStore';
-import {
-	DexGlobalStoreData,
-} from '../../../../src/app/modules/dex/stores/dexGlobalStore';
+import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
@@ -125,7 +122,7 @@ describe('dex: offChainEndpointFunctions', () => {
 		positionCounter: BigInt(15),
 		collectableLSKFees: BigInt(10),
 		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
-		incentivizedPools: [{ poolId: poolId, multiplier: 10 }],
+		incentivizedPools: [{ poolId, multiplier: 10 }],
 		totalIncentivesMultiplier: 1,
 	};
 
@@ -188,7 +185,11 @@ describe('dex: offChainEndpointFunctions', () => {
 				priceTicksStoreDataTickLower,
 			);
 
-			await priceTicksStore.setKey(methodContext, [poolId, tickToBytes(100)], priceTicksStoreDataTickLower);
+			await priceTicksStore.setKey(
+				methodContext,
+				[poolId, tickToBytes(100)],
+				priceTicksStoreDataTickLower,
+			);
 
 			await priceTicksStore.setKey(
 				methodContext,
@@ -254,8 +255,8 @@ describe('dex: offChainEndpointFunctions', () => {
 
 		it('getPositionIndex', () => {
 			moduleEndpointContext.params = {
-				positionID: positionId
-			}
+				positionID: positionId,
+			};
 			expect(endpoint.getPositionIndex(moduleEndpointContext)).toBe(1);
 		});
 

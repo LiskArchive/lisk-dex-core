@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable no-param-reassign */
 /*
  * Copyright © 2022 Lisk Foundation
@@ -452,23 +453,23 @@ export const swap = async (
 	const poolInfo = await endpoint.getPool(methodContext, poolID);
 	const priceTicksStore = stores.get(PriceTicksStore);
 
-	let poolSqrtPriceQ96 = bytesToQ96(poolInfo.sqrtPrice),
-		numCrossedTicks = 0,
-		amountRemaining = amountSpecified,
-		amountTotalIn = BigInt(0),
-		amountTotalOut = BigInt(0),
-		totalFeesIn = BigInt(0),
-		totalFeesOut = BigInt(0),
-		nextTick,
-		sqrtTargetPrice,
-		amountIn: bigint,
-		amountOut: bigint,
-		tokenIn,
-		tokenOut,
-		tickExist,
-		amountRemainingTemp,
-		feeIn,
-		feeOut;
+	let poolSqrtPriceQ96 = bytesToQ96(poolInfo.sqrtPrice);
+	let numCrossedTicks = 0;
+	let amountRemaining = amountSpecified;
+	let amountTotalIn = BigInt(0);
+	let amountTotalOut = BigInt(0);
+	let totalFeesIn = BigInt(0);
+	let totalFeesOut = BigInt(0);
+	let nextTick;
+	let sqrtTargetPrice;
+	let amountIn: bigint;
+	let amountOut: bigint;
+	let tokenIn;
+	let tokenOut;
+	let tickExist;
+	let amountRemainingTemp;
+	let feeIn: bigint;
+	let feeOut: biging;
 
 	if (
 		(zeroToOne && sqrtLimitPrice >= poolSqrtPriceQ96) ||
