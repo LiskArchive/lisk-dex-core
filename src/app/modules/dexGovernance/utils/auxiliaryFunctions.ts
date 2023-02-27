@@ -21,6 +21,7 @@ import {
 	PROPOSAL_STATUS_FINISHED_ACCEPTED,
 	PROPOSAL_STATUS_FINISHED_FAILED,
 } from '../constants';
+import { ProposalCreationFailedEvent } from '../events';
 import { ProposalsStore } from '../stores';
 
 export const getVoteOutcome = async (
@@ -97,15 +98,17 @@ export const addVotes = async (
 	await proposalsStore.set(methodContext, indexBuffer, proposal);
 };
 
-export const emitProposalCreationFailedEvent =(methodContext: MethodContext, reason: number, events:NamedRegistry) => {
-	
+export const emitProposalCreationFailedEvent = (
+	methodContext: MethodContext,
+	reason: number,
+	events: NamedRegistry,
+) => {
 	events.get(ProposalCreationFailedEvent).add(
 		methodContext,
 		{
-			"reason": reason
+			reason,
 		},
 		[],
 		true,
 	);
-}
-    
+};

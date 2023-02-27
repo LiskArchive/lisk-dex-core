@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-
 export type Address = Buffer;
 
 export interface Proposal {
@@ -60,15 +59,15 @@ export interface AddLiquidityParamsData {
 	maxTimestampValid: bigint;
 }
 export interface proposalContentSchema {
-	text:Buffer;
-	poolID:Buffer;
-	multiplier:number;
-	metadata:{
-		title:Buffer;
-		author:Buffer;
-		summary:Buffer;
-		discussionsTo:Buffer;
-	}
+	text: Buffer;
+	poolID: Buffer;
+	multiplier: number;
+	metadata: {
+		title: Buffer;
+		author: Buffer;
+		summary: Buffer;
+		discussionsTo: Buffer;
+	};
 }
 
 export interface CreateProposalParamsData {

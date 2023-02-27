@@ -24,6 +24,7 @@ import {
 } from './constants';
 
 export const proposalContentSchema = {
+	$id: '/dexGovernance/proposalContentSchema',
 	type: 'object',
 	required: ['text', 'poolID', 'multiplier', 'metadata'],
 	properties: {
@@ -195,19 +196,19 @@ export const genesisDEXGovernanceSchema = {
 
 export const createProposalParamsSchema = {
 	$id: '/dexGovernance/index',
-    "type": "object",
-    "required": ["type", "content"],
-    "properties": {
-        "type": {
-            "dataType": "uint32",
-            "fieldNumber": 1
-        },
-        "content": {
-            "fieldNumber": 2,
-            ...proposalContentSchema
-        }
-    }
-}
+	type: 'object',
+	required: ['type', 'content'],
+	properties: {
+		type: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		content: {
+			fieldNumber: 2,
+			...proposalContentSchema,
+		},
+	},
+};
 
 export const getProposalRequestSchema = {
 	$id: '/dexGovernance/endpoint/getProposal',

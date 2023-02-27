@@ -12,7 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseCommand, BaseModule, ModuleInitArgs, ModuleMetadata, PoSMethod, TokenMethod, utils, ValidatorsMethod } from 'lisk-sdk';
+import { PoSEndpoint } from 'lisk-framework/dist-node/modules/pos/endpoint';
+import {
+	BaseCommand,
+	BaseModule,
+	ModuleInitArgs,
+	ModuleMetadata,
+	PoSMethod,
+	TokenMethod,
+	utils,
+} from 'lisk-sdk';
 import { MODULE_ID_DEX_GOVERNANCE } from '../dex/constants';
 import { ModuleConfig } from '../dex/types';
 import { CreatePorposalCommand } from './commands/createPorposal';
@@ -46,15 +55,12 @@ export class DexGovernanceModule extends BaseModule {
 	public method = new DexGovernanceMethod(this.stores, this.events);
 	public _tokenMethod!: TokenMethod;
 	public _posMethod!: PoSMethod;
-	public _validatorsMethod!: ValidatorsMethod;
 	public _moduleConfig!: ModuleConfig;
+	public _posEndpoint!: PoSEndpoint;
 
 	private readonly __createPorposalCommand = new CreatePorposalCommand(this.stores, this.events);
-	
 
-	public commands = [
-		this.__createPorposalCommand,
-	];
+	public commands = [this.__createPorposalCommand];
 
 	public constructor() {
 		super();
@@ -112,10 +118,9 @@ export class DexGovernanceModule extends BaseModule {
 		};
 	}
 
-	public addDependencies(tokenMethod: TokenMethod, posMethod: PoSMethod, validatorsMethod: ValidatorsMethod) {
+	public addDependencies(tokenMethod: TokenMethod, posMethod: PoSMethod) {
 		this._tokenMethod = tokenMethod;
 		this._posMethod = posMethod;
-		this._validatorsMethod = validatorsMethod;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -125,7 +130,7 @@ export class DexGovernanceModule extends BaseModule {
 
 		this.__createPorposalCommand.init({
 			tokenMethod: this._tokenMethod,
+			posEndpoint: this._posEndpoint,
 		});
-		
 	}
 }
