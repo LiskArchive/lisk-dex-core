@@ -12,7 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseCommand, BaseModule, ModuleMetadata, PoSMethod, TokenMethod } from 'lisk-sdk';
+import { PoSEndpoint } from 'lisk-framework/dist-node/modules/pos/endpoint';
+import {
+	BaseCommand,
+	BaseModule,
+	ModuleInitArgs,
+	ModuleMetadata,
+	PoSMethod,
+	TokenMethod,
+	utils,
+} from 'lisk-sdk';
+import { ModuleConfig } from '../dex/types';
+import { VoteOnPorposalCommand } from './commands/voteOnPorposal';
+import { defaultConfig } from './constants';
 
 import { DexGovernanceEndpoint } from './endpoint';
 import {
@@ -41,8 +53,16 @@ export class DexGovernanceModule extends BaseModule {
 	public method = new DexGovernanceMethod(this.stores, this.events);
 	public _tokenMethod!: TokenMethod;
 	public _posMethod!: PoSMethod;
+	public _moduleConfig!: ModuleConfig;
+	public _posEndpoint!: PoSEndpoint;
+	public _methodContext!: PoSEndpoint;
 
-	public commands = [];
+	private readonly __createvoteOnPorposalCommand = new VoteOnPorposalCommand(
+		this.stores,
+		this.events,
+	);
+
+	public commands = [this.__createvoteOnPorposalCommand];
 
 	public constructor() {
 		super();
@@ -103,5 +123,16 @@ export class DexGovernanceModule extends BaseModule {
 	public addDependencies(tokenMethod: TokenMethod, posMethod: PoSMethod) {
 		this._tokenMethod = tokenMethod;
 		this._posMethod = posMethod;
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async init(args: ModuleInitArgs) {
+		const { moduleConfig } = args;
+		this._moduleConfig = utils.objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfig;
+
+		this.__createvoteOnPorposalCommand.init({
+			posEndpoint: this._posEndpoint,
+			methodContext: this._methodContext,
+		});
 	}
 }

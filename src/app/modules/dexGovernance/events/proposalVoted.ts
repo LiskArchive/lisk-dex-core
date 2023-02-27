@@ -38,7 +38,7 @@ export const ProposalVotedEventSchema = {
 		},
 		voterAddress: {
 			dataType: 'bytes',
-			length: LENGTH_ADDRESS,
+			maxLength: LENGTH_ADDRESS,
 			fieldNumber: 2,
 		},
 		decision: {

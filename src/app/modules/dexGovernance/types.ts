@@ -49,3 +49,8 @@ export interface Index {
 	nextOutcomeCheckIndex: number;
 	nextQuorumCheckIndex: number;
 }
+
+export interface voteOnProposalParamsData {
+	proposalIndex: number;
+	decision: number;
+}
