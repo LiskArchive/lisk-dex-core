@@ -468,8 +468,8 @@ export const swap = async (
 	let tokenOut;
 	let tickExist;
 	let amountRemainingTemp;
-	let feeIn: bigint;
-	let feeOut: biging;
+	let feeIn;
+	let feeOut;
 
 	if (
 		(zeroToOne && sqrtLimitPrice >= poolSqrtPriceQ96) ||
@@ -575,9 +575,9 @@ export const swap = async (
 				feeOut = roundUpQ96(mulQ96(BigInt(amountOut), feeCoeffAmountBefore));
 			}
 			if (exactInput) {
-				amountRemaining -= amountIn + feeIn;
+				amountRemaining -= amountIn + BigInt(feeIn);
 			} else {
-				amountRemaining -= amountOut - feeOut;
+				amountRemaining -= amountOut - BigInt(feeOut);
 			}
 
 			amountTotalOut += amountOut - feeOut;
