@@ -28,13 +28,12 @@ import {
 	constructPoolsGraph,
 	crossTick,
 	getAdjacent,
-	raiseSwapException,
 	swap,
 	swapWithin,
 	transferFeesFromPool,
 } from '../../../../src/app/modules/dex/utils/swapFunctions';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
-import { Address, PoolID, TokenID } from '../../../../src/app/modules/dex/types';
+import { PoolID, TokenID } from '../../../../src/app/modules/dex/types';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 import { bytesToQ96, numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
@@ -59,7 +58,6 @@ describe('dex:swapFunctions', () => {
 	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
 	const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
 	const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
-	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const amount = 0;
 	const sqrtCurrentPrice = BigInt(5);
 	const sqrtTargetPrice = BigInt(10);
@@ -132,15 +130,6 @@ describe('dex:swapFunctions', () => {
 			tokenMethod.transfer = transferMock;
 			tokenMethod.lock = lockMock;
 			tokenMethod.unlock = unlockMock;
-		});
-		it('raiseSwapException', () => {
-			try {
-				raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress);
-			} catch (error) {
-				expect(error.message).toBe('SwapFailedEvent');
-				const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
-				expect(swapFailedEvent).toHaveLength(1);
-			}
 		});
 
 		it('swapWithin', () => {

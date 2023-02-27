@@ -32,9 +32,6 @@
 		"version": "oclif readme --multi --dir=docs/commands && git add README.md docs",
 		"prepublishOnly": "npm ci && npm run lint && npm run build"
 	},
-	"jest": {
-		"resetMocks": false
-	},
 	"bin": {
 		"lisk-dex-core": "./bin/run"
 	},
