@@ -33,6 +33,17 @@ import {
 } from './events';
 
 import { DexGovernanceMethod } from './method';
+import {
+	getIndexStoreResponseSchema,
+	getProposalRequestSchema,
+	getProposalResponseSchema,
+	getUserVotesRequestSchema,
+	getUserVotesResponseSchema,
+	indexSchema,
+	proposalSchema,
+	votesSchema,
+	genesisDEXGovernanceSchema
+} from './schemas';
 import { IndexStore, ProposalsStore, VotesStore } from './stores';
 import { GenesisDEXGovernanceData } from './types';
 import {
@@ -45,7 +56,6 @@ import {
 	VOTE_DURATION,
 	QUORUM_DURATION,
 } from './constants';
-import { proposalSchema, votesSchema, genesisDEXGovernanceSchema, indexSchema } from './schemas';
 import { IndexStoreData } from './stores/indexStore';
 
 export class DexGovernanceModule extends BaseModule {
@@ -84,7 +94,22 @@ export class DexGovernanceModule extends BaseModule {
 					data: votesSchema,
 				},
 			],
-			endpoints: [],
+			endpoints: [
+				{
+					name: this.endpoint.getProposal.name,
+					request: getProposalRequestSchema,
+					response: getProposalResponseSchema,
+				},
+				{
+					name: this.endpoint.getUserVotes.name,
+					request: getUserVotesRequestSchema,
+					response: getUserVotesResponseSchema,
+				},
+				{
+					name: this.endpoint.getIndexStore.name,
+					response: getIndexStoreResponseSchema,
+				},
+			],
 			commands: this.commands.map((command: BaseCommand) => ({
 				name: command.name,
 				params: command.schema,

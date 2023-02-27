@@ -50,6 +50,12 @@ export interface VoteStore {
 	votes: Vote;
 }
 
+export interface Index {
+	newestIndex: number;
+	nextOutcomeCheckIndex: number;
+	nextQuorumCheckIndex: number;
+}
+
 export interface GenesisDEXGovernanceData {
 	proposalsStore: Proposal[];
 	votesStore: VoteStore[];
