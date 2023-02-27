@@ -712,7 +712,7 @@ export const getPoolResponseSchema = {
 	required: ['poolsStoreData'],
 	properties: {
 		poolsStoreData: {
-			type: 'object',
+			dataType: 'object',
 			fieldNumber: 1,
 		},
 	},
@@ -724,7 +724,7 @@ export const getPositionIndexRequestSchema = {
 	required: ['positionID'],
 	properties: {
 		positionID: {
-			type: 'object',
+			dataType: 'bytes',
 			fieldNumber: 1,
 		},
 	},

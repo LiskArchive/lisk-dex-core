@@ -28,13 +28,12 @@ import {
 	constructPoolsGraph,
 	crossTick,
 	getAdjacent,
-	raiseSwapException,
 	swap,
 	swapWithin,
 	transferFeesFromPool,
 } from '../../../../src/app/modules/dex/utils/swapFunctions';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
-import { Address, PoolID, TokenID } from '../../../../src/app/modules/dex/types';
+import { PoolID, TokenID } from '../../../../src/app/modules/dex/types';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 import { bytesToQ96, numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
@@ -59,7 +58,6 @@ describe('dex:swapFunctions', () => {
 	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
 	const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
 	const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
-	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const amount = 0;
 	const sqrtCurrentPrice = BigInt(5);
 	const sqrtTargetPrice = BigInt(10);
@@ -133,15 +131,6 @@ describe('dex:swapFunctions', () => {
 			tokenMethod.lock = lockMock;
 			tokenMethod.unlock = unlockMock;
 		});
-		it('raiseSwapException', () => {
-			try {
-				raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress);
-			} catch (error) {
-				expect(error.message).toBe('SwapFailedEvent');
-				const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
-				expect(swapFailedEvent).toHaveLength(1);
-			}
-		});
 
 		it('swapWithin', () => {
 			const [sqrtUpdatedPrice, amountIn, amountOut] = swapWithin(
@@ -161,15 +150,11 @@ describe('dex:swapFunctions', () => {
 		});
 
 		it('computeCurrentPrice', async () => {
-<<<<<<< HEAD
-			const swapRoute = [poolID];
-=======
 			const tempModuleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
-				params: { poolID: poolId },
+				params: { poolID },
 			});
-			const swapRoute = [poolId];
->>>>>>> feature/endpoints
+			const swapRoute = [poolID];
 			const currentPrice = await computeCurrentPrice(
 				tempModuleEndpointContext,
 				dexModule.stores,
@@ -323,6 +308,8 @@ describe('dex:swapFunctions', () => {
 		it('swap', async () => {
 			const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
 			const currentTickID = q96ToBytes(BigInt(currentTick));
+			const poolIDAndTickID = Buffer.concat([poolID, tickToBytes(currentTick)]);
+
 			await poolsStore.setKey(
 				methodContext,
 				[currentTickID.slice(0, NUM_BYTES_POOL_ID)],
@@ -331,23 +318,39 @@ describe('dex:swapFunctions', () => {
 
 			await priceTicksStore.setKey(methodContext, [currentTickID], priceTicksStoreDataTickUpper);
 
+			await priceTicksStore.setKey(methodContext, [poolIDAndTickID], priceTicksStoreDataTickUpper);
+
 			await priceTicksStore.setKey(
 				methodContext,
 				[Buffer.from('000000000000000000000000000000000000000000000006', 'hex')],
 				priceTicksStoreDataTickUpper,
 			);
+
 			q96ToBytes(BigInt(currentTick));
-			const res = await swap(
-				moduleEndpointContext,
-				dexModule.stores,
-				poolID,
-				true,
-				sqrtLimitPrice,
-				BigInt(5),
-				true,
-				10
-			);
-			expect(res).toBe([BigInt(5), BigInt(5), BigInt(0), BigInt(0), 1]);
+			expect(
+				await swap(
+					methodContext,
+					dexModule.stores,
+					poolID,
+					true,
+					sqrtLimitPrice,
+					BigInt(5),
+					true,
+					10,
+				),
+			).toStrictEqual([BigInt(5), BigInt(5), BigInt(0), BigInt(0), 1]);
+			expect(
+				await swap(
+					methodContext,
+					dexModule.stores,
+					poolID,
+					true,
+					sqrtLimitPrice,
+					BigInt(5),
+					false,
+					10,
+				),
+			).toStrictEqual([BigInt(6), BigInt(5), BigInt(0), BigInt(0), 1]);
 		});
 	});
 });

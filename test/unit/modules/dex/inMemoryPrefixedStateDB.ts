@@ -39,9 +39,7 @@ export class InMemoryPrefixedStateDB {
 		return this._db.del(key);
 	}
 
-	public close() {
-
-	}
+	public async close() { }
 
 	public async range(options?: IterateOptions): Promise<{ key: Buffer; value: Buffer }[]> {
 		const stream = this._db.iterate(options);

@@ -460,7 +460,7 @@ describe('dex:auxiliaryFunctions', () => {
 				),
 			];
 			await poolsStore.setKey(methodContext, newTokenIDsArray, poolsStoreData);
-			await poolsStore.set(methodContext, Buffer.from(newTokenIDsArray), poolsStoreData);
+			await poolsStore.set(methodContext, Buffer.alloc(0), poolsStoreData);
 			await getCredibleDirectPrice(
 				tokenMethod,
 				tempModuleEndpointContext,
