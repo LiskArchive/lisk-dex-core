@@ -229,12 +229,8 @@ export const collectFeesAndIncentives = async (
 	const positionInfo = await positionsStore.get(methodContext, positionID);
 	const ownerAddress = await getOwnerAddressOfPosition(methodContext, positionsStore, positionID);
 
-	const [
-		collectedFees0,
-		collectedFees1,
-		feeGrowthInside0,
-		feeGrowthInside1,
-	] = await computeCollectableFees(stores, methodContext, positionID);
+	const [collectedFees0, collectedFees1, feeGrowthInside0, feeGrowthInside1] =
+		await computeCollectableFees(stores, methodContext, positionID);
 
 	if (collectedFees0 > 0) {
 		await transferFromPool(
@@ -905,7 +901,7 @@ export const getCredibleDirectPrice = async (
 		);
 		token1ValuesLocked.push(
 			roundDownQ96(token0ValueQ96) +
-			(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
+				(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
 		);
 	}
 

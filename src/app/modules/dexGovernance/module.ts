@@ -42,7 +42,7 @@ import {
 	indexSchema,
 	proposalSchema,
 	votesSchema,
-	genesisDEXGovernanceSchema
+	genesisDEXGovernanceSchema,
 } from './schemas';
 import { IndexStore, ProposalsStore, VotesStore } from './stores';
 import { GenesisDEXGovernanceData } from './types';

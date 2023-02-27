@@ -114,14 +114,8 @@ export class SwapExactWithPriceLimitCommand extends BaseCommand {
 
 	public async execute(ctx: CommandExecuteContext<swapWithPriceLimitParamsData>): Promise<void> {
 		const senderAddress = ctx.transaction.senderPublicKey.slice(0, NUM_BYTES_ADDRESS);
-		const {
-			tokenIdIn,
-			maxAmountTokenIn,
-			tokenIdOut,
-			minAmountTokenOut,
-			poolId,
-			sqrtLimitPrice,
-		} = ctx.params;
+		const { tokenIdIn, maxAmountTokenIn, tokenIdOut, minAmountTokenOut, poolId, sqrtLimitPrice } =
+			ctx.params;
 		const methodContext = ctx.getMethodContext();
 
 		let priceBefore: bigint;

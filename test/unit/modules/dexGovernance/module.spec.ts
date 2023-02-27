@@ -98,7 +98,8 @@ describe('DexGovernanceModule', () => {
 		],
 	};
 
-	const genesisBlockExecuteContext: GenesisBlockExecuteContext = genesisBlockContext.createInitGenesisStateContext();
+	const genesisBlockExecuteContext: GenesisBlockExecuteContext =
+		genesisBlockContext.createInitGenesisStateContext();
 
 	beforeEach(async () => {
 		dexGovernanceModule = new DexGovernanceModule();

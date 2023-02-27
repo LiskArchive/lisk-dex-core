@@ -15,7 +15,7 @@
 
 import { TokenModule, Transaction, ValidatorsModule, VerifyStatus } from 'lisk-framework';
 // import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
-import { PrefixedStateReadWriter } from "lisk-framework/dist-node/state_machine/prefixed_state_read_writer";
+import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { testing } from 'lisk-sdk';
 import { DexModule } from '../../../../src/app/modules';
 import { defaultConfig } from '../../../../src/app/modules/dex/constants';
