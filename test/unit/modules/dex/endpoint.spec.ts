@@ -418,7 +418,6 @@ describe('dex: offChainEndpointFunctions', () => {
 				swapRoute: [poolId],
 			};
 			const result = await endpoint.dryRunSwapExactIn(moduleEndpointContext);
-			console.log("result: ", result);
 			expect(result).toEqual([BigInt(51), BigInt(50), BigInt(0), BigInt(0)]);
 		});
 	});
