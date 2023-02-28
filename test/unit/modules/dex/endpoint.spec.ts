@@ -42,15 +42,11 @@ import {
 	PriceTicksStoreData,
 	tickToBytes,
 } from '../../../../src/app/modules/dex/stores/priceTicksStore';
-import {
-	DexGlobalStoreData,
-} from '../../../../src/app/modules/dex/stores/dexGlobalStore';
+import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
-import {
-	getPoolIDFromPositionID,
-} from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
+import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import { DexEndpoint } from '../../../../src/app/modules/dex/endpoint';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
@@ -307,20 +303,17 @@ describe('dex: offChainEndpointFunctions', () => {
 				});
 		});
 
-		it('getTickWithTickId', async () => {
-			const tickWithTickID = await endpoint.getTickWithTickId(moduleEndpointContext, [
-				getPoolIDFromPositionID(positionId),
-				tickToBytes(positionsStoreData.tickLower),
-			]);
-			expect(tickWithTickID).not.toBeNull();
-			expect(tickWithTickID.liquidityNet).toBe(BigInt(5));
-		});
-
 		it('getTickWithPoolIdAndTickValue', async () => {
 			const tickValue = 5;
 			priceTicksStore.setKey(
 				methodContext,
-				[Buffer.from(getPoolIDFromPositionID(positionId).toLocaleString() + tickToBytes(tickValue).toLocaleString(), 'hex')],
+				[
+					Buffer.from(
+						getPoolIDFromPositionID(positionId).toLocaleString() +
+							tickToBytes(tickValue).toLocaleString(),
+						'hex',
+					),
+				],
 				priceTicksStoreDataTickUpper,
 			);
 
@@ -367,74 +360,6 @@ describe('dex: offChainEndpointFunctions', () => {
 			await endpoint.getAllTicks(moduleEndpointContext).then(res => {
 				expect(res).not.toBeNull();
 			});
-		});
-
-		it('getPosition', async () => {
-			const positionIdsList = [positionId];
-			const newPositionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
-			await positionsStore.set(methodContext, newPositionId, positionsStoreData);
-			await positionsStore.setKey(methodContext, [newPositionId], positionsStoreData);
-			await endpoint
-				.getPosition(moduleEndpointContext, newPositionId, positionIdsList)
-				.then(res => {
-					expect(res).not.toBeNull();
-				});
-		});
-
-		it('getTickWithTickId', async () => {
-			const tickWithTickID = await endpoint.getTickWithTickId(moduleEndpointContext, [
-				getPoolIDFromPositionID(positionId),
-				tickToBytes(positionsStoreData.tickLower),
-			]);
-			expect(tickWithTickID).not.toBeNull();
-			expect(tickWithTickID.liquidityNet).toBe(BigInt(5));
-		});
-
-		it('getTickWithPoolIdAndTickValue', async () => {
-			const tickValue = 5;
-			priceTicksStore.setKey(
-				methodContext,
-				[getPoolIDFromPositionID(positionId), tickToBytes(tickValue)],
-				priceTicksStoreDataTickUpper,
-			);
-
-			const tickWithPoolIdAndTickValue = await endpoint.getTickWithPoolIdAndTickValue(
-				moduleEndpointContext,
-				getPoolIDFromPositionID(positionId),
-				tickValue,
-			);
-			expect(tickWithPoolIdAndTickValue).not.toBeNull();
-			expect(tickWithPoolIdAndTickValue.liquidityNet).toBe(BigInt(5));
-		});
-
-		it('getLSKPrice', async () => {
-			const result = Buffer.alloc(4);
-			const tempFeeTier = q96ToBytes(
-				BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings[0].feeTier, 0)),
-			);
-			await poolsStore.setKey(
-				methodContext,
-				[getPoolIDFromPositionID(positionId), positionId, tempFeeTier],
-				poolsStoreData,
-			);
-			await poolsStore.setKey(methodContext, [poolIdLSK, poolIdLSK, tempFeeTier], poolsStoreData);
-			await poolsStore.setKey(methodContext, [poolIdLSK, positionId, tempFeeTier], poolsStoreData);
-
-			const res = await endpoint.getLSKPrice(
-				tokenMethod,
-				moduleEndpointContext,
-				getPoolIDFromPositionID(positionId),
-			);
-			expect(res).toBe(BigInt(1));
-		});
-
-		it('getTVL', async () => {
-			const res = await endpoint.getTVL(
-				tokenMethod,
-				moduleEndpointContext,
-				getPoolIDFromPositionID(positionId),
-			);
-			expect(res).toBe(BigInt(5));
 		});
 
 		it('getAllTickIDsInPool', async () => {

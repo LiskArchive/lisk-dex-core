@@ -250,8 +250,8 @@ describe('dex:swapFunctions', () => {
 			await priceTicksStore.setKey(
 				methodContext,
 				[Buffer.from(poolID.toLocaleString() + tickToBytes(100).toLocaleString(), 'hex')],
-				priceTicksStoreDataTickUpper
-			)
+				priceTicksStoreDataTickUpper,
+			);
 
 			q96ToBytes(BigInt(currentTick));
 			expect(

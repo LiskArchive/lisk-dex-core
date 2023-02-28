@@ -28,7 +28,7 @@ import {
 	NUM_BYTES_POSITION_ID,
 	MAX_HOPS_SWAP,
 	MIN_SQRT_RATIO,
-	MAX_SQRT_RATIO
+	MAX_SQRT_RATIO,
 } from './constants';
 import { PoolsStore } from './stores';
 import { PoolID, PositionID, Q96, TickID, TokenID } from './types';
@@ -45,10 +45,7 @@ import {
 
 import { PoolsStoreData } from './stores/poolsStore';
 
-import {
-	getPositionIndexRequestSchema,
-	dryRunSwapExactOutRequestSchema
-} from './schemas';
+import { getPositionIndexRequestSchema, dryRunSwapExactOutRequestSchema } from './schemas';
 
 import { computeCurrentPrice, swap } from './utils/swapFunctions';
 
@@ -96,10 +93,7 @@ export class DexEndpoint extends BaseEndpoint {
 		return result;
 	}
 
-	public async getPool(
-		methodContext,
-		poolID: PoolID,
-	): Promise<PoolsStoreData> {
+	public async getPool(methodContext, poolID: PoolID): Promise<PoolsStoreData> {
 		const poolsStore = this.stores.get(PoolsStore);
 		const key = await poolsStore.getKey(methodContext, [poolID]);
 		return key;
@@ -193,7 +187,6 @@ export class DexEndpoint extends BaseEndpoint {
 
 		return uint32beInv(_hexBuffer);
 	}
-
 
 	public getPoolIDFromTickID(tickID: Buffer) {
 		return tickID.slice(0, NUM_BYTES_POOL_ID);

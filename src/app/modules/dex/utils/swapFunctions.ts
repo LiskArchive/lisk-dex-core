@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable no-param-reassign */
 /*
  * Copyright © 2022 Lisk Foundation

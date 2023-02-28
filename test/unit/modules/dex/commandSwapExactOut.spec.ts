@@ -128,7 +128,11 @@ describe('swapEactOutn', () => {
 		);
 
 		await priceTicksStore.setKey(methodContext, [currentTickID], priceTicksStoreDataTickUpper);
-		await priceTicksStore.setKey(methodContext, [Buffer.from(poolID.toLocaleString() + tickToBytes(100).toLocaleString(), 'hex')], priceTicksStoreDataTickUpper);
+		await priceTicksStore.setKey(
+			methodContext,
+			[Buffer.from(poolID.toLocaleString() + tickToBytes(100).toLocaleString(), 'hex')],
+			priceTicksStoreDataTickUpper,
+		);
 
 		await priceTicksStore.setKey(
 			methodContext,
