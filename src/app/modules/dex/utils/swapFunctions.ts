@@ -1,11 +1,8 @@
 /* eslint-disable import/no-cycle */
-/* eslint-disable one-var */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-floating-promises */
-/* eslint-disable @typescript-eslint/restrict-plus-operands */
-
+/* eslint-disable no-param-reassign */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -457,23 +454,23 @@ export const swap = async (
 	const poolInfo = await endpoint.getPool(methodContext, poolID);
 	const priceTicksStore = stores.get(PriceTicksStore);
 
-	let poolSqrtPriceQ96 = bytesToQ96(poolInfo.sqrtPrice),
-		numCrossedTicks = 0,
-		amountRemaining = amountSpecified,
-		amountTotalIn = BigInt(0),
-		amountTotalOut = BigInt(0),
-		totalFeesIn = BigInt(0),
-		totalFeesOut = BigInt(0),
-		nextTick,
-		sqrtTargetPrice,
-		amountIn: bigint,
-		amountOut: bigint,
-		tokenIn,
-		tokenOut,
-		tickExist,
-		amountRemainingTemp,
-		feeIn,
-		feeOut;
+	let poolSqrtPriceQ96 = bytesToQ96(poolInfo.sqrtPrice);
+	let numCrossedTicks = 0;
+	let amountRemaining = amountSpecified;
+	let amountTotalIn = BigInt(0);
+	let amountTotalOut = BigInt(0);
+	let totalFeesIn = BigInt(0);
+	let totalFeesOut = BigInt(0);
+	let nextTick;
+	let sqrtTargetPrice;
+	let amountIn: bigint;
+	let amountOut: bigint;
+	let tokenIn;
+	let tokenOut;
+	let tickExist;
+	let amountRemainingTemp;
+	let feeIn;
+	let feeOut;
 
 	if (
 		(zeroToOne && sqrtLimitPrice >= poolSqrtPriceQ96) ||
@@ -579,13 +576,13 @@ export const swap = async (
 				feeOut = roundUpQ96(mulQ96(BigInt(amountOut), feeCoeffAmountBefore));
 			}
 			if (exactInput) {
-				amountRemaining -= amountIn + feeIn;
+				amountRemaining -= amountIn + BigInt(feeIn);
 			} else {
-				amountRemaining -= amountOut - feeOut;
+				amountRemaining -= amountOut - BigInt(feeOut);
 			}
 
-			amountTotalOut += amountOut - feeOut;
-			amountTotalIn += amountIn + feeIn;
+			amountTotalOut += amountOut - BigInt(feeOut);
+			amountTotalIn += amountIn + BigInt(feeIn);
 
 			totalFeesIn += feeIn;
 			totalFeesOut += feeOut;

@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable no-param-reassign */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -292,7 +293,7 @@ export const collectFeesAndIncentives = async (
 
 export const computeCollectableFees = async (
 	stores: NamedRegistry,
-	methodContext: MethodContext,
+	methodContext,
 	positionID: PositionID,
 ): Promise<[bigint, bigint, Q96, Q96]> => {
 	const positionsStore = stores.get(PositionsStore);
@@ -895,6 +896,7 @@ export const getCredibleDirectPrice = async (
 	const token1ValuesLocked: bigint[] = [];
 
 	for (const directPool of directPools) {
+		methodContext.params.poolD = directPool;
 		const pool = await endpoint.getPool(methodContext, directPool);
 		const token0Amount = await endpoint.getToken0Amount(tokenMethod, methodContext, directPool);
 		const token0ValueQ96 = mulQ96(
@@ -903,7 +905,7 @@ export const getCredibleDirectPrice = async (
 		);
 		token1ValuesLocked.push(
 			roundDownQ96(token0ValueQ96) +
-				(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
+			(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
 		);
 	}
 
@@ -915,7 +917,7 @@ export const getCredibleDirectPrice = async (
 			minToken1ValueLockedIndex = index;
 		}
 	});
-
+	methodContext.params.poolID = directPools[minToken1ValueLockedIndex];
 	const poolSqrtPrice = (
 		await endpoint.getPool(methodContext, directPools[minToken1ValueLockedIndex])
 	).sqrtPrice;

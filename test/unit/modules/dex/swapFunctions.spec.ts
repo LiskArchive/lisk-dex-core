@@ -150,9 +150,13 @@ describe('dex:swapFunctions', () => {
 		});
 
 		it('computeCurrentPrice', async () => {
+			const tempModuleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { poolID },
+			});
 			const swapRoute = [poolID];
 			const currentPrice = await computeCurrentPrice(
-				moduleEndpointContext,
+				tempModuleEndpointContext,
 				dexModule.stores,
 				token0Id,
 				token1Id,
@@ -242,6 +246,12 @@ describe('dex:swapFunctions', () => {
 				[Buffer.from('000000000000000000000000000000000000000000000006', 'hex')],
 				priceTicksStoreDataTickUpper,
 			);
+
+			await priceTicksStore.setKey(
+				methodContext,
+				[Buffer.from(poolID.toLocaleString() + tickToBytes(100).toLocaleString(), 'hex')],
+				priceTicksStoreDataTickUpper
+			)
 
 			q96ToBytes(BigInt(currentTick));
 			expect(

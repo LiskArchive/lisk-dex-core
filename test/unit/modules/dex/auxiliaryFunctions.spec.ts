@@ -447,6 +447,10 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('getCredibleDirectPrice', async () => {
+			const tempModuleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { poolID: getPoolIDFromPositionID(positionId) },
+			});
 			const result = Buffer.alloc(4);
 			const newTokenIDsArray = [
 				token0Id,
@@ -459,7 +463,7 @@ describe('dex:auxiliaryFunctions', () => {
 			await poolsStore.set(methodContext, Buffer.from(newTokenIDsArray), poolsStoreData);
 			await getCredibleDirectPrice(
 				tokenMethod,
-				moduleEndpointContext,
+				tempModuleEndpointContext,
 				dexModule.stores,
 				token0Id,
 				token1Id,
