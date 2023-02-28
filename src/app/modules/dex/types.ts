@@ -90,16 +90,6 @@ export interface SwapExactOutParamsData {
 	maxTimestampValid: bigint;
 }
 
-export interface swapWithPriceLimitParamsData {
-	tokenIdIn: Buffer;
-	maxAmountTokenIn: bigint;
-	tokenIdOut: Buffer;
-	minAmountTokenOut: bigint;
-	poolId: Buffer;
-	maxTimestampValid: bigint;
-	sqrtLimitPrice: Buffer;
-}
-
 export interface CollectFeesParamData {
 	positions: Buffer[];
 }
@@ -179,3 +169,13 @@ export type feesInterface = {
 	in: bigint;
 	out: bigint;
 };
+
+export interface swapWithPriceLimitParamsData {
+	tokenIdIn: Buffer;
+	maxAmountTokenIn: bigint;
+	tokenIdOut: Buffer;
+	minAmountTokenOut: bigint;
+	poolId: Buffer;
+	maxTimestampValid: bigint;
+	sqrtLimitPrice: bigint;
+}

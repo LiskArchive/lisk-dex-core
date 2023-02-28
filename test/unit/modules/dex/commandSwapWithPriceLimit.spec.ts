@@ -23,16 +23,16 @@ import {
 	MethodContext,
 	VerifyStatus,
 } from 'lisk-framework/dist-node/state_machine';
-
 import { TokenID } from 'lisk-framework/dist-node/modules/token/types';
 import { loggerMock } from 'lisk-framework/dist-node/testing/mocks';
 import { createFakeBlockHeader } from 'lisk-framework/dist-node/testing';
-import { Address, PoolID } from '../../../../src/app/modules/dex/types';
 import { DexModule } from '../../../../src/app/modules';
-import { SwapExactInCommand } from '../../../../src/app/modules/dex/commands/swapExactIn';
-import { swapExactInCommandSchema } from '../../../../src/app/modules/dex/schemas';
+
+import { Address, PoolID } from '../../../../src/app/modules/dex/types';
+
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
+
 import { PoolsStore, PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import { bytesToQ96, numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
 import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
@@ -43,12 +43,14 @@ import {
 	tickToBytes,
 } from '../../../../src/app/modules/dex/stores/priceTicksStore';
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
+import { SwapExactWithPriceLimitCommand } from '../../../../src/app/modules/dex/commands/swapWithPriceLimit';
+import { swapWithPriceLimitCommandSchema } from '../../../../src/app/modules/dex/schemas';
 
 const { utils } = cryptography;
 const { createTransactionContext } = testing;
 
 describe('swapEactIn', () => {
-	let command: SwapExactInCommand;
+	let command: SwapExactWithPriceLimitCommand;
 	const dexModule = new DexModule();
 
 	const transferMock = jest.fn();
@@ -102,7 +104,7 @@ describe('swapEactIn', () => {
 	};
 
 	beforeEach(async () => {
-		command = new SwapExactInCommand(dexModule.stores, dexModule.events);
+		command = new SwapExactWithPriceLimitCommand(dexModule.stores, dexModule.events);
 
 		poolsStore = dexModule.stores.get(PoolsStore);
 		dexGlobalStore = dexModule.stores.get(DexGlobalStore);
@@ -120,9 +122,7 @@ describe('swapEactIn', () => {
 		const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
 		const currentTickID = q96ToBytes(BigInt(currentTick));
 		const poolIDAndTickID = Buffer.concat([poolID, tickToBytes(currentTick)]);
-
 		await priceTicksStore.setKey(methodContext, [poolIDAndTickID], priceTicksStoreDataTickUpper);
-
 		await poolsStore.setKey(
 			methodContext,
 			[currentTickID.slice(0, NUM_BYTES_POOL_ID)],
@@ -151,19 +151,20 @@ describe('swapEactIn', () => {
 					fee: BigInt(5000000),
 					nonce: BigInt(0),
 					senderPublicKey: senderAddress,
-					params: codec.encode(swapExactInCommandSchema, {
+					params: codec.encode(swapWithPriceLimitCommandSchema, {
 						tokenIdIn,
-						amountTokenIn: BigInt(250),
+						maxAmountTokenIn: BigInt(250),
 						tokenIdOut,
 						minAmountTokenOut: BigInt(10),
-						swapRoute: [poolID],
+						poolId: poolID,
 						maxTimestampValid: BigInt(5),
+						sqrtLimitPrice: BigInt(4295128735),
 					}),
 					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
 			const result = await command.verify(
-				context.createCommandVerifyContext(swapExactInCommandSchema),
+				context.createCommandVerifyContext(swapWithPriceLimitCommandSchema),
 			);
 			expect(result.error?.message).not.toBeDefined();
 			expect(result.status).toEqual(VerifyStatus.OK);
@@ -179,11 +180,12 @@ describe('swapEactIn', () => {
 					chainID: utils.getRandomBytes(32),
 					params: {
 						tokenIdIn,
-						amountTokenIn: BigInt(250),
+						maxAmountTokenIn: BigInt(250),
 						tokenIdOut,
 						minAmountTokenOut: BigInt(10),
-						swapRoute: [poolID],
+						poolId: poolID,
 						maxTimestampValid: BigInt(5),
+						sqrtLimitPrice: BigInt(4295128735),
 					},
 					logger: loggerMock,
 					header: createFakeBlockHeader(),
@@ -197,13 +199,14 @@ describe('swapEactIn', () => {
 						fee: BigInt(5000000),
 						nonce: BigInt(0),
 						senderPublicKey: senderAddress,
-						params: codec.encode(swapExactInCommandSchema, {
+						params: codec.encode(swapWithPriceLimitCommandSchema, {
 							tokenIdIn,
-							amountTokenIn: BigInt(250),
+							maxAmountTokenIn: BigInt(250),
 							tokenIdOut,
 							minAmountTokenOut: BigInt(10),
-							swapRoute: [poolID],
+							poolId: poolID,
 							maxTimestampValid: BigInt(5),
+							sqrtLimitPrice: BigInt(4295128735),
 						}),
 						signatures: [utils.getRandomBytes(64)],
 					}),

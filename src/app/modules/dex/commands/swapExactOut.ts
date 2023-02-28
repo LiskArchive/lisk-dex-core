@@ -177,8 +177,6 @@ export class SwapExactOutCommand extends BaseCommand {
 					currentTokenOut.amount,
 					false,
 					currentHeight,
-					tokenIdIn,
-					tokenIdOut,
 				);
 				tokens.push({ id: IdIn, amount: amountIn });
 				fees.push({ in: feesIn, out: feesOut });

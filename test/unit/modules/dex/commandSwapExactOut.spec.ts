@@ -37,7 +37,10 @@ import { bytesToQ96, numberToQ96, q96ToBytes } from '../../../../src/app/modules
 import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { NUM_BYTES_POOL_ID } from '../../../../src/app/modules/dex/constants';
 import { DexGlobalStore, PriceTicksStore } from '../../../../src/app/modules/dex/stores';
-import { PriceTicksStoreData } from '../../../../src/app/modules/dex/stores/priceTicksStore';
+import {
+	PriceTicksStoreData,
+	tickToBytes,
+} from '../../../../src/app/modules/dex/stores/priceTicksStore';
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { SwapExactOutCommand } from '../../../../src/app/modules/dex/commands/swapExactOut';
 
@@ -57,8 +60,8 @@ describe('swapEactOutn', () => {
 	let priceTicksStore: PriceTicksStore;
 
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
-	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
-	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
+	const poolID: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
+	const poolIDLSK = Buffer.from('0000000100000000', 'hex');
 
 	const tokenIdIn: TokenID = Buffer.from('0000000000000000', 'hex');
 	const tokenIdOut: TokenID = Buffer.from('0000010000000000', 'hex');
@@ -86,7 +89,7 @@ describe('swapEactOutn', () => {
 		positionCounter: BigInt(15),
 		collectableLSKFees: BigInt(10),
 		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
-		incentivizedPools: [{ poolId, multiplier: 10 }],
+		incentivizedPools: [{ poolId: poolID, multiplier: 10 }],
 		totalIncentivesMultiplier: 1,
 	};
 
@@ -105,8 +108,8 @@ describe('swapEactOutn', () => {
 		dexGlobalStore = dexModule.stores.get(DexGlobalStore);
 		priceTicksStore = dexModule.stores.get(PriceTicksStore);
 
-		await poolsStore.setKey(methodContext, [poolId], poolsStoreData);
-		await poolsStore.setKey(methodContext, [poolIdLSK], poolsStoreData);
+		await poolsStore.setKey(methodContext, [poolID], poolsStoreData);
+		await poolsStore.setKey(methodContext, [poolIDLSK], poolsStoreData);
 
 		await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData);
 
@@ -116,6 +119,8 @@ describe('swapEactOutn', () => {
 
 		const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
 		const currentTickID = q96ToBytes(BigInt(currentTick));
+		const poolIDAndTickID = Buffer.concat([poolID, tickToBytes(currentTick)]);
+		await priceTicksStore.setKey(methodContext, [poolIDAndTickID], priceTicksStoreDataTickUpper);
 		await poolsStore.setKey(
 			methodContext,
 			[currentTickID.slice(0, NUM_BYTES_POOL_ID)],
@@ -149,7 +154,7 @@ describe('swapEactOutn', () => {
 						maxAmountTokenIn: BigInt(250),
 						tokenIdOut,
 						amountTokenOut: BigInt(10),
-						swapRoute: [poolId],
+						swapRoute: [poolID],
 						maxTimestampValid: BigInt(5),
 					}),
 					signatures: [utils.getRandomBytes(64)],
@@ -175,7 +180,7 @@ describe('swapEactOutn', () => {
 						maxAmountTokenIn: BigInt(5),
 						tokenIdOut,
 						amountTokenOut: BigInt(10),
-						swapRoute: [poolId],
+						swapRoute: [poolID],
 						maxTimestampValid: BigInt(5),
 					},
 					logger: loggerMock,
@@ -195,7 +200,7 @@ describe('swapEactOutn', () => {
 							maxAmountTokenIn: BigInt(5),
 							tokenIdOut,
 							amountTokenOut: BigInt(10),
-							swapRoute: [poolId],
+							swapRoute: [poolID],
 							maxTimestampValid: BigInt(5),
 						}),
 						signatures: [utils.getRandomBytes(64)],

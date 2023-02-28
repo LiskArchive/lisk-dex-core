@@ -1153,15 +1153,15 @@ export const swapWithPriceLimitCommandSchema = {
 		},
 		poolId: {
 			dataType: 'bytes',
-			fieldNumber: 4,
+			fieldNumber: 5,
 		},
 		maxTimestampValid: {
 			dataType: 'uint64',
 			fieldNumber: 6,
 		},
 		sqrtLimitPrice: {
-			dataType: 'bytes',
-			fieldNumber: 6,
+			dataType: 'uint64',
+			fieldNumber: 7,
 		},
 	},
 };

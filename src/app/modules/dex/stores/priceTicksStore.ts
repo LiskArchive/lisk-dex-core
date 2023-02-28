@@ -134,8 +134,7 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			const resKey = await this.getKey(context, [prevKey]);
 			return resKey;
 		}
-		const resKey = await this.getKey(context, keys);
-		return resKey;
+		return null;
 	}
 
 	public async getPrevTick(context: ModuleEndpointContext | MethodContext, keys: Buffer[]) {
@@ -157,7 +156,6 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			const resKey = await this.getKey(context, [prevKey]);
 			return resKey;
 		}
-		const resKey = await this.getKey(context, keys);
-		return resKey;
+		return null;
 	}
 }
