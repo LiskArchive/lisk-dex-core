@@ -1115,7 +1115,7 @@ export const dryRunSwapExactOutRequestSchema = {
 
 export const dryRunSwapExactOutResponseSchema = {
 	$id: 'dex/dryRunSwapExactOutResponse',
-	type: 'object',
+	type: 'array',
 	required: ['tokensAmount', 'newAmountOut', 'priceBefore', 'priceAfter'],
 	properties: {
 		tokensAmount: {
