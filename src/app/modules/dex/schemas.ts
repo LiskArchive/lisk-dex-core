@@ -987,7 +987,7 @@ export const dryRunSwapExactInRequestSchema = {
 
 export const dryRunSwapExactInResponseSchema = {
 	$id: 'dex/dryRunSwapExactInResponse',
-	type: 'object',
+	type: 'array',
 	required: ['newAmountIn', 'tokensAmount', 'priceBefore', 'priceAfter'],
 	properties: {
 		newAmountIn: {
