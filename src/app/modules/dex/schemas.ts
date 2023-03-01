@@ -712,7 +712,7 @@ export const getPoolResponseSchema = {
 	required: ['poolsStoreData'],
 	properties: {
 		poolsStoreData: {
-			type: 'object',
+			dataType: 'object',
 			fieldNumber: 1,
 		},
 	},
@@ -724,7 +724,7 @@ export const getPositionIndexRequestSchema = {
 	required: ['positionID'],
 	properties: {
 		positionID: {
-			type: 'object',
+			dataType: 'bytes',
 			fieldNumber: 1,
 		},
 	},
@@ -950,6 +950,61 @@ export const getAllTickIDsInPoolResponseSchema = {
 					},
 				},
 			},
+		},
+	},
+};
+
+export const dryRunSwapExactInRequestSchema = {
+	$id: 'dex/dryRunSwapExactIn',
+	type: 'object',
+	required: ['tokenIdIn', 'amountIn', 'tokenIdOut', 'minAmountOut', 'swapRoute'],
+	properties: {
+		tokenIdIn: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+		amountIn: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+		tokenIdOut: {
+			dataType: 'bytes',
+			fieldNumber: 3,
+		},
+		minAmountOut: {
+			dataType: 'uint64',
+			fieldNumber: 4,
+		},
+		swapRoute: {
+			type: 'array',
+			fieldNumber: 5,
+			items: {
+				dataType: 'bytes',
+			},
+		},
+	},
+};
+
+export const dryRunSwapExactInResponseSchema = {
+	$id: 'dex/dryRunSwapExactInResponse',
+	type: 'array',
+	required: ['newAmountIn', 'tokensAmount', 'priceBefore', 'priceAfter'],
+	properties: {
+		newAmountIn: {
+			dataType: 'uint64',
+			fieldNumber: 1,
+		},
+		tokensAmount: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+		priceBefore: {
+			dataType: 'bytes',
+			fieldNumber: 3,
+		},
+		priceAfter: {
+			dataType: 'bytes',
+			fieldNumber: 4,
 		},
 	},
 };

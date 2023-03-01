@@ -17,8 +17,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { validator } from '@liskhq/lisk-validator';
 import { BaseEndpoint, ModuleEndpointContext, TokenMethod, MethodContext } from 'lisk-sdk';
+import { validator } from '@liskhq/lisk-validator';
 
 import {
 	MODULE_ID_DEX,
@@ -27,8 +27,8 @@ import {
 	NUM_BYTES_ADDRESS,
 	NUM_BYTES_POSITION_ID,
 	MAX_HOPS_SWAP,
-	MIN_SQRT_RATIO,
 	MAX_SQRT_RATIO,
+	MIN_SQRT_RATIO,
 } from './constants';
 import { PoolsStore } from './stores';
 import { PoolID, PositionID, Q96, TickID, TokenID } from './types';
@@ -43,11 +43,14 @@ import {
 	poolIdToAddress,
 } from './utils/auxiliaryFunctions';
 
+import { computeCurrentPrice, swap } from './utils/swapFunctions';
 import { PoolsStoreData } from './stores/poolsStore';
 
-import { getPositionIndexRequestSchema, dryRunSwapExactOutRequestSchema } from './schemas';
-
-import { computeCurrentPrice, swap } from './utils/swapFunctions';
+import {
+	getPositionIndexRequestSchema,
+	dryRunSwapExactInRequestSchema,
+	dryRunSwapExactOutRequestSchema,
+} from './schemas';
 
 import { addQ96, bytesToQ96, divQ96, invQ96, roundDownQ96, mulQ96 } from './utils/q96';
 import { DexGlobalStore, DexGlobalStoreData } from './stores/dexGlobalStore';
@@ -152,8 +155,8 @@ export class DexEndpoint extends BaseEndpoint {
 		tickValue: number,
 	): Promise<PriceTicksStoreData> {
 		const priceTicksStore = this.stores.get(PriceTicksStore);
-		const key = poolId.toLocaleString() + tickToBytes(tickValue).toLocaleString();
-		const priceTicksStoreData = await priceTicksStore.get(methodContext, Buffer.from(key, 'hex'));
+		const key = Buffer.concat([poolId, tickToBytes(tickValue)]);
+		const priceTicksStoreData = await priceTicksStore.get(methodContext, key);
 		if (priceTicksStoreData == null) {
 			throw new Error('No tick with the specified poolId and tickValue');
 		} else {
@@ -305,6 +308,94 @@ export class DexEndpoint extends BaseEndpoint {
 			}
 		});
 		return result;
+	}
+
+	public async dryRunSwapExactIn(
+		// methodContext: MethodContext,
+		moduleEndpointContext: ModuleEndpointContext,
+	): Promise<[bigint, bigint, bigint, bigint]> {
+		validator.validate<{
+			tokenIdIn: string;
+			amountIn: bigint;
+			tokenIdOut: string;
+			minAmountOut: BigInt;
+			swapRoute: string[];
+		}>(dryRunSwapExactInRequestSchema, moduleEndpointContext.params);
+
+		const tokenIdIn = Buffer.from(moduleEndpointContext.params.tokenIdIn, 'hex');
+		const { amountIn, minAmountOut } = moduleEndpointContext.params;
+		const tokenIdOut = Buffer.from(moduleEndpointContext.params.tokenIdOut, 'hex');
+		const swapRoute = moduleEndpointContext.params.swapRoute.map(route =>
+			Buffer.from(route, 'hex'),
+		);
+
+		let zeroToOne = false;
+		let IdOut: TokenID = tokenIdIn;
+		const tokens = [{ id: tokenIdIn, amount: amountIn }];
+		const fees = [{}];
+		let amountOut: bigint;
+		let feesIn: bigint;
+		let feesOut: bigint;
+		let priceBefore: bigint;
+		let newAmountIn = BigInt(0);
+
+		if (tokenIdIn === tokenIdOut || swapRoute.length === 0 || swapRoute.length > MAX_HOPS_SWAP) {
+			throw new Error('Invalid parameters');
+		}
+		try {
+			priceBefore = await computeCurrentPrice(
+				moduleEndpointContext,
+				this.stores,
+				tokenIdIn,
+				tokenIdOut,
+				swapRoute,
+			);
+		} catch (error) {
+			throw new Error('Invalid swap route');
+		}
+
+		for (const poolId of swapRoute) {
+			const currentTokenIn = tokens[tokens.length - 1];
+
+			if (getToken0Id(poolId).equals(currentTokenIn.id)) {
+				zeroToOne = true;
+				IdOut = getToken1Id(poolId);
+			} else if (getToken1Id(poolId).equals(currentTokenIn.id)) {
+				zeroToOne = false;
+				IdOut = getToken0Id(poolId);
+			}
+			const sqrtLimitPrice = zeroToOne ? MIN_SQRT_RATIO : MAX_SQRT_RATIO;
+			const currentHeight = moduleEndpointContext.header.height;
+			try {
+				[newAmountIn, amountOut, feesIn, feesOut] = await swap(
+					moduleEndpointContext,
+					this.stores,
+					poolId,
+					zeroToOne,
+					sqrtLimitPrice,
+					currentTokenIn.amount,
+					false,
+					currentHeight,
+				);
+			} catch (error) {
+				throw new Error('Crossed too many ticks');
+			}
+			tokens.push({ id: IdOut, amount: amountOut });
+			fees.push({ in: feesIn, out: feesOut });
+		}
+
+		if (tokens[tokens.length - 1].amount < minAmountOut) {
+			throw new Error('Too low output amount');
+		}
+
+		const priceAfter = await computeCurrentPrice(
+			moduleEndpointContext,
+			this.stores,
+			tokenIdIn,
+			tokenIdOut,
+			swapRoute,
+		);
+		return [newAmountIn, tokens[tokens.length - 1].amount, priceBefore, priceAfter];
 	}
 
 	public async dryRunSwapExactOut(

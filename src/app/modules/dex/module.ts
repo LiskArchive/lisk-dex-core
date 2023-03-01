@@ -81,6 +81,8 @@ import {
 	getAllTickIDsInPoolRequestSchema,
 	dryRunSwapExactOutRequestSchema,
 	dryRunSwapExactOutResponseSchema,
+	dryRunSwapExactInRequestSchema,
+	dryRunSwapExactInResponseSchema,
 } from './schemas';
 
 import { SwappedEvent } from './events/swapped';
@@ -237,6 +239,11 @@ export class DexModule extends BaseModule {
 					request: getAllPositionIDsInPoolRequestSchema,
 					response: getAllPositionIDsInPoolResponseSchema,
 				},
+				// {
+				// 	name: this.endpoint.getCollectableFeesAndIncentives.name,
+				// 	request: getCollectableFeesAndIncentivesRequestSchema,
+				// 	response: getCollectableFeesAndIncentivesResponseSchema,
+				// },
 				{
 					name: this.endpoint.getAllTickIDsInPool.name,
 					request: getAllTickIDsInPoolRequestSchema,
@@ -246,6 +253,11 @@ export class DexModule extends BaseModule {
 					name: this.endpoint.dryRunSwapExactOut.name,
 					request: dryRunSwapExactOutRequestSchema,
 					response: dryRunSwapExactOutResponseSchema,
+				},
+				{
+					name: this.endpoint.dryRunSwapExactIn.name,
+					request: dryRunSwapExactInRequestSchema,
+					response: dryRunSwapExactInResponseSchema,
 				},
 			],
 			commands: this.commands.map(command => ({

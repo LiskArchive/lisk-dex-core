@@ -17,12 +17,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { TokenMethod } from 'lisk-sdk';
+
 import {
 	createMethodContext,
 	EventQueue,
 	MethodContext,
 } from 'lisk-framework/dist-node/state_machine';
+import { TokenMethod } from 'lisk-sdk';
 import { DexModule } from '../../../../src/app/modules';
 import {
 	DexGlobalStore,
@@ -34,10 +35,9 @@ import {
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
 
 import { numberToQ96, q96ToBytes, bytesToQ96 } from '../../../../src/app/modules/dex/utils/q96';
+import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
-import { NUM_BYTES_POOL_ID } from '../../../../src/app/modules/dex/constants';
 
-import { tickToPrice, priceToTick } from '../../../../src/app/modules/dex/utils/math';
 import {
 	PriceTicksStoreData,
 	tickToBytes,
@@ -50,6 +50,7 @@ import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/a
 import { DexEndpoint } from '../../../../src/app/modules/dex/endpoint';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
+import { NUM_BYTES_POOL_ID } from '../../../../src/app/modules/dex/constants';
 
 describe('dex: offChainEndpointFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
@@ -65,9 +66,7 @@ describe('dex: offChainEndpointFunctions', () => {
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
 	// const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
 
-	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(
-		new InMemoryPrefixedStateDB(),
-	);
+	const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
 	const moduleEndpointContext = createTransientModuleEndpointContext({
 		stateStore,
@@ -182,6 +181,12 @@ describe('dex: offChainEndpointFunctions', () => {
 
 			await priceTicksStore.setKey(
 				methodContext,
+				[poolId, tickToBytes(100)],
+				priceTicksStoreDataTickLower,
+			);
+
+			await priceTicksStore.setKey(
+				methodContext,
 				[getPoolIDFromPositionID(positionId), tickToBytes(positionsStoreData.tickUpper)],
 				priceTicksStoreDataTickUpper,
 			);
@@ -269,6 +274,15 @@ describe('dex: offChainEndpointFunctions', () => {
 			]);
 			expect(tickWithTickID).not.toBeNull();
 			expect(tickWithTickID.liquidityNet).toBe(BigInt(5));
+		});
+
+		it('getPool', async () => {
+			await endpoint
+				.getPool(moduleEndpointContext, getPoolIDFromPositionID(positionId))
+				.then(res => {
+					expect(res).not.toBeNull();
+					expect(res.liquidity).toBe(BigInt(5000000));
+				});
 		});
 
 		it('getCurrentSqrtPrice', async () => {
@@ -375,6 +389,36 @@ describe('dex: offChainEndpointFunctions', () => {
 				}
 			});
 			expect(ifKeyExists).toBe(true);
+		});
+
+		it('dryRunSwapExactIn', async () => {
+			const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
+			const currentTickID = q96ToBytes(BigInt(currentTick));
+			await poolsStore.setKey(
+				methodContext,
+				[currentTickID.slice(0, NUM_BYTES_POOL_ID)],
+				poolsStoreData,
+			);
+
+			await priceTicksStore.setKey(methodContext, [currentTickID], priceTicksStoreDataTickUpper);
+
+			await priceTicksStore.setKey(
+				methodContext,
+				[Buffer.from('000000000000000000000000000000000000000000000006', 'hex')],
+				priceTicksStoreDataTickUpper,
+			);
+
+			const amountIn = BigInt(50);
+			const minAmountOut = BigInt(10);
+			moduleEndpointContext.params = {
+				tokenIdIn: token0Id,
+				amountIn,
+				tokenIdOut: token1Id,
+				minAmountOut,
+				swapRoute: [poolId],
+			};
+			const result = await endpoint.dryRunSwapExactIn(moduleEndpointContext);
+			expect(result).toEqual([BigInt(51), BigInt(50), BigInt(0), BigInt(0)]);
 		});
 
 		it('dryRunSwapExactOut', async () => {

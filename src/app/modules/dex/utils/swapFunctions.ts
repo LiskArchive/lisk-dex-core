@@ -48,6 +48,7 @@ import {
 	divQ96,
 	invQ96,
 	mulDivQ96,
+	// mulDivRoundUpQ96,
 	mulQ96,
 	numberToQ96,
 	q96ToBytes,
@@ -75,7 +76,6 @@ export const swapWithin = (
 	exactInput: boolean,
 ): [bigint, bigint, bigint] => {
 	const zeroToOne: boolean = sqrtCurrentPrice >= sqrtTargetPrice;
-
 	let amountIn = BigInt(0);
 	let amountOut = BigInt(0);
 	let sqrtUpdatedPrice: bigint;
@@ -91,7 +91,6 @@ export const swapWithin = (
 	} else {
 		amountOut = getAmount0Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, false);
 	}
-
 	if (
 		(exactInput && amountRemaining >= amountIn) ||
 		(!exactInput && amountRemaining >= amountOut)
@@ -106,7 +105,6 @@ export const swapWithin = (
 			exactInput,
 		);
 	}
-
 	if (zeroToOne) {
 		amountIn = getAmount0Delta(sqrtCurrentPrice, sqrtUpdatedPrice, liquidity, true);
 		amountOut = getAmount1Delta(sqrtCurrentPrice, sqrtUpdatedPrice, liquidity, false);

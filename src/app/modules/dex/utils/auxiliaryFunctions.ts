@@ -60,6 +60,7 @@ import {
 	Q96,
 	routeInterface,
 	AdjacentEdgesInterface,
+	// TickID,
 } from '../types';
 
 import {
@@ -77,6 +78,7 @@ import { FeesIncentivesCollectedEvent, PositionUpdateFailedEvent } from '../even
 import { tickToBytes } from '../stores/priceTicksStore';
 import { ADDRESS_VALIDATOR_REWARDS_POOL } from '../../dexRewards/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
+// import { PoolsStoreData } from '../stores/poolsStore';
 import { DexEndpoint } from '../endpoint';
 import { DexModule } from '../module';
 
