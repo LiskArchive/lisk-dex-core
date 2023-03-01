@@ -64,6 +64,8 @@ import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGl
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 
+import { createTransientModuleEndpointContext } from '../../../context/createContext';
+
 describe('dex:auxiliaryFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 	const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
@@ -72,9 +74,17 @@ describe('dex:auxiliaryFunctions', () => {
 	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
 	const sqrtPrice: bigint = numberToQ96(BigInt(1));
 	const dexModule = new DexModule();
+	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
 
-	const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(
+		new InMemoryPrefixedStateDB(),
+	);
+
+	const moduleEndpointContext = createTransientModuleEndpointContext({
+		stateStore,
+		params: { address: INVALID_ADDRESS },
+	});
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
@@ -402,14 +412,14 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('getAdjacent', async () => {
-			const res = await getAdjacent(methodContext, dexModule.stores, token0Id);
+			const res = await getAdjacent(moduleEndpointContext, dexModule.stores, token0Id);
 			expect(res).not.toBeNull();
 		});
 
 		it('computeRegularRoute ', async () => {
 			const adjacentToken = Buffer.from('0000000000000000000001000000000000000000', 'hex');
 			const res = await computeRegularRoute(
-				methodContext,
+				moduleEndpointContext,
 				dexModule.stores,
 				token0Id,
 				adjacentToken,
@@ -425,19 +435,23 @@ describe('dex:auxiliaryFunctions', () => {
 
 		it('computeExceptionalRoute should return 0', async () => {
 			expect(
-				await computeExceptionalRoute(methodContext, dexModule.stores, token0Id, token1Id),
+				await computeExceptionalRoute(moduleEndpointContext, dexModule.stores, token0Id, token1Id),
 			).toHaveLength(0);
 		});
 
 		it('computeExceptionalRoute should return route with tokenID', async () => {
 			expect(
 				(
-					await computeExceptionalRoute(methodContext, dexModule.stores, token0Id, token0Id)
+					await computeExceptionalRoute(moduleEndpointContext, dexModule.stores, token0Id, token0Id)
 				)[0],
 			).toStrictEqual(Buffer.from('0000000000000000', 'hex'));
 		});
 
 		it('getCredibleDirectPrice', async () => {
+			const tempModuleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { poolID: getPoolIDFromPositionID(positionId) },
+			});
 			const result = Buffer.alloc(4);
 			const newTokenIDsArray = [
 				token0Id,
@@ -447,10 +461,10 @@ describe('dex:auxiliaryFunctions', () => {
 				),
 			];
 			await poolsStore.setKey(methodContext, newTokenIDsArray, poolsStoreData);
-			await poolsStore.set(methodContext, Buffer.from(newTokenIDsArray), poolsStoreData);
+			await poolsStore.set(methodContext, Buffer.alloc(0), poolsStoreData);
 			await getCredibleDirectPrice(
 				tokenMethod,
-				methodContext,
+				tempModuleEndpointContext,
 				dexModule.stores,
 				token0Id,
 				token1Id,

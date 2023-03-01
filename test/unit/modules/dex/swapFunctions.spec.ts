@@ -28,7 +28,6 @@ import {
   constructPoolsGraph,
   crossTick,
   getAdjacent,
-  raiseSwapException,
   swap,
   swapWithin,
   transferFeesFromPool,
@@ -37,11 +36,12 @@ import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import { PoolID, TokenID } from '../../../../src/app/modules/dex/types';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
-import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
-import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
+import { bytesToQ96, numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
+import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import {
   DexGlobalStore,
   PoolsStore,
+  PriceTicksStore,
 } from '../../../../src/app/modules/dex/stores';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import { TOKEN_ID_LSK } from '../../../../src/app/modules/dexRewards/constants';
@@ -58,7 +58,6 @@ describe('dex:swapFunctions', () => {
   const poolIdLSK = Buffer.from('0000000100000000', 'hex');
   const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
   const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
-  const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
   const amount = 0;
   const sqrtCurrentPrice = BigInt(5);
   const sqrtTargetPrice = BigInt(10);
@@ -78,6 +77,7 @@ describe('dex:swapFunctions', () => {
 
   let poolsStore: PoolsStore;
   let dexGlobalStore: DexGlobalStore;
+  let priceTicksStore: PriceTicksStore;
 
   const methodContext: MethodContext = createMethodContext({
     contextStore: new Map(),
@@ -108,16 +108,24 @@ describe('dex:swapFunctions', () => {
     totalIncentivesMultiplier: 1,
   };
 
+  const priceTicksStoreDataTickUpper: PriceTicksStoreData = {
+    liquidityNet: BigInt(5),
+    liquidityGross: BigInt(5),
+    feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(5))),
+    feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(5))),
+    incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(3))),
+  };
+
   describe('constructor', () => {
     beforeEach(async () => {
       poolsStore = dexModule.stores.get(PoolsStore);
       dexGlobalStore = dexModule.stores.get(DexGlobalStore);
-
-      await poolsStore.setKey(methodContext, [poolId], poolsStoreData);
-      await poolsStore.setKey(methodContext, [poolIdLSK], poolsStoreData);
+      priceTicksStore = dexModule.stores.get(PriceTicksStore);
 
       await poolsStore.setKey(methodContext, [poolID], poolsStoreData);
       await poolsStore.setKey(methodContext, [poolIdLSK], poolsStoreData);
+
+      await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData);
 
       tokenMethod.transfer = transferMock;
       tokenMethod.lock = lockMock;
@@ -142,21 +150,13 @@ describe('dex:swapFunctions', () => {
     });
 
     it('computeCurrentPrice', async () => {
-      const swapRoute = [poolId];
-      const currentPrice = await computeCurrentPrice(
-        moduleEndpointContext,
-        dexModule.stores,
-        token0Id,
-        token1Id,
-        swapRoute,
-      );
-      expect(currentPrice).not.toBeNull();
-    });
-
-    it('computeCurrentPrice', async () => {
+      const tempModuleEndpointContext = createTransientModuleEndpointContext({
+        stateStore,
+        params: { poolID },
+      });
       const swapRoute = [poolID];
       const currentPrice = await computeCurrentPrice(
-        moduleEndpointContext,
+        tempModuleEndpointContext,
         dexModule.stores,
         token0Id,
         token1Id,
@@ -165,108 +165,113 @@ describe('dex:swapFunctions', () => {
       expect(currentPrice).not.toBeNull();
     });
 
-    poolsGraph.vertices.forEach(e => {
-      vertices.push(e);
+    it('constructPoolsGraph', async () => {
+      const poolsGraph = await constructPoolsGraph(moduleEndpointContext, dexModule.stores);
+      const vertices: Buffer[] = [];
+      const edges: Buffer[] = [];
+
+      poolsGraph.vertices.forEach(e => {
+        vertices.push(e);
+      });
+      poolsGraph.edges.forEach(e => {
+        edges.push(e);
+      });
+
+      expect(vertices.filter(vertex => vertex.equals(token0Id))).toHaveLength(1);
+      expect(vertices.filter(vertex => vertex.equals(token1Id))).toHaveLength(1);
+      expect(edges.filter(edge => edge.equals(poolID))).toHaveLength(1);
     });
-    poolsGraph.edges.forEach(e => {
-      edges.push(e);
+    it('crossTick', async () => {
+      const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
+      const currentTickID = q96ToBytes(BigInt(currentTick));
+      await poolsStore.setKey(
+        methodContext,
+        [currentTickID.slice(0, NUM_BYTES_POOL_ID)],
+        poolsStoreData,
+      );
+      await priceTicksStore.setKey(methodContext, [currentTickID], priceTicksStoreDataTickUpper);
+      const crossTickRes = crossTick(methodContext, dexModule.stores, currentTickID, false, 10);
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises, jest/valid-expect
+      expect(crossTickRes).resolves.toBeUndefined();
     });
 
-    expect(vertices.filter(vertex => vertex.equals(token0Id))).toHaveLength(1);
-    expect(vertices.filter(vertex => vertex.equals(token1Id))).toHaveLength(1);
-    expect(edges.filter(edge => edge.equals(poolId))).toHaveLength(1);
+    it('transferFeesFromPool', () => {
+      expect(
+        transferFeesFromPool(tokenMethod, methodContext, amount, TOKEN_ID_LSK, poolID),
+      ).toBeUndefined();
+    });
+
+    it('computeRegularRoute ', async () => {
+      const adjacentToken = Buffer.from('0000000100000000', 'hex');
+      const regularRoute = await computeRegularRoute(
+        moduleEndpointContext,
+        dexModule.stores,
+        adjacentToken,
+        adjacentToken,
+      );
+      expect(regularRoute).toStrictEqual([adjacentToken, adjacentToken, adjacentToken]);
+    });
+
+    it('computeExceptionalRoute should return 0', async () => {
+      expect(
+        await computeExceptionalRoute(moduleEndpointContext, dexModule.stores, token0Id, token1Id),
+      ).toHaveLength(0);
+    });
+
+    it('computeExceptionalRoute should return route with tokenID', async () => {
+      expect(
+        (
+          await computeExceptionalRoute(moduleEndpointContext, dexModule.stores, token0Id, token0Id)
+        )[0],
+      ).toStrictEqual(token0Id);
+    });
+
+    it('swap', async () => {
+      const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
+      const currentTickID = q96ToBytes(BigInt(currentTick));
+      const poolIDAndTickID = Buffer.concat([poolID, tickToBytes(currentTick)]);
+
+      await poolsStore.setKey(
+        methodContext,
+        [currentTickID.slice(0, NUM_BYTES_POOL_ID)],
+        poolsStoreData,
+      );
+
+      await priceTicksStore.setKey(methodContext, [currentTickID], priceTicksStoreDataTickUpper);
+
+      await priceTicksStore.setKey(methodContext, [poolIDAndTickID], priceTicksStoreDataTickUpper);
+
+      await priceTicksStore.setKey(
+        methodContext,
+        [Buffer.from('000000000000000000000000000000000000000000000006', 'hex')],
+        priceTicksStoreDataTickUpper,
+      );
+
+      q96ToBytes(BigInt(currentTick));
+      expect(
+        await swap(
+          methodContext,
+          dexModule.stores,
+          poolID,
+          true,
+          sqrtLimitPrice,
+          BigInt(5),
+          true,
+          10,
+        ),
+      ).toStrictEqual([BigInt(5), BigInt(5), BigInt(0), BigInt(0), 1]);
+      expect(
+        await swap(
+          methodContext,
+          dexModule.stores,
+          poolID,
+          true,
+          sqrtLimitPrice,
+          BigInt(5),
+          false,
+          10,
+        ),
+      ).toStrictEqual([BigInt(6), BigInt(5), BigInt(0), BigInt(0), 1]);
+    });
   });
-
-  expect(vertices.filter(vertex => vertex.equals(token0Id))).toHaveLength(1);
-  expect(vertices.filter(vertex => vertex.equals(token1Id))).toHaveLength(1);
-  expect(edges.filter(edge => edge.equals(poolID))).toHaveLength(1);
-});
-it('crossTick', async () => {
-  const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
-  const currentTickID = q96ToBytes(BigInt(currentTick));
-  await poolsStore.setKey(
-    methodContext,
-    [currentTickID.slice(0, NUM_BYTES_POOL_ID)],
-    poolsStoreData,
-  );
-  await priceTicksStore.setKey(methodContext, [currentTickID], priceTicksStoreDataTickUpper);
-  const crossTickRes = crossTick(methodContext, dexModule.stores, currentTickID, false, 10);
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises, jest/valid-expect
-  expect(crossTickRes).resolves.toBeUndefined();
-});
-
-it('transferFeesFromPool', () => {
-  expect(
-    transferFeesFromPool(tokenMethod, methodContext, amount, TOKEN_ID_LSK, poolID),
-  ).toBeUndefined();
-});
-
-it('computeExceptionalRoute should return 0', async () => {
-  expect(
-    await computeExceptionalRoute(methodContext, dexModule.stores, token0Id, token1Id),
-  ).toHaveLength(0);
-});
-
-it('computeExceptionalRoute should return 0', async () => {
-  expect(
-    await computeExceptionalRoute(moduleEndpointContext, dexModule.stores, token0Id, token1Id),
-  ).toHaveLength(0);
-});
-
-it('computeExceptionalRoute should return route with tokenID', async () => {
-  expect(
-    (
-      await computeExceptionalRoute(moduleEndpointContext, dexModule.stores, token0Id, token0Id)
-    )[0],
-  ).toStrictEqual(token0Id);
-});
-
-it('swap', async () => {
-  const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
-  const currentTickID = q96ToBytes(BigInt(currentTick));
-  const poolIDAndTickID = Buffer.concat([poolID, tickToBytes(currentTick)]);
-
-  await poolsStore.setKey(
-    methodContext,
-    [currentTickID.slice(0, NUM_BYTES_POOL_ID)],
-    poolsStoreData,
-  );
-
-  await priceTicksStore.setKey(methodContext, [currentTickID], priceTicksStoreDataTickUpper);
-
-  await priceTicksStore.setKey(methodContext, [poolIDAndTickID], priceTicksStoreDataTickUpper);
-
-  await priceTicksStore.setKey(
-    methodContext,
-    [Buffer.from('000000000000000000000000000000000000000000000006', 'hex')],
-    priceTicksStoreDataTickUpper,
-  );
-
-  q96ToBytes(BigInt(currentTick));
-  expect(
-    await swap(
-      methodContext,
-      dexModule.stores,
-      poolID,
-      true,
-      sqrtLimitPrice,
-      BigInt(5),
-      true,
-      10,
-    ),
-  ).toStrictEqual([BigInt(5), BigInt(5), BigInt(0), BigInt(0), 1]);
-  expect(
-    await swap(
-      methodContext,
-      dexModule.stores,
-      poolID,
-      true,
-      sqrtLimitPrice,
-      BigInt(5),
-      false,
-      10,
-    ),
-  ).toStrictEqual([BigInt(6), BigInt(5), BigInt(0), BigInt(0), 1]);
-});
-	});
 });

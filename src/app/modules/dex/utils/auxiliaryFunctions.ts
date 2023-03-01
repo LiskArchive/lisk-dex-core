@@ -96,6 +96,8 @@ import { PriceTicksStoreData, tickToBytes } from '../stores/priceTicksStore';
 import { ADDRESS_VALIDATOR_REWARDS_POOL } from '../../dexRewards/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
 import { PoolsStoreData } from '../stores/poolsStore';
+import { DexEndpoint } from '../endpoint';
+import { DexModule } from '../module';
 
 const { utils } = cryptography;
 
@@ -1048,7 +1050,7 @@ export const computeCurrentPrice = async (
 };
 
 export const computeRegularRoute = async (
-	methodContext: MethodContext,
+	methodContext: ModuleEndpointContext,
 	stores: NamedRegistry,
 	tokenIn: TokenID,
 	tokenOut: TokenID,
@@ -1086,7 +1088,7 @@ export const computeRegularRoute = async (
 };
 
 export const computeExceptionalRoute = async (
-	methodContext: MethodContext,
+	methodContext: ModuleEndpointContext,
 	stores: NamedRegistry,
 	tokenIn: TokenID,
 	tokenOut: TokenID,
@@ -1202,12 +1204,14 @@ export const crossTick = async (
 };
 
 export const getAdjacent = async (
-	methodContext: MethodContext,
+	methodContext: ModuleEndpointContext,
 	stores: NamedRegistry,
 	vertex: TokenID,
 ): Promise<AdjacentEdgesInterface[]> => {
 	const result: AdjacentEdgesInterface[] = [];
-	const poolIDs = await getAllPoolIDs(methodContext, stores.get(PoolsStore));
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	const poolIDs = await endpoint.getAllPoolIDs(methodContext);
 	poolIDs.forEach(edge => {
 		if (getToken0Id(edge).equals(vertex)) {
 			result.push({ edge, vertex: getToken1Id(edge) });
@@ -1221,18 +1225,21 @@ export const getAdjacent = async (
 // token-Ecnomics-Functions
 export const getCredibleDirectPrice = async (
 	tokenMethod: TokenMethod,
-	methodContext: MethodContext,
+	methodContext: ModuleEndpointContext,
 	stores: NamedRegistry,
 	tokenID0: TokenID,
 	tokenID1: TokenID,
 ): Promise<bigint> => {
 	const directPools: Buffer[] = [];
-
-	const settings = (await getDexGlobalData(methodContext, stores)).poolCreationSettings;
-	const allpoolIDs = await getAllPoolIDs(methodContext, stores.get(PoolsStore));
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	const settings = (await endpoint.getDexGlobalData(methodContext)).poolCreationSettings;
+	const allpoolIDs = await endpoint.getAllPoolIDs(methodContext);
 
 	const tokenIDArrays = [tokenID0, tokenID1];
-	const concatedTokenIDs = Buffer.concat(tokenIDArrays);
+	// eslint-disable-next-line @typescript-eslint/require-array-sort-compare, no-param-reassign
+	[tokenID0, tokenID1] = tokenIDArrays.sort();
+	const concatedTokenIDs = Buffer.concat([tokenID0, tokenID1]);
 
 	settings.forEach(setting => {
 		const result = Buffer.alloc(4);
@@ -1255,15 +1262,16 @@ export const getCredibleDirectPrice = async (
 	const token1ValuesLocked: bigint[] = [];
 
 	for (const directPool of directPools) {
-		const pool = await getPool(methodContext, stores, directPool);
-		const token0Amount = await getToken0Amount(tokenMethod, methodContext, directPool);
+		methodContext.params.poolD = directPool;
+		const pool = await endpoint.getPool(methodContext, directPool);
+		const token0Amount = await endpoint.getToken0Amount(tokenMethod, methodContext, directPool);
 		const token0ValueQ96 = mulQ96(
 			mulQ96(numberToQ96(token0Amount), bytesToQ96(pool.sqrtPrice)),
 			bytesToQ96(pool.sqrtPrice),
 		);
 		token1ValuesLocked.push(
 			roundDownQ96(token0ValueQ96) +
-			(await getToken1Amount(tokenMethod, methodContext, directPool)),
+			(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
 		);
 	}
 
@@ -1275,12 +1283,13 @@ export const getCredibleDirectPrice = async (
 			minToken1ValueLockedIndex = index;
 		}
 	});
-
+	methodContext.params.poolID = directPools[minToken1ValueLockedIndex];
 	const poolSqrtPrice = (
-		await getPool(methodContext, stores, directPools[minToken1ValueLockedIndex])
+		await endpoint.getPool(methodContext, directPools[minToken1ValueLockedIndex])
 	).sqrtPrice;
 	return mulQ96(bytesToQ96(poolSqrtPrice), bytesToQ96(poolSqrtPrice));
 };
+
 
 // off-Chain-Functions
 export const getAllPoolIDs = async (
