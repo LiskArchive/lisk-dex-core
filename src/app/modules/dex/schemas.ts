@@ -477,6 +477,34 @@ export const getAllPoolIdsResponseSchema = {
 	},
 };
 
+export const getAllTokenIdsRequestSchema = {
+	$id: 'dex/getAllTokenIds',
+	type: 'object',
+	required: ['stores'],
+	properties: {
+		stores: {
+			dataType: 'object',
+			fieldNumber: 1,
+			poolIDArray: {
+				type: 'array',
+				fieldNumber: 1,
+				items: {
+					type: 'object',
+					required: ['poolID'],
+					properties: {
+						poolID: {
+							dataType: 'bytes',
+							minLength: NUM_BYTES_POOL_ID,
+							maxLength: NUM_BYTES_POOL_ID,
+							fieldNumber: 1,
+						},
+					},
+				},
+			},
+		},
+	},
+};
+
 export const getAllTokenIdsResponseSchema = {
 	$id: 'dex/endpoint/getAllTokenIdsResponse',
 	type: 'object',
@@ -684,7 +712,7 @@ export const getPoolResponseSchema = {
 	required: ['poolsStoreData'],
 	properties: {
 		poolsStoreData: {
-			type: 'object',
+			dataType: 'object',
 			fieldNumber: 1,
 		},
 	},
@@ -696,7 +724,7 @@ export const getPositionIndexRequestSchema = {
 	required: ['positionID'],
 	properties: {
 		positionID: {
-			type: 'object',
+			dataType: 'bytes',
 			fieldNumber: 1,
 		},
 	},
@@ -926,44 +954,185 @@ export const getAllTickIDsInPoolResponseSchema = {
 	},
 };
 
-export const getCollectableFeesAndIncentivesRequestSchema = {
-	$id: 'dex/endpoint/getCollectableFeesAndIncentivesRequest',
+export const dryRunSwapExactInRequestSchema = {
+	$id: 'dex/dryRunSwapExactIn',
 	type: 'object',
-	required: ['positionID'],
+	required: ['tokenIdIn', 'amountIn', 'tokenIdOut', 'minAmountOut', 'swapRoute'],
 	properties: {
-		positionID: {
-			type: 'object',
+		tokenIdIn: {
+			dataType: 'bytes',
 			fieldNumber: 1,
+		},
+		amountIn: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+		tokenIdOut: {
+			dataType: 'bytes',
+			fieldNumber: 3,
+		},
+		minAmountOut: {
+			dataType: 'uint64',
+			fieldNumber: 4,
+		},
+		swapRoute: {
+			type: 'array',
+			fieldNumber: 5,
+			items: {
+				dataType: 'bytes',
+			},
 		},
 	},
 };
 
-export const getCollectableFeesAndIncentivesResponseSchema = {
-	$id: 'dex/endpoint/getCollectableFeesAndIncentivesResponse',
-	type: 'object',
-	required: ['feesAndIncentives'],
+export const dryRunSwapExactInResponseSchema = {
+	$id: 'dex/dryRunSwapExactInResponse',
+	type: 'array',
+	required: ['newAmountIn', 'tokensAmount', 'priceBefore', 'priceAfter'],
 	properties: {
-		feesAndIncentives: {
-			type: 'array',
+		newAmountIn: {
+			dataType: 'uint64',
 			fieldNumber: 1,
+		},
+		tokensAmount: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+		priceBefore: {
+			dataType: 'bytes',
+			fieldNumber: 3,
+		},
+		priceAfter: {
+			dataType: 'bytes',
+			fieldNumber: 4,
+		},
+	},
+};
+
+export const swapExactInCommandSchema = {
+	$id: '/dex/swapExactInCommandSchema',
+	type: 'object',
+	required: [
+		'tokenIdIn',
+		'amountTokenIn',
+		'tokenIdOut',
+		'minAmountTokenOut',
+		'swapRoute',
+		'maxTimestampValid',
+	],
+	properties: {
+		tokenIdIn: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+		amountTokenIn: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+		tokenIdOut: {
+			dataType: 'bytes',
+			fieldNumber: 3,
+		},
+		minAmountTokenOut: {
+			dataType: 'uint64',
+			fieldNumber: 4,
+		},
+		swapRoute: {
+			type: 'array',
+			fieldNumber: 5,
 			items: {
-				type: 'object',
-				required: ['collectableFees0', 'collectableFees1', 'collectableIncentives'],
-				properties: {
-					collectableFees0: {
-						dataType: 'uint64',
-						fieldNumber: 1,
-					},
-					collectableFees1: {
-						dataType: 'uint64',
-						fieldNumber: 2,
-					},
-					collectableIncentives: {
-						dataType: 'uint64',
-						fieldNumber: 3,
-					},
-				},
+				dataType: 'bytes',
 			},
+		},
+		maxTimestampValid: {
+			dataType: 'uint64',
+			fieldNumber: 6,
+		},
+	},
+};
+
+export const swapExactOutCommandSchema = {
+	$id: '/dex/swapExactOutCommandSchema',
+	type: 'object',
+	required: [
+		'tokenIdIn',
+		'maxAmountTokenIn',
+		'tokenIdOut',
+		'amountTokenOut',
+		'swapRoute',
+		'maxTimestampValid',
+	],
+	properties: {
+		tokenIdIn: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+		maxAmountTokenIn: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+		tokenIdOut: {
+			dataType: 'bytes',
+			fieldNumber: 3,
+		},
+		amountTokenOut: {
+			dataType: 'uint64',
+			fieldNumber: 4,
+		},
+		swapRoute: {
+			type: 'array',
+			fieldNumber: 5,
+			items: {
+				dataType: 'bytes',
+			},
+		},
+		maxTimestampValid: {
+			dataType: 'uint64',
+			fieldNumber: 6,
+		},
+	},
+};
+
+export const swapWithPriceLimitCommandSchema = {
+	$id: '/dex/swapWithPriceLimitCommandSchema',
+	type: 'object',
+	required: [
+		'tokenIdIn',
+		'maxAmountTokenIn',
+		'tokenIdOut',
+		'minAmountTokenOut',
+		'poolId',
+		'maxTimestampValid',
+		'sqrtLimitPrice',
+	],
+	properties: {
+		tokenIdIn: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+		maxAmountTokenIn: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+		tokenIdOut: {
+			dataType: 'bytes',
+			fieldNumber: 3,
+		},
+		minAmountTokenOut: {
+			dataType: 'uint64',
+			fieldNumber: 4,
+		},
+		poolId: {
+			dataType: 'bytes',
+			fieldNumber: 5,
+		},
+		maxTimestampValid: {
+			dataType: 'uint64',
+			fieldNumber: 6,
+		},
+		sqrtLimitPrice: {
+			dataType: 'uint64',
+			fieldNumber: 7,
 		},
 	},
 };

@@ -128,3 +128,36 @@ export type AdjacentEdgesInterface = {
 	edge: Buffer;
 	vertex: Buffer;
 };
+
+export interface SwapExactInParamsData {
+	tokenIdIn: Buffer;
+	amountTokenIn: bigint;
+	tokenIdOut: Buffer;
+	minAmountTokenOut: bigint;
+	swapRoute: Buffer[];
+	maxTimestampValid: bigint;
+}
+
+export interface SwapExactOutParamsData {
+	tokenIdIn: Buffer;
+	maxAmountTokenIn: bigint;
+	tokenIdOut: Buffer;
+	amountTokenOut: bigint;
+	swapRoute: Buffer[];
+	maxTimestampValid: bigint;
+}
+
+export type feesInterface = {
+	in: bigint;
+	out: bigint;
+};
+
+export interface swapWithPriceLimitParamsData {
+	tokenIdIn: Buffer;
+	maxAmountTokenIn: bigint;
+	tokenIdOut: Buffer;
+	minAmountTokenOut: bigint;
+	poolId: Buffer;
+	maxTimestampValid: bigint;
+	sqrtLimitPrice: bigint;
+}

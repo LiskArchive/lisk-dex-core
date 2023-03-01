@@ -2,6 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-floating-promises */
+
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -15,13 +17,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { TokenMethod } from 'lisk-sdk';
+
 import {
 	createMethodContext,
 	EventQueue,
 	MethodContext,
 } from 'lisk-framework/dist-node/state_machine';
-
+import { TokenMethod } from 'lisk-sdk';
 import { DexModule } from '../../../../src/app/modules';
 import {
 	DexGlobalStore,
@@ -30,11 +32,12 @@ import {
 	PriceTicksStore,
 	SettingsStore,
 } from '../../../../src/app/modules/dex/stores';
-import { Address, PoolID, PositionID } from '../../../../src/app/modules/dex/types';
+import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
 
-import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
+import { numberToQ96, q96ToBytes, bytesToQ96 } from '../../../../src/app/modules/dex/utils/q96';
+import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
-import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
+
 import {
 	PriceTicksStoreData,
 	tickToBytes,
@@ -43,32 +46,29 @@ import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGl
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
-import {
-	getPoolIDFromPositionID,
-	getToken0Id,
-	getToken1Id,
-} from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
+import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import { DexEndpoint } from '../../../../src/app/modules/dex/endpoint';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
+import { NUM_BYTES_POOL_ID } from '../../../../src/app/modules/dex/constants';
 
 describe('dex: offChainEndpointFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
 	const dexModule = new DexModule();
-	const feeTier = 23343408;
+	const feeTierNumber = Number('0x00000c8');
 	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
+	const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
+	const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
 
 	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
 	// const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
 
-	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(
-		new InMemoryPrefixedStateDB(),
-	);
+	const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
-	let moduleEndpointContext = createTransientModuleEndpointContext({
+	const moduleEndpointContext = createTransientModuleEndpointContext({
 		stateStore,
 		params: { address: INVALID_ADDRESS },
 	});
@@ -93,12 +93,12 @@ describe('dex: offChainEndpointFunctions', () => {
 	const lockedAmountMock = jest.fn().mockReturnValue(BigInt(5));
 
 	const poolsStoreData: PoolsStoreData = {
-		liquidity: BigInt(5),
-		sqrtPrice: q96ToBytes(BigInt(tickToPrice(5))),
-		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+		liquidity: BigInt(5000000),
+		sqrtPrice: q96ToBytes(BigInt(tickToPrice(100))),
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(10))),
 		heightIncentivesUpdate: 5,
-		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(0))),
-		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(0))),
+		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
+		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(10))),
 		tickSpacing: 1,
 	};
 
@@ -113,8 +113,8 @@ describe('dex: offChainEndpointFunctions', () => {
 	const priceTicksStoreDataTickUpper: PriceTicksStoreData = {
 		liquidityNet: BigInt(5),
 		liquidityGross: BigInt(5),
-		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(0))),
-		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(0))),
+		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(5))),
+		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(5))),
 		incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(3))),
 	};
 
@@ -125,6 +125,7 @@ describe('dex: offChainEndpointFunctions', () => {
 		incentivizedPools: [{ poolId, multiplier: 10 }],
 		totalIncentivesMultiplier: 1,
 	};
+
 	const positionsStoreData: PositionsStoreData = {
 		tickLower: -10,
 		tickUpper: 10,
@@ -175,7 +176,18 @@ describe('dex: offChainEndpointFunctions', () => {
 
 			await priceTicksStore.setKey(
 				methodContext,
-				[Buffer.concat([getPoolIDFromPositionID(positionId), tickToBytes(5)])],
+				[
+					Buffer.from(
+						getPoolIDFromPositionID(positionId).toLocaleString() + tickToBytes(5).toLocaleString(),
+						'hex',
+					),
+				],
+				priceTicksStoreDataTickLower,
+			);
+
+			await priceTicksStore.setKey(
+				methodContext,
+				[poolId, tickToBytes(100)],
 				priceTicksStoreDataTickLower,
 			);
 
@@ -220,48 +232,31 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getToken1Amount', async () => {
-			moduleEndpointContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: { poolID: poolId },
-			});
-			await endpoint.getToken1Amount(tokenMethod, moduleEndpointContext).then(res => {
+			await endpoint.getToken1Amount(tokenMethod, moduleEndpointContext, poolId).then(res => {
 				expect(res).toBe(BigInt(5));
 			});
 		});
 
 		it('getToken0Amount', async () => {
-			moduleEndpointContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: { poolID: poolId },
-			});
-			await endpoint.getToken0Amount(tokenMethod, moduleEndpointContext).then(res => {
+			await endpoint.getToken0Amount(tokenMethod, moduleEndpointContext, poolId).then(res => {
 				expect(res).toBe(BigInt(5));
 			});
 		});
 
-		it('getFeeTier', () => {
-			moduleEndpointContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: { poolID: getPoolIDFromPositionID(positionId), positionIDsList: [positionId] },
-			});
-			expect(endpoint.getFeeTier(moduleEndpointContext)).toEqual(feeTier);
+		it('should return the feeTier from the poolID', () => {
+			expect(endpoint.getFeeTier(poolId)).toEqual(feeTierNumber);
 		});
 
 		it('getPoolIDFromTickID', () => {
-			moduleEndpointContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: { tickID: Buffer.from('000000010000000001016431308000000a', 'hex') },
-			});
-			expect(endpoint.getPoolIDFromTickID(moduleEndpointContext)).toStrictEqual(
-				Buffer.from('00000001000000000101643130800000', 'hex'),
-			);
+			expect(
+				endpoint.getPoolIDFromTickID(Buffer.from('000000010000000001016431308000000a', 'hex')),
+			).toStrictEqual(Buffer.from('00000001000000000101643130800000', 'hex'));
 		});
 
 		it('getPositionIndex', () => {
-			moduleEndpointContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: { positionID: positionId },
-			});
+			moduleEndpointContext.params = {
+				positionID: positionId,
+			};
 			expect(endpoint.getPositionIndex(moduleEndpointContext)).toBe(1);
 		});
 
@@ -272,34 +267,31 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getAllPositionIDsInPool', () => {
-			moduleEndpointContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: { poolID: getPoolIDFromPositionID(positionId), positionIDsList: [positionId] },
-			});
-			const positionIDs = endpoint.getAllPositionIDsInPool(moduleEndpointContext);
+			const positionIDs = endpoint.getAllPositionIDsInPool(getPoolIDFromPositionID(positionId), [
+				positionId,
+			]);
 			expect(positionIDs.indexOf(positionId)).not.toBe(-1);
 		});
 
 		it('getPool', async () => {
-			moduleEndpointContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: { poolID: getPoolIDFromPositionID(positionId) },
-			});
-			await endpoint.getPool(moduleEndpointContext).then(res => {
-				expect(res).not.toBeNull();
-				expect(res.liquidity).toBe(BigInt(5));
-			});
+			await endpoint
+				.getPool(moduleEndpointContext, getPoolIDFromPositionID(positionId))
+				.then(res => {
+					expect(res).not.toBeNull();
+					expect(res.liquidity).toBe(BigInt(5000000));
+				});
 		});
 
 		it('getCurrentSqrtPrice', async () => {
-			moduleEndpointContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: { poolID: getPoolIDFromPositionID(positionId), priceDirection: false },
-			});
-
-			expect((await endpoint.getCurrentSqrtPrice(moduleEndpointContext)).toString()).toBe(
-				'79208358939348018173455069823',
-			);
+			expect(
+				(
+					await endpoint.getCurrentSqrtPrice(
+						moduleEndpointContext,
+						getPoolIDFromPositionID(positionId),
+						false,
+					)
+				).toString(),
+			).toBe('78833030112140176575862854576');
 		});
 
 		it('getDexGlobalData', async () => {
@@ -310,129 +302,123 @@ describe('dex: offChainEndpointFunctions', () => {
 			});
 		});
 
-		it('getAllTicks', async () => {
-			await endpoint.getAllTicks(moduleEndpointContext).then(res => {
-				expect(res).not.toBeNull();
-			});
-		});
-
 		it('getPosition', async () => {
 			const positionIdsList = [positionId];
 			const newPositionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
 			await positionsStore.set(methodContext, newPositionId, positionsStoreData);
 			await positionsStore.setKey(methodContext, [newPositionId], positionsStoreData);
-			moduleEndpointContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: { positionID: newPositionId, positionIDsList: positionIdsList },
-			});
-			await endpoint.getPosition(moduleEndpointContext).then(res => {
-				expect(res).not.toBeNull();
-			});
+			await endpoint
+				.getPosition(moduleEndpointContext, newPositionId, positionIdsList)
+				.then(res => {
+					expect(res).not.toBeNull();
+				});
 		});
 
 		it('getTickWithTickId', async () => {
-			moduleEndpointContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: {
-					tickIDs: Buffer.concat([
-						getPoolIDFromPositionID(positionId),
-						tickToBytes(positionsStoreData.tickLower),
-					]),
-				},
-			});
-			const tickWithTickID = await endpoint.getTickWithTickId(moduleEndpointContext);
+			const tickWithTickID = await endpoint.getTickWithTickId(moduleEndpointContext, [
+				getPoolIDFromPositionID(positionId),
+				tickToBytes(positionsStoreData.tickLower),
+			]);
 			expect(tickWithTickID).not.toBeNull();
 			expect(tickWithTickID.liquidityNet).toBe(BigInt(5));
 		});
 
 		it('getTickWithPoolIdAndTickValue', async () => {
-			moduleEndpointContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: {
-					poolID: getPoolIDFromPositionID(positionId),
-					tickValue: 5,
-				},
-			});
+			const tickValue = 5;
+			priceTicksStore.setKey(
+				methodContext,
+				[getPoolIDFromPositionID(positionId), tickToBytes(tickValue)],
+				priceTicksStoreDataTickUpper,
+			);
+
 			const tickWithPoolIdAndTickValue = await endpoint.getTickWithPoolIdAndTickValue(
 				moduleEndpointContext,
+				getPoolIDFromPositionID(positionId),
+				tickValue,
 			);
 			expect(tickWithPoolIdAndTickValue).not.toBeNull();
 			expect(tickWithPoolIdAndTickValue.liquidityNet).toBe(BigInt(5));
 		});
 
 		it('getLSKPrice', async () => {
-			moduleEndpointContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: {
-					tokenID: getPoolIDFromPositionID(positionId),
-					poolID: getPoolIDFromPositionID(positionId),
-				},
-			});
 			const result = Buffer.alloc(4);
-			const tempFeTier = q96ToBytes(
-				BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings.feeTier, 0)),
+			const tempFeeTier = q96ToBytes(
+				BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings[0].feeTier, 0)),
 			);
 			await poolsStore.setKey(
 				methodContext,
-				[getPoolIDFromPositionID(positionId), positionId, tempFeTier],
+				[getPoolIDFromPositionID(positionId), positionId, tempFeeTier],
 				poolsStoreData,
 			);
-			await poolsStore.setKey(methodContext, [poolIdLSK, poolIdLSK, tempFeTier], poolsStoreData);
-			await poolsStore.setKey(methodContext, [poolIdLSK, positionId, tempFeTier], poolsStoreData);
+			await poolsStore.setKey(methodContext, [poolIdLSK, poolIdLSK, tempFeeTier], poolsStoreData);
+			await poolsStore.setKey(methodContext, [poolIdLSK, positionId, tempFeeTier], poolsStoreData);
 
-			const res = await endpoint.getLSKPrice(tokenMethod, moduleEndpointContext);
+			const res = await endpoint.getLSKPrice(
+				tokenMethod,
+				moduleEndpointContext,
+				getPoolIDFromPositionID(positionId),
+			);
 			expect(res).toBe(BigInt(1));
 		});
 
 		it('getTVL', async () => {
-			moduleEndpointContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: {
-					poolID: getPoolIDFromPositionID(positionId),
-					token0ID: getToken0Id(getPoolIDFromPositionID(positionId)),
-					token1ID: getToken1Id(getPoolIDFromPositionID(positionId)),
-				},
-			});
-			const res = await endpoint.getTVL(tokenMethod, moduleEndpointContext);
+			const res = await endpoint.getTVL(
+				tokenMethod,
+				moduleEndpointContext,
+				getPoolIDFromPositionID(positionId),
+			);
 			expect(res).toBe(BigInt(5));
 		});
 
+		it('getAllTicks', async () => {
+			await endpoint.getAllTicks(moduleEndpointContext).then(res => {
+				expect(res).not.toBeNull();
+			});
+		});
+
 		it('getAllTickIDsInPool', async () => {
-			moduleEndpointContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: { tickID: Buffer.from('000000010000000001016431308000000a', 'hex') },
-			});
-			const tempPoolID = endpoint.getPoolIDFromTickID(moduleEndpointContext);
-			moduleEndpointContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: {
-					tickID: Buffer.from('000000010000000001016431308000000a', 'hex'),
-					poolID: tempPoolID,
-				},
-			});
-			const allTickIDsInPool = await endpoint.getAllTickIDsInPool(moduleEndpointContext);
+			const key = Buffer.from('000000010000000001016431308000000a', 'hex');
+			const allTickIDsInPool = await endpoint.getAllTickIDsInPool(
+				moduleEndpointContext,
+				endpoint.getPoolIDFromTickID(key),
+			);
 			let ifKeyExists = false;
 			allTickIDsInPool.forEach(tickIdInPool => {
-				if (tickIdInPool.equals(Buffer.from('000000010000000001016431308000000a', 'hex'))) {
+				if (tickIdInPool.equals(key)) {
 					ifKeyExists = true;
 				}
 			});
 			expect(ifKeyExists).toBe(true);
 		});
 
-		it('getCollectableFeesAndIncentives', async () => {
-			moduleEndpointContext.params = {
-				positionID: positionId,
-			};
-			const [
-				collectableFee0,
-				collectableFee1,
-				collectableIncentives,
-			] = await endpoint.getCollectableFeesAndIncentives(moduleEndpointContext, tokenMethod);
+		it('dryRunSwapExactIn', async () => {
+			const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
+			const currentTickID = q96ToBytes(BigInt(currentTick));
+			await poolsStore.setKey(
+				methodContext,
+				[currentTickID.slice(0, NUM_BYTES_POOL_ID)],
+				poolsStoreData,
+			);
 
-			expect(collectableFee0).toEqual(BigInt(0));
-			expect(collectableFee1).toEqual(BigInt(0));
-			expect(collectableIncentives).toEqual(BigInt(0));
+			await priceTicksStore.setKey(methodContext, [currentTickID], priceTicksStoreDataTickUpper);
+
+			await priceTicksStore.setKey(
+				methodContext,
+				[Buffer.from('000000000000000000000000000000000000000000000006', 'hex')],
+				priceTicksStoreDataTickUpper,
+			);
+
+			const amountIn = BigInt(50);
+			const minAmountOut = BigInt(10);
+			moduleEndpointContext.params = {
+				tokenIdIn: token0Id,
+				amountIn,
+				tokenIdOut: token1Id,
+				minAmountOut,
+				swapRoute: [poolId],
+			};
+			const result = await endpoint.dryRunSwapExactIn(moduleEndpointContext);
+			expect(result).toEqual([BigInt(51), BigInt(50), BigInt(0), BigInt(0)]);
 		});
 	});
 });
