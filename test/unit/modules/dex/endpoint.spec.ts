@@ -155,7 +155,6 @@ describe('dex: offChainEndpointFunctions', () => {
 			endpoint = new DexEndpoint(dexModule.stores, dexModule.offchainStores);
 
 			await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData);
-
 			await settingsStore.set(methodContext, Buffer.from([]), settingStoreData);
 
 			await poolsStore.setKey(
@@ -176,12 +175,7 @@ describe('dex: offChainEndpointFunctions', () => {
 
 			await priceTicksStore.setKey(
 				methodContext,
-				[
-					Buffer.from(
-						getPoolIDFromPositionID(positionId).toLocaleString() + tickToBytes(5).toLocaleString(),
-						'hex',
-					),
-				],
+				[Buffer.concat([getPoolIDFromPositionID(positionId), tickToBytes(5)])],
 				priceTicksStoreDataTickLower,
 			);
 
@@ -273,6 +267,15 @@ describe('dex: offChainEndpointFunctions', () => {
 			expect(positionIDs.indexOf(positionId)).not.toBe(-1);
 		});
 
+		it('getTickWithTickId', async () => {
+			const tickWithTickID = await endpoint.getTickWithTickId(moduleEndpointContext, [
+				getPoolIDFromPositionID(positionId),
+				tickToBytes(positionsStoreData.tickLower),
+			]);
+			expect(tickWithTickID).not.toBeNull();
+			expect(tickWithTickID.liquidityNet).toBe(BigInt(5));
+		});
+
 		it('getPool', async () => {
 			await endpoint
 				.getPool(moduleEndpointContext, getPoolIDFromPositionID(positionId))
@@ -314,25 +317,22 @@ describe('dex: offChainEndpointFunctions', () => {
 				});
 		});
 
-		it('getTickWithTickId', async () => {
-			const tickWithTickID = await endpoint.getTickWithTickId(moduleEndpointContext, [
-				getPoolIDFromPositionID(positionId),
-				tickToBytes(positionsStoreData.tickLower),
-			]);
-			expect(tickWithTickID).not.toBeNull();
-			expect(tickWithTickID.liquidityNet).toBe(BigInt(5));
-		});
-
 		it('getTickWithPoolIdAndTickValue', async () => {
 			const tickValue = 5;
 			priceTicksStore.setKey(
 				methodContext,
-				[getPoolIDFromPositionID(positionId), tickToBytes(tickValue)],
+				[
+					Buffer.from(
+						getPoolIDFromPositionID(positionId).toLocaleString() +
+							tickToBytes(tickValue).toLocaleString(),
+						'hex',
+					),
+				],
 				priceTicksStoreDataTickUpper,
 			);
 
 			const tickWithPoolIdAndTickValue = await endpoint.getTickWithPoolIdAndTickValue(
-				moduleEndpointContext,
+				methodContext,
 				getPoolIDFromPositionID(positionId),
 				tickValue,
 			);
@@ -419,6 +419,37 @@ describe('dex: offChainEndpointFunctions', () => {
 			};
 			const result = await endpoint.dryRunSwapExactIn(moduleEndpointContext);
 			expect(result).toEqual([BigInt(51), BigInt(50), BigInt(0), BigInt(0)]);
+		});
+
+		it('dryRunSwapExactOut', async () => {
+			const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
+			const currentTickID = q96ToBytes(BigInt(currentTick));
+			await poolsStore.setKey(
+				methodContext,
+				[currentTickID.slice(0, NUM_BYTES_POOL_ID)],
+				poolsStoreData,
+			);
+
+			await priceTicksStore.setKey(methodContext, [currentTickID], priceTicksStoreDataTickUpper);
+
+			await priceTicksStore.setKey(
+				methodContext,
+				[Buffer.from('000000000000000000000000000000000000000000000006', 'hex')],
+				priceTicksStoreDataTickUpper,
+			);
+
+			const maxAmountIn = BigInt(10);
+			const amountOut = BigInt(10);
+			moduleEndpointContext.params = {
+				tokenIdIn: token0Id,
+				maxAmountIn,
+				tokenIdOut: token1Id,
+				amountOut,
+				swapRoute: [poolId],
+			};
+			const result = await endpoint.dryRunSwapExactOut(moduleEndpointContext);
+
+			expect(result).toStrictEqual([BigInt(10), BigInt(10), BigInt(0), BigInt(0)]);
 		});
 	});
 });
