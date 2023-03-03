@@ -213,7 +213,7 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getAllPoolIDs', async () => {
-			await endpoint.getAllPoolIDs(methodContext, poolsStore).then(res => {
+			await endpoint.getAllPoolIDs(methodContext).then(res => {
 				expect(res[0]).toStrictEqual(
 					Buffer.from('000000000000000000000001000000000101643130', 'hex'),
 				);
@@ -227,7 +227,7 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getAllTokenIDs', async () => {
-			await endpoint.getAllTokenIDs(methodContext, poolsStore).then(res => {
+			await endpoint.getAllTokenIDs(methodContext).then(res => {
 				expect(res.size).toBeGreaterThan(0);
 			});
 		});
@@ -253,7 +253,7 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getAllTokenIDs', async () => {
-			await endpoint.getAllTokenIDs(moduleEndpointContext).then(res => {
+			await endpoint.getAllTokenIDs(methodContext).then(res => {
 				expect(res.size).toBeGreaterThan(0);
 			});
 		});
@@ -345,7 +345,7 @@ describe('dex: offChainEndpointFunctions', () => {
 
 			const res = await endpoint.getLSKPrice(
 				tokenMethod,
-				moduleEndpointContext,
+				methodContext,
 				dexModule.stores,
 				getPoolIDFromPositionID(positionId),
 			);

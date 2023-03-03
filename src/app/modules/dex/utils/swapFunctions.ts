@@ -56,7 +56,7 @@ export const getAdjacent = async (
 	const result: AdjacentEdgesInterface[] = [];
 	const dexModule = new DexModule();
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
-	const poolIDs = await endpoint.getAllPoolIDs(methodContext, stores.get(PoolsStore));
+	const poolIDs = await endpoint.getAllPoolIDs(methodContext);
 	poolIDs.forEach(edge => {
 		if (getToken0Id(edge).equals(vertex)) {
 			result.push({ edge, vertex: getToken1Id(edge) });
@@ -147,7 +147,7 @@ export const computeCurrentPrice = async (
 };
 
 export const constructPoolsGraph = async (
-	methodContext: MethodContext,
+	methodContext: ModuleEndpointContext,
 	stores: NamedRegistry,
 ): Promise<PoolsGraph> => {
 	const dexModule = new DexModule();

@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseStore, StoreGetter } from 'lisk-sdk';
+import { BaseStore, StoreGetter, ImmutableStoreGetter } from 'lisk-sdk';
 import { MAX_NUM_BYTES_Q96, MAX_TICK, MIN_TICK } from '../constants';
 
 export const tickToBytes = (tickValue: number): Buffer => {
@@ -82,7 +82,7 @@ export const priceTicksStoreSchema = {
 export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 	public schema = priceTicksStoreSchema;
 
-	public async getKey(context: StoreGetter, keys: Buffer[]): Promise<PriceTicksStoreData> {
+	public async getKey(context: ImmutableStoreGetter, keys: Buffer[]): Promise<PriceTicksStoreData> {
 		const key = Buffer.concat(keys);
 		return this.get(context, key);
 	}
