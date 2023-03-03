@@ -28,6 +28,7 @@ import {
 	constructPoolsGraph,
 	crossTick,
 	getAdjacent,
+	getOptimalSwapPool,
 	raiseSwapException,
 	swap,
 	swapWithin,
@@ -279,6 +280,45 @@ describe('dex:swapFunctions', () => {
 					10,
 				),
 			).toStrictEqual([BigInt(6), BigInt(5), BigInt(0), BigInt(0), 1]);
+		});
+
+		it('getOptimalSwapPool should return route with tokenID', async () => {
+			const tokensArray = [token0Id, token1Id];
+			const concatedTokenIDs = Buffer.concat(tokensArray);
+			const tokenIDAndSettingsArray = [
+				concatedTokenIDs,
+				q96ToBytes(numberToQ96(BigInt(dexGlobalStoreData.poolCreationSettings[0].feeTier))),
+			];
+
+			const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
+
+			const potentialPoolId: Buffer = Buffer.concat(tokenIDAndSettingsArray);
+			const poolIDAndTickID = Buffer.concat([potentialPoolId, tickToBytes(currentTick)]);
+			await priceTicksStore.setKey(methodContext, [poolIDAndTickID], priceTicksStoreDataTickUpper);
+
+			await poolsStore.set(methodContext, potentialPoolId, poolsStoreData);
+			let res = await getOptimalSwapPool(
+				moduleEndpointContext,
+				dexModule.stores,
+				token0Id,
+				token1Id,
+				BigInt(10),
+				false,
+			);
+
+			expect(res[0]).toStrictEqual(potentialPoolId);
+			expect(res[1]).toBe(BigInt(10));
+
+			res = await getOptimalSwapPool(
+				moduleEndpointContext,
+				dexModule.stores,
+				token0Id,
+				token1Id,
+				BigInt(15),
+				true,
+			);
+			expect(res[0]).toStrictEqual(potentialPoolId);
+			expect(res[1]).toBe(BigInt(15));
 		});
 	});
 });
