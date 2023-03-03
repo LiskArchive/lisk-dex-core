@@ -392,14 +392,16 @@ export class DexEndpoint extends BaseEndpoint {
 			maxAmountIn: bigint;
 			tokenIdOut: string;
 			amountOut: bigint;
-			swapRoute: Buffer[];
+			swapRoute: string[];
 		}>(dryRunSwapExactOutRequestSchema, moduleEndpointContext.params);
 
 		const tokenIdIn = Buffer.from(moduleEndpointContext.params.tokenIdIn, 'hex');
 		const { maxAmountIn, amountOut } = moduleEndpointContext.params;
 		const tokenIdOut = Buffer.from(moduleEndpointContext.params.tokenIdOut, 'hex');
+		const swapRoute = moduleEndpointContext.params.swapRoute.map(route =>
+			Buffer.from(route, 'hex'),
+		);
 
-		const { swapRoute } = moduleEndpointContext.params;
 		let zeroToOne = false;
 		let IdIn = tokenIdIn;
 		const tokens = [{ id: tokenIdOut, amount: amountOut }];
