@@ -60,6 +60,6 @@ export const INCENTIVE_REDUCTION_SEED_REVEAL = 1; // Return code for block incen
 export const INCENTIVE_REDUCTION_MAX_PREVOTES = 2; // Return code for block incentive reduction because the block header does not imply the maximal number of prevotes.
 export const INCENTIVE_REDUCTION_FACTOR_BFT = BigInt(4); // The reduction factor for validator block incentive in case when the block header does not imply the maximal number of prevotes.
 export const EPOCH_LENGTH_INCENTIVE_REDUCTION = BigInt('30000000'); // The duration of the epoch after which liquidity incentives decrease
-export const EVENT_NAME_VALIDATOR_INCENTIVES_PAYOUT = "validatorIncentivesPayout"
+export const EVENT_NAME_VALIDATOR_INCENTIVES_PAYOUT = 'validatorIncentivesPayout';
 
 export const defaultConfig = {};

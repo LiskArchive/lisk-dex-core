@@ -16,9 +16,7 @@ import { BaseEvent } from 'lisk-sdk';
 
 import { DexIncentivesModule } from '../../../../src/app/modules/dexIncentives/module';
 
-import {
-	validatorIncentivesPayout,
-} from '../../../../src/app/modules/dexIncentives/events';
+import { validatorIncentivesPayout } from '../../../../src/app/modules/dexIncentives/events';
 
 describe('DexIncentivesModule:events', () => {
 	let dexIncentivesModule: DexIncentivesModule;

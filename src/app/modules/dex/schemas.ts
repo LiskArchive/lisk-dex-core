@@ -124,11 +124,11 @@ export const genesisDEXSchema = {
 					incentivesPerLiquidityAccumulator: {
 						dataType: 'bytes',
 						maxLength: MAX_NUM_BYTES_Q96,
-						fieldNumber: 3
+						fieldNumber: 3,
 					},
 					heightIncentivesUpdate: {
 						dataType: 'uint32',
-						fieldNumber: 4
+						fieldNumber: 4,
 					},
 					feeGrowthGlobal0: {
 						dataType: 'bytes',
@@ -158,7 +158,7 @@ export const genesisDEXSchema = {
 					'liquidityGross',
 					'feeGrowthOutside0',
 					'feeGrowthOutside1',
-					'incentivesPerLiquidityOutside'
+					'incentivesPerLiquidityOutside',
 				],
 				properties: {
 					tickId: {
@@ -187,8 +187,8 @@ export const genesisDEXSchema = {
 					incentivesPerLiquidityOutside: {
 						dataType: 'bytes',
 						maxLength: MAX_NUM_BYTES_Q96,
-						fieldNumber: 6
-					}
+						fieldNumber: 6,
+					},
 				},
 			},
 		},
@@ -205,7 +205,7 @@ export const genesisDEXSchema = {
 					'feeGrowthInsideLast0',
 					'feeGrowthInsideLast1',
 					'ownerAddress',
-					'incentivesPerLiquidityLast'
+					'incentivesPerLiquidityLast',
 				],
 				properties: {
 					positionId: {
@@ -243,8 +243,8 @@ export const genesisDEXSchema = {
 					incentivesPerLiquidityLast: {
 						dataType: 'bytes',
 						maxLength: MAX_NUM_BYTES_Q96,
-						fieldNumber: 8
-					}
+						fieldNumber: 8,
+					},
 				},
 			},
 		},

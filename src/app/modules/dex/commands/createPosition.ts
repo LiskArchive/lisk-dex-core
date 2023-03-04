@@ -21,7 +21,6 @@ import {
 	VerificationResult,
 	VerifyStatus,
 	TokenMethod,
-	FeeMethod,
 } from 'lisk-sdk';
 import { validator } from '@liskhq/lisk-validator';
 
@@ -44,6 +43,7 @@ import {
 	getLiquidityForAmounts,
 	getToken0Id,
 	getToken1Id,
+	transferToValidatorLSKPool,
 	updatePosition,
 } from '../utils/auxiliaryFunctions';
 import { tickToPrice } from '../utils/math';
@@ -53,11 +53,9 @@ export class CreatePositionCommand extends BaseCommand {
 	public id = COMMAND_ID_CREATE_POSITION;
 	public schema = createPositionSchema;
 	private _tokenMethod!: TokenMethod;
-	private _feeMethod!: FeeMethod;
 
-	public init({ tokenMethod, feeMethod }): void {
+	public init({ tokenMethod }): void {
 		this._tokenMethod = tokenMethod;
-		this._feeMethod = feeMethod;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -73,8 +71,14 @@ export class CreatePositionCommand extends BaseCommand {
 			};
 		}
 
-		const { tickLower, tickUpper, amount0Desired, amount1Desired, amount0Min, amount1Min } =
-			ctx.params;
+		const {
+			tickLower,
+			tickUpper,
+			amount0Desired,
+			amount1Desired,
+			amount0Min,
+			amount1Min,
+		} = ctx.params;
 
 		if (MIN_TICK > tickLower || tickLower >= tickUpper || tickUpper > MAX_TICK) {
 			return {
@@ -103,8 +107,15 @@ export class CreatePositionCommand extends BaseCommand {
 
 	public async execute(ctx: CommandExecuteContext<CreatePositionParamsData>): Promise<void> {
 		const { senderAddress } = ctx.transaction;
-		const { poolID, tickLower, tickUpper, amount0Desired, amount1Desired, amount0Min, amount1Min } =
-			ctx.params;
+		const {
+			poolID,
+			tickLower,
+			tickUpper,
+			amount0Desired,
+			amount1Desired,
+			amount0Min,
+			amount1Min,
+		} = ctx.params;
 		const methodContext = ctx.getMethodContext();
 
 		const [positionCreationResult, positionID] = await createPosition(
@@ -180,7 +191,12 @@ export class CreatePositionCommand extends BaseCommand {
 			throw new Error();
 		}
 
-		await this._feeMethod.payFee(methodContext, POSITION_CREATION_FEE);
+		await transferToValidatorLSKPool(
+			this._tokenMethod,
+			methodContext,
+			senderAddress,
+			POSITION_CREATION_FEE,
+		);
 
 		this.events.get(PositionCreatedEvent).add(
 			methodContext,

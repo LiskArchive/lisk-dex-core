@@ -36,24 +36,25 @@ import {
 	transferToPool,
 	transferPoolToPool,
 	transferToProtocolFeeAccount,
+	transferToValidatorLSKPool,
+	getLiquidityForAmount0,
 	updatePosition,
-<<<<<<< HEAD
+	collectFeesAndIncentives,
 	getCredibleDirectPrice,
 	computeExceptionalRoute,
 	computeRegularRoute,
 	getAdjacent,
-=======
-	getLiquidityForAmount0,
-	getLiquidityForAmount1,
-	collectFeesAndIncentives,
-	transferToValidatorLSKPool,
-	getOwnerAddressOfPosition
->>>>>>> 4e602c1 (feat: add unit test for getLiquidityForAmount1, getOwnerAddressOfPosition functions)
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
 import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
-import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
+import {
+	numberToQ96,
+	q96ToBytes,
+	mulDivQ96,
+	roundDownQ96,
+	subQ96,
+} from '../../../../src/app/modules/dex/utils/q96';
 import { DexModule } from '../../../../src/app/modules';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import {
@@ -458,7 +459,6 @@ describe('dex:auxiliaryFunctions', () => {
 				token0Id,
 				token1Id,
 				q96ToBytes(
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 					BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings[0].feeTier, 0)),
 				),
 			];
@@ -475,16 +475,9 @@ describe('dex:auxiliaryFunctions', () => {
 			});
 		});
 	});
-<<<<<<< HEAD
-=======
 
 	it('transferToValidatorLSKPool', async () => {
-		await transferToValidatorLSKPool(
-			tokenMethod,
-			methodContext,
-			senderAddress,
-			BigInt(1)
-		);
+		await transferToValidatorLSKPool(tokenMethod, methodContext, senderAddress, BigInt(1));
 
 		expect(tokenMethod.transfer).toHaveBeenCalled();
 	});
@@ -495,7 +488,7 @@ describe('dex:auxiliaryFunctions', () => {
 			dexModule.stores,
 			tokenMethod,
 			methodContext,
-			positionId
+			positionId,
 		);
 		expect(tokenMethod.transfer).toHaveBeenCalled();
 	});
@@ -509,35 +502,11 @@ describe('dex:auxiliaryFunctions', () => {
 		const result = mulDivQ96(
 			numberToQ96(amount0),
 			intermediate,
-			subQ96(upperSqrtPrice, lowerSqrtPrice)
+			subQ96(upperSqrtPrice, lowerSqrtPrice),
 		);
 
 		const functionResult = getLiquidityForAmount0(lowerSqrtPrice, upperSqrtPrice, amount0);
 
 		expect(functionResult).toEqual(roundDownQ96(result));
 	});
-
-	it('getLiquidityForAmount1', () => {
-		const lowerSqrtPrice = BigInt(10);
-		const upperSqrtPrice = BigInt(100);
-		const amount1 = BigInt(50);
-
-		const result = mulDivQ96(numberToQ96(amount1), numberToQ96(BigInt(1)), subQ96(upperSqrtPrice, lowerSqrtPrice));
-
-		const functionResult = getLiquidityForAmount1(lowerSqrtPrice, upperSqrtPrice, amount1);
-
-		expect(functionResult).toEqual(roundDownQ96(result));
-	});
-
-	it('getOwnerAddressOfPosition', async () => {
-		const result = await getOwnerAddressOfPosition(
-			methodContext,
-			positionsStore,
-			positionId
-		);
-		const position = await positionsStore.get(methodContext, positionId);
-
-		expect(result).toEqual(position.ownerAddress);
-	})
->>>>>>> 4e602c1 (feat: add unit test for getLiquidityForAmount1, getOwnerAddressOfPosition functions)
 });

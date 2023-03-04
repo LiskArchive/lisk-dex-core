@@ -5,7 +5,7 @@ import {
 	TokenModule,
 	ValidatorsModule,
 	FeeModule,
-	PoSModule
+	PoSModule,
 } from 'lisk-sdk';
 
 import { DexModule, DexIncentivesModule } from './modules';
@@ -21,7 +21,13 @@ export const getApplication = (config: PartialApplicationConfig): Application =>
 	const posModule = new PoSModule();
 
 	dexModule.addDependencies(tokenModule.method, validatorModule.method, feeModule.method);
-	dexIncentivesModule.addDependencies(tokenModule.method, validatorModule.method, randomModule.method, feeModule.method, posModule.method);
+	dexIncentivesModule.addDependencies(
+		tokenModule.method,
+		validatorModule.method,
+		randomModule.method,
+		feeModule.method,
+		posModule.method,
+	);
 	app.registerModule(dexModule);
 
 	return app;

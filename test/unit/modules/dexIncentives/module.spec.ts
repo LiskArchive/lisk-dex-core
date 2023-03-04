@@ -12,7 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseModule, FeeModule, RandomModule, TokenModule, ValidatorsModule, PoSModule } from 'lisk-sdk';
+import {
+	BaseModule,
+	FeeModule,
+	PoSModule,
+	RandomModule,
+	TokenModule,
+	ValidatorsModule,
+} from 'lisk-sdk';
 
 import { DexIncentivesModule } from '../../../../src/app/modules/dexIncentives/module';
 import { DexIncentivesEndpoint } from '../../../../src/app/modules/dexIncentives/endpoint';
@@ -23,7 +30,7 @@ import {
 	createGenesisBlockContext,
 	createBlockHeaderWithDefaults,
 	createBlockContext,
-} from 'lisk-framework/dist-node/testing';
+} from '../../../../node_modules/lisk-framework/dist-node/testing';
 import { DexIncentivesMethod } from '../../../../src/app/modules/dexIncentives/method';
 
 interface Validator {
@@ -36,7 +43,7 @@ interface Validator {
 describe('DexIncentivesModule', () => {
 	let dexIncentivesModule: DexIncentivesModule;
 	let tokenModule: TokenModule;
-	let validatorModule;
+	let validatorModule: ValidatorsModule;
 	let randomModule: RandomModule;
 	let feeModule: FeeModule;
 	let posModule: PoSModule;
@@ -54,7 +61,6 @@ describe('DexIncentivesModule', () => {
 		tokenModule.method.unlock = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.transfer = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.getLockedAmount = jest.fn().mockResolvedValue(BigInt(1000));
-		feeModule.method.payFee = jest.fn().mockResolvedValue(BigInt(100));
 		randomModule.method.isSeedRevealValid = jest
 			.fn()
 			.mockImplementation(async () => Promise.resolve(true));
@@ -72,11 +78,10 @@ describe('DexIncentivesModule', () => {
 
 		dexIncentivesModule.addDependencies(
 			tokenModule.method,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 			validatorModule.method,
 			randomModule.method,
 			feeModule.method,
-			posModule.method
+			posModule.method,
 		);
 	});
 

@@ -12,7 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseModule, ModuleMetadata, utils, TokenMethod, ValidatorsMethod, FeeMethod } from 'lisk-sdk';
+import {
+	BaseModule,
+	ModuleMetadata,
+	utils,
+	TokenMethod,
+	ValidatorsMethod,
+	FeeMethod,
+} from 'lisk-sdk';
 
 import { MODULE_ID_DEX, defaultConfig } from './constants';
 
@@ -243,7 +250,11 @@ export class DexModule extends BaseModule {
 		};
 	}
 
-	public addDependencies(tokenMethod: TokenMethod, validatorsMethod: ValidatorsMethod, feeMethod: FeeMethod) {
+	public addDependencies(
+		tokenMethod: TokenMethod,
+		validatorsMethod: ValidatorsMethod,
+		feeMethod: FeeMethod,
+	) {
 		this._tokenMethod = tokenMethod;
 		this._validatorsMethod = validatorsMethod;
 		this._feeMethod = feeMethod;
@@ -264,7 +275,6 @@ export class DexModule extends BaseModule {
 
 		this._createPositionCommand.init({
 			tokenMethod: this._tokenMethod,
-			feeMethod: this._feeMethod
 		});
 
 		this._collectFeeCommand.init({

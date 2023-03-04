@@ -1,4 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable import/no-cycle */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable  @typescript-eslint/no-floating-promises */
+/* eslint-disable  @typescript-eslint/no-inferrable-types */
+/* eslint-disable  @typescript-eslint/require-await */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -19,9 +25,9 @@ import { divQ96, mulQ96, numberToQ96, roundDownQ96 } from '../../dex/utils/q96';
 import {
 	ADDRESS_VALIDATOR_INCENTIVES,
 	TOKEN_ID_LSK,
-	EPOCH_LENGTH_INCENTIVE_REDUCTION
+	EPOCH_LENGTH_INCENTIVE_REDUCTION,
 } from '../constants';
-import { validatorIncentivesPayout } from '../events';
+import { ValidatorIncentivesPayout } from '../events';
 import { Address } from '../types';
 
 export const transferAllValidatorLSKIncentives = async (
@@ -29,7 +35,7 @@ export const transferAllValidatorLSKIncentives = async (
 	methodContext,
 	tokenMethod: TokenMethod,
 	posMethod: PoSMethod,
-	events
+	events,
 ) => {
 	let availableIncentives = await tokenMethod.getLockedAmount(
 		methodContext,
@@ -45,7 +51,7 @@ export const transferAllValidatorLSKIncentives = async (
 			MODULE_NAME_DEX,
 			TOKEN_ID_LSK,
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			availableIncentives
+			availableIncentives,
 		);
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
@@ -60,12 +66,15 @@ export const transferAllValidatorLSKIncentives = async (
 					posMethod,
 					validator.address,
 					BigInt(standByShare),
-					events
+					events,
 				);
 				availableIncentives -= BigInt(standByShare);
 			}
 		});
-		const incentivePerBFTWeight = divQ96(numberToQ96(availableIncentives), numberToQ96(totalWeight));
+		const incentivePerBFTWeight = divQ96(
+			numberToQ96(availableIncentives),
+			numberToQ96(totalWeight),
+		);
 		await validators.forEach(async validator => {
 			if (validator.bftWeight !== BigInt(0)) {
 				const share = roundDownQ96(mulQ96(incentivePerBFTWeight, numberToQ96(validator.bftWeight)));
@@ -75,7 +84,7 @@ export const transferAllValidatorLSKIncentives = async (
 					posMethod,
 					validator.address,
 					share,
-					events
+					events,
 				);
 				availableIncentives -= share;
 			}
@@ -85,7 +94,7 @@ export const transferAllValidatorLSKIncentives = async (
 			ADDRESS_VALIDATOR_INCENTIVES,
 			MODULE_NAME_DEX,
 			TOKEN_ID_LSK,
-			availableIncentives
+			availableIncentives,
 		);
 	}
 };
@@ -96,62 +105,61 @@ export const transferValidatorIncentives = async (
 	posMethod: PoSMethod,
 	validatorAddress: Address,
 	amount: bigint,
-	events
+	events,
 ) => {
 	tokenMethod.transfer(
 		methodContext,
 		ADDRESS_VALIDATOR_INCENTIVES,
 		validatorAddress,
 		TOKEN_ID_LSK,
-		amount
+		amount,
 	);
 	posMethod.updateSharedRewards(methodContext, validatorAddress, TOKEN_ID_LSK, amount);
-	events.get(validatorIncentivesPayout).add(
-		methodContext,
-		{
-			"amount": amount
-		},
-	);
+	events.get(ValidatorIncentivesPayout).add(methodContext, {
+		amount: amount,
+	});
 };
 
 export const getLiquidityIncentivesAtHeight = (height: number): bigint => {
 	if (height < EPOCH_LENGTH_INCENTIVE_REDUCTION) {
 		return BigInt('400000000');
-	} else if (height < BigInt(2) * EPOCH_LENGTH_INCENTIVE_REDUCTION) {
+	}
+	if (height < BigInt(2) * EPOCH_LENGTH_INCENTIVE_REDUCTION) {
 		return BigInt('350000000');
-	} else if (height < BigInt(3) * EPOCH_LENGTH_INCENTIVE_REDUCTION) {
+	}
+	if (height < BigInt(3) * EPOCH_LENGTH_INCENTIVE_REDUCTION) {
 		return BigInt('300000000');
-	} else if (height < BigInt(4) * EPOCH_LENGTH_INCENTIVE_REDUCTION) {
+	}
+	if (height < BigInt(4) * EPOCH_LENGTH_INCENTIVE_REDUCTION) {
 		return BigInt('250000000');
 	}
 	return BigInt('200000000');
 };
 
-export const getLPIncentiveInRange = (
-	startHeight: number,
-	endHeight: number
-): BigInt => {
+export const getLPIncentiveInRange = (startHeight: number, endHeight: number): BigInt => {
 	if (endHeight < startHeight) {
 		throw new Error();
 	}
 
-	const EPOCHS = [EPOCH_LENGTH_INCENTIVE_REDUCTION,
+	const EPOCHS = [
+		EPOCH_LENGTH_INCENTIVE_REDUCTION,
 		BigInt(2) * EPOCH_LENGTH_INCENTIVE_REDUCTION,
 		BigInt(3) * EPOCH_LENGTH_INCENTIVE_REDUCTION,
-		BigInt(4) * EPOCH_LENGTH_INCENTIVE_REDUCTION
+		BigInt(4) * EPOCH_LENGTH_INCENTIVE_REDUCTION,
 	];
 
 	let height: bigint = BigInt(startHeight + 1); // incentive for the start block are excluded
 	let incentives: bigint = BigInt(0);
-	EPOCHS.forEach((changeHeight) => {
+	EPOCHS.forEach(changeHeight => {
 		if (changeHeight > startHeight && changeHeight < endHeight) {
-			incentives += (changeHeight - BigInt(height)) * getLiquidityIncentivesAtHeight(Number(height));
+			incentives +=
+				(changeHeight - BigInt(height)) * getLiquidityIncentivesAtHeight(Number(height));
 			height = changeHeight;
 		}
-	})
+	});
 
 	incentives += (BigInt(endHeight) - height) * getLiquidityIncentivesAtHeight(Number(height));
 	incentives += getLiquidityIncentivesAtHeight(endHeight);
 
 	return incentives;
-}
+};

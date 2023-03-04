@@ -12,7 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { FeeModule, TokenModule, Transaction, ValidatorsModule, VerifyStatus } from 'lisk-framework';
+import {
+	FeeModule,
+	TokenModule,
+	Transaction,
+	ValidatorsModule,
+	VerifyStatus,
+} from 'lisk-framework';
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { testing } from 'lisk-sdk';
 import { DexModule } from '../../../../src/app/modules';
@@ -41,8 +47,8 @@ describe('dex:command:createPool', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 	let dexModule: DexModule;
 	let tokenModule: TokenModule;
-	let feeModule: FeeModule;
 	let validatorModule: ValidatorsModule;
+	let feeModule: FeeModule;
 
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
@@ -79,25 +85,23 @@ describe('dex:command:createPool', () => {
 	beforeEach(() => {
 		dexModule = new DexModule();
 		tokenModule = new TokenModule();
-		feeModule = new FeeModule();
 		validatorModule = new ValidatorsModule();
+		feeModule = new FeeModule();
 
 		tokenModule.method.mint = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.lock = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.unlock = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.transfer = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.getLockedAmount = jest.fn().mockResolvedValue(BigInt(1000));
-		feeModule.method.payFee = jest.fn().mockImplementation(async () => Promise.resolve());
 		dexModule.addDependencies(tokenModule.method, validatorModule.method, feeModule.method);
 		command = dexModule.commands.find(e => e.name === 'createPool');
-		command.init({ moduleConfig: defaultConfig, tokenMethod: tokenModule.method, feeMethod: feeModule.method });
+		command.init({ moduleConfig: defaultConfig, tokenMethod: tokenModule.method });
 	});
 
 	describe('verify', () => {
 		it.each(createPoolFixtures)('%s', async (...args) => {
 			const [_desc, input, err] = args;
 			const context = createTransactionContext({
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				transaction: new Transaction(input as any),
 			});
 
@@ -119,7 +123,6 @@ describe('dex:command:createPool', () => {
 		beforeEach(async () => {
 			context = createTransactionContext({
 				stateStore,
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				transaction: new Transaction(createPoolFixtures[0][1] as any),
 			});
 
@@ -140,7 +143,7 @@ describe('dex:command:createPool', () => {
 		it(`should call token methods and emit events`, async () => {
 			await command.execute(context.createCommandExecuteContext(createPoolSchema));
 			expect(dexModule._tokenMethod.lock).toHaveBeenCalledTimes(2);
-			expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(3);
+			expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(4);
 
 			const events = context.eventQueue.getEvents();
 			const poolCreatedEvents = events.filter(e => e.toObject().name === 'poolCreated');
@@ -161,12 +164,11 @@ describe('dex:command:createPool', () => {
 				it(`should emit poolCreatedEvent and positionCreatedEvent for every iteration`, async () => {
 					context = createTransactionContext({
 						stateStore,
-						// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 						transaction: new Transaction(createRandomPoolFixturesGenerator()[0][1] as any),
 					});
 					await command.execute(context.createCommandExecuteContext(createPoolSchema));
 					expect(dexModule._tokenMethod.lock).toHaveBeenCalledTimes(2);
-					expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(3);
+					expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(4);
 					const events = context.eventQueue.getEvents();
 					const poolCreatedEvents = events.filter(e => e.toObject().name === 'poolCreated');
 					const positionCreatedEvents = events.filter(e => e.toObject().name === 'positionCreated');

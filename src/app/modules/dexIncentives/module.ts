@@ -21,7 +21,7 @@ import {
 	RandomMethod,
 	TokenMethod,
 	ValidatorsMethod,
-	PoSMethod
+	PoSMethod,
 } from 'lisk-sdk';
 import {
 	ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
@@ -30,12 +30,12 @@ import {
 } from './constants';
 
 import { DexIncentivesEndpoint } from './endpoint';
-import { validatorIncentivesPayout } from './events';
+import { ValidatorIncentivesPayout } from './events';
 
 import { DexIncentivesMethod } from './method';
 import {
 	transferAllValidatorLSKIncentives,
-	getLiquidityIncentivesAtHeight
+	getLiquidityIncentivesAtHeight,
 } from './utils/auxiliaryFunctions';
 
 export class DexIncentivesModule extends BaseModule {
@@ -51,10 +51,7 @@ export class DexIncentivesModule extends BaseModule {
 
 	public constructor() {
 		super();
-		this.events.register(
-			validatorIncentivesPayout,
-			new validatorIncentivesPayout(this.name),
-		);
+		this.events.register(ValidatorIncentivesPayout, new ValidatorIncentivesPayout(this.name));
 	}
 
 	public metadata(): ModuleMetadata {
@@ -78,7 +75,7 @@ export class DexIncentivesModule extends BaseModule {
 		validatorsMethod: ValidatorsMethod,
 		randomMethod: RandomMethod,
 		feeMethod: FeeMethod,
-		posMethod: PoSMethod
+		posMethod: PoSMethod,
 	) {
 		this._tokenMethod = tokenMethod;
 		this._validatorsMethod = validatorsMethod;
@@ -116,7 +113,7 @@ export class DexIncentivesModule extends BaseModule {
 				methodContext,
 				this._tokenMethod,
 				this._posMethod,
-				this.events
+				this.events,
 			);
 		}
 	}

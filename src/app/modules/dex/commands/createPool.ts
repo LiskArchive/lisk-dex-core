@@ -21,7 +21,6 @@ import {
 	VerificationResult,
 	VerifyStatus,
 	TokenMethod,
-	FeeMethod,
 } from 'lisk-sdk';
 import { validator } from '@liskhq/lisk-validator';
 
@@ -31,18 +30,20 @@ import {
 	POOL_CREATION_FEE,
 	POOL_CREATION_SUCCESS,
 	POSITION_CREATION_SUCCESS,
+	TOKEN_ID_FEE_DEX,
 } from '../constants';
 import { AmountBelowMinEvent, PoolCreatedEvent, PoolCreationFailedEvent } from '../events';
 import { PositionCreatedEvent } from '../events/positionCreated';
 import { PositionCreationFailedEvent } from '../events/positionCreationFailed';
 
 import { createPoolSchema } from '../schemas';
-import { PoolsStore } from '../stores';
+import { PoolsStore, SettingsStore } from '../stores';
 import { CreatePoolParamsData, ModuleConfig, TokenID } from '../types';
 import {
 	createPool,
 	createPosition,
 	getLiquidityForAmounts,
+	transferToProtocolFeeAccount,
 	updatePosition,
 } from '../utils/auxiliaryFunctions';
 import { tickToPrice } from '../utils/math';
@@ -56,12 +57,10 @@ export class CreatePoolCommand extends BaseCommand {
 	public schema = createPoolSchema;
 	private _moduleConfig!: ModuleConfig;
 	private _tokenMethod!: TokenMethod;
-	private _feeMethod!: FeeMethod;
 
-	public init({ moduleConfig, tokenMethod, feeMethod }): void {
+	public init({ moduleConfig, tokenMethod }): void {
 		this._moduleConfig = moduleConfig;
 		this._tokenMethod = tokenMethod;
-		this._feeMethod = feeMethod;
 	}
 
 	public async verify(
@@ -239,7 +238,14 @@ export class CreatePoolCommand extends BaseCommand {
 			throw new Error('Parameter amountX cannot be larger than amountXDesired.');
 		}
 
-		await this._feeMethod.payFee(methodContext, POOL_CREATION_FEE);
+		await transferToProtocolFeeAccount(
+			this._tokenMethod,
+			methodContext,
+			this.stores.get(SettingsStore),
+			senderAddress,
+			TOKEN_ID_FEE_DEX,
+			POOL_CREATION_FEE,
+		);
 
 		this.events.get(PositionCreatedEvent).add(
 			methodContext,
