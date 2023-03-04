@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -116,6 +115,7 @@ describe('dex: offChainEndpointFunctions', () => {
 
 	const dexGlobalStoreData: DexGlobalStoreData = {
 		positionCounter: BigInt(15),
+		collectableLSKFees: BigInt(10),
 		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
 		incentivizedPools: [{ poolId, multiplier: 10 }],
 		totalIncentivesMultiplier: 1,
@@ -127,7 +127,6 @@ describe('dex: offChainEndpointFunctions', () => {
 		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(0))),
 		ownerAddress: senderAddress,
-		incentivesPerLiquidityLast: q96ToBytes(numberToQ96(BigInt(0))),
 	};
 
 	const settingStoreData: SettingsStoreData = {
@@ -317,8 +316,8 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getLSKPrice', async () => {
+			const result = Buffer.alloc(4);
 			const feeTier = q96ToBytes(
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings.feeTier, 0)),
 			);
 			await poolsStore.setKey(
@@ -328,14 +327,12 @@ describe('dex: offChainEndpointFunctions', () => {
 			);
 			await poolsStore.setKey(methodContext, [poolIdLSK, poolIdLSK, feeTier], poolsStoreData);
 			await poolsStore.setKey(methodContext, [poolIdLSK, positionId, feeTier], poolsStoreData);
-			await poolsStore.setKey(methodContext, [positionId, positionId, feeTier], poolsStoreData);
 
 			const res = await endpoint.getLSKPrice(
 				tokenMethod,
-				methodContext,
+				moduleEndpointContext,
 				getPoolIDFromPositionID(positionId),
 			);
-
 			expect(res).toBe(BigInt(1));
 		});
 

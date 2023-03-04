@@ -55,7 +55,7 @@ describe('dex:command:addLiquidity', () => {
 	const poolsStoreData: PoolsStoreData = {
 		liquidity: BigInt(5),
 		sqrtPrice: q96ToBytes(BigInt('327099227039063106')),
-		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(1000))),
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
 		heightIncentivesUpdate: 5,
 		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
 		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(6))),
@@ -64,6 +64,7 @@ describe('dex:command:addLiquidity', () => {
 
 	const dexGlobalStoreData: DexGlobalStoreData = {
 		positionCounter: BigInt(10),
+		collectableLSKFees: BigInt(10),
 		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
 		incentivizedPools: [{ poolId, multiplier: 10 }],
 		totalIncentivesMultiplier: 1,
@@ -101,7 +102,6 @@ describe('dex:command:addLiquidity', () => {
 		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(3))),
 		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(1))),
 		ownerAddress: senderAddress,
-		incentivesPerLiquidityLast: q96ToBytes(numberToQ96(BigInt(10))),
 	};
 
 	beforeEach(() => {
@@ -123,7 +123,6 @@ describe('dex:command:addLiquidity', () => {
 		it.each(addLiquidityFixtures)('%s', async (...args) => {
 			const [_desc, input, err] = args;
 			const context = createTransactionContext({
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				transaction: new Transaction(input as any),
 			});
 
@@ -148,7 +147,6 @@ describe('dex:command:addLiquidity', () => {
 		beforeEach(async () => {
 			context = createTransactionContext({
 				stateStore,
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				transaction: new Transaction(addLiquidityFixtures[0][1] as any),
 			});
 
@@ -225,7 +223,6 @@ describe('dex:command:addLiquidity', () => {
 			function stress() {
 				context = createTransactionContext({
 					stateStore,
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 					transaction: new Transaction(addLiquidityFixtures[0][1] as any),
 				});
 				it('should call execute methods and emit positionUpdatedEvent', async () => {

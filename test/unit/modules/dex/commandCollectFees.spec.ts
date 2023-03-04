@@ -104,19 +104,19 @@ describe('dex:command:collectFees', () => {
 		};
 
 		const dexGlobalStoreData: DexGlobalStoreData = {
-			positionCounter: BigInt(10),
+			positionCounter: BigInt(15),
+			collectableLSKFees: BigInt(10),
 			poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
 			incentivizedPools: [{ poolId, multiplier: 10 }],
 			totalIncentivesMultiplier: 1,
 		};
 		const positionsStoreData: PositionsStoreData = {
-			tickLower: -8,
-			tickUpper: -5,
-			liquidity: BigInt(15),
-			feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(3))),
-			feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(1))),
+			tickLower: -10,
+			tickUpper: 10,
+			liquidity: BigInt(1000),
+			feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(0))),
+			feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(0))),
 			ownerAddress: senderAddress,
-			incentivesPerLiquidityLast: q96ToBytes(numberToQ96(BigInt(0))),
 		};
 
 		beforeEach(async () => {

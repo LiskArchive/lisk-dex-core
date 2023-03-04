@@ -108,7 +108,7 @@ export const defaultConfig = {
 	},
 };
 
-//Swap Constants
+// Swap Constants
 export const ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES = sha256(
 	'liquidityProviderIncentivesAccount',
 ).slice(0, NUM_BYTES_ADDRESS);

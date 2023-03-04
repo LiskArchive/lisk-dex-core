@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseStore, StoreGetter } from 'lisk-sdk';
+import { BaseStore, StoreGetter, ImmutableStoreGetter } from 'lisk-sdk';
 import { MAX_NUM_BYTES_Q96, MAX_TICK, MIN_TICK } from '../constants';
 
 export const tickToBytes = (tickValue: number): Buffer => {
@@ -43,7 +43,7 @@ export interface PriceTicksStoreData {
 }
 
 export const priceTicksStoreSchema = {
-	$id: '/dex/store/priceTicks',
+	$id: '/dex/store/priceTicksStore',
 	type: 'object',
 	required: [
 		'liquidityNet',
@@ -82,7 +82,7 @@ export const priceTicksStoreSchema = {
 export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 	public schema = priceTicksStoreSchema;
 
-	public async getKey(context: StoreGetter, keys: Buffer[]): Promise<PriceTicksStoreData> {
+	public async getKey(context: ImmutableStoreGetter, keys: Buffer[]): Promise<PriceTicksStoreData> {
 		const key = Buffer.concat(keys);
 		return this.get(context, key);
 	}
@@ -112,46 +112,5 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 			lte: Buffer.alloc(16, 255),
 			reverse: true,
 		});
-	}
-
-	public async getNextTick(context: StoreGetter, keys: Buffer[]) {
-		const key = Buffer.concat(keys);
-		let nextTick;
-		let nextflag;
-		const allKeys = await this.iterate(context, {
-			gte: Buffer.alloc(16, 0),
-			lte: Buffer.alloc(16, 255),
-			reverse: false,
-		});
-		for (let i = 0; i < allKeys.length; i += 1) {
-			if (nextflag) {
-				nextTick = allKeys[i].key;
-				break;
-			}
-			if (allKeys[i].key.equals(key)) {
-				nextflag = true;
-			}
-		}
-		return this.getKey(context, [nextTick]);
-	}
-
-	public async getPrevTick(context: StoreGetter, keys: Buffer[]) {
-		const key = Buffer.concat(keys);
-		let prevTick;
-		let prevflag;
-		const allKeys = await this.iterate(context, {
-			gte: Buffer.alloc(16, 0),
-			lte: Buffer.alloc(16, 255),
-			reverse: false,
-		});
-		for (let i = 0; i < allKeys.length; i += 1) {
-			if (allKeys[i].key.equals(key)) {
-				prevflag = true;
-			} if (prevflag) {
-				break;
-			}
-			prevTick = allKeys[i].key;
-		}
-		return this.getKey(context, [prevTick]);
 	}
 }

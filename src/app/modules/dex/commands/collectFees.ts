@@ -87,7 +87,6 @@ export class CollectFeesCommand extends BaseCommand {
 				this._tokenMethod,
 				methodContext,
 				positionID,
-				ctx.header.height,
 			);
 		}
 	}

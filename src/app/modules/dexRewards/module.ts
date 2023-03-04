@@ -67,7 +67,6 @@ export class DexRewardsModule extends BaseModule {
 				data: v.schema,
 			})),
 			assets: [],
-			stores: [],
 		};
 	}
 

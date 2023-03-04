@@ -21,7 +21,6 @@ export interface PositionsStoreData {
 	feeGrowthInsideLast0: Buffer;
 	feeGrowthInsideLast1: Buffer;
 	ownerAddress: Buffer;
-	incentivesPerLiquidityLast;
 }
 
 export const positionsStoreSchema = {
@@ -63,11 +62,6 @@ export const positionsStoreSchema = {
 			maxLength: NUM_BYTES_ADDRESS,
 			fieldNumber: 6,
 		},
-		incentivesPerLiquidityLast: {
-			dataType: 'bytes',
-			maxLength: MAX_NUM_BYTES_Q96,
-			fieldNumber: 7,
-		},
 	},
 };
 
@@ -86,7 +80,6 @@ export class PositionsStore extends BaseStore<PositionsStoreData> {
 
 	public async setKey(context: StoreGetter, keys: Buffer[], value): Promise<void> {
 		const key = Buffer.concat(keys);
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		await this.set(context, key, value);
 	}
 }
