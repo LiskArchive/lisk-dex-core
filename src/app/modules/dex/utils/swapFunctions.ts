@@ -5,6 +5,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
+/* eslint-disable no-param-reassign */
 
 /*
  * Copyright © 2022 Lisk Foundation
@@ -61,6 +62,7 @@ import {
 	ADDRESS_VALIDATOR_INCENTIVES,
 	FEE_TIER_PARTITION,
 	MAX_NUMBER_CROSSED_TICKS,
+	MAX_UINT_64,
 	MODULE_NAME_DEX,
 	NUM_BYTES_POOL_ID,
 	TOKEN_ID_LSK,
@@ -442,7 +444,9 @@ export const swap = async (
 	const dexModule = new DexModule();
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
 	const feeTier = endpoint.getFeeTier(poolID);
+
 	const poolInfo = await endpoint.getPool(methodContext, poolID);
+
 	const priceTicksStore = stores.get(PriceTicksStore);
 
 	let poolSqrtPriceQ96 = bytesToQ96(poolInfo.sqrtPrice),
@@ -483,11 +487,9 @@ export const swap = async (
 			throw new Error('Crossed too many ticks');
 		}
 		const currentTick = priceToTick(poolSqrtPriceQ96);
-
 		if (await endpoint.getTickWithPoolIdAndTickValue(methodContext, poolID, currentTick)) {
 			tickExist = true;
 		}
-
 		if (
 			zeroToOne &&
 			tickExist &&
@@ -619,4 +621,93 @@ export const swap = async (
 	}
 	poolInfo.sqrtPrice = q96ToBytes(poolSqrtPriceQ96);
 	return [amountTotalIn, amountTotalOut, totalFeesIn, totalFeesOut, numCrossedTicks];
+};
+
+export const getOptimalSwapPool = async (
+	methodContext,
+	stores: NamedRegistry,
+	tokenIn: TokenID,
+	tokenOut: TokenID,
+	amount: bigint,
+	exactIn: boolean,
+): Promise<[PoolID, bigint]> => {
+	let tokensArray = [tokenIn, tokenOut].sort((a, b) => (a < b ? -1 : 1));
+	const token0 = tokensArray[0];
+	const token1 = tokensArray[1];
+	const candidatePools: Buffer[] = [];
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	const dexGlobalData = await endpoint.getDexGlobalData(methodContext);
+	let searchindex;
+	let searchElement;
+
+	for (const settings of dexGlobalData.poolCreationSettings) {
+		tokensArray = [token0, token1];
+		const concatedTokenIDs = Buffer.concat(tokensArray);
+		const tokenIDAndSettingsArray = [
+			concatedTokenIDs,
+			q96ToBytes(numberToQ96(BigInt(settings.feeTier))),
+		];
+		const potentialPoolId: Buffer = Buffer.concat(tokenIDAndSettingsArray);
+		if (await endpoint.getPool(methodContext, potentialPoolId)) {
+			candidatePools.push(potentialPoolId);
+		}
+		if (candidatePools.length === 0) {
+			throw new Error('No pool swapping this pair of tokens');
+		}
+	}
+
+	const computedAmounts: bigint[] = [];
+
+	for (const pool of candidatePools) {
+		if (exactIn) {
+			try {
+				methodContext.params = {
+					tokenIdIn: tokenIn,
+					amountIn: amount,
+					tokenIdOut: tokenOut,
+					minAmountOut: BigInt(0),
+					swapRoute: [pool],
+				};
+				const amountOut = (await endpoint.dryRunSwapExactIn(methodContext))[1];
+				computedAmounts.push(amountOut);
+			} catch (error) {
+				throw new Error(error);
+			}
+		} else {
+			try {
+				methodContext.params = {
+					tokenIdIn: tokenIn,
+					maxAmountIn: MAX_UINT_64,
+					tokenIdOut: tokenOut,
+					amountOut: amount,
+					swapRoute: [pool],
+				};
+				const amountIn = (await endpoint.dryRunSwapExactOut(methodContext))[0];
+				computedAmounts.push(amountIn);
+			} catch (error) {
+				throw new Error(error);
+			}
+		}
+	}
+
+	if (exactIn) {
+		searchElement = BigInt(Number.MIN_SAFE_INTEGER);
+		for (let i = 0; i < computedAmounts.length; i += 1) {
+			if (computedAmounts[i] > searchElement) {
+				searchindex = i;
+				searchElement = computedAmounts[i];
+			}
+		}
+	} else {
+		searchElement = MAX_UINT_64;
+		for (let i = 0; i < computedAmounts.length; i += 1) {
+			if (computedAmounts[i] < searchElement) {
+				searchindex = i;
+				searchElement = computedAmounts[i];
+			}
+		}
+	}
+
+	return [candidatePools[searchindex], searchElement];
 };
