@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright © 2020 Lisk Foundation
  *
@@ -12,7 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { TokenModule, Transaction, ValidatorsModule, VerifyStatus } from 'lisk-framework';
+import {
+	FeeModule,
+	TokenModule,
+	Transaction,
+	ValidatorsModule,
+	VerifyStatus,
+} from 'lisk-framework';
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { testing } from 'lisk-sdk';
 import { DexModule } from '../../../../src/app/modules';
@@ -45,6 +52,7 @@ describe('dex:command:createPosition', () => {
 	let dexModule: DexModule;
 	let tokenModule: TokenModule;
 	let validatorModule: ValidatorsModule;
+	let feeModule: FeeModule;
 
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	let commandCreatePosition;
@@ -105,13 +113,14 @@ describe('dex:command:createPosition', () => {
 		dexModule = new DexModule();
 		tokenModule = new TokenModule();
 		validatorModule = new ValidatorsModule();
+		feeModule = new FeeModule();
 
 		tokenModule.method.mint = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.lock = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.unlock = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.transfer = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.getLockedAmount = jest.fn().mockResolvedValue(BigInt(1000));
-		dexModule.addDependencies(tokenModule.method, validatorModule.method);
+		dexModule.addDependencies(tokenModule.method, validatorModule.method, feeModule.method);
 		commandCreatePosition = dexModule.commands.find(e => e.name === 'createPosition');
 		commandCreatePosition.init({ tokenMethod: tokenModule.method });
 	});
@@ -120,7 +129,6 @@ describe('dex:command:createPosition', () => {
 		it.each(createPositionFixtures)('%s', async (...args) => {
 			const [_desc, input, err] = args;
 			const context = createTransactionContext({
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				transaction: new Transaction(input as any),
 			});
 
@@ -145,7 +153,6 @@ describe('dex:command:createPosition', () => {
 		beforeEach(async () => {
 			contextPosition = createTransactionContext({
 				stateStore,
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				transaction: new Transaction(createPositionFixtures[0][1] as any),
 			});
 
@@ -223,7 +230,6 @@ describe('dex:command:createPosition', () => {
 			function stress() {
 				contextPosition = createTransactionContext({
 					stateStore,
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 					transaction: new Transaction(createPositionFixtures[0][1] as any),
 				});
 				it('should call execute methods and emit events', async () => {

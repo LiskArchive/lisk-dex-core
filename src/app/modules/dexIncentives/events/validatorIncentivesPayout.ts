@@ -13,13 +13,13 @@
  */
 import { BaseEvent, EventQueuer } from 'lisk-sdk';
 
-export interface ValidatorTradeRewardsPayoutEventData {
+export interface ValidatorIncentivesPayoutEventData {
 	validatorAddress: Buffer;
 	amount: bigint;
 }
 
-export const ValidatorTradeRewardsPayoutEventSchema = {
-	$id: '/dex/events/validatorTradeRewardsPayout',
+export const validatorIncentivesPayoutSchema = {
+	$id: '/dex/events/validatorIncentivesPayout',
 	type: 'object',
 	required: ['amount'],
 	properties: {
@@ -30,10 +30,10 @@ export const ValidatorTradeRewardsPayoutEventSchema = {
 	},
 };
 
-export class ValidatorTradeRewardsPayoutEvent extends BaseEvent<ValidatorTradeRewardsPayoutEventData> {
-	public schema = ValidatorTradeRewardsPayoutEventSchema;
+export class ValidatorIncentivesPayout extends BaseEvent<ValidatorIncentivesPayoutEventData> {
+	public schema = validatorIncentivesPayoutSchema;
 
-	public log(ctx: EventQueuer, data: ValidatorTradeRewardsPayoutEventData): void {
+	public log(ctx: EventQueuer, data: ValidatorIncentivesPayoutEventData): void {
 		this.add(ctx, data, [data.validatorAddress]);
 	}
 }

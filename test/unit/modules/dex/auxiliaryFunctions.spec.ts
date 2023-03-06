@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -36,7 +37,10 @@ import {
 	transferToPool,
 	transferPoolToPool,
 	transferToProtocolFeeAccount,
+	transferToValidatorLSKPool,
+	getLiquidityForAmount0,
 	updatePosition,
+	collectFeesAndIncentives,
 	getCredibleDirectPrice,
 	computeExceptionalRoute,
 	computeRegularRoute,
@@ -45,7 +49,13 @@ import {
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
 import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
-import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
+import {
+	numberToQ96,
+	q96ToBytes,
+	mulDivQ96,
+	roundDownQ96,
+	subQ96,
+} from '../../../../src/app/modules/dex/utils/q96';
 import { DexModule } from '../../../../src/app/modules';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import {
@@ -450,7 +460,6 @@ describe('dex:auxiliaryFunctions', () => {
 				token0Id,
 				token1Id,
 				q96ToBytes(
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 					BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings[0].feeTier, 0)),
 				),
 			];
@@ -466,5 +475,39 @@ describe('dex:auxiliaryFunctions', () => {
 				expect(res.toString()).toBe('79267784519130042428790663800');
 			});
 		});
+	});
+
+	it('transferToValidatorLSKPool', async () => {
+		await transferToValidatorLSKPool(tokenMethod, methodContext, senderAddress, BigInt(1));
+
+		expect(tokenMethod.transfer).toHaveBeenCalled();
+	});
+
+	it('collectFeesAndIncentives', async () => {
+		await collectFeesAndIncentives(
+			dexModule.events,
+			dexModule.stores,
+			tokenMethod,
+			methodContext,
+			positionId,
+		);
+		expect(tokenMethod.transfer).toHaveBeenCalled();
+	});
+
+	it('getLiquidityForAmount0', () => {
+		const lowerSqrtPrice = BigInt(10);
+		const upperSqrtPrice = BigInt(100);
+		const amount0 = BigInt(50);
+
+		const intermediate = mulDivQ96(lowerSqrtPrice, upperSqrtPrice, numberToQ96(BigInt(1)));
+		const result = mulDivQ96(
+			numberToQ96(amount0),
+			intermediate,
+			subQ96(upperSqrtPrice, lowerSqrtPrice),
+		);
+
+		const functionResult = getLiquidityForAmount0(lowerSqrtPrice, upperSqrtPrice, amount0);
+
+		expect(functionResult).toEqual(roundDownQ96(result));
 	});
 });

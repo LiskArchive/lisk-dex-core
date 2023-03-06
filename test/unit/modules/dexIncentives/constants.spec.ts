@@ -13,16 +13,16 @@
  */
 
 import {
-	ADDRESS_LIQUIDITY_PROVIDER_REWARDS_POOL,
-	ADDRESS_TRADER_REWARDS_POOL,
-	ADDRESS_VALIDATOR_REWARDS_POOL,
+	ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
+	ADDRESS_TRADER_INCENTIVES,
+	ADDRESS_VALIDATOR_INCENTIVES,
 	NUM_BYTES_ADDRESS,
-} from '../../../../src/app/modules/dexRewards/constants';
+} from '../../../../src/app/modules/dexIncentives/constants';
 
-describe('DexRewardsModule:constants', () => {
+describe('DexIncentivesModule:constants', () => {
 	it('should generate addresses', () => {
-		expect(ADDRESS_LIQUIDITY_PROVIDER_REWARDS_POOL).toHaveLength(NUM_BYTES_ADDRESS);
-		expect(ADDRESS_TRADER_REWARDS_POOL).toHaveLength(NUM_BYTES_ADDRESS);
-		expect(ADDRESS_VALIDATOR_REWARDS_POOL).toHaveLength(NUM_BYTES_ADDRESS);
+		expect(ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES).toHaveLength(NUM_BYTES_ADDRESS);
+		expect(ADDRESS_TRADER_INCENTIVES).toHaveLength(NUM_BYTES_ADDRESS);
+		expect(ADDRESS_VALIDATOR_INCENTIVES).toHaveLength(NUM_BYTES_ADDRESS);
 	});
 });
