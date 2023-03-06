@@ -41,9 +41,13 @@ import { Address, PoolID, PositionID } from '../../../../src/app/modules/dex/typ
 import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
-import { InMemoryPrefixedStateDB } from './inMemoryPrefixedStateDB';
 
-const { createBlockContext, createBlockHeaderWithDefaults, createTransactionContext } = testing;
+const {
+	createBlockContext,
+	createBlockHeaderWithDefaults,
+	createTransactionContext,
+	InMemoryPrefixedStateDB,
+} = testing;
 const { utils } = cryptography;
 
 const skipOnCI = process.env.CI ? describe.skip : describe;

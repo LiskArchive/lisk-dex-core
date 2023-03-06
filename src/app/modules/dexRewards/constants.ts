@@ -21,7 +21,7 @@ export const hexToBytes = hex => {
 	const bytes: number[] = [];
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 	for (let c = 0; c < hex.length; c += 2)
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument
 		bytes.push(parseInt(hex.substr(c, 2), 16));
 	return bytes;
 };

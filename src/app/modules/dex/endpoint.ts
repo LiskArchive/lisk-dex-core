@@ -230,7 +230,7 @@ export class DexEndpoint extends BaseEndpoint {
 
 	public async getLSKPrice(
 		tokenMethod: TokenMethod,
-		methodContext,
+		methodContext: ModuleEndpointContext,
 		tokenId: TokenID,
 	): Promise<bigint> {
 		let tokenRoute = await computeRegularRoute(methodContext, this.stores, tokenId, TOKEN_ID_LSK);
