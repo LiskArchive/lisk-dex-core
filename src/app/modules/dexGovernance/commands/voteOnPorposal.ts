@@ -40,7 +40,7 @@ import { sha256 } from '../../dexRewards/constants';
 import { numberToQ96, q96ToBytes } from '../../dex/utils/q96';
 import { ProposalVotedEvent } from '../events';
 import {
-	COMMAND_ID_VOTE_ON_PORPOSAL,
+	COMMAND_VOTE_ON_PORPOSAL,
 	LENGTH_ADDRESS,
 	MAX_NUM_RECORDED_VOTES,
 	PROPOSAL_STATUS_ACTIVE,
@@ -49,7 +49,7 @@ import { Vote, voteOnProposalParamsData } from '../types';
 import { addVotes } from '../utils/auxiliaryFunctions';
 
 export class VoteOnPorposalCommand extends BaseCommand {
-	public id = COMMAND_ID_VOTE_ON_PORPOSAL;
+	public id = COMMAND_VOTE_ON_PORPOSAL;
 	private _posEndpoint!: PoSEndpoint;
 	private _methodContext!: MethodContext;
 
@@ -115,10 +115,11 @@ export class VoteOnPorposalCommand extends BaseCommand {
 		const stakedAmount = (await this._posEndpoint.getLockedStakedAmount(moduleEndpointContext))
 			.amount;
 
-		if (!(await votesStoreInfo.get(methodContext, senderAddress))) {
+		try {
+			await votesStoreInfo.getKey(methodContext, [senderAddress]);
+		} catch (error) {
 			votesStoreInfo.set(methodContext, senderAddress, { voteInfos: [] });
 		}
-
 		const newVoteInfo: Vote = {
 			voteInfos: [
 				{
@@ -128,39 +129,34 @@ export class VoteOnPorposalCommand extends BaseCommand {
 				},
 			],
 		};
-		const { voteInfos } = await votesStoreInfo.get(methodContext, senderAddress);
+		const voteStore = await votesStoreInfo.get(methodContext, senderAddress);
+		const voteStoreInfos = voteStore.voteInfos;
 
-		for (let itr = 0; itr < voteInfos.length; itr += 1) {
-			if (voteInfos[itr]?.proposalIndex === index) {
+		for (let itr = 0; itr < voteStoreInfos.length; itr += 1) {
+			if (voteStoreInfos[itr]?.proposalIndex === index) {
 				addVotes(
 					methodContext,
 					this.stores.get(ProposalsStore),
 					index,
-					voteInfos[itr]!.amount,
-					voteInfos[itr]!.decision,
+					-voteStoreInfos[itr]!.amount,
+					voteStoreInfos[itr]!.decision,
 				);
-				votesStoreInfo.setKey(methodContext, [senderAddress], newVoteInfo);
+				[voteStoreInfos[itr]] = newVoteInfo.voteInfos;
+				await votesStoreInfo.set(methodContext, senderAddress, voteStore);
 				previousSavedStorescheck = true;
 			}
-			if (smallestproposalValue > voteInfos[itr]!.proposalIndex) {
-				smallestproposalValue = voteInfos[itr]!.proposalIndex;
+			if (smallestproposalValue > voteStoreInfos[itr]!.proposalIndex) {
+				smallestproposalValue = voteStoreInfos[itr]!.proposalIndex;
 				smallestproposalIndex = itr;
 			}
 		}
 
-		if (
-			!previousSavedStorescheck &&
-			(await votesStoreInfo.get(methodContext, senderAddress)).voteInfos.length <
-				MAX_NUM_RECORDED_VOTES
-		) {
-			(await votesStoreInfo.getKey(methodContext, [senderAddress])).voteInfos.push(
-				newVoteInfo.voteInfos[0],
-			);
+		if (!previousSavedStorescheck && voteStoreInfos.length < MAX_NUM_RECORDED_VOTES) {
+			voteStoreInfos.push(newVoteInfo.voteInfos[0]);
+			await votesStoreInfo.set(methodContext, senderAddress, voteStore);
 		} else if (!previousSavedStorescheck) {
-			[(await votesStoreInfo.get(methodContext, senderAddress)).voteInfos[smallestproposalIndex]] =
-				newVoteInfo.voteInfos;
+			[voteStoreInfos[smallestproposalIndex]] = newVoteInfo.voteInfos;
 		}
-
 		addVotes(
 			methodContext,
 			this.stores.get(ProposalsStore),
@@ -168,6 +164,7 @@ export class VoteOnPorposalCommand extends BaseCommand {
 			BigInt(stakedAmount),
 			ctx.params.decision,
 		);
+
 		this.events.get(ProposalVotedEvent).add(
 			methodContext,
 			{

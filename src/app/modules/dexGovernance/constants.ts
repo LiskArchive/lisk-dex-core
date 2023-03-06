@@ -52,4 +52,4 @@ export const DECISION_PASS = 2; // Code for the vote decision "Pass".
 
 export const defaultConfig = {};
 
-export const COMMAND_ID_VOTE_ON_PORPOSAL = Buffer.from('0002', 'hex');
+export const COMMAND_VOTE_ON_PORPOSAL = 'voteOnProposal';

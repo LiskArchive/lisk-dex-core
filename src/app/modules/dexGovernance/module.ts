@@ -57,12 +57,9 @@ export class DexGovernanceModule extends BaseModule {
 	public _posEndpoint!: PoSEndpoint;
 	public _methodContext!: PoSEndpoint;
 
-	private readonly __createvoteOnPorposalCommand = new VoteOnPorposalCommand(
-		this.stores,
-		this.events,
-	);
+	private readonly __voteOnPorposalCommand = new VoteOnPorposalCommand(this.stores, this.events);
 
-	public commands = [this.__createvoteOnPorposalCommand];
+	public commands = [this.__voteOnPorposalCommand];
 
 	public constructor() {
 		super();
@@ -130,7 +127,7 @@ export class DexGovernanceModule extends BaseModule {
 		const { moduleConfig } = args;
 		this._moduleConfig = utils.objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfig;
 
-		this.__createvoteOnPorposalCommand.init({
+		this.__voteOnPorposalCommand.init({
 			posEndpoint: this._posEndpoint,
 			methodContext: this._methodContext,
 		});

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright © 2020 Lisk Foundation
  *
@@ -37,8 +38,8 @@ import {
 	PROPOSAL_STATUS_ACTIVE,
 	PROPOSAL_TYPE_INCENTIVIZATION,
 } from '../../../../src/app/modules/dexGovernance/constants';
+import { Proposal } from '../../../../src/app/modules/dexGovernance/types';
 import { sha256 } from '../../../../src/app/modules/dexRewards/constants';
-import { Proposal, Vote } from '../../../../src/app/modules/dexGovernance/types';
 
 const { createTransactionContext, InMemoryPrefixedStateDB } = testing;
 const { utils } = cryptography;
@@ -53,6 +54,7 @@ describe('dexGovernance:command:voteOnPorposal', () => {
 	const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	let votesStore: VotesStore;
 	let proposalsStore: ProposalsStore;
+	let verificationKey;
 
 	let methodContext = createMethodContext({
 		contextStore: new Map(),
@@ -75,15 +77,6 @@ describe('dexGovernance:command:voteOnPorposal', () => {
 		dexGovernanceModule.name,
 	);
 
-	const vote: Vote = {
-		voteInfos: [
-			{
-				proposalIndex: 1,
-				decision: 1,
-				amount: BigInt(5),
-			},
-		],
-	};
 	const proposal: Proposal = {
 		creationHeight: 1,
 		votesYes: BigInt(200),
@@ -105,9 +98,6 @@ describe('dexGovernance:command:voteOnPorposal', () => {
 	};
 	const indexBuffer = Buffer.alloc(4);
 	indexBuffer.writeUInt32BE(1, 0);
-
-	const key = sha256(senderAddress.toString()).slice(0, LENGTH_ADDRESS);
-
 	tokenMethod.transfer = transferMock;
 	tokenMethod.lock = lockMock;
 	tokenMethod.unlock = unlockMock;
@@ -117,9 +107,6 @@ describe('dexGovernance:command:voteOnPorposal', () => {
 
 		votesStore = dexGovernanceModule.stores.get(VotesStore);
 		proposalsStore = dexGovernanceModule.stores.get(ProposalsStore);
-
-		await votesStore.set(methodContext, key, vote);
-		await votesStore.set(methodContext, senderAddress, vote);
 		await proposalsStore.set(methodContext, indexBuffer, proposal);
 
 		tokenMethod.transfer = transferMock;
@@ -127,6 +114,8 @@ describe('dexGovernance:command:voteOnPorposal', () => {
 		tokenMethod.unlock = unlockMock;
 		tokenMethod.getAvailableBalance = jest.fn().mockReturnValue(BigInt(500000));
 		posEndpoint.getLockedStakedAmount = getLockedStakedAmountMock.mockReturnValue({ amount: 5 });
+
+		verificationKey = sha256(senderAddress.toString()).slice(0, LENGTH_ADDRESS);
 
 		command.init({
 			posEndpoint,
@@ -212,7 +201,7 @@ describe('dexGovernance:command:voteOnPorposal', () => {
 			stateStore,
 			eventQueue: blockAfterExecuteContext.eventQueue,
 		});
-		it('execute block should pass', async () => {
+		it('Cast a vote with x tokens and decision No', async () => {
 			await expect(
 				command.execute({
 					contextStore: new Map(),
@@ -242,11 +231,70 @@ describe('dexGovernance:command:voteOnPorposal', () => {
 					}),
 				}),
 			).resolves.toBeUndefined();
+
+			const dexGovernanceStore = dexGovernanceModule.stores.get(ProposalsStore);
+			const votesStoreData = await votesStore.getKey(methodContext, [verificationKey]);
+			expect((await dexGovernanceStore.getKey(methodContext, [indexBuffer])).votesNo).toBe(
+				BigInt(105),
+			);
+			expect((await dexGovernanceStore.getKey(methodContext, [indexBuffer])).votesYes).toBe(
+				BigInt(200),
+			);
+			expect(votesStoreData.voteInfos.length).toBeGreaterThan(0);
+
 			const events = blockAfterExecuteContext.eventQueue.getEvents();
 			const validatorRemoveLiquidityEvents = events.filter(
 				e => e.toObject().name === 'proposalVoted',
 			);
 			expect(validatorRemoveLiquidityEvents).toHaveLength(1);
+		});
+
+		it('Cast a vote with x tokens and decision Yes', async () => {
+			await expect(
+				command.execute({
+					contextStore: new Map(),
+					stateStore,
+					chainID: utils.getRandomBytes(32),
+					params: {
+						proposalIndex,
+						decision: 0,
+					},
+					logger: loggerMock,
+					header: createFakeBlockHeader(),
+					eventQueue: blockAfterExecuteContext.eventQueue,
+					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+					getMethodContext: () => methodContext,
+					assets: { getAsset: jest.fn() },
+					transaction: new Transaction({
+						module: 'dex',
+						command: 'voteOnPorposal',
+						fee: BigInt(5000000),
+						nonce: BigInt(0),
+						senderPublicKey: senderAddress,
+						params: codec.encode(voteOnProposalParamsSchema, {
+							proposalIndex,
+							decision: 0,
+						}),
+						signatures: [utils.getRandomBytes(64)],
+					}),
+				}),
+			).resolves.toBeUndefined();
+
+			const dexGovernanceStore = dexGovernanceModule.stores.get(ProposalsStore);
+			const votesStoreData = await votesStore.getKey(methodContext, [verificationKey]);
+			expect((await dexGovernanceStore.getKey(methodContext, [indexBuffer])).votesNo).toBe(
+				BigInt(95),
+			);
+			expect((await dexGovernanceStore.getKey(methodContext, [indexBuffer])).votesYes).toBe(
+				BigInt(205),
+			);
+
+			const events = blockAfterExecuteContext.eventQueue.getEvents();
+			const validatorRemoveLiquidityEvents = events.filter(
+				e => e.toObject().name === 'proposalVoted',
+			);
+			expect(validatorRemoveLiquidityEvents).toHaveLength(2);
+			expect(votesStoreData.voteInfos.length).toBeGreaterThan(0);
 		});
 	});
 });
