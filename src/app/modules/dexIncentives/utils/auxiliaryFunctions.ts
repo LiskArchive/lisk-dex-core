@@ -5,6 +5,7 @@
 /* eslint-disable  @typescript-eslint/no-floating-promises */
 /* eslint-disable  @typescript-eslint/no-inferrable-types */
 /* eslint-disable  @typescript-eslint/require-await */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -116,7 +117,7 @@ export const transferValidatorIncentives = async (
 	);
 	posMethod.updateSharedRewards(methodContext, validatorAddress, TOKEN_ID_LSK, amount);
 	events.get(ValidatorIncentivesPayout).add(methodContext, {
-		amount: amount,
+		amount,
 	});
 };
 
@@ -136,7 +137,7 @@ export const getLiquidityIncentivesAtHeight = (height: number): bigint => {
 	return BigInt('200000000');
 };
 
-export const getLPIncentiveInRange = (startHeight: number, endHeight: number): BigInt => {
+export const getLPIncentiveInRange = (startHeight: number, endHeight: number): bigint => {
 	if (endHeight < startHeight) {
 		throw new Error();
 	}

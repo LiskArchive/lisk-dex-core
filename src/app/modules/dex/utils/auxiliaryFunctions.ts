@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -228,12 +229,8 @@ export const collectFeesAndIncentives = async (
 	const positionInfo = await positionsStore.get(methodContext, positionID);
 	const ownerAddress = await getOwnerAddressOfPosition(methodContext, positionsStore, positionID);
 
-	const [
-		collectedFees0,
-		collectedFees1,
-		feeGrowthInside0,
-		feeGrowthInside1,
-	] = await computeCollectableFees(stores, methodContext, positionID);
+	const [collectedFees0, collectedFees1, feeGrowthInside0, feeGrowthInside1] =
+		await computeCollectableFees(stores, methodContext, positionID);
 
 	if (collectedFees0 > 0) {
 		await transferFromPool(
