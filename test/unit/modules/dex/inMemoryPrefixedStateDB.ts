@@ -39,6 +39,10 @@ export class InMemoryPrefixedStateDB {
 		return this._db.del(key);
 	}
 
+	public async close() {
+
+	}
+
 	public async range(options?: IterateOptions): Promise<{ key: Buffer; value: Buffer }[]> {
 		const stream = this._db.iterate(options);
 
@@ -65,5 +69,5 @@ export class InMemoryPrefixedStateDB {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public restoreSnapshot(): void {}
+	public restoreSnapshot(): void { }
 }

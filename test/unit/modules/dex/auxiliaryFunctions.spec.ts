@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -408,7 +409,7 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('priceToTick', () => {
-			expect(priceToTick(tickToPrice(-735247))).toEqual(-735247);
+			expect(priceToTick(tickToPrice(-735247))).toBe(-735247);
 		});
 
 		it('poolExists', async () => {
