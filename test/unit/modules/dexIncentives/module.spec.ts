@@ -64,10 +64,11 @@ describe('DexIncentivesModule', () => {
 		randomModule.method.isSeedRevealValid = jest
 			.fn()
 			.mockImplementation(async () => Promise.resolve(true));
+		posModule.method.updateSharedRewards = jest.fn().mockImplementation(() => true);
 
 		const sampleValidator: Validator = {
 			address: Buffer.from([]),
-			bftWeight: BigInt(0),
+			bftWeight: BigInt(5),
 			generatorKey: Buffer.from([]),
 			blsKey: Buffer.from([]),
 		};
@@ -109,62 +110,28 @@ describe('DexIncentivesModule', () => {
 			return expect(dexIncentivesModule.initGenesisState?.(context)).toBeUndefined();
 		});
 
-		const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
-		const blockAfterExecuteContext = createBlockContext({
-			header: blockHeader,
-		}).getBlockAfterExecuteContext();
-
 		it(`should call token methods and emit events`, async () => {
+			const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
+			const blockAfterExecuteContext = createBlockContext({
+				header: blockHeader,
+			}).getBlockAfterExecuteContext();
+
 			await dexIncentivesModule.afterTransactionsExecute(blockAfterExecuteContext);
-			expect(dexIncentivesModule._tokenMethod.mint).toHaveBeenCalledTimes(3);
-			// expect(dexIncentivesModule._tokenMethod.lock).toHaveBeenCalledTimes(2);
-			// expect(dexIncentivesModule._tokenMethod.unlock).toHaveBeenCalledTimes(1);
-			// expect(dexIncentivesModule._tokenMethod.transfer).toHaveBeenCalledTimes(101);
+			expect(dexIncentivesModule._tokenMethod.mint).toHaveBeenCalledTimes(1);
+			expect(dexIncentivesModule._tokenMethod.lock).toHaveBeenCalledTimes(2);
+			expect(dexIncentivesModule._tokenMethod.unlock).toHaveBeenCalledTimes(1);
+			expect(dexIncentivesModule._tokenMethod.transfer).toHaveBeenCalledTimes(101);
 
-			// const events = blockAfterExecuteContext.eventQueue.getEvents();
-			// const validatorTradeIncentivesPayoutEvents = events.filter(
-			// 	e => e.toObject().name === 'validatorTradeIncentivesPayout',
-			// );
-			// expect(validatorTradeIncentivesPayoutEvents).toHaveLength(101);
+			const events = blockAfterExecuteContext.eventQueue.getEvents();
+			const validatorTradeIncentivesPayoutEvents = events.filter(
+				e => e.toObject().name === 'validatorTradeIncentivesPayout',
+			);
+			expect(validatorTradeIncentivesPayoutEvents).toHaveLength(0);
 
-			// const generatorIncentiveMintedEvents = events.filter(
-			// 	e => e.toObject().name === 'generatorIncentiveMinted',
-			// );
-			// expect(generatorIncentiveMintedEvents).toHaveLength(1);
+			const generatorIncentiveMintedEvents = events.filter(
+				e => e.toObject().name === 'generatorIncentiveMinted',
+			);
+			expect(generatorIncentiveMintedEvents).toHaveLength(0);
 		});
 	});
-
-	// describe('initGenesisState', () => {
-	// 	// eslint-disable-next-line @typescript-eslint/require-await
-	// 	it('should setup initial state', async () => {
-	// 		const context = createGenesisBlockContext({}).createInitGenesisStateContext();
-	// 		return expect(dexIncentivesModule.initGenesisState?.(context)).toBeUndefined();
-	// 	});
-	// });
-
-	// describe('afterTransactionsExecute', () => {
-	// 	const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
-	// 	const blockAfterExecuteContext = createBlockContext({
-	// 		header: blockHeader,
-	// 	}).getBlockAfterExecuteContext();
-
-	// 	it(`should call token methods and emit events`, async () => {
-	// 		await dexIncentivesModule.afterTransactionsExecute(blockAfterExecuteContext);
-	// 		expect(dexIncentivesModule._tokenMethod.mint).toHaveBeenCalledTimes(3);
-	// 		expect(dexIncentivesModule._tokenMethod.lock).toHaveBeenCalledTimes(2);
-	// 		expect(dexIncentivesModule._tokenMethod.unlock).toHaveBeenCalledTimes(1);
-	// 		expect(dexIncentivesModule._tokenMethod.transfer).toHaveBeenCalledTimes(101);
-
-	// 		const events = blockAfterExecuteContext.eventQueue.getEvents();
-	// 		const validatorTradeIncentivesPayoutEvents = events.filter(
-	// 			e => e.toObject().name === 'validatorTradeIncentivesPayout',
-	// 		);
-	// 		expect(validatorTradeIncentivesPayoutEvents).toHaveLength(101);
-
-	// 		const generatorIncentiveMintedEvents = events.filter(
-	// 			e => e.toObject().name === 'generatorIncentiveMinted',
-	// 		);
-	// 		expect(generatorIncentiveMintedEvents).toHaveLength(1);
-	// 	});
-	// });
 });

@@ -62,5 +62,10 @@ export const INCENTIVE_REDUCTION_MAX_PREVOTES = 2; // Return code for block ince
 export const INCENTIVE_REDUCTION_FACTOR_BFT = BigInt(4); // The reduction factor for validator block incentive in case when the block header does not imply the maximal number of prevotes.
 export const EPOCH_LENGTH_INCENTIVE_REDUCTION = BigInt('30000000'); // The duration of the epoch after which liquidity incentives decrease
 export const EVENT_NAME_VALIDATOR_INCENTIVES_PAYOUT = 'validatorIncentivesPayout';
+export const BLOCK_INCENTIVE_LIQUIDITY_PROVIDERS = BigInt('90000000'); // Amount of liquidity provider rewards per block, in DEX native token.
+export const BLOCK_INCENTIVE_TRADERS = BigInt('60000000'); // Amount of trader rewards per block, in DEX native token.
+export const BLOCK_INCENTIVE_VALIDATORS = BigInt('150000000'); // Amount of validator rewards per block, in DEX native token.
+export const EVENT_NAME_VALIDATOR_TRADE_REWARDS_PAYOUT = 'validatorTradeRewardsPayout'; // Name of the validator trade rewards payout event.
+export const EVENT_NAME_GENERATOR_REWARDS_PAYOUT = 'generatorRewardsPayout'; // Name of the generator rewards payout event.
 
 export const defaultConfig = {};
