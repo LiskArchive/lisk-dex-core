@@ -60,7 +60,6 @@ export class CreatePorposalCommand extends BaseCommand {
 	private _posEndpoint!: PoSEndpoint;
 	private _feeMethod!: FeeMethod;
 
-
 	public init({ tokenMethod, posEndpoint, feeMethod }): void {
 		this._tokenMethod = tokenMethod;
 		this._posEndpoint = posEndpoint;
@@ -71,7 +70,6 @@ export class CreatePorposalCommand extends BaseCommand {
 	public async verify(
 		ctx: CommandVerifyContext<CreateProposalParamsData>,
 	): Promise<VerificationResult> {
-		console.log(ctx)
 		const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		const senderAddress = sha256(ctx.transaction.senderPublicKey.toString()).slice(
 			0,
@@ -81,16 +79,15 @@ export class CreatePorposalCommand extends BaseCommand {
 			stateStore,
 			params: { address: senderAddress },
 		});
-		
 
 		const methodContext = ctx.getMethodContext();
-		
+
 		const availableBalance = await this._tokenMethod.getAvailableBalance(
 			methodContext,
 			senderAddress,
 			TOKEN_ID_DEX_NATIVE,
 		);
-		
+
 		const lockedBalance = (await this._posEndpoint.getLockedStakedAmount(moduleEndpointContext))
 			.amount;
 
@@ -150,38 +147,32 @@ export class CreatePorposalCommand extends BaseCommand {
 		const methodContext = ctx.getMethodContext();
 
 		const indexStore = this.stores.get(IndexStore);
-		let newestIndexTemp = (await indexStore.get(methodContext, Buffer.from('0'))).newestIndex;
-
-		if (
-			!hasEnded(
-				methodContext,
-				this.stores.get(ProposalsStore),
-				newestIndexTemp - MAX_NUM_RECORDED_VOTES + 1,
-				ctx.header.height,
-				VOTE_DURATION,
-			)
-		) {
+		const newestIndexTemp = (await indexStore.get(methodContext, Buffer.from('0'))).newestIndex;
+		const hasEndedRes = await hasEnded(
+			methodContext,
+			this.stores.get(ProposalsStore),
+			newestIndexTemp - MAX_NUM_RECORDED_VOTES + 1,
+			ctx.header.height,
+			VOTE_DURATION,
+		);
+		if (!hasEndedRes) {
 			emitProposalCreationFailedEvent(methodContext, 0, this.events);
 			throw new Error('Limit of proposals with recoded votes is reached');
 		}
 
-	
-		
-	
-		
 		if (!(await endpoint.getPool(methodContext, ctx.params.content.poolID))) {
 			if (ctx.params.type === PROPOSAL_TYPE_INCENTIVIZATION) {
 				emitProposalCreationFailedEvent(methodContext, 0, this.events);
 				throw new Error('Limit of proposals with recoded votes is reached');
 			}
-		}		
+		}
 
 		this._feeMethod.payFee(methodContext, FEE_PROPOSAL_CREATION);
 		const index = newestIndexTemp + 1;
 		const currentHeight = ctx.header.height;
 		const indexBuffer = Buffer.alloc(4);
 		indexBuffer.writeUInt32BE(index, 0);
-		
+
 		const porposal = {
 			creationHeight: currentHeight,
 			votesYes: BigInt(0),
@@ -190,12 +181,10 @@ export class CreatePorposalCommand extends BaseCommand {
 			type: ctx.params.type,
 			content: ctx.params.content,
 			status: PROPOSAL_STATUS_ACTIVE,
-		}
+		};
 		const proposalsStore = this.stores.get(ProposalsStore);
-		await proposalsStore.set(methodContext,indexBuffer,porposal);
-		
-		newestIndexTemp = index;
-		
+		await proposalsStore.set(methodContext, indexBuffer, porposal);
+
 		this.events.get(ProposalCreatedEvent).add(
 			methodContext,
 			{

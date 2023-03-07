@@ -61,7 +61,6 @@ export class DexGovernanceModule extends BaseModule {
 	public _posEndpoint!: PoSEndpoint;
 	public _feeMethod!: FeeMethod;
 
-
 	private readonly __createPorposalCommand = new CreatePorposalCommand(this.stores, this.events);
 
 	public commands = [this.__createPorposalCommand];
@@ -123,7 +122,7 @@ export class DexGovernanceModule extends BaseModule {
 		};
 	}
 
-	public addDependencies(tokenMethod: TokenMethod, posMethod: PoSMethod, feeMethod:FeeMethod) {
+	public addDependencies(tokenMethod: TokenMethod, posMethod: PoSMethod, feeMethod: FeeMethod) {
 		this._tokenMethod = tokenMethod;
 		this._posMethod = posMethod;
 		this._feeMethod = feeMethod;
@@ -137,7 +136,7 @@ export class DexGovernanceModule extends BaseModule {
 		this.__createPorposalCommand.init({
 			tokenMethod: this._tokenMethod,
 			posEndpoint: this._posEndpoint,
-			feeMethod : this._feeMethod,
+			feeMethod: this._feeMethod,
 		});
 	}
 }
