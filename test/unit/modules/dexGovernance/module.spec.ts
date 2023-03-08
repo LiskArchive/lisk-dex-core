@@ -40,7 +40,7 @@ describe('DexGovernanceModule', () => {
 		tokenModule.method.transfer = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.getLockedAmount = jest.fn().mockResolvedValue(BigInt(1000));
 
-		dexGovernanceModule.addDependencies(tokenModule.method, posModule.method);
+		dexGovernanceModule.addDependencies(tokenModule.method, posModule.method, feeMethod);
 	});
 
 	it('should inherit from BaseModule', () => {
