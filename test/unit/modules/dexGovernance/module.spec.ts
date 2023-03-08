@@ -20,16 +20,19 @@ import { DexGovernanceEndpoint } from '../../../../src/app/modules/dexGovernance
 import { MODULE_NAME_DEX_GOVERNANCE } from '../../../../src/app/modules/dexGovernance/constants';
 
 import { DexGovernanceMethod } from '../../../../src/app/modules/dexGovernance/method';
+import { FeeMethod } from 'lisk-framework';
 
 describe('DexGovernanceModule', () => {
 	let dexGovernanceModule: DexGovernanceModule;
 	let tokenModule: TokenModule;
 	let posModule: PoSModule;
+	let feeMethod: FeeMethod;
 
 	beforeEach(() => {
 		dexGovernanceModule = new DexGovernanceModule();
 		tokenModule = new TokenModule();
 		posModule = new PoSModule();
+		feeMethod = new FeeMethod(dexGovernanceModule.stores, dexGovernanceModule.events);
 
 		tokenModule.method.mint = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.lock = jest.fn().mockImplementation(async () => Promise.resolve());
