@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/member-ordering */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -71,14 +72,8 @@ export class CreatePositionCommand extends BaseCommand {
 			};
 		}
 
-		const {
-			tickLower,
-			tickUpper,
-			amount0Desired,
-			amount1Desired,
-			amount0Min,
-			amount1Min,
-		} = ctx.params;
+		const { tickLower, tickUpper, amount0Desired, amount1Desired, amount0Min, amount1Min } =
+			ctx.params;
 
 		if (MIN_TICK > tickLower || tickLower >= tickUpper || tickUpper > MAX_TICK) {
 			return {
@@ -95,10 +90,10 @@ export class CreatePositionCommand extends BaseCommand {
 		}
 
 		/*
-        TODO: Not yet implemented on SDK
-        if lastBlockheader.timestamp > ctx.params.maxTimestampValid:
-            raise Exception()        
-        */
+				TODO: Not yet implemented on SDK
+				if lastBlockheader.timestamp > ctx.params.maxTimestampValid:
+						raise Exception()        
+				*/
 
 		return {
 			status: VerifyStatus.OK,
@@ -107,15 +102,8 @@ export class CreatePositionCommand extends BaseCommand {
 
 	public async execute(ctx: CommandExecuteContext<CreatePositionParamsData>): Promise<void> {
 		const { senderAddress } = ctx.transaction;
-		const {
-			poolID,
-			tickLower,
-			tickUpper,
-			amount0Desired,
-			amount1Desired,
-			amount0Min,
-			amount1Min,
-		} = ctx.params;
+		const { poolID, tickLower, tickUpper, amount0Desired, amount1Desired, amount0Min, amount1Min } =
+			ctx.params;
 		const methodContext = ctx.getMethodContext();
 
 		const [positionCreationResult, positionID] = await createPosition(

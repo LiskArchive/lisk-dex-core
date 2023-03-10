@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -304,7 +305,7 @@ export class DexEndpoint extends BaseEndpoint {
 			tokenIdIn: string;
 			amountIn: bigint;
 			tokenIdOut: string;
-			minAmountOut: BigInt;
+			minAmountOut: bigInt;
 			swapRoute: string[];
 		}>(dryRunSwapExactInRequestSchema, moduleEndpointContext.params);
 

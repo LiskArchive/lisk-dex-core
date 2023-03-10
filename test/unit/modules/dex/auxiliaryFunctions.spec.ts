@@ -408,7 +408,7 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('priceToTick', () => {
-			expect(priceToTick(tickToPrice(-735247))).toEqual(-735247);
+			expect(priceToTick(tickToPrice(-735247))).toBe(-735247);
 		});
 
 		it('getAdjacent', async () => {
