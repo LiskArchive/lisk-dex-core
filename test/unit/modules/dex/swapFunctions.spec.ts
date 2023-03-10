@@ -322,38 +322,24 @@ describe('dex:swapFunctions', () => {
       expect(res[1]).toBe(BigInt(15));
     });
 
-    it("getRoute", async () => {
-      // const adjacentToken = Buffer.from('00000000000000000000000000000000', 'hex');
-      // console.log("adjacentToken", adjacentToken, token0Id, token1Id);
-      // const tokensArray = [token0Id, adjacentToken];
-      // const concatedTokenIDs = Buffer.concat(tokensArray);
-      // const tokenIDAndSettingsArray = [
-      //   concatedTokenIDs,
-      //   q96ToBytes(numberToQ96(BigInt(dexGlobalStoreData.poolCreationSettings[0].feeTier))),
-      // ];
-
-      // const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
-
-      // const potentialPoolId: Buffer = Buffer.concat(tokenIDAndSettingsArray);
-      // const poolIDAndTickID = Buffer.concat([potentialPoolId, tickToBytes(currentTick)]);
-
-      // await priceTicksStore.setKey(methodContext, [poolIDAndTickID], priceTicksStoreDataTickUpper);
-      // await poolsStore.set(methodContext, potentialPoolId, poolsStoreData);
-
-      //      const candidatePoolID = Buffer.from('00000001000000000000010000000000000000000000000000000064000000000000000000000000', 'hex');
-      //      const candidatePoolID1 = Buffer.from('00000000000000010000000000000000000000000000000000000000000000000000000000000000000000000001016464000000', 'hex');
-      //      await poolsStore.setKey(methodContext, [candidatePoolID], poolsStoreData);
-      //      await poolsStore.setKey(methodContext, [candidatePoolID1], poolsStoreData);
-
-      let res = await getRoute(
+    it("getRoute should return 0", async () => {
+			expect(await getRoute(
         moduleEndpointContext,
         dexModule.stores,
         token0Id,
         token1Id,
         BigInt(15),
         false
-      );
-      console.log(res);
-    });
+      ),).toHaveLength(0);
+
+			expect(await getRoute(
+        moduleEndpointContext,
+        dexModule.stores,
+        token0Id,
+        token1Id,
+        BigInt(15),
+        true
+      ),).toHaveLength(0);
+		});
   });
 });

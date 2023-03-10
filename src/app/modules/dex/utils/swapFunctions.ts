@@ -150,7 +150,6 @@ export const getAdjacent = async (
   const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
   const result: AdjacentEdgesInterface[] = [];
   const poolIDs = await endpoint.getAllPoolIDs(methodContext);
-  console.log("poolIDs: ", poolIDs);
   poolIDs.forEach(edge => {
     if (getToken0Id(edge).equals(vertex)) {
       result.push({ edge, vertex: getToken1Id(edge) });
@@ -298,18 +297,14 @@ export const computeExceptionalRoute = async (
     },
   ];
   const visited = [tokenIn];
-  console.log("tokenIn: ", tokenIn);
-  console.log("tokenOut: ", tokenOut);
   while (routes.length > 0) {
     const routeElement = routes.shift();
-    console.log("routeElement: ", routeElement);
     if (routeElement != null) {
       if (routeElement.endVertex.equals(tokenOut)) {
         routeElement.path.push(tokenOut);
         return routeElement.path;
       }
       const adjacent = await getAdjacent(methodContext, stores, routeElement.endVertex);
-      console.log("adjacent: ", adjacent);
       adjacent.forEach(adjacentEdge => {
         if (!visited.includes(adjacentEdge.vertex)) {
           if (routeElement != null) {
@@ -688,7 +683,6 @@ export const getRoute = async (
     return bestRoute;
   }
   const exceptionalRoute = await computeExceptionalRoute(methodContext, stores, tokenIn, tokenOut);
-  console.log("exceptionalRoute: ", exceptionalRoute);
   if (exceptionalRoute.length === 0 || exceptionalRoute.length > MAX_HOPS_SWAP) {
     return [];
   }
@@ -715,7 +709,7 @@ export const getRoute = async (
         searchPool = candidatePool;
       }
     }
-    bestRoute.push(searchPool);
+		bestRoute.push(searchPool);
     poolTokenIn = exceptionalRt;
   }
 
