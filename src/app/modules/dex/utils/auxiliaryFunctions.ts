@@ -49,8 +49,8 @@ import {
 	POSITION_UPDATE_FAILED_NOT_EXISTS,
 	POSITION_UPDATE_FAILED_NOT_OWNER,
 	TOKEN_ID_LSK,
-	TOKEN_ID_REWARDS,
-	ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL,
+	TOKEN_ID_INCENTIVES,
+	ADDRESS_LIQUIDITY_PROVIDERS_INCENTIVES_POOL,
 	MODULE_NAME_DEX,
 } from '../constants';
 
@@ -85,7 +85,7 @@ import {
 } from './math';
 import { FeesIncentivesCollectedEvent, PositionUpdateFailedEvent } from '../events';
 import { PriceTicksStoreData, tickToBytes } from '../stores/priceTicksStore';
-import { ADDRESS_VALIDATOR_REWARDS_POOL } from '../../dexRewards/constants';
+import { ADDRESS_VALIDATOR_INCENTIVES } from '../../dexIncentives/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
 import { PoolsStoreData } from '../stores/poolsStore';
 import { PositionsStoreData } from '../stores/positionsStore';
@@ -180,7 +180,7 @@ export const transferToValidatorLSKPool = async (
 	await tokenMethod.transfer(
 		methodContext,
 		senderAddress,
-		ADDRESS_VALIDATOR_REWARDS_POOL,
+		ADDRESS_VALIDATOR_INCENTIVES,
 		TOKEN_ID_LSK,
 		amount,
 	);
@@ -225,6 +225,78 @@ export const checkPositionExistenceAndOwnership = async (
 		);
 		throw new Error();
 	}
+};
+
+export const collectFeesAndIncentives = async (
+	events: NamedRegistry,
+	stores: NamedRegistry,
+	tokenMethod,
+	methodContext,
+	positionID: PositionID,
+): Promise<void> => {
+	const poolID = getPoolIDFromPositionID(positionID);
+	const positionsStore = stores.get(PositionsStore);
+	const dexGlobalStore = stores.get(DexGlobalStore);
+	const positionInfo = await positionsStore.get(methodContext, positionID);
+	const ownerAddress = await getOwnerAddressOfPosition(methodContext, positionsStore, positionID);
+
+	const [collectedFees0, collectedFees1, feeGrowthInside0, feeGrowthInside1] =
+		await computeCollectableFees(stores, methodContext, positionID);
+
+	if (collectedFees0 > 0) {
+		await transferFromPool(
+			tokenMethod,
+			methodContext,
+			poolID,
+			ownerAddress,
+			getToken0Id(poolID),
+			collectedFees0,
+		);
+	}
+	if (collectedFees1 > 0) {
+		await transferFromPool(
+			tokenMethod,
+			methodContext,
+			poolID,
+			ownerAddress,
+			getToken1Id(poolID),
+			collectedFees1,
+		);
+	}
+	positionInfo.feeGrowthInsideLast0 = q96ToBytes(feeGrowthInside0);
+	positionInfo.feeGrowthInsideLast1 = q96ToBytes(feeGrowthInside1);
+
+	await positionsStore.set(methodContext, positionID, positionInfo);
+	const [collectableFeesLSK, incentivesForPosition] = await computeCollectableIncentives(
+		dexGlobalStore,
+		tokenMethod,
+		methodContext,
+		positionID,
+		collectedFees0,
+		collectedFees1,
+	);
+
+	await tokenMethod.transfer(
+		methodContext,
+		ADDRESS_LIQUIDITY_PROVIDERS_INCENTIVES_POOL,
+		ownerAddress,
+		TOKEN_ID_INCENTIVES,
+		incentivesForPosition,
+	);
+	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.alloc(0));
+	dexGlobalStoreData.collectableLSKFees -= collectableFeesLSK;
+	await dexGlobalStore.set(methodContext, Buffer.alloc(0), dexGlobalStoreData);
+
+	events.get(FeesIncentivesCollectedEvent).log(methodContext, {
+		senderAddress: ownerAddress,
+		positionID,
+		collectedFees0,
+		tokenID0: getToken0Id(poolID),
+		collectedFees1,
+		tokenID1: getToken1Id(poolID),
+		collectedIncentives: incentivesForPosition,
+		tokenIDIncentives: TOKEN_ID_INCENTIVES,
+	});
 };
 
 export const computeCollectableFees = async (
@@ -279,8 +351,8 @@ export const computeCollectableIncentives = async (
 	const totalCollectableLSKFees = dexGlobalStoreData.collectableLSKFees;
 	const availableLPIncentives = await tokenMethod.getAvailableBalance(
 		methodContext,
-		ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL,
-		TOKEN_ID_REWARDS,
+		ADDRESS_LIQUIDITY_PROVIDERS_INCENTIVES_POOL,
+		TOKEN_ID_INCENTIVES,
 	);
 	const incentivesForPosition =
 		(availableLPIncentives * collectableFeesLSK) / totalCollectableLSKFees;
@@ -701,78 +773,6 @@ export const updatePosition = async (
 	}
 
 	return [amount0, amount1];
-};
-
-export const collectFeesAndIncentives = async (
-	events: NamedRegistry,
-	stores: NamedRegistry,
-	tokenMethod,
-	methodContext,
-	positionID: PositionID,
-): Promise<void> => {
-	const poolID = getPoolIDFromPositionID(positionID);
-	const positionsStore = stores.get(PositionsStore);
-	const dexGlobalStore = stores.get(DexGlobalStore);
-	const positionInfo = await positionsStore.get(methodContext, positionID);
-	const ownerAddress = await getOwnerAddressOfPosition(methodContext, positionsStore, positionID);
-
-	const [collectedFees0, collectedFees1, feeGrowthInside0, feeGrowthInside1] =
-		await computeCollectableFees(stores, methodContext, positionID);
-
-	if (collectedFees0 > 0) {
-		await transferFromPool(
-			tokenMethod,
-			methodContext,
-			poolID,
-			ownerAddress,
-			getToken0Id(poolID),
-			collectedFees0,
-		);
-	}
-	if (collectedFees1 > 0) {
-		await transferFromPool(
-			tokenMethod,
-			methodContext,
-			poolID,
-			ownerAddress,
-			getToken1Id(poolID),
-			collectedFees1,
-		);
-	}
-	positionInfo.feeGrowthInsideLast0 = q96ToBytes(feeGrowthInside0);
-	positionInfo.feeGrowthInsideLast1 = q96ToBytes(feeGrowthInside1);
-
-	await positionsStore.set(methodContext, positionID, positionInfo);
-	const [collectableFeesLSK, incentivesForPosition] = await computeCollectableIncentives(
-		dexGlobalStore,
-		tokenMethod,
-		methodContext,
-		positionID,
-		collectedFees0,
-		collectedFees1,
-	);
-
-	await tokenMethod.transfer(
-		methodContext,
-		ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL,
-		ownerAddress,
-		TOKEN_ID_REWARDS,
-		incentivesForPosition,
-	);
-	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.alloc(0));
-	dexGlobalStoreData.collectableLSKFees -= collectableFeesLSK;
-	await dexGlobalStore.set(methodContext, Buffer.alloc(0), dexGlobalStoreData);
-
-	events.get(FeesIncentivesCollectedEvent).log(methodContext, {
-		senderAddress: ownerAddress,
-		positionID,
-		collectedFees0,
-		tokenID0: getToken0Id(poolID),
-		collectedFees1,
-		tokenID1: getToken1Id(poolID),
-		collectedIncentives: incentivesForPosition,
-		tokenIDIncentives: TOKEN_ID_REWARDS,
-	});
 };
 
 export const addPoolCreationSettings = async (

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { sha256 } from '../dexRewards/constants';
+import { sha256 } from '../dexIncentives/constants';
 import { Q96 } from './types';
 
 export const NUM_BYTES_ADDRESS = 20; // The number of bytes of an address (uint32)
@@ -21,6 +21,7 @@ export const MAX_UINT_32 = 4294967295;
 export const MAX_UINT_64 = BigInt('18446744073709551615');
 
 // DEX Module Constants
+export const VALIDATORS_LSK_INCENTIVE_PART = 200000; // The portion of LSK swap fees that are paid to the validators, in parts-per-million.
 export const MODULE_ID_DEX = Buffer.from('0000', 'hex'); // TBA	ID of the DEX module (bytes)
 export const MODULE_NAME_DEX = 'dex';
 export const NFT_COLLECTION_DEX = Buffer.from('0000', 'hex'); // The collection of the NFTs created for every position. (bytes)
@@ -95,9 +96,9 @@ export const POSITION_UPDATE_FAILED_NOT_EXISTS = 1; // Return code for failed po
 export const POSITION_UPDATE_FAILED_NOT_OWNER = 2; // Return code for failed position update as position owner is different from transaction sender. |
 export const POSITION_UPDATE_FAILED_INSUFFICIENT_LIQUIDITY = 3; // Return code for failed position update as transaction sender is not position owner. |
 export const TOKEN_ID_LSK = Buffer.from('0000000100000000', 'hex'); // The token ID of the LSK token.           |
-export const TOKEN_ID_REWARDS = Buffer.from('0000000100000000', 'hex'); // The token ID of the token used for liquidity provider incentives.           |
+export const TOKEN_ID_INCENTIVES = Buffer.from('0000000100000000', 'hex'); // The token ID of the token used for liquidity provider incentives.           |
 
-export const ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL = Buffer.from([]);
+export const ADDRESS_LIQUIDITY_PROVIDERS_INCENTIVES_POOL = Buffer.from([]);
 
 export const defaultConfig = {
 	feeTiers: {
@@ -114,7 +115,6 @@ export const ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES = sha256(
 ).slice(0, NUM_BYTES_ADDRESS);
 export const FEE_TIER_PARTITION = 1000000;
 export const ADDRESS_VALIDATOR_INCENTIVES = sha256('validatorIncentivesAccount').slice(0, 20);
-export const VALIDATORS_LSK_INCENTIVE_PART = 20000;
 // Swap Constants
 
 export enum SwapFailedReasons {

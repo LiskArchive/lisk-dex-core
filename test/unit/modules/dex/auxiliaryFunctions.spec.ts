@@ -37,19 +37,28 @@ import {
 	transferToPool,
 	transferPoolToPool,
 	transferToProtocolFeeAccount,
+	transferToValidatorLSKPool,
+	getLiquidityForAmount0,
 	updatePosition,
-	poolExists,
-	addPoolCreationSettings,
+	collectFeesAndIncentives,
 	computeExceptionalRoute,
 	computeRegularRoute,
 	getAdjacent,
+	poolExists,
+	addPoolCreationSettings,
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { getCredibleDirectPrice } from '../../../../src/app/modules/dex/utils/tokenEcnomicsFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
 import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
-import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
+import {
+	numberToQ96,
+	q96ToBytes,
+	mulDivQ96,
+	roundDownQ96,
+	subQ96,
+} from '../../../../src/app/modules/dex/utils/q96';
 import { DexModule } from '../../../../src/app/modules';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import {
@@ -487,5 +496,39 @@ describe('dex:auxiliaryFunctions', () => {
 
 		expect(settingGlobalStoreData.poolCreationSettings[0].feeTier).toEqual(feeTier);
 		expect(settingGlobalStoreData.poolCreationSettings[0].feeTier).toEqual(tickSpacing);
+	});
+
+	it('transferToValidatorLSKPool', async () => {
+		await transferToValidatorLSKPool(tokenMethod, methodContext, senderAddress, BigInt(1));
+
+		expect(tokenMethod.transfer).toHaveBeenCalled();
+	});
+
+	it('collectFeesAndIncentives', async () => {
+		await collectFeesAndIncentives(
+			dexModule.events,
+			dexModule.stores,
+			tokenMethod,
+			methodContext,
+			positionId,
+		);
+		expect(tokenMethod.transfer).toHaveBeenCalled();
+	});
+
+	it('getLiquidityForAmount0', () => {
+		const lowerSqrtPrice = BigInt(10);
+		const upperSqrtPrice = BigInt(100);
+		const amount0 = BigInt(50);
+
+		const intermediate = mulDivQ96(lowerSqrtPrice, upperSqrtPrice, numberToQ96(BigInt(1)));
+		const result = mulDivQ96(
+			numberToQ96(amount0),
+			intermediate,
+			subQ96(upperSqrtPrice, lowerSqrtPrice),
+		);
+
+		const functionResult = getLiquidityForAmount0(lowerSqrtPrice, upperSqrtPrice, amount0);
+
+		expect(functionResult).toEqual(roundDownQ96(result));
 	});
 });
