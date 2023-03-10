@@ -5,7 +5,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable no-param-reassign */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 
 /*
  * Copyright © 2022 Lisk Foundation
@@ -765,8 +764,7 @@ export const getOptimalSwapPool = async (
 				const amountOut = (await endpoint.dryRunSwapExactIn(methodContext))[1];
 				computedAmounts.push(amountOut);
 			} catch (error) {
-				// throw new Error(error);
-				// console.log(error);
+				throw new Error(error);
 			}
 		} else {
 			try {
@@ -780,8 +778,7 @@ export const getOptimalSwapPool = async (
 				const amountIn = (await endpoint.dryRunSwapExactOut(methodContext))[0];
 				computedAmounts.push(amountIn);
 			} catch (error) {
-				// throw new Error(error);
-				console.log(error);
+				throw new Error(error);
 			}
 		}
 	}

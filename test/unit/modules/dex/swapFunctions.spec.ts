@@ -2,6 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable jest/no-try-expect */
+
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -137,7 +139,7 @@ describe('dex:swapFunctions', () => {
 			try {
 				raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress);
 			} catch (error) {
-				// expect(error.message).toBe('SwapFailedEvent');
+				expect(error.message).toBe('SwapFailedEvent');
 				const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
 				expect(swapFailedEvent).toHaveLength(1);
 			}

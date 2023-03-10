@@ -3,7 +3,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
 /* eslint-disable @typescript-eslint/member-ordering */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Flags as flagParser } from '@oclif/core';
 import { FlagInput } from '@oclif/core/lib/interfaces';
 import { BaseStartCommand } from 'lisk-commander';
