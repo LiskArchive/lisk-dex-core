@@ -3,7 +3,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable no-param-reassign */
+
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -64,6 +66,8 @@ import {
   NUM_BYTES_POOL_ID,
   TOKEN_ID_LSK,
   VALIDATORS_LSK_INCENTIVE_PART,
+  MAX_UINT_64,
+  MAX_HOPS_SWAP
 } from '../constants';
 import { DexGlobalStore, PriceTicksStore } from '../stores';
 import { tickToBytes } from '../stores/priceTicksStore';
@@ -146,6 +150,7 @@ export const getAdjacent = async (
   const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
   const result: AdjacentEdgesInterface[] = [];
   const poolIDs = await endpoint.getAllPoolIDs(methodContext);
+  console.log("poolIDs: ", poolIDs);
   poolIDs.forEach(edge => {
     if (getToken0Id(edge).equals(vertex)) {
       result.push({ edge, vertex: getToken1Id(edge) });
@@ -293,14 +298,18 @@ export const computeExceptionalRoute = async (
     },
   ];
   const visited = [tokenIn];
+  console.log("tokenIn: ", tokenIn);
+  console.log("tokenOut: ", tokenOut);
   while (routes.length > 0) {
     const routeElement = routes.shift();
+    console.log("routeElement: ", routeElement);
     if (routeElement != null) {
       if (routeElement.endVertex.equals(tokenOut)) {
         routeElement.path.push(tokenOut);
         return routeElement.path;
       }
       const adjacent = await getAdjacent(methodContext, stores, routeElement.endVertex);
+      console.log("adjacent: ", adjacent);
       adjacent.forEach(adjacentEdge => {
         if (!visited.includes(adjacentEdge.vertex)) {
           if (routeElement != null) {
@@ -450,7 +459,9 @@ export const swap = async (
   const dexModule = new DexModule();
   const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
   const feeTier = endpoint.getFeeTier(poolID);
+
   const poolInfo = await endpoint.getPool(methodContext, poolID);
+
   const priceTicksStore = stores.get(PriceTicksStore);
 
   let poolSqrtPriceQ96 = bytesToQ96(poolInfo.sqrtPrice);
@@ -491,11 +502,9 @@ export const swap = async (
       throw new Error('Crossed too many ticks');
     }
     const currentTick = priceToTick(poolSqrtPriceQ96);
-
     if (await endpoint.getTickWithPoolIdAndTickValue(methodContext, poolID, currentTick)) {
       tickExist = true;
     }
-
     if (
       zeroToOne &&
       tickExist &&
@@ -639,6 +648,8 @@ export const getRoute = async (
 ): Promise<TokenID[]> => {
   let bestRoute: Buffer[] = [];
   const regularRoute = await computeRegularRoute(methodContext, stores, tokenIn, tokenOut);
+  const dexModule = new DexModule();
+  const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
   if (regularRoute.length > 0) {
     if (exactIn) {
       let poolTokenIn = tokenIn;
@@ -677,6 +688,7 @@ export const getRoute = async (
     return bestRoute;
   }
   const exceptionalRoute = await computeExceptionalRoute(methodContext, stores, tokenIn, tokenOut);
+  console.log("exceptionalRoute: ", exceptionalRoute);
   if (exceptionalRoute.length === 0 || exceptionalRoute.length > MAX_HOPS_SWAP) {
     return [];
   }
@@ -685,7 +697,7 @@ export const getRoute = async (
     const candidatePools: Buffer[] = [];
     const token0 = poolTokenIn.sort();
     const token1 = exceptionalRt.sort();
-    const dexGlobalData = await getDexGlobalData(methodContext, stores);
+    const dexGlobalData = await endpoint.getDexGlobalData(methodContext);
 
     for (const setting of dexGlobalData.poolCreationSettings) {
       const feeTierBuffer = Buffer.alloc(4);
@@ -697,7 +709,7 @@ export const getRoute = async (
     let maxLiquidity = BigInt(0);
     let searchPool;
     for (const candidatePool of candidatePools) {
-      const pool = await getPool(methodContext, stores, candidatePool);
+      const pool = await endpoint.getPool(methodContext, candidatePool);
       if (pool.liquidity > maxLiquidity) {
         maxLiquidity = pool.liquidity;
         searchPool = candidatePool;
@@ -708,4 +720,94 @@ export const getRoute = async (
   }
 
   return bestRoute;
+};
+export const getOptimalSwapPool = async (
+  methodContext,
+  stores: NamedRegistry,
+  tokenIn: TokenID,
+  tokenOut: TokenID,
+  amount: bigint,
+  exactIn: boolean,
+): Promise<[PoolID, bigint]> => {
+  let tokensArray = [tokenIn, tokenOut].sort((a, b) => (a < b ? -1 : 1));
+  const token0 = tokensArray[0];
+  const token1 = tokensArray[1];
+  const candidatePools: Buffer[] = [];
+  const dexModule = new DexModule();
+  const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+  const dexGlobalData = await endpoint.getDexGlobalData(methodContext);
+  let searchindex;
+  let searchElement;
+
+  for (const settings of dexGlobalData.poolCreationSettings) {
+    tokensArray = [token0, token1];
+    const concatedTokenIDs = Buffer.concat(tokensArray);
+    const tokenIDAndSettingsArray = [
+      concatedTokenIDs,
+      q96ToBytes(numberToQ96(BigInt(settings.feeTier))),
+    ];
+    const potentialPoolId: Buffer = Buffer.concat(tokenIDAndSettingsArray);
+    if (await endpoint.getPool(methodContext, potentialPoolId)) {
+      candidatePools.push(potentialPoolId);
+    }
+    if (candidatePools.length === 0) {
+      throw new Error('No pool swapping this pair of tokens');
+    }
+  }
+
+  const computedAmounts: bigint[] = [];
+
+  for (const pool of candidatePools) {
+    if (exactIn) {
+      try {
+        methodContext.params = {
+          tokenIdIn: tokenIn,
+          amountIn: amount,
+          tokenIdOut: tokenOut,
+          minAmountOut: BigInt(0),
+          swapRoute: [pool],
+        };
+        const amountOut = (await endpoint.dryRunSwapExactIn(methodContext))[1];
+        computedAmounts.push(amountOut);
+      } catch (error) {
+        // throw new Error(error);
+        console.log(error);
+      }
+    } else {
+      try {
+        methodContext.params = {
+          tokenIdIn: tokenIn,
+          maxAmountIn: MAX_UINT_64,
+          tokenIdOut: tokenOut,
+          amountOut: amount,
+          swapRoute: [pool],
+        };
+        const amountIn = (await endpoint.dryRunSwapExactOut(methodContext))[0];
+        computedAmounts.push(amountIn);
+      } catch (error) {
+        // throw new Error(error);
+        console.log(error);
+      }
+    }
+  }
+
+  if (exactIn) {
+    searchElement = BigInt(Number.MIN_SAFE_INTEGER);
+    for (let i = 0; i < computedAmounts.length; i += 1) {
+      if (computedAmounts[i] > searchElement) {
+        searchindex = i;
+        searchElement = computedAmounts[i];
+      }
+    }
+  } else {
+    searchElement = MAX_UINT_64;
+    for (let i = 0; i < computedAmounts.length; i += 1) {
+      if (computedAmounts[i] < searchElement) {
+        searchindex = i;
+        searchElement = computedAmounts[i];
+      }
+    }
+  }
+
+  return [candidatePools[searchindex], searchElement];
 };

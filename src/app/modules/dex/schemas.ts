@@ -1165,3 +1165,65 @@ export const swapWithPriceLimitCommandSchema = {
 		},
 	},
 };
+
+export const dryRunSwapExactInRequestSchema = {
+	$id: 'dex/dryRunSwapExactIn',
+	type: 'object',
+	required: ['tokenIdIn', 'amountIn', 'tokenIdOut', 'minAmountOut', 'swapRoute'],
+	properties: {
+		tokenIdIn: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+		amountIn: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+		tokenIdOut: {
+			dataType: 'bytes',
+			fieldNumber: 3,
+		},
+		minAmountOut: {
+			dataType: 'uint64',
+			fieldNumber: 4,
+		},
+		swapRoute: {
+			type: 'array',
+			fieldNumber: 5,
+			items: {
+				dataType: 'bytes',
+			},
+		},
+	},
+};
+
+export const dryRunSwapExactOutRequestSchema = {
+	$id: 'dex/dryRunSwapExactOut',
+	type: 'object',
+	required: ['tokenIdIn', 'maxAmountIn', 'tokenIdOut', 'amountOut', 'swapRoute'],
+	properties: {
+		tokenIdIn: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+		maxAmountIn: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+		tokenIdOut: {
+			dataType: 'bytes',
+			fieldNumber: 3,
+		},
+		amountOut: {
+			dataType: 'uint64',
+			fieldNumber: 4,
+		},
+		swapRoute: {
+			type: 'array',
+			fieldNumber: 5,
+			items: {
+				dataType: 'bytes',
+			},
+		},
+	},
+};

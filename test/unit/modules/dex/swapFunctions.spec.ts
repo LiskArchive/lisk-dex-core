@@ -31,9 +31,12 @@ import {
   swap,
   swapWithin,
   transferFeesFromPool,
+  getOptimalSwapPool,
+  getRoute,
+  raiseSwapException
 } from '../../../../src/app/modules/dex/utils/swapFunctions';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
-import { PoolID, TokenID } from '../../../../src/app/modules/dex/types';
+import { PoolID, TokenID, Address } from '../../../../src/app/modules/dex/types';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 import { bytesToQ96, numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
@@ -58,6 +61,7 @@ describe('dex:swapFunctions', () => {
   const poolIdLSK = Buffer.from('0000000100000000', 'hex');
   const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
   const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
+  const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
   const amount = 0;
   const sqrtCurrentPrice = BigInt(5);
   const sqrtTargetPrice = BigInt(10);
@@ -131,6 +135,15 @@ describe('dex:swapFunctions', () => {
       tokenMethod.lock = lockMock;
       tokenMethod.unlock = unlockMock;
     });
+    it('raiseSwapException', () => {
+      try {
+        raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress);
+      } catch (error) {
+        // expect(error.message).toBe('SwapFailedEvent');
+        const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
+        expect(swapFailedEvent).toHaveLength(1);
+      }
+    });
 
     it('swapWithin', () => {
       const [sqrtUpdatedPrice, amountIn, amountOut] = swapWithin(
@@ -150,13 +163,9 @@ describe('dex:swapFunctions', () => {
     });
 
     it('computeCurrentPrice', async () => {
-      const tempModuleEndpointContext = createTransientModuleEndpointContext({
-        stateStore,
-        params: { poolID },
-      });
       const swapRoute = [poolID];
       const currentPrice = await computeCurrentPrice(
-        tempModuleEndpointContext,
+        moduleEndpointContext,
         dexModule.stores,
         token0Id,
         token1Id,
@@ -272,6 +281,79 @@ describe('dex:swapFunctions', () => {
           10,
         ),
       ).toStrictEqual([BigInt(6), BigInt(5), BigInt(0), BigInt(0), 1]);
+    });
+
+    it('getOptimalSwapPool should return route with tokenID', async () => {
+      const tokensArray = [token0Id, token1Id];
+      const concatedTokenIDs = Buffer.concat(tokensArray);
+      const tokenIDAndSettingsArray = [
+        concatedTokenIDs,
+        q96ToBytes(numberToQ96(BigInt(dexGlobalStoreData.poolCreationSettings[0].feeTier))),
+      ];
+
+      const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
+
+      const potentialPoolId: Buffer = Buffer.concat(tokenIDAndSettingsArray);
+      const poolIDAndTickID = Buffer.concat([potentialPoolId, tickToBytes(currentTick)]);
+      await priceTicksStore.setKey(methodContext, [poolIDAndTickID], priceTicksStoreDataTickUpper);
+
+      await poolsStore.set(methodContext, potentialPoolId, poolsStoreData);
+      let res = await getOptimalSwapPool(
+        moduleEndpointContext,
+        dexModule.stores,
+        token0Id,
+        token1Id,
+        BigInt(10),
+        false,
+      );
+
+      expect(res[0]).toStrictEqual(potentialPoolId);
+      expect(res[1]).toBe(BigInt(10));
+
+      res = await getOptimalSwapPool(
+        moduleEndpointContext,
+        dexModule.stores,
+        token0Id,
+        token1Id,
+        BigInt(15),
+        true,
+      );
+      expect(res[0]).toStrictEqual(potentialPoolId);
+      expect(res[1]).toBe(BigInt(15));
+    });
+
+    it("getRoute", async () => {
+      // const adjacentToken = Buffer.from('00000000000000000000000000000000', 'hex');
+      // console.log("adjacentToken", adjacentToken, token0Id, token1Id);
+      // const tokensArray = [token0Id, adjacentToken];
+      // const concatedTokenIDs = Buffer.concat(tokensArray);
+      // const tokenIDAndSettingsArray = [
+      //   concatedTokenIDs,
+      //   q96ToBytes(numberToQ96(BigInt(dexGlobalStoreData.poolCreationSettings[0].feeTier))),
+      // ];
+
+      // const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
+
+      // const potentialPoolId: Buffer = Buffer.concat(tokenIDAndSettingsArray);
+      // const poolIDAndTickID = Buffer.concat([potentialPoolId, tickToBytes(currentTick)]);
+
+      // await priceTicksStore.setKey(methodContext, [poolIDAndTickID], priceTicksStoreDataTickUpper);
+      // await poolsStore.set(methodContext, potentialPoolId, poolsStoreData);
+
+      //      const candidatePoolID = Buffer.from('00000001000000000000010000000000000000000000000000000064000000000000000000000000', 'hex');
+      //      const candidatePoolID1 = Buffer.from('00000000000000010000000000000000000000000000000000000000000000000000000000000000000000000001016464000000', 'hex');
+      //      await poolsStore.setKey(methodContext, [candidatePoolID], poolsStoreData);
+      //      await poolsStore.setKey(methodContext, [candidatePoolID1], poolsStoreData);
+
+      let res = await getRoute(
+        moduleEndpointContext,
+        dexModule.stores,
+        token0Id,
+        token1Id,
+        BigInt(15),
+        false
+      );
+      console.log(res);
     });
   });
 });
