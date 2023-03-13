@@ -49,20 +49,6 @@ export class DexGovernanceModule extends BaseModule {
 
 	public metadata(): ModuleMetadata {
 		return {
-			stores: [
-				{
-					key: 'IndexStore',
-					data: indexSchema,
-				},
-				{
-					key: 'ProposalsStore',
-					data: proposalSchema,
-				},
-				{
-					key: 'VotesStore',
-					data: votesSchema,
-				},
-			],
 			endpoints: [],
 			commands: this.commands.map((command: BaseCommand) => ({
 				name: command.name,
@@ -73,6 +59,20 @@ export class DexGovernanceModule extends BaseModule {
 				data: v.schema,
 			})),
 			assets: [],
+			stores: [
+				{
+					key: IndexStore.name,
+					data: indexSchema,
+				},
+				{
+					key: ProposalsStore.name,
+					data: proposalSchema,
+				},
+				{
+					key: VotesStore.name,
+					data: votesSchema,
+				},
+			],
 		};
 	}
 

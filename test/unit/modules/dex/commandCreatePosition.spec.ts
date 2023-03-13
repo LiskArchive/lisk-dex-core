@@ -23,7 +23,6 @@ import {
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { testing } from 'lisk-sdk';
 import { DexModule } from '../../../../src/app/modules';
-import { MAX_TICK, MIN_TICK } from '../../../../src/app/modules/dex/constants';
 import { createPositionSchema } from '../../../../src/app/modules/dex/schemas';
 import { SettingsStore } from '../../../../src/app/modules/dex/stores';
 import {
@@ -60,7 +59,7 @@ describe('dex:command:createPosition', () => {
 	const poolsStoreData: PoolsStoreData = {
 		liquidity: BigInt(5),
 		sqrtPrice: q96ToBytes(BigInt('327099227039063106')),
-		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(1000))),
 		heightIncentivesUpdate: 5,
 		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
 		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(6))),
@@ -68,7 +67,7 @@ describe('dex:command:createPosition', () => {
 	};
 
 	const dexGlobalStoreData: DexGlobalStoreData = {
-		positionCounter: BigInt(10),
+		positionCounter: BigInt(15),
 		collectableLSKFees: BigInt(10),
 		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
 		incentivizedPools: [{ poolId, multiplier: 10 }],
@@ -101,11 +100,11 @@ describe('dex:command:createPosition', () => {
 	};
 
 	const positionsStoreData: PositionsStoreData = {
-		tickLower: MIN_TICK + 100,
-		tickUpper: MAX_TICK - 100,
-		liquidity: BigInt(2000000),
-		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(3))),
-		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(1))),
+		tickLower: -10,
+		tickUpper: 10,
+		liquidity: BigInt(1000),
+		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(0))),
+		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(0))),
 		ownerAddress: senderAddress,
 	};
 

@@ -105,7 +105,7 @@ describe('DexIncentivesModule', () => {
 			expect(dexIncentivesModule.method).toBeInstanceOf(DexIncentivesMethod);
 		});
 
-		it('should setup initial state', async () => {
+		it('should setup initial state', () => {
 			const context = createGenesisBlockContext({}).createInitGenesisStateContext();
 			return expect(dexIncentivesModule.initGenesisState?.(context)).toBeUndefined();
 		});

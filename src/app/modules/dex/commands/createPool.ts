@@ -142,6 +142,7 @@ export class CreatePoolCommand extends BaseCommand {
 			tokenID1,
 			feeTier,
 			initialSqrtPrice,
+			ctx.header.height,
 		);
 
 		if (result !== POOL_CREATION_SUCCESS) {

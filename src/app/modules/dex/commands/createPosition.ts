@@ -43,8 +43,8 @@ import {
 	getLiquidityForAmounts,
 	getToken0Id,
 	getToken1Id,
-	transferToValidatorLSKPool,
 	updatePosition,
+	transferToValidatorLSKPool,
 } from '../utils/auxiliaryFunctions';
 import { tickToPrice } from '../utils/math';
 import { bytesToQ96, q96ToInt } from '../utils/q96';
@@ -178,6 +178,7 @@ export class CreatePositionCommand extends BaseCommand {
 			throw new Error();
 		}
 
+		// TODO:
 		await transferToValidatorLSKPool(
 			this._tokenMethod,
 			methodContext,

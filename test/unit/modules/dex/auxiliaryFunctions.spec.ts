@@ -41,11 +41,14 @@ import {
 	getLiquidityForAmount0,
 	updatePosition,
 	collectFeesAndIncentives,
-	getCredibleDirectPrice,
 	computeExceptionalRoute,
 	computeRegularRoute,
 	getAdjacent,
+	poolExists,
+	addPoolCreationSettings,
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
+
+import { getCredibleDirectPrice } from '../../../../src/app/modules/dex/utils/tokenEcnomicsFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
 import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
@@ -270,7 +273,7 @@ describe('dex:auxiliaryFunctions', () => {
 
 		it('should return 0 as POOL_CREATION_SUCCESS', async () => {
 			expect(
-				await createPool(settings, methodContext, poolsStore, token0Id, token1Id, 0, sqrtPrice),
+				await createPool(settings, methodContext, poolsStore, token0Id, token1Id, 0, sqrtPrice, 10),
 			).toBe(0);
 		});
 
@@ -418,6 +421,11 @@ describe('dex:auxiliaryFunctions', () => {
 			expect(priceToTick(tickToPrice(-735247))).toBe(-735247);
 		});
 
+		it('poolExists', async () => {
+			const poolExistResult = await poolExists(methodContext, poolsStore, poolId);
+			const exists = await poolsStore.has(methodContext, poolId);
+			expect(poolExistResult).toEqual(exists);
+		});
 		it('getAdjacent', async () => {
 			const res = await getAdjacent(moduleEndpointContext, dexModule.stores, token0Id);
 			expect(res).not.toBeNull();
@@ -464,6 +472,7 @@ describe('dex:auxiliaryFunctions', () => {
 				),
 			];
 			await poolsStore.setKey(methodContext, newTokenIDsArray, poolsStoreData);
+			Buffer.concat(newTokenIDsArray);
 			await poolsStore.set(methodContext, Buffer.concat(newTokenIDsArray), poolsStoreData);
 			await getCredibleDirectPrice(
 				tokenMethod,
@@ -475,6 +484,18 @@ describe('dex:auxiliaryFunctions', () => {
 				expect(res.toString()).toBe('79267784519130042428790663800');
 			});
 		});
+	});
+
+	it('addPoolCreationSettings', async () => {
+		const tickSpacing = 10;
+		const feeTier = 10;
+		await addPoolCreationSettings(methodContext, dexModule.stores, feeTier, tickSpacing);
+
+		const settingGlobalStore = dexModule.stores.get(SettingsStore);
+		const settingGlobalStoreData = await settingGlobalStore.get(methodContext, Buffer.alloc(0));
+
+		expect(settingGlobalStoreData.poolCreationSettings[0].feeTier).toEqual(feeTier);
+		expect(settingGlobalStoreData.poolCreationSettings[0].feeTier).toEqual(tickSpacing);
 	});
 
 	it('transferToValidatorLSKPool', async () => {

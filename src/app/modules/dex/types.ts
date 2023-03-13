@@ -128,3 +128,8 @@ export type AdjacentEdgesInterface = {
 	edge: Buffer;
 	vertex: Buffer;
 };
+
+export type feesInterface = {
+	in: bigint;
+	out: bigint;
+};

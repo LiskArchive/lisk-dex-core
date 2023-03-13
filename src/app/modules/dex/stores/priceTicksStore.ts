@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseStore, ImmutableStoreGetter, StoreGetter } from 'lisk-sdk';
+import { BaseStore, StoreGetter, ImmutableStoreGetter } from 'lisk-sdk';
 import { MAX_NUM_BYTES_Q96, MAX_TICK, MIN_TICK } from '../constants';
 
 export const tickToBytes = (tickValue: number): Buffer => {
@@ -43,7 +43,7 @@ export interface PriceTicksStoreData {
 }
 
 export const priceTicksStoreSchema = {
-	$id: '/dex/store/priceTicks',
+	$id: '/dex/store/priceTicksStore',
 	type: 'object',
 	required: [
 		'liquidityNet',
@@ -106,7 +106,7 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 		await this.del(context, key);
 	}
 
-	public async getAll(context: ImmutableStoreGetter) {
+	public async getAll(context: StoreGetter) {
 		return this.iterate(context, {
 			gte: Buffer.alloc(16, 0),
 			lte: Buffer.alloc(16, 255),
