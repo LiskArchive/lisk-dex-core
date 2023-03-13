@@ -304,7 +304,7 @@ export class DexEndpoint extends BaseEndpoint {
 			tokenIdIn: string;
 			amountIn: bigint;
 			tokenIdOut: string;
-			minAmountOut: BigInt;
+			minAmountOut: bigint;
 			swapRoute: string[];
 		}>(dryRunSwapExactInRequestSchema, moduleEndpointContext.params);
 
@@ -325,7 +325,7 @@ export class DexEndpoint extends BaseEndpoint {
 		let priceBefore: bigint;
 		let newAmountIn = BigInt(0);
 
-		if (tokenIdIn === tokenIdOut || swapRoute.length === 0 || swapRoute.length > MAX_HOPS_SWAP) {
+		if (swapRoute.length === 0 || swapRoute.length > MAX_HOPS_SWAP) {
 			throw new Error('Invalid parameters');
 		}
 		try {
@@ -412,11 +412,7 @@ export class DexEndpoint extends BaseEndpoint {
 		let priceBefore: bigint;
 		let newAmountOut = BigInt(0);
 
-		if (
-			tokenIdIn.equals(tokenIdOut) ||
-			swapRoute.length === 0 ||
-			swapRoute.length > MAX_HOPS_SWAP
-		) {
+		if (swapRoute.length === 0 || swapRoute.length > MAX_HOPS_SWAP) {
 			throw new Error('Invalid parameters');
 		}
 		try {
@@ -464,6 +460,7 @@ export class DexEndpoint extends BaseEndpoint {
 		if (tokens[tokens.length - 1].amount > maxAmountIn) {
 			throw new Error('Too high input amount');
 		}
+
 		const priceAfter = await computeCurrentPrice(
 			moduleEndpointContext,
 			this.stores,

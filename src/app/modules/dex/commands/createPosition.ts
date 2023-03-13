@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/member-ordering */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -95,10 +96,10 @@ export class CreatePositionCommand extends BaseCommand {
 		}
 
 		/*
-        TODO: Not yet implemented on SDK
-        if lastBlockheader.timestamp > ctx.params.maxTimestampValid:
-            raise Exception()        
-        */
+				TODO: Not yet implemented on SDK
+				if lastBlockheader.timestamp > ctx.params.maxTimestampValid:
+						raise Exception()        
+				*/
 
 		return {
 			status: VerifyStatus.OK,

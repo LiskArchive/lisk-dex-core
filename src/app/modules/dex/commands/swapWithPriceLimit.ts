@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/member-ordering */
 /*
  * Copyright © 2021 Lisk Foundation
  *
@@ -98,14 +99,14 @@ export class SwapExactWithPriceLimitCommand extends BaseCommand {
 		}
 
 		/*
-        TODO: Not yet implemented on SDK
-        if (maxTimestampValid < lastBlockheader.timestamp){
-            return {
+				TODO: Not yet implemented on SDK
+				if (maxTimestampValid < lastBlockheader.timestamp){
+						return {
 				status: VerifyStatus.FAIL,
 				error: new Error('maxTimestampValid is less than lastBlockheader.timestamp'),
 			};
-        }
-        */
+				}
+				*/
 
 		return {
 			status: VerifyStatus.OK,
@@ -127,8 +128,8 @@ export class SwapExactWithPriceLimitCommand extends BaseCommand {
 		let priceBefore: bigint;
 		let zeroToOne;
 		/* 
-            const currentHeight = height of the block containing trs
-        */
+						const currentHeight = height of the block containing trs
+				*/
 		const currentHeight = 0;
 		try {
 			priceBefore = await computeCurrentPrice(methodContext, this.stores, tokenIdIn, tokenIdOut, [

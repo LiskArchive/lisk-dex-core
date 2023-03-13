@@ -1,5 +1,4 @@
 /* eslint-disable import/no-cycle */
-/* eslint-disable one-var */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -51,6 +50,7 @@ import {
 	divQ96,
 	invQ96,
 	mulDivQ96,
+	// mulDivRoundUpQ96,
 	mulQ96,
 	numberToQ96,
 	q96ToBytes,
@@ -62,11 +62,12 @@ import {
 	ADDRESS_VALIDATOR_INCENTIVES,
 	FEE_TIER_PARTITION,
 	MAX_NUMBER_CROSSED_TICKS,
-	MAX_UINT_64,
 	MODULE_NAME_DEX,
 	NUM_BYTES_POOL_ID,
 	TOKEN_ID_LSK,
 	VALIDATORS_LSK_INCENTIVE_PART,
+	MAX_UINT_64,
+	MAX_HOPS_SWAP,
 } from '../constants';
 import { DexGlobalStore, PriceTicksStore } from '../stores';
 import { tickToBytes } from '../stores/priceTicksStore';
@@ -79,7 +80,6 @@ export const swapWithin = (
 	exactInput: boolean,
 ): [bigint, bigint, bigint] => {
 	const zeroToOne: boolean = sqrtCurrentPrice >= sqrtTargetPrice;
-
 	let amountIn = BigInt(0);
 	let amountOut = BigInt(0);
 	let sqrtUpdatedPrice: bigint;
@@ -95,7 +95,6 @@ export const swapWithin = (
 	} else {
 		amountOut = getAmount0Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, false);
 	}
-
 	if (
 		(exactInput && amountRemaining >= amountIn) ||
 		(!exactInput && amountRemaining >= amountOut)
@@ -110,7 +109,6 @@ export const swapWithin = (
 			exactInput,
 		);
 	}
-
 	if (zeroToOne) {
 		amountIn = getAmount0Delta(sqrtCurrentPrice, sqrtUpdatedPrice, liquidity, true);
 		amountOut = getAmount1Delta(sqrtCurrentPrice, sqrtUpdatedPrice, liquidity, false);
@@ -222,10 +220,15 @@ export const transferFeesFromPool = (
 	let validatorFee = BigInt(0);
 	if (id.equals(TOKEN_ID_LSK)) {
 		validatorFee = roundDownQ96(
-			mulDivQ96(BigInt(amount), BigInt(VALIDATORS_LSK_INCENTIVE_PART), BigInt(FEE_TIER_PARTITION)),
+			mulDivQ96(
+				numberToQ96(BigInt(amount)),
+				numberToQ96(BigInt(VALIDATORS_LSK_INCENTIVE_PART)),
+				numberToQ96(BigInt(FEE_TIER_PARTITION)),
+			),
 		);
 	}
 	if (validatorFee > 0) {
+		// eslint-disable-next-line
 		transferFromPool(
 			tokenMethod,
 			methodContext,
@@ -250,7 +253,7 @@ export const computeRegularRoute = async (
 	tokenIn: TokenID,
 	tokenOut: TokenID,
 ): Promise<TokenID[]> => {
-	let lskAdjacent = await getAdjacent(methodContext, stores, TOKEN_ID_LSK);
+	const lskAdjacent = await getAdjacent(methodContext, stores, TOKEN_ID_LSK);
 	let tokenInFlag = false;
 	let tokenOutFlag = false;
 	lskAdjacent.forEach(lskAdjacentEdge => {
@@ -267,9 +270,9 @@ export const computeRegularRoute = async (
 	}
 
 	tokenOutFlag = false;
-	lskAdjacent = await getAdjacent(methodContext, stores, tokenIn);
+	const tokenInAdjacent = await getAdjacent(methodContext, stores, tokenIn);
 
-	lskAdjacent.forEach(lskAdjacentEdge => {
+	tokenInAdjacent.forEach(lskAdjacentEdge => {
 		if (lskAdjacentEdge.edge.equals(tokenOut)) {
 			tokenOutFlag = true;
 		}
@@ -303,7 +306,7 @@ export const computeExceptionalRoute = async (
 			}
 			const adjacent = await getAdjacent(methodContext, stores, routeElement.endVertex);
 			adjacent.forEach(adjacentEdge => {
-				if (visited.includes(adjacentEdge.vertex)) {
+				if (!visited.includes(adjacentEdge.vertex)) {
 					if (routeElement != null) {
 						routeElement.path.push(adjacentEdge.edge);
 						routes.push({ path: routeElement.path, endVertex: adjacentEdge.vertex });
@@ -328,11 +331,14 @@ export const updatePoolIncentives = async (
 	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
 	let incentivizedPools: { poolId: Buffer; multiplier: number } | undefined;
 
-	dexGlobalStoreData.incentivizedPools.forEach(incentivizedPool => {
-		if (incentivizedPool.poolId.equals(poolID)) {
-			incentivizedPools = incentivizedPool;
-		}
-	});
+	// eslint-disable-next-line
+	dexGlobalStoreData.incentivizedPools.forEach(
+		(incentivizedPool: { poolId: Buffer; multiplier: number } | undefined) => {
+			if (incentivizedPool?.poolId.equals(poolID)) {
+				incentivizedPools = incentivizedPool;
+			}
+		},
+	);
 
 	if (incentivizedPools == null) {
 		return;
@@ -366,11 +372,14 @@ export const computeNewIncentivesPerLiquidity = async (
 	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
 	let incentivizedPools: { poolId: Buffer; multiplier: number } | undefined;
 
-	dexGlobalStoreData.incentivizedPools.forEach(incentivizedPool => {
-		if (incentivizedPool.poolId.equals(poolID)) {
-			incentivizedPools = incentivizedPool;
-		}
-	});
+	// eslint-disable-next-line
+	dexGlobalStoreData.incentivizedPools.forEach(
+		(incentivizedPool: { poolId: Buffer; multiplier: number } | undefined) => {
+			if (incentivizedPool?.poolId.equals(poolID)) {
+				incentivizedPools = incentivizedPool;
+			}
+		},
+	);
 
 	if (incentivizedPools == null) {
 		throw new Error('Invalid arguments');
@@ -382,6 +391,7 @@ export const computeNewIncentivesPerLiquidity = async (
 		throw new Error('Invalid arguments');
 	}
 
+	// Todo Update after implementing DEXIncentives.getLPIncentivesInRange
 	const poolMultiplier = BigInt(incentivizedPools.multiplier);
 	const totalIncentives = BigInt(0);
 
@@ -449,23 +459,23 @@ export const swap = async (
 
 	const priceTicksStore = stores.get(PriceTicksStore);
 
-	let poolSqrtPriceQ96 = bytesToQ96(poolInfo.sqrtPrice),
-		numCrossedTicks = 0,
-		amountRemaining = amountSpecified,
-		amountTotalIn = BigInt(0),
-		amountTotalOut = BigInt(0),
-		totalFeesIn = BigInt(0),
-		totalFeesOut = BigInt(0),
-		nextTick,
-		sqrtTargetPrice,
-		amountIn: bigint,
-		amountOut: bigint,
-		tokenIn,
-		tokenOut,
-		tickExist,
-		amountRemainingTemp,
-		feeIn,
-		feeOut;
+	let poolSqrtPriceQ96 = bytesToQ96(poolInfo.sqrtPrice);
+	let numCrossedTicks = 0;
+	let amountRemaining = amountSpecified;
+	let amountTotalIn = BigInt(0);
+	let amountTotalOut = BigInt(0);
+	let totalFeesIn = BigInt(0);
+	let totalFeesOut = BigInt(0);
+	let nextTick;
+	let sqrtTargetPrice;
+	let amountIn: bigint;
+	let amountOut: bigint;
+	let tokenIn;
+	let tokenOut;
+	let tickExist;
+	let amountRemainingTemp;
+	let feeIn;
+	let feeOut;
 
 	if (
 		(zeroToOne && sqrtLimitPrice >= poolSqrtPriceQ96) ||
@@ -569,13 +579,13 @@ export const swap = async (
 				feeOut = roundUpQ96(mulQ96(BigInt(amountOut), feeCoeffAmountBefore));
 			}
 			if (exactInput) {
-				amountRemaining -= amountIn + feeIn;
+				amountRemaining -= amountIn + BigInt(feeIn);
 			} else {
-				amountRemaining -= amountOut - feeOut;
+				amountRemaining -= amountOut - BigInt(feeOut);
 			}
 
-			amountTotalOut += amountOut - feeOut;
-			amountTotalIn += amountIn + feeIn;
+			amountTotalOut += amountOut - BigInt(feeOut);
+			amountTotalIn += amountIn + BigInt(feeIn);
 
 			totalFeesIn += feeIn;
 			totalFeesOut += feeOut;
@@ -623,6 +633,88 @@ export const swap = async (
 	return [amountTotalIn, amountTotalOut, totalFeesIn, totalFeesOut, numCrossedTicks];
 };
 
+export const getRoute = async (
+	methodContext: ModuleEndpointContext,
+	stores: NamedRegistry,
+	tokenIn: TokenID,
+	tokenOut: TokenID,
+	amount: bigint,
+	exactIn: boolean,
+): Promise<TokenID[]> => {
+	let bestRoute: Buffer[] = [];
+	const regularRoute = await computeRegularRoute(methodContext, stores, tokenIn, tokenOut);
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	if (regularRoute.length > 0) {
+		if (exactIn) {
+			let poolTokenIn = tokenIn;
+			let poolAmountIn = amount;
+			for (const regularRouteRt of regularRoute) {
+				const [optimalPool, poolAmountOut] = await getOptimalSwapPool(
+					methodContext,
+					stores,
+					poolTokenIn,
+					regularRouteRt,
+					poolAmountIn,
+					exactIn,
+				);
+				bestRoute.push(optimalPool);
+				poolTokenIn = regularRouteRt;
+				poolAmountIn = poolAmountOut;
+			}
+		} else {
+			let poolTokenOut = tokenOut;
+			let poolAmountOut = amount;
+			for (let i = regularRoute.length - 1; i >= 0; i -= 1) {
+				const [optimalPool, poolAmountIn] = await getOptimalSwapPool(
+					methodContext,
+					stores,
+					regularRoute[i],
+					poolTokenOut,
+					poolAmountOut,
+					exactIn,
+				);
+				bestRoute.push(optimalPool);
+				poolTokenOut = regularRoute[i];
+				poolAmountOut = poolAmountIn;
+			}
+			bestRoute = bestRoute.reverse();
+		}
+		return bestRoute;
+	}
+	const exceptionalRoute = await computeExceptionalRoute(methodContext, stores, tokenIn, tokenOut);
+	if (exceptionalRoute.length === 0 || exceptionalRoute.length > MAX_HOPS_SWAP) {
+		return [];
+	}
+	let poolTokenIn = tokenIn;
+	for (const exceptionalRt of exceptionalRoute) {
+		const candidatePools: Buffer[] = [];
+		const token0 = poolTokenIn.sort();
+		const token1 = exceptionalRt.sort();
+		const dexGlobalData = await endpoint.getDexGlobalData(methodContext);
+
+		for (const setting of dexGlobalData.poolCreationSettings) {
+			const feeTierBuffer = Buffer.alloc(4);
+			feeTierBuffer.writeInt8(setting.feeTier, 0);
+			const candidatePool = Buffer.concat([token0, token1, feeTierBuffer]);
+			candidatePools.push(candidatePool);
+		}
+
+		let maxLiquidity = BigInt(0);
+		let searchPool;
+		for (const candidatePool of candidatePools) {
+			const pool = await endpoint.getPool(methodContext, candidatePool);
+			if (pool.liquidity > maxLiquidity) {
+				maxLiquidity = pool.liquidity;
+				searchPool = candidatePool;
+			}
+		}
+		bestRoute.push(searchPool);
+		poolTokenIn = exceptionalRt;
+	}
+
+	return bestRoute;
+};
 export const getOptimalSwapPool = async (
 	methodContext,
 	stores: NamedRegistry,

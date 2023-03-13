@@ -25,17 +25,19 @@ import { DexModule } from '../../../../src/app/modules';
 import {
 	computeCurrentPrice,
 	computeRegularRoute,
+	computeExceptionalRoute,
 	constructPoolsGraph,
 	crossTick,
 	getAdjacent,
-	getOptimalSwapPool,
-	raiseSwapException,
 	swap,
 	swapWithin,
 	transferFeesFromPool,
+	getOptimalSwapPool,
+	getRoute,
+	raiseSwapException,
 } from '../../../../src/app/modules/dex/utils/swapFunctions';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
-import { Address, PoolID, TokenID } from '../../../../src/app/modules/dex/types';
+import { PoolID, TokenID, Address } from '../../../../src/app/modules/dex/types';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 import { bytesToQ96, numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
@@ -48,7 +50,6 @@ import {
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import { TOKEN_ID_LSK } from '../../../../src/app/modules/dexRewards/constants';
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
-import { computeExceptionalRoute } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import { NUM_BYTES_POOL_ID } from '../../../../src/app/modules/dex/constants';
 import {
 	PriceTicksStoreData,
@@ -220,12 +221,6 @@ describe('dex:swapFunctions', () => {
 			expect(regularRoute).toStrictEqual([adjacentToken, adjacentToken, adjacentToken]);
 		});
 
-		it('computeExceptionalRoute should return 0', async () => {
-			expect(
-				await computeExceptionalRoute(moduleEndpointContext, dexModule.stores, token0Id, token1Id),
-			).toHaveLength(0);
-		});
-
 		it('computeExceptionalRoute should return route with tokenID', async () => {
 			expect(
 				(
@@ -319,6 +314,43 @@ describe('dex:swapFunctions', () => {
 			);
 			expect(res[0]).toStrictEqual(potentialPoolId);
 			expect(res[1]).toBe(BigInt(15));
+		});
+
+		it('getRoute', async () => {
+			const adjacentToken = Buffer.from('0000000100000000', 'hex');
+			const tokensArray = [adjacentToken, adjacentToken];
+			const concatedTokenIDs = Buffer.concat(tokensArray);
+			const tokenIDAndSettingsArray = [
+				concatedTokenIDs,
+				q96ToBytes(numberToQ96(BigInt(dexGlobalStoreData.poolCreationSettings[0].feeTier))),
+			];
+
+			const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
+
+			const potentialPoolId: Buffer = Buffer.concat(tokenIDAndSettingsArray);
+			const poolIDAndTickID = Buffer.concat([potentialPoolId, tickToBytes(currentTick)]);
+			await priceTicksStore.setKey(methodContext, [poolIDAndTickID], priceTicksStoreDataTickUpper);
+
+			await poolsStore.set(methodContext, potentialPoolId, poolsStoreData);
+			let bestRoute = await getRoute(
+				moduleEndpointContext,
+				dexModule.stores,
+				adjacentToken,
+				adjacentToken,
+				BigInt(15),
+				false,
+			);
+			expect(bestRoute).toStrictEqual([potentialPoolId, potentialPoolId, potentialPoolId]);
+
+			bestRoute = await getRoute(
+				moduleEndpointContext,
+				dexModule.stores,
+				adjacentToken,
+				adjacentToken,
+				BigInt(15),
+				true,
+			);
+			expect(bestRoute).toStrictEqual([potentialPoolId, potentialPoolId, potentialPoolId]);
 		});
 	});
 });

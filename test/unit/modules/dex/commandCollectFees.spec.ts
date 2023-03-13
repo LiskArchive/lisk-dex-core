@@ -194,7 +194,7 @@ describe('dex:command:collectFees', () => {
 
 				const result = await command.verify(context.createCommandVerifyContext(collectFeesSchema));
 
-				expect(result.error?.message).not.toBeDefined();
+				expect(result.error?.message).toBeUndefined();
 				expect(result.status).toEqual(VerifyStatus.OK);
 			});
 
