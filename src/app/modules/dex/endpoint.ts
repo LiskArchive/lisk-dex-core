@@ -412,10 +412,7 @@ export class DexEndpoint extends BaseEndpoint {
 		let priceBefore: bigint;
 		let newAmountOut = BigInt(0);
 
-		if (
-			swapRoute.length === 0 ||
-			swapRoute.length > MAX_HOPS_SWAP
-		) {
+		if (swapRoute.length === 0 || swapRoute.length > MAX_HOPS_SWAP) {
 			throw new Error('Invalid parameters');
 		}
 		try {
