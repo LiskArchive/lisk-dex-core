@@ -5,7 +5,6 @@
 /* eslint-disable  @typescript-eslint/no-floating-promises */
 /* eslint-disable  @typescript-eslint/no-inferrable-types */
 /* eslint-disable  @typescript-eslint/require-await */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright © 2022 Lisk Foundation
  *

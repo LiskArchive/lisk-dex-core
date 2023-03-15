@@ -45,8 +45,9 @@ export const encryptPassphrase = async (
 		passphrase,
 		password,
 	);
-	const encryptedPassphrase =
-		cryptography.encrypt.stringifyEncryptedMessage(encryptedPassphraseObject);
+	const encryptedPassphrase = cryptography.encrypt.stringifyEncryptedMessage(
+		encryptedPassphraseObject,
+	);
 
 	return outputPublicKey
 		? {
