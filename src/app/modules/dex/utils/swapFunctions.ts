@@ -1,3 +1,7 @@
+/* eslint-disable import/no-cycle */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -20,7 +24,47 @@ import { getToken0Id, getToken1Id } from './auxiliaryFunctions';
 import { computeNextPrice, getAmount0Delta, getAmount1Delta } from './math';
 import { DexModule } from '../module';
 import { DexEndpoint } from '../endpoint';
-import { bytesToQ96, invQ96, mulQ96 } from './q96';
+import { mulQ96, bytesToQ96, invQ96 } from './q96';
+
+export const raiseSwapException = (
+	events: NamedRegistry,
+	methodContext: MethodContext,
+	reason: number,
+	tokenIdIn: TokenID,
+	tokenIdOut: TokenID,
+	senderAddress: Address,
+) => {
+	events.get(SwapFailedEvent).add(
+		methodContext,
+		{
+			senderAddress,
+			tokenIdIn,
+			tokenIdOut,
+			reason,
+		},
+		[senderAddress],
+		true,
+	);
+};
+
+export const getAdjacent = async (
+	methodContext: ModuleEndpointContext,
+	stores: NamedRegistry,
+	vertex: TokenID,
+): Promise<AdjacentEdgesInterface[]> => {
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	const result: AdjacentEdgesInterface[] = [];
+	const poolIDs = await endpoint.getAllPoolIDs(methodContext);
+	poolIDs.forEach(edge => {
+		if (getToken0Id(edge).equals(vertex)) {
+			result.push({ edge, vertex: getToken1Id(edge) });
+		} else if (getToken1Id(edge).equals(vertex)) {
+			result.push({ edge, vertex: getToken0Id(edge) });
+		}
+	});
+	return result;
+};
 
 export const swapWithin = (
 	sqrtCurrentPrice: bigint,
@@ -67,46 +111,6 @@ export const swapWithin = (
 		amountOut = getAmount0Delta(sqrtCurrentPrice, sqrtUpdatedPrice, liquidity, false);
 	}
 	return [sqrtUpdatedPrice, amountIn, amountOut];
-};
-
-export const raiseSwapException = (
-	events: NamedRegistry,
-	methodContext: MethodContext,
-	reason: number,
-	tokenIdIn: TokenID,
-	tokenIdOut: TokenID,
-	senderAddress: Address,
-) => {
-	events.get(SwapFailedEvent).add(
-		methodContext,
-		{
-			senderAddress,
-			tokenIdIn,
-			tokenIdOut,
-			reason,
-		},
-		[senderAddress],
-		true,
-	);
-};
-
-export const getAdjacent = async (
-	methodContext: ModuleEndpointContext,
-	stores: NamedRegistry,
-	vertex: TokenID,
-): Promise<AdjacentEdgesInterface[]> => {
-	const dexModule = new DexModule();
-	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
-	const result: AdjacentEdgesInterface[] = [];
-	const poolIDs = await endpoint.getAllPoolIDs(methodContext);
-	poolIDs.forEach(edge => {
-		if (getToken0Id(edge).equals(vertex)) {
-			result.push({ edge, vertex: getToken1Id(edge) });
-		} else if (getToken1Id(edge).equals(vertex)) {
-			result.push({ edge, vertex: getToken0Id(edge) });
-		}
-	});
-	return result;
 };
 
 export const computeCurrentPrice = async (

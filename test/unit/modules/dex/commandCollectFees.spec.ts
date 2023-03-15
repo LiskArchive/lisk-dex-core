@@ -41,9 +41,13 @@ import { Address, PoolID, PositionID } from '../../../../src/app/modules/dex/typ
 import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
-import { InMemoryPrefixedStateDB } from './inMemoryPrefixedStateDB';
 
-const { createBlockContext, createBlockHeaderWithDefaults, createTransactionContext } = testing;
+const {
+	createBlockContext,
+	createBlockHeaderWithDefaults,
+	createTransactionContext,
+	InMemoryPrefixedStateDB,
+} = testing;
 const { utils } = cryptography;
 
 const skipOnCI = process.env.CI ? describe.skip : describe;
@@ -80,7 +84,7 @@ describe('dex:command:collectFees', () => {
 		const poolsStoreData: PoolsStoreData = {
 			liquidity: BigInt(5),
 			sqrtPrice: q96ToBytes(BigInt('327099227039063106')),
-			incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+			incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(1000))),
 			heightIncentivesUpdate: 5,
 			feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
 			feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(6))),
@@ -104,18 +108,18 @@ describe('dex:command:collectFees', () => {
 		};
 
 		const dexGlobalStoreData: DexGlobalStoreData = {
-			positionCounter: BigInt(10),
+			positionCounter: BigInt(15),
 			collectableLSKFees: BigInt(10),
 			poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
 			incentivizedPools: [{ poolId, multiplier: 10 }],
 			totalIncentivesMultiplier: 1,
 		};
 		const positionsStoreData: PositionsStoreData = {
-			tickLower: -8,
-			tickUpper: -5,
-			liquidity: BigInt(15),
-			feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(3))),
-			feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(1))),
+			tickLower: -10,
+			tickUpper: 10,
+			liquidity: BigInt(1000),
+			feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(0))),
+			feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(0))),
 			ownerAddress: senderAddress,
 		};
 
@@ -194,7 +198,7 @@ describe('dex:command:collectFees', () => {
 
 				const result = await command.verify(context.createCommandVerifyContext(collectFeesSchema));
 
-				expect(result.error?.message).not.toBeDefined();
+				expect(result.error?.message).toBeUndefined();
 				expect(result.status).toEqual(VerifyStatus.OK);
 			});
 
