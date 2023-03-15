@@ -110,7 +110,7 @@ export const NUM_BOOTSTRAP_VALIDATORS = 101; // Number of validators of sidechai
 export const MODULE_NAME_POS = 'pos'; // Return name of PoS module
 export const MODULE_NAME_TOKEN = 'token'; // Return name of token module
 export const ADDRESS_LENGTH = 20; // Length of address in sidechain
-export const TOKEN_ID_DEX = Buffer.from('0000000000000001', 'hex'); // Return ID of token in DEX
+export const TOKEN_ID_DEX = Buffer.from('0000000100000001', 'hex'); // Return ID of token in DEX
 export const ALL_SUPPORTED_TOKENS_KEY = Buffer.from('', 'hex'); // All supported tokens in DEX
 
 export const sha256 = (input: string) => {
