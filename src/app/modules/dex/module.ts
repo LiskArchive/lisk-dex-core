@@ -16,9 +16,13 @@ import {
 	BaseModule,
 	ModuleMetadata,
 	utils,
-	TokenMethod,
+	AuthMethod,
 	ValidatorsMethod,
+	TokenMethod,
 	FeeMethod,
+	PoSMethod,
+	RandomMethod,
+	RewardMethod,
 } from 'lisk-sdk';
 
 import { MODULE_ID_DEX, defaultConfig } from './constants';
@@ -89,14 +93,22 @@ import { poolsStoreSchema } from './stores/poolsStore';
 import { positionsStoreSchema } from './stores/positionsStore';
 import { priceTicksStoreSchema } from './stores/priceTicksStore';
 import { settingsStoreSchema } from './stores/settingsStore';
+import { DexIncentivesMethod } from '../dexIncentives/method';
+import { DexGovernanceMethod } from '../dexGovernance/method';
 
 export class DexModule extends BaseModule {
 	public id = MODULE_ID_DEX;
 	public endpoint = new DexEndpoint(this.stores, this.offchainStores);
 	public method = new DexMethod(this.stores, this.events);
-	public _tokenMethod!: TokenMethod;
+	public _authMethod!: AuthMethod;
 	public _validatorsMethod!: ValidatorsMethod;
+	public _tokenMethod!: TokenMethod;
 	public _feeMethod!: FeeMethod;
+	public _posMethod!: PoSMethod;
+	public _randomMethod!: RandomMethod;
+	public _rewardMethod!: RewardMethod;
+	public _dexIncentivesMethod!: DexIncentivesMethod;
+	public _dexGovernanceMethod!: DexGovernanceMethod;
 	public _moduleConfig!: ModuleConfig;
 
 	private readonly _createPoolCommand = new CreatePoolCommand(this.stores, this.events);
@@ -251,13 +263,25 @@ export class DexModule extends BaseModule {
 	}
 
 	public addDependencies(
-		tokenMethod: TokenMethod,
+		authMethod: AuthMethod,
 		validatorsMethod: ValidatorsMethod,
+		tokenMethod: TokenMethod,
 		feeMethod: FeeMethod,
+		posMethod: PoSMethod,
+		randomMethod: RandomMethod,
+		rewardMethod: RewardMethod,
+		dexIncentivesMethod: DexIncentivesMethod,
+		dexGovernanceMethod: DexGovernanceMethod,
 	) {
-		this._tokenMethod = tokenMethod;
+		this._authMethod = authMethod;
 		this._validatorsMethod = validatorsMethod;
+		this._tokenMethod = tokenMethod;
 		this._feeMethod = feeMethod;
+		this._posMethod = posMethod;
+		this._randomMethod = randomMethod;
+		this._rewardMethod = rewardMethod;
+		this._dexIncentivesMethod = dexIncentivesMethod;
+		this._dexGovernanceMethod = dexGovernanceMethod;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
