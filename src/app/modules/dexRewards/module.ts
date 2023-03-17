@@ -27,7 +27,7 @@ import {
 	BLOCK_REWARD_LIQUIDITY_PROVIDERS,
 	BLOCK_REWARD_TRADERS,
 	MODULE_NAME_DEX,
-	TOKEN_ID_DEX_NATIVE,
+	TOKEN_ID_DEX,
 } from './constants';
 
 import { DexRewardsEndpoint } from './endpoint';
@@ -94,7 +94,7 @@ export class DexRewardsModule extends BaseModule {
 			await this._tokenMethod.mint(
 				methodContext,
 				header.generatorAddress,
-				TOKEN_ID_DEX_NATIVE,
+				TOKEN_ID_DEX,
 				blockReward,
 			);
 		}
@@ -111,27 +111,27 @@ export class DexRewardsModule extends BaseModule {
 		await this._tokenMethod.mint(
 			methodContext,
 			ADDRESS_LIQUIDITY_PROVIDER_REWARDS_POOL,
-			TOKEN_ID_DEX_NATIVE,
+			TOKEN_ID_DEX,
 			BLOCK_REWARD_LIQUIDITY_PROVIDERS,
 		);
 		await this._tokenMethod.lock(
 			methodContext,
 			ADDRESS_LIQUIDITY_PROVIDER_REWARDS_POOL,
 			MODULE_NAME_DEX,
-			TOKEN_ID_DEX_NATIVE,
+			TOKEN_ID_DEX,
 			BLOCK_REWARD_LIQUIDITY_PROVIDERS,
 		);
 		await this._tokenMethod.mint(
 			methodContext,
 			ADDRESS_TRADER_REWARDS_POOL,
-			TOKEN_ID_DEX_NATIVE,
+			TOKEN_ID_DEX,
 			BLOCK_REWARD_TRADERS,
 		);
 		await this._tokenMethod.lock(
 			methodContext,
 			ADDRESS_TRADER_REWARDS_POOL,
 			MODULE_NAME_DEX,
-			TOKEN_ID_DEX_NATIVE,
+			TOKEN_ID_DEX,
 			BLOCK_REWARD_TRADERS,
 		);
 

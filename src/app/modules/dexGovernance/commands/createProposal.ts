@@ -35,7 +35,7 @@ import {
 import { IndexStore, ProposalsStore } from '../stores';
 import { CreateProposalParamsData } from '../types';
 import { emitProposalCreationFailedEvent, hasEnded } from '../utils/auxiliaryFunctions';
-import { sha256, TOKEN_ID_DEX_NATIVE } from '../../dexRewards/constants';
+import { sha256 } from '../../dexRewards/constants';
 import { DexModule } from '../../dex/module';
 import { DexEndpoint } from '../../dex/endpoint';
 import { addQ96, numberToQ96, q96ToBytes } from '../../dex/utils/q96';
@@ -49,12 +49,13 @@ import {
 	PROPOSAL_STATUS_ACTIVE,
 	PROPOSAL_TYPE_INCENTIVIZATION,
 	PROPOSAL_TYPE_UNIVERSAL,
+	TOKEN_ID_DEX,
 	VOTE_DURATION,
 } from '../constants';
-import { COMMAND_ID_CREATE_PORPOSAL, NUM_BYTES_POOL_ID } from '../../dex/constants';
+import { COMMAND_CREATE_PROPOSAL, NUM_BYTES_POOL_ID } from '../../dex/constants';
 
-export class CreatePorposalCommand extends BaseCommand {
-	public id = COMMAND_ID_CREATE_PORPOSAL;
+export class CreateProposalCommand extends BaseCommand {
+	public id = COMMAND_CREATE_PROPOSAL;
 	public schema = createProposalParamsSchema;
 	private _tokenMethod!: TokenMethod;
 	private _posEndpoint!: PoSEndpoint;
@@ -85,7 +86,7 @@ export class CreatePorposalCommand extends BaseCommand {
 		const availableBalance = await this._tokenMethod.getAvailableBalance(
 			methodContext,
 			senderAddress,
-			TOKEN_ID_DEX_NATIVE,
+			TOKEN_ID_DEX,
 		);
 
 		const lockedBalance = (await this._posEndpoint.getLockedStakedAmount(moduleEndpointContext))
@@ -129,7 +130,7 @@ export class CreatePorposalCommand extends BaseCommand {
 		} else {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('Invalid Porposal Type'),
+				error: new Error('Invalid Proposal Type'),
 			};
 		}
 		return {
@@ -163,7 +164,7 @@ export class CreatePorposalCommand extends BaseCommand {
 		if (!(await endpoint.getPool(methodContext, ctx.params.content.poolID))) {
 			if (ctx.params.type === PROPOSAL_TYPE_INCENTIVIZATION) {
 				emitProposalCreationFailedEvent(methodContext, 0, this.events);
-				throw new Error('Limit of proposals with recoded votes is reached');
+				throw new Error('Incentivized pool does not exist');
 			}
 		}
 
@@ -173,7 +174,7 @@ export class CreatePorposalCommand extends BaseCommand {
 		const indexBuffer = Buffer.alloc(4);
 		indexBuffer.writeUInt32BE(index, 0);
 
-		const porposal = {
+		const Proposal = {
 			creationHeight: currentHeight,
 			votesYes: BigInt(0),
 			votesNo: BigInt(0),
@@ -183,8 +184,10 @@ export class CreatePorposalCommand extends BaseCommand {
 			status: PROPOSAL_STATUS_ACTIVE,
 		};
 		const proposalsStore = this.stores.get(ProposalsStore);
-		await proposalsStore.set(methodContext, indexBuffer, porposal);
-
+		await proposalsStore.set(methodContext, indexBuffer, Proposal);
+		const indexStoreData = await indexStore.get(methodContext, Buffer.from('0'));
+		indexStoreData.newestIndex = index;
+		indexStore.set(methodContext, Buffer.from('0'), indexStoreData);
 		this.events.get(ProposalCreatedEvent).add(
 			methodContext,
 			{

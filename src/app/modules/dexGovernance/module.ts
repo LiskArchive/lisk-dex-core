@@ -26,7 +26,7 @@ import {
 import { MODULE_ID_DEX_GOVERNANCE } from '../dex/constants';
 import { PoolsStore } from '../dex/stores';
 import { ModuleConfig } from '../dex/types';
-import { CreatePorposalCommand } from './commands/createPorposal';
+import { CreatePorposalCommand } from './commands/createProposal';
 import { defaultConfig } from './constants';
 
 import { DexGovernanceEndpoint } from './endpoint';

@@ -27,7 +27,6 @@ import {
 	createBlockHeaderWithDefaults,
 	createFakeBlockHeader,
 } from 'lisk-framework/dist-node/testing';
-import { CreatePorposalCommand } from '../../../../src/app/modules/dexGovernance/commands/createPorposal';
 import { Address, PoolID } from '../../../../src/app/modules/dex/types';
 import { DexGovernanceModule } from '../../../../src/app/modules';
 import { IndexStore, ProposalsStore } from '../../../../src/app/modules/dexGovernance/stores';
@@ -41,11 +40,12 @@ import { PoolsStore, PoolsStoreData } from '../../../../src/app/modules/dex/stor
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { createProposalParamsSchema } from '../../../../src/app/modules/dexGovernance/schemas';
+import { CreateProposalCommand } from '../../../../src/app/modules/dexGovernance/commands/createProposal';
 
 const { createTransactionContext, InMemoryPrefixedStateDB } = testing;
 const { utils } = cryptography;
 
-describe('dexGovernance:command:createPorposal', () => {
+describe('dexGovernance:command:createproposal', () => {
 	const poolID: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex').slice(0, 16);
 	const type = 1;
 	const content = {
@@ -60,7 +60,7 @@ describe('dexGovernance:command:createPorposal', () => {
 		},
 	};
 
-	let command: CreatePorposalCommand;
+	let command: CreateProposalCommand;
 	const pos = new PoSModule();
 	const posEndpoint = new PoSEndpoint(pos.stores, pos.offchainStores);
 	const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -130,7 +130,7 @@ describe('dexGovernance:command:createPorposal', () => {
 	};
 
 	beforeEach(async () => {
-		command = new CreatePorposalCommand(dexGovernanceModule.stores, dexGovernanceModule.events);
+		command = new CreateProposalCommand(dexGovernanceModule.stores, dexGovernanceModule.events);
 		feeMethod = new FeeMethod(dexGovernanceModule.stores, dexGovernanceModule.events);
 		proposalsStore = dexGovernanceModule.stores.get(ProposalsStore);
 		indexStore = dexGovernanceModule.stores.get(IndexStore);
@@ -162,7 +162,7 @@ describe('dexGovernance:command:createPorposal', () => {
 			const context = createTransactionContext({
 				transaction: new Transaction({
 					module: 'dexGovernance',
-					command: 'createPorposal',
+					command: 'createproposal',
 					fee: BigInt(5000000),
 					nonce: BigInt(0),
 					senderPublicKey: senderAddress,
@@ -209,7 +209,7 @@ describe('dexGovernance:command:createPorposal', () => {
 					assets: { getAsset: jest.fn() },
 					transaction: new Transaction({
 						module: 'dex',
-						command: 'createPorposal',
+						command: 'createproposal',
 						fee: BigInt(5000000),
 						nonce: BigInt(0),
 						senderPublicKey: senderAddress,
