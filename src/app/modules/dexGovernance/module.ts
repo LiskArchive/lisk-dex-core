@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -80,20 +84,6 @@ export class DexGovernanceModule extends BaseModule {
 
 	public metadata(): ModuleMetadata {
 		return {
-			stores: [
-				{
-					key: 'IndexStore',
-					data: indexSchema,
-				},
-				{
-					key: 'ProposalsStore',
-					data: proposalSchema,
-				},
-				{
-					key: 'VotesStore',
-					data: votesSchema,
-				},
-			],
 			endpoints: [
 				{
 					name: this.endpoint.getProposal.name,
@@ -119,6 +109,20 @@ export class DexGovernanceModule extends BaseModule {
 				data: v.schema,
 			})),
 			assets: [],
+			stores: [
+				{
+					key: IndexStore.name,
+					data: indexSchema,
+				},
+				{
+					key: ProposalsStore.name,
+					data: proposalSchema,
+				},
+				{
+					key: VotesStore.name,
+					data: votesSchema,
+				},
+			],
 		};
 	}
 

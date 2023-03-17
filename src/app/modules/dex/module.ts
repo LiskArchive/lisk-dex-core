@@ -12,7 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseModule, ModuleMetadata, utils, TokenMethod, ValidatorsMethod } from 'lisk-sdk';
+import {
+	BaseModule,
+	ModuleMetadata,
+	utils,
+	TokenMethod,
+	ValidatorsMethod,
+	FeeMethod,
+} from 'lisk-sdk';
 
 import { MODULE_ID_DEX, defaultConfig } from './constants';
 
@@ -50,8 +57,8 @@ import {
 	getFeeTierResponseSchema,
 	getFeeTierResquestSchema,
 	getPoolIDFromTickIDRequestSchema,
-	getPositionIndexResponseSchema,
 	ggetPositionIndexResquestSchema,
+	getPositionIndexResponseSchema,
 	getAllTokenIdsRequestSchema,
 	getAllTokenIdsResponseSchema,
 	getAllPositionIDsInPoolRequestSchema,
@@ -91,6 +98,7 @@ export class DexModule extends BaseModule {
 	public method = new DexMethod(this.stores, this.events);
 	public _tokenMethod!: TokenMethod;
 	public _validatorsMethod!: ValidatorsMethod;
+	public _feeMethod!: FeeMethod;
 	public _moduleConfig!: ModuleConfig;
 
 	private readonly _createPoolCommand = new CreatePoolCommand(this.stores, this.events);
@@ -250,9 +258,14 @@ export class DexModule extends BaseModule {
 		};
 	}
 
-	public addDependencies(tokenMethod: TokenMethod, validatorsMethod: ValidatorsMethod) {
+	public addDependencies(
+		tokenMethod: TokenMethod,
+		validatorsMethod: ValidatorsMethod,
+		feeMethod: FeeMethod,
+	) {
 		this._tokenMethod = tokenMethod;
 		this._validatorsMethod = validatorsMethod;
+		this._feeMethod = feeMethod;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

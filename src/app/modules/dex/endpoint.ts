@@ -29,7 +29,6 @@ import { PoolID, PositionID, Q96, TickID, TokenID } from './types';
 import {
 	computeExceptionalRoute,
 	computeRegularRoute,
-	getCredibleDirectPrice,
 	getPoolIDFromPositionID,
 	getToken0Id,
 	getToken1Id,
@@ -41,6 +40,7 @@ import { DexGlobalStore, DexGlobalStoreData } from './stores/dexGlobalStore';
 import { PositionsStore, PositionsStoreData } from './stores/positionsStore';
 import { PriceTicksStore, PriceTicksStoreData, tickToBytes } from './stores/priceTicksStore';
 import { uint32beInv } from './utils/bigEndian';
+import { getCredibleDirectPrice } from './utils/tokenEcnomicsFunctions';
 
 export class DexEndpoint extends BaseEndpoint {
 	public async getAllPoolIDs(
@@ -267,7 +267,7 @@ export class DexEndpoint extends BaseEndpoint {
 		return price;
 	}
 
-	public async getAllTicks(methodContext: ModuleEndpointContext): Promise<TickID[]> {
+	public async getAllTicks(methodContext): Promise<TickID[]> {
 		const tickIds: Buffer[] = [];
 		const priceTicksStore = this.stores.get(PriceTicksStore);
 		const allTickIds = await priceTicksStore.getAll(methodContext);

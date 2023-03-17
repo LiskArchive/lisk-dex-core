@@ -12,7 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { sha256 } from '../dexRewards/constants';
+import { createHash } from 'crypto';
+import { TextEncoder } from 'util';
 import { Q96 } from './types';
 
 export const NUM_BYTES_ADDRESS = 20; // The number of bytes of an address (uint32)
@@ -21,6 +22,7 @@ export const MAX_UINT_32 = 4294967295;
 export const MAX_UINT_64 = BigInt('18446744073709551615');
 
 // DEX Module Constants
+export const VALIDATORS_LSK_INCENTIVE_PART = 200000; // The portion of LSK swap fees that are paid to the validators, in parts-per-million.
 export const MODULE_ID_DEX = Buffer.from('0000', 'hex'); // TBA	ID of the DEX module (bytes)
 export const MODULE_NAME_DEX = 'dex';
 export const NFT_COLLECTION_DEX = Buffer.from('0000', 'hex'); // The collection of the NFTs created for every position. (bytes)
@@ -95,9 +97,50 @@ export const POSITION_UPDATE_FAILED_NOT_EXISTS = 1; // Return code for failed po
 export const POSITION_UPDATE_FAILED_NOT_OWNER = 2; // Return code for failed position update as position owner is different from transaction sender. |
 export const POSITION_UPDATE_FAILED_INSUFFICIENT_LIQUIDITY = 3; // Return code for failed position update as transaction sender is not position owner. |
 export const TOKEN_ID_LSK = Buffer.from('0000000100000000', 'hex'); // The token ID of the LSK token.           |
-export const TOKEN_ID_REWARDS = Buffer.from('0000000100000000', 'hex'); // The token ID of the token used for liquidity provider incentives.           |
+export const TOKEN_ID_INCENTIVES = Buffer.from('0000000100000000', 'hex'); // The token ID of the token used for liquidity provider incentives.           |
 
-export const ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL = Buffer.from([]);
+export const ADDRESS_LIQUIDITY_PROVIDERS_INCENTIVES_POOL = Buffer.from([]);
+
+// DEX sidechain configurable constants
+export const GENESIS_BLOCK_VERSION = 0; // version of genesis block
+export const GENESIS_BLOCK_TIMESTAMP = 0; // timestamp of genesis block
+
+export const NUM_INIT_ROUNDS = 2574; // Return code of initial rounds
+export const NUM_BOOTSTRAP_VALIDATORS = 101; // Number of validators of sidechain
+
+export const MODULE_NAME_POS = 'pos'; // Return name of PoS module
+export const MODULE_NAME_TOKEN = 'token'; // Return name of token module
+export const ADDRESS_LENGTH = 20; // Length of address in sidechain
+export const TOKEN_ID_DEX = Buffer.from('0000000100000001', 'hex'); // Return ID of token in DEX
+export const ALL_SUPPORTED_TOKENS_KEY = Buffer.from('', 'hex'); // All supported tokens in DEX
+
+export const sha256 = (input: string) => {
+	const inputBytes = new TextEncoder().encode(input);
+	return createHash('sha256').update(inputBytes).digest();
+};
+
+export const ADDRESS_VALIDATOR_INCENTIVES = Buffer.from(sha256('validatorIncentivesAccount')).slice(
+	0,
+	NUM_BYTES_ADDRESS,
+); // The address of the validator incentives account
+export const ED25519_PUBLIC_KEY_LENGTH = 32;
+export const BLS_PUBLIC_KEY_LENGTH = 48;
+export const BLS_POP_LENGTH = 96;
+
+// Engine specific constants
+export const CHAIN_ID = Buffer.from('00000001', 'hex'); // chain id of sidechain
+export const MAX_TRANSACTIONS_SIZE_BYTES = 15360; // Max size of transaction in bytes
+export const MAX_ASSET_DATA_SIZE_BYTES = 18; // Max asset data size in bytes
+export const BLOCK_TIME = 10; // Blocking time
+export const LSK_BFT_BATCH_SIZE = 103; // LSK BFT batch size
+export const MAX_PARAMS_SIZE = 14336; // Maximum size of parameters.
+
+// module specific constants
+export const LOCKING_PERIOD_STAKING = 260000; // Period of locking time
+export const PUNISHMENT_WINDOW_STAKING = 780000;
+export const TOKEN_ID_POS = TOKEN_ID_DEX; // Token id of PoS
+export const TOKEN_ID_DYNAMIC_BLOCK_REWARD = TOKEN_ID_DEX; // Token id of dynamic block reward
+export const BOOTSTRAP_PERIOD_OFFSET = 259975;
 
 export const defaultConfig = {
 	feeTiers: {
@@ -109,6 +152,12 @@ export const defaultConfig = {
 };
 
 // Swap Constants
+export const ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES = sha256(
+	'liquidityProviderIncentivesAccount',
+).slice(0, NUM_BYTES_ADDRESS);
+
+export const FEE_TIER_PARTITION = 1000000;
+// Swap Constants
 
 export enum SwapFailedReasons {
 	SWAP_FAILED_INVALID_ROUTE,
@@ -116,16 +165,3 @@ export enum SwapFailedReasons {
 	SWAP_FAILED_NOT_ENOUGH,
 	SWAP_FAILED_INVALID_LIMIT_PRICE,
 }
-
-export const FEE_TIER_PARTITION = 1000000;
-
-export const ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES = sha256(
-	'liquidityProviderIncentivesAccount',
-).slice(0, NUM_BYTES_ADDRESS);
-
-export const ADDRESS_VALIDATOR_INCENTIVES = sha256('validatorIncentivesAccount').slice(
-	0,
-	NUM_BYTES_ADDRESS,
-);
-
-export const VALIDATORS_LSK_INCENTIVE_PART = 200000;

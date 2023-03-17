@@ -14,4 +14,4 @@
 
 import { BaseEndpoint } from 'lisk-sdk';
 
-export class DexRewardsEndpoint extends BaseEndpoint {}
+export class DexIncentivesEndpoint extends BaseEndpoint {}
