@@ -1028,14 +1028,14 @@ export const tokenDistributionSchema = {
 					address: {
 						dataType: 'bytes',
 						length: ADDRESS_LENGTH,
-						fieldNumber: 1
+						fieldNumber: 1,
 					},
 					balance: {
 						dataType: 'uint64',
-						fieldNumber: 2
-					}
-				}
-			}
-		}
-	}
-}
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+	},
+};
