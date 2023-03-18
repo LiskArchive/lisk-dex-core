@@ -14,15 +14,19 @@
  */
 
 import {
+	AuthModule,
 	FeeModule,
+	PoSModule,
+	RandomModule,
 	TokenModule,
 	Transaction,
 	ValidatorsModule,
 	VerifyStatus,
 } from 'lisk-framework';
+import { DynamicRewardModule } from 'lisk-framework/dist-node/modules/dynamic_rewards';
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { testing } from 'lisk-sdk';
-import { DexModule } from '../../../../src/app/modules';
+import { DexGovernanceModule, DexIncentivesModule, DexModule } from '../../../../src/app/modules';
 import { MAX_TICK, MIN_TICK } from '../../../../src/app/modules/dex/constants';
 import { addLiquiditySchema } from '../../../../src/app/modules/dex/schemas';
 import { SettingsStore } from '../../../../src/app/modules/dex/stores';
@@ -52,9 +56,15 @@ const skipOnCI = process.env.CI ? describe.skip : describe;
 describe('dex:command:addLiquidity', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 	let dexModule: DexModule;
-	let tokenModule: TokenModule;
-	let validatorModule: ValidatorsModule;
-	let feeModule: FeeModule;
+	let authModule = new AuthModule();
+	let validatorModule = new ValidatorsModule();
+	let tokenModule = new TokenModule();
+	let feeModule = new FeeModule();
+	let posModule = new PoSModule();
+	let randomModule = new RandomModule();
+	let dynamicRewardModule = new DynamicRewardModule();
+	let dexIncentivesModule = new DexIncentivesModule();
+	let dexGovernanceModule = new DexGovernanceModule();
 
 	const senderAddress: Address = Buffer.from('d4b6810c78e3a3023e6bfaefc2bf6b9fe0dbf89b', 'hex');
 	let commandAddLiquidity;
@@ -113,16 +123,32 @@ describe('dex:command:addLiquidity', () => {
 
 	beforeEach(() => {
 		dexModule = new DexModule();
-		tokenModule = new TokenModule();
+		authModule = new AuthModule();
 		validatorModule = new ValidatorsModule();
+		tokenModule = new TokenModule();
 		feeModule = new FeeModule();
+		posModule = new PoSModule();
+		randomModule = new RandomModule();
+		dynamicRewardModule = new DynamicRewardModule();
+		dexIncentivesModule = new DexIncentivesModule();
+		dexGovernanceModule = new DexGovernanceModule();
 
 		tokenModule.method.mint = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.lock = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.unlock = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.transfer = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.getLockedAmount = jest.fn().mockResolvedValue(BigInt(1000));
-		dexModule.addDependencies(tokenModule.method, validatorModule.method, feeModule.method);
+		dexModule.addDependencies(
+			authModule.method,
+			validatorModule.method,
+			tokenModule.method,
+			feeModule.method,
+			posModule.method,
+			randomModule.method,
+			dynamicRewardModule.method,
+			dexIncentivesModule.method,
+			dexGovernanceModule.method,
+		);
 		commandAddLiquidity = dexModule.commands.find(e => e.name === 'addLiquidity');
 		commandAddLiquidity.init({ tokenMethod: tokenModule.method });
 	});

@@ -22,8 +22,9 @@ import {
 	FeeMethod,
 	PoSMethod,
 	RandomMethod,
-	RewardMethod,
 } from 'lisk-sdk';
+
+import { DynamicRewardMethod } from 'lisk-framework/dist-node/modules/dynamic_rewards';
 
 import { MODULE_ID_DEX, defaultConfig } from './constants';
 
@@ -106,7 +107,7 @@ export class DexModule extends BaseModule {
 	public _feeMethod!: FeeMethod;
 	public _posMethod!: PoSMethod;
 	public _randomMethod!: RandomMethod;
-	public _rewardMethod!: RewardMethod;
+	public _dynamicRewardMethod!: DynamicRewardMethod;
 	public _dexIncentivesMethod!: DexIncentivesMethod;
 	public _dexGovernanceMethod!: DexGovernanceMethod;
 	public _moduleConfig!: ModuleConfig;
@@ -269,7 +270,7 @@ export class DexModule extends BaseModule {
 		feeMethod: FeeMethod,
 		posMethod: PoSMethod,
 		randomMethod: RandomMethod,
-		rewardMethod: RewardMethod,
+		dynamicRewardMethod: DynamicRewardMethod,
 		dexIncentivesMethod: DexIncentivesMethod,
 		dexGovernanceMethod: DexGovernanceMethod,
 	) {
@@ -279,7 +280,7 @@ export class DexModule extends BaseModule {
 		this._feeMethod = feeMethod;
 		this._posMethod = posMethod;
 		this._randomMethod = randomMethod;
-		this._rewardMethod = rewardMethod;
+		this._dynamicRewardMethod = dynamicRewardMethod;
 		this._dexIncentivesMethod = dexIncentivesMethod;
 		this._dexGovernanceMethod = dexGovernanceMethod;
 	}

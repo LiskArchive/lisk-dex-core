@@ -7,8 +7,9 @@ import {
 	FeeModule,
 	PoSModule,
 	RandomModule,
-	RewardModule,
 } from 'lisk-sdk';
+
+import { DynamicRewardModule } from 'lisk-framework/dist-node/modules/dynamic_rewards';
 
 import { DexModule, DexIncentivesModule, DexGovernanceModule } from './modules';
 
@@ -21,10 +22,10 @@ export const getApplication = (config: PartialApplicationConfig): Application =>
 	const feeModule = new FeeModule();
 	const posModule = new PoSModule();
 	const randomModule = new RandomModule();
-	const rewardModule = new RewardModule();
+	const dynamicRewardModule = new DynamicRewardModule();
 	const dexIncentivesModule = new DexIncentivesModule();
 	const dexGovernanceModule = new DexGovernanceModule();
-	
+
 	dexModule.addDependencies(
 		authModule.method,
 		validatorModule.method,
@@ -32,7 +33,7 @@ export const getApplication = (config: PartialApplicationConfig): Application =>
 		feeModule.method,
 		posModule.method,
 		randomModule.method,
-		rewardModule.method,
+		dynamicRewardModule.method,
 		dexIncentivesModule.method,
 		dexGovernanceModule.method,
 	);
@@ -43,10 +44,7 @@ export const getApplication = (config: PartialApplicationConfig): Application =>
 		feeModule.method,
 		posModule.method,
 	);
-	dexGovernanceModule.addDependencies(
-		tokenModule.method,
-		posModule.method,
-	)
+	dexGovernanceModule.addDependencies(tokenModule.method, posModule.method);
 	app.registerModule(dexModule);
 
 	return app;
