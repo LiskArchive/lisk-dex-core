@@ -40,7 +40,7 @@ import { sha256 } from '../../dexRewards/constants';
 import { numberToQ96, q96ToBytes } from '../../dex/utils/q96';
 import { ProposalVotedEvent } from '../events';
 import {
-	COMMAND_VOTE_ON_PORPOSAL,
+	COMMAND_VOTE_ON_PROPOSAL,
 	LENGTH_ADDRESS,
 	MAX_NUM_RECORDED_VOTES,
 	PROPOSAL_STATUS_ACTIVE,
@@ -48,8 +48,8 @@ import {
 import { Vote, voteOnProposalParamsData } from '../types';
 import { addVotes } from '../utils/auxiliaryFunctions';
 
-export class VoteOnPorposalCommand extends BaseCommand {
-	public id = COMMAND_VOTE_ON_PORPOSAL;
+export class VoteOnProposalCommand extends BaseCommand {
+	public id = COMMAND_VOTE_ON_PROPOSAL;
 	private _posEndpoint!: PoSEndpoint;
 	private _methodContext!: MethodContext;
 

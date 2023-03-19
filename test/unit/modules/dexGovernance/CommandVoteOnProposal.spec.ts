@@ -31,7 +31,7 @@ import {
 import { voteOnProposalParamsSchema } from '../../../../src/app/modules/dexGovernance/schemas';
 import { Address, PoolID } from '../../../../src/app/modules/dex/types';
 import { DexGovernanceModule } from '../../../../src/app/modules';
-import { VoteOnPorposalCommand } from '../../../../src/app/modules/dexGovernance/commands/voteOnPorposal';
+import { VoteOnProposalCommand } from '../../../../src/app/modules/dexGovernance/commands/voteOnProposal';
 import { ProposalsStore, VotesStore } from '../../../../src/app/modules/dexGovernance/stores';
 import {
 	LENGTH_ADDRESS,
@@ -44,11 +44,11 @@ import { sha256 } from '../../../../src/app/modules/dexRewards/constants';
 const { createTransactionContext, InMemoryPrefixedStateDB } = testing;
 const { utils } = cryptography;
 
-describe('dexGovernance:command:voteOnPorposal', () => {
+describe('dexGovernance:command:voteOnProposal', () => {
 	const poolID: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 	const proposalIndex = 1;
 	const decision = 1;
-	let command: VoteOnPorposalCommand;
+	let command: VoteOnProposalCommand;
 	const pos = new PoSModule();
 	const posEndpoint = new PoSEndpoint(pos.stores, pos.offchainStores);
 	const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -103,7 +103,7 @@ describe('dexGovernance:command:voteOnPorposal', () => {
 	tokenMethod.unlock = unlockMock;
 
 	beforeEach(async () => {
-		command = new VoteOnPorposalCommand(dexGovernanceModule.stores, dexGovernanceModule.events);
+		command = new VoteOnProposalCommand(dexGovernanceModule.stores, dexGovernanceModule.events);
 
 		votesStore = dexGovernanceModule.stores.get(VotesStore);
 		proposalsStore = dexGovernanceModule.stores.get(ProposalsStore);
@@ -219,7 +219,7 @@ describe('dexGovernance:command:voteOnPorposal', () => {
 					assets: { getAsset: jest.fn() },
 					transaction: new Transaction({
 						module: 'dex',
-						command: 'voteOnPorposal',
+						command: 'voteOnProposal',
 						fee: BigInt(5000000),
 						nonce: BigInt(0),
 						senderPublicKey: senderAddress,
@@ -267,7 +267,7 @@ describe('dexGovernance:command:voteOnPorposal', () => {
 					assets: { getAsset: jest.fn() },
 					transaction: new Transaction({
 						module: 'dex',
-						command: 'voteOnPorposal',
+						command: 'voteOnProposal',
 						fee: BigInt(5000000),
 						nonce: BigInt(0),
 						senderPublicKey: senderAddress,

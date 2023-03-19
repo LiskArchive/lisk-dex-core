@@ -51,5 +51,3 @@ export const DECISION_NO = 1; // Code for the vote decision "No".
 export const DECISION_PASS = 2; // Code for the vote decision "Pass".
 
 export const defaultConfig = {};
-
-export const COMMAND_VOTE_ON_PORPOSAL = 'voteOnProposal';

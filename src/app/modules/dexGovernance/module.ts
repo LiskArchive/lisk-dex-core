@@ -23,7 +23,7 @@ import {
 	utils,
 } from 'lisk-sdk';
 import { ModuleConfig } from '../dex/types';
-import { VoteOnPorposalCommand } from './commands/voteOnPorposal';
+import { VoteOnProposalCommand } from './commands/voteOnProposal';
 import { defaultConfig } from './constants';
 
 import { DexGovernanceEndpoint } from './endpoint';
@@ -57,9 +57,9 @@ export class DexGovernanceModule extends BaseModule {
 	public _posEndpoint!: PoSEndpoint;
 	public _methodContext!: PoSEndpoint;
 
-	private readonly __voteOnPorposalCommand = new VoteOnPorposalCommand(this.stores, this.events);
+	private readonly __voteOnProposalCommand = new VoteOnProposalCommand(this.stores, this.events);
 
-	public commands = [this.__voteOnPorposalCommand];
+	public commands = [this.__voteOnProposalCommand];
 
 	public constructor() {
 		super();
@@ -127,7 +127,7 @@ export class DexGovernanceModule extends BaseModule {
 		const { moduleConfig } = args;
 		this._moduleConfig = utils.objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfig;
 
-		this.__voteOnPorposalCommand.init({
+		this.__voteOnProposalCommand.init({
 			posEndpoint: this._posEndpoint,
 			methodContext: this._methodContext,
 		});
