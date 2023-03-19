@@ -204,8 +204,8 @@ export const createProposalParamsSchema = {
 			fieldNumber: 1,
 		},
 		content: {
-			fieldNumber: 2,
 			...proposalContentSchema,
+			fieldNumber: 2,
 		},
 	},
 };

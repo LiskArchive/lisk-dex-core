@@ -148,14 +148,16 @@ export class CreateProposalCommand extends BaseCommand {
 		const methodContext = ctx.getMethodContext();
 
 		const indexStore = this.stores.get(IndexStore);
-		const newestIndexTemp = (await indexStore.get(methodContext, Buffer.from('0'))).newestIndex;
+		const indexStoreData = await indexStore.get(methodContext, Buffer.from('0'));
+
 		const hasEndedRes = await hasEnded(
 			methodContext,
 			this.stores.get(ProposalsStore),
-			newestIndexTemp - MAX_NUM_RECORDED_VOTES + 1,
+			indexStoreData.newestIndex - MAX_NUM_RECORDED_VOTES + 1,
 			ctx.header.height,
 			VOTE_DURATION,
 		);
+
 		if (!hasEndedRes) {
 			emitProposalCreationFailedEvent(methodContext, 0, this.events);
 			throw new Error('Limit of proposals with recoded votes is reached');
@@ -169,10 +171,10 @@ export class CreateProposalCommand extends BaseCommand {
 		}
 
 		this._feeMethod.payFee(methodContext, FEE_PROPOSAL_CREATION);
-		const index = newestIndexTemp + 1;
+		const index = indexStoreData.newestIndex + 1;
 		const currentHeight = ctx.header.height;
 		const indexBuffer = Buffer.alloc(4);
-		indexBuffer.writeUInt32BE(index, 0);
+		indexBuffer.writeUInt32BE(indexStoreData.newestIndex + 1, 0);
 
 		const Proposal = {
 			creationHeight: currentHeight,
@@ -185,9 +187,8 @@ export class CreateProposalCommand extends BaseCommand {
 		};
 		const proposalsStore = this.stores.get(ProposalsStore);
 		await proposalsStore.set(methodContext, indexBuffer, Proposal);
-		const indexStoreData = await indexStore.get(methodContext, Buffer.from('0'));
 		indexStoreData.newestIndex = index;
-		indexStore.set(methodContext, Buffer.from('0'), indexStoreData);
+		await indexStore.set(methodContext, Buffer.from('0'), indexStoreData);
 		this.events.get(ProposalCreatedEvent).add(
 			methodContext,
 			{

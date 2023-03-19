@@ -25,7 +25,6 @@ import { loggerMock } from 'lisk-framework/dist-node/testing/mocks';
 import {
 	createBlockContext,
 	createBlockHeaderWithDefaults,
-	createFakeBlockHeader,
 } from 'lisk-framework/dist-node/testing';
 import { Address, PoolID } from '../../../../src/app/modules/dex/types';
 import { DexGovernanceModule } from '../../../../src/app/modules';
@@ -161,7 +160,7 @@ describe('dexGovernance:command:createproposal', () => {
 		it('should be successful when all the parameters are correct', async () => {
 			const context = createTransactionContext({
 				transaction: new Transaction({
-					module: 'dexGovernance',
+					module: 'dex',
 					command: 'createproposal',
 					fee: BigInt(5000000),
 					nonce: BigInt(0),
@@ -183,7 +182,7 @@ describe('dexGovernance:command:createproposal', () => {
 
 	describe('execute', () => {
 		it('execute block should pass', async () => {
-			const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
+			const blockHeader = createBlockHeaderWithDefaults({ height: 260001 });
 			const blockAfterExecuteContext = createBlockContext({
 				header: blockHeader,
 			}).getBlockAfterExecuteContext();
@@ -202,7 +201,7 @@ describe('dexGovernance:command:createproposal', () => {
 						content,
 					},
 					logger: loggerMock,
-					header: createFakeBlockHeader(),
+					header: blockHeader,
 					eventQueue: blockAfterExecuteContext.eventQueue,
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					getMethodContext: () => methodContext,

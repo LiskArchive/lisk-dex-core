@@ -13,14 +13,14 @@
  */
 
 import {
-	TOKEN_ID_DEX_NATIVE,
+	TOKEN_ID_DEX,
 	SUBSTORE_PREFIX_PROPOSALS,
 	FEE_PROPOSAL_CREATION,
 } from '../../../../src/app/modules/dexGovernance/constants';
 
 describe('DexGovernanceModule:constants', () => {
 	it('should generate addresses', () => {
-		expect(TOKEN_ID_DEX_NATIVE).toHaveLength(8);
+		expect(TOKEN_ID_DEX).toHaveLength(8);
 		expect(SUBSTORE_PREFIX_PROPOSALS).toHaveLength(2);
 		expect(FEE_PROPOSAL_CREATION).toBe(BigInt(5000));
 	});

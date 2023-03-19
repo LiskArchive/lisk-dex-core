@@ -13,14 +13,13 @@
  */
 
 import { BaseModule, PoSModule, TokenModule } from 'lisk-sdk';
-
+import { FeeMethod } from 'lisk-framework';
 import { DexGovernanceModule } from '../../../../src/app/modules/dexGovernance/module';
 import { DexGovernanceEndpoint } from '../../../../src/app/modules/dexGovernance/endpoint';
 
 import { MODULE_NAME_DEX_GOVERNANCE } from '../../../../src/app/modules/dexGovernance/constants';
 
 import { DexGovernanceMethod } from '../../../../src/app/modules/dexGovernance/method';
-import { FeeMethod } from 'lisk-framework';
 
 describe('DexGovernanceModule', () => {
 	let dexGovernanceModule: DexGovernanceModule;

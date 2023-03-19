@@ -23,10 +23,10 @@ import {
 	TokenMethod,
 	utils,
 } from 'lisk-sdk';
-import { MODULE_ID_DEX_GOVERNANCE } from '../dex/constants';
+import { MODULE_NAME_DEX_GOVERNANCE } from '../dex/constants';
 import { PoolsStore } from '../dex/stores';
 import { ModuleConfig } from '../dex/types';
-import { CreatePorposalCommand } from './commands/createProposal';
+import { CreateProposalCommand } from './commands/createProposal';
 import { defaultConfig } from './constants';
 
 import { DexGovernanceEndpoint } from './endpoint';
@@ -52,7 +52,7 @@ import {
 import { IndexStore, ProposalsStore, VotesStore } from './stores';
 
 export class DexGovernanceModule extends BaseModule {
-	public id = MODULE_ID_DEX_GOVERNANCE;
+	public id = MODULE_NAME_DEX_GOVERNANCE;
 	public endpoint = new DexGovernanceEndpoint(this.stores, this.offchainStores);
 	public method = new DexGovernanceMethod(this.stores, this.events);
 	public _tokenMethod!: TokenMethod;
@@ -61,7 +61,7 @@ export class DexGovernanceModule extends BaseModule {
 	public _posEndpoint!: PoSEndpoint;
 	public _feeMethod!: FeeMethod;
 
-	private readonly __createPorposalCommand = new CreatePorposalCommand(this.stores, this.events);
+	private readonly __createPorposalCommand = new CreateProposalCommand(this.stores, this.events);
 
 	public commands = [this.__createPorposalCommand];
 
