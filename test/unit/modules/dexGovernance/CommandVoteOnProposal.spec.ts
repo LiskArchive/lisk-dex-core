@@ -31,7 +31,6 @@ import {
 import { voteOnProposalParamsSchema } from '../../../../src/app/modules/dexGovernance/schemas';
 import { Address, PoolID } from '../../../../src/app/modules/dex/types';
 import { DexGovernanceModule } from '../../../../src/app/modules';
-import { VoteOnProposalCommand } from '../../../../src/app/modules/dexGovernance/commands/voteOnProposal';
 import { ProposalsStore, VotesStore } from '../../../../src/app/modules/dexGovernance/stores';
 import {
 	LENGTH_ADDRESS,
@@ -40,6 +39,7 @@ import {
 } from '../../../../src/app/modules/dexGovernance/constants';
 import { Proposal } from '../../../../src/app/modules/dexGovernance/types';
 import { sha256 } from '../../../../src/app/modules/dexRewards/constants';
+import { VoteOnProposalCommand } from '../../../../src/app/modules/dexGovernance/commands/voteOnProposal';
 
 const { createTransactionContext, InMemoryPrefixedStateDB } = testing;
 const { utils } = cryptography;
@@ -127,7 +127,7 @@ describe('dexGovernance:command:voteOnProposal', () => {
 		it('should be successful when all the parameters are correct', async () => {
 			const context = createTransactionContext({
 				transaction: new Transaction({
-					module: 'dex',
+					module: 'dexGovernance',
 					command: 'voteOnPorosal',
 					fee: BigInt(5000000),
 					nonce: BigInt(0),
@@ -148,7 +148,7 @@ describe('dexGovernance:command:voteOnProposal', () => {
 		it('should Fail with Decision does not exist message', async () => {
 			const context = createTransactionContext({
 				transaction: new Transaction({
-					module: 'dex',
+					module: 'dexGovernance',
 					command: 'voteOnPorosal',
 					fee: BigInt(5000000),
 					nonce: BigInt(0),
@@ -171,7 +171,7 @@ describe('dexGovernance:command:voteOnProposal', () => {
 			await proposalsStore.set(methodContext, indexBuffer, proposal);
 			const context = createTransactionContext({
 				transaction: new Transaction({
-					module: 'dex',
+					module: 'dexGovernance',
 					command: 'voteOnPorosal',
 					fee: BigInt(5000000),
 					nonce: BigInt(0),
@@ -218,7 +218,7 @@ describe('dexGovernance:command:voteOnProposal', () => {
 					getMethodContext: () => methodContext,
 					assets: { getAsset: jest.fn() },
 					transaction: new Transaction({
-						module: 'dex',
+						module: 'dexGovernance',
 						command: 'voteOnProposal',
 						fee: BigInt(5000000),
 						nonce: BigInt(0),
@@ -266,7 +266,7 @@ describe('dexGovernance:command:voteOnProposal', () => {
 					getMethodContext: () => methodContext,
 					assets: { getAsset: jest.fn() },
 					transaction: new Transaction({
-						module: 'dex',
+						module: 'dexGovernance',
 						command: 'voteOnProposal',
 						fee: BigInt(5000000),
 						nonce: BigInt(0),

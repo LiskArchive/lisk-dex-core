@@ -116,7 +116,7 @@ export class VoteOnProposalCommand extends BaseCommand {
 			.amount;
 
 		try {
-			await votesStoreInfo.getKey(methodContext, [senderAddress]);
+			await votesStoreInfo.get(methodContext, senderAddress);
 		} catch (error) {
 			votesStoreInfo.set(methodContext, senderAddress, { voteInfos: [] });
 		}
