@@ -94,6 +94,7 @@ describe('dexGovernance:endpoints', () => {
 	};
 
 	const vote: Vote = {
+		address: Buffer.from('00000000', 'hex'),
 		voteInfos: [
 			{
 				proposalIndex: 0,

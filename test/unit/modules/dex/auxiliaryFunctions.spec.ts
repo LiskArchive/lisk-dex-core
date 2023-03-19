@@ -450,7 +450,6 @@ describe('dex:auxiliaryFunctions', () => {
 				token0Id,
 				token1Id,
 				q96ToBytes(
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 					BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings[0].feeTier, 0)),
 				),
 			];

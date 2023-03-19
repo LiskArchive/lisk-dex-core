@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -67,7 +68,6 @@ describe('DexRewardsModule', () => {
 
 		dexRewardsModule.addDependencies(
 			tokenModule.method,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 			validatorModule.method,
 			randomModule.method,
 		);

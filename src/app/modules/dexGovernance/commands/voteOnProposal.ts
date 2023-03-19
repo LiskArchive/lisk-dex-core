@@ -118,9 +118,13 @@ export class VoteOnProposalCommand extends BaseCommand {
 		try {
 			await votesStoreInfo.get(methodContext, senderAddress);
 		} catch (error) {
-			votesStoreInfo.set(methodContext, senderAddress, { voteInfos: [] });
+			votesStoreInfo.set(methodContext, senderAddress, {
+				address: Buffer.from('0'),
+				voteInfos: [],
+			});
 		}
 		const newVoteInfo: Vote = {
+			address: Buffer.from('0'),
 			voteInfos: [
 				{
 					proposalIndex: index,
