@@ -20,6 +20,7 @@ import {
 	testing,
 	cryptography,
 	codec,
+	BlockExecuteContext,
 } from 'lisk-sdk';
 
 import { GenesisBlockContext, EventQueue } from 'lisk-framework/dist-node/state_machine/';
@@ -33,15 +34,16 @@ import {
 } from '../../../../src/app/modules/dexGovernance/stores';
 import { DexGovernanceModule } from '../../../../src/app/modules/dexGovernance/module';
 import { DexGovernanceEndpoint } from '../../../../src/app/modules/dexGovernance/endpoint';
+import { Index, Proposal, Vote } from '../../../../src/app/modules/dexGovernance/types';
+import { PoolID } from '../../../../src/app/modules/dex/types';
 
-import { MODULE_NAME_DEX_GOVERNANCE } from '../../../../src/app/modules/dexGovernance/constants';
+import { MODULE_NAME_DEX_GOVERNANCE, PROPOSAL_STATUS_ACTIVE, PROPOSAL_TYPE_INCENTIVIZATION, VOTE_DURATION } from '../../../../src/app/modules/dexGovernance/constants';
 
 import { DexGovernanceMethod } from '../../../../src/app/modules/dexGovernance/method';
 import { IndexStoreData } from '../../../../src/app/modules/dexGovernance/stores/indexStore';
-import { Proposal, Vote } from '../../../../src/app/modules/dexGovernance/types';
 import { genesisDEXGovernanceSchema } from '../../../../src/app/modules/dexGovernance/schemas';
 
-const { createBlockHeaderWithDefaults, InMemoryPrefixedStateDB } = testing;
+const { createBlockHeaderWithDefaults, InMemoryPrefixedStateDB, createBlockContext } = testing;
 const { utils } = cryptography;
 
 describe('DexGovernanceModule', () => {
@@ -52,7 +54,7 @@ describe('DexGovernanceModule', () => {
 
 	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
 	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
-	const blockHeader = createBlockHeaderWithDefaults({ height: 101 });
+	const blockHeader = createBlockHeaderWithDefaults({ height: 100 + VOTE_DURATION });
 	const getAsset = jest.fn();
 
 	const genesisBlockContext: GenesisBlockContext = new GenesisBlockContext({
@@ -180,6 +182,77 @@ describe('DexGovernanceModule', () => {
 			expect(() => dexGovernanceModule.verifyGenesisBlock(genesisBlockExecuteContext)).toThrow(
 				Error('Proposal can not be created in the future'),
 			);
+		});
+	});
+
+	describe('beforeTransactionsExecute', () => {
+		let blockExecuteContext: BlockExecuteContext;
+
+		beforeEach(async () => {
+			blockExecuteContext = createBlockContext({
+				header: blockHeader,
+			}).getBlockExecuteContext();
+
+
+			const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
+			const proposal: Proposal = {
+				creationHeight: 1,
+				votesYes: BigInt(200),
+				votesNo: BigInt(100),
+				votesPass: BigInt(50),
+				type: PROPOSAL_TYPE_INCENTIVIZATION,
+				content: {
+					text: Buffer.alloc(1),
+					poolID: poolId,
+					multiplier: 2,
+					metadata: {
+						title: Buffer.alloc(1),
+						author: Buffer.alloc(1),
+						summary: Buffer.alloc(1),
+						discussionsTo: Buffer.alloc(1),
+					},
+				},
+				status: PROPOSAL_STATUS_ACTIVE,
+			};
+
+			const index: Index = {
+				newestIndex: 1,
+				nextOutcomeCheckIndex: 100,
+				nextQuorumCheckIndex: 100,
+			};
+
+			const vote: Vote = {
+				address: Buffer.from('00000000', 'hex'),
+				voteInfos: [
+					{
+						proposalIndex: 0,
+						decision: 1,
+						amount: BigInt(1000),
+					},
+				],
+			};
+
+			const indexBuffer = Buffer.alloc(4);
+			indexBuffer.writeUInt32BE(0, 0);
+			const indexStore = dexGovernanceModule.stores.get(IndexStore);
+			await proposalsStore.set(blockExecuteContext, indexBuffer, proposal);
+			await indexStore.set(blockExecuteContext, Buffer.alloc(0), index);
+			await votesStore.set(blockExecuteContext, Buffer.from('0', 'hex'), vote);
+
+		});
+		it(`should call token methods and emit events`, async () => {
+			await dexGovernanceModule.beforeTransactionsExecute(blockExecuteContext);
+
+			const events = blockExecuteContext.eventQueue.getEvents();
+			const proposalQuorumCheckedEvents = events.filter(
+				e => e.toObject().name === 'proposalQuorumChecked',
+			);
+			expect(proposalQuorumCheckedEvents).toHaveLength(0);
+
+			const proposalOutcomeCheckedEvents = events.filter(
+				e => e.toObject().name === 'proposalOutcomeChecked',
+			);
+			expect(proposalOutcomeCheckedEvents).toHaveLength(1);
 		});
 	});
 });
