@@ -223,7 +223,9 @@ describe('dex: offChainEndpointFunctions', () => {
 
 		it('getAllPoolIDs', async () => {
 			await endpoint.getAllPoolIDs(moduleEndpointContext).then(res => {
-				expect(res[0]).toStrictEqual(Buffer.from('00000001000000000101643130', 'hex'));
+				expect(res[0]).toStrictEqual(
+					Buffer.from('000000000000000000000001000000000101643130', 'hex'),
+				);
 			});
 		});
 

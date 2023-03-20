@@ -21,7 +21,7 @@
 
 import { MethodContext, TokenMethod, cryptography, ModuleEndpointContext } from 'lisk-sdk';
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
-
+import { MAX_SINT32 } from '@liskhq/lisk-validator';
 import {
 	DexGlobalStore,
 	PoolsStore,
@@ -75,13 +75,16 @@ import {
 	invQ96,
 } from './q96';
 
-import { getAmount0Delta, getAmount1Delta, priceToTick, tickToPrice } from './math';
+import {
+	computeNextPrice,
+	getAmount0Delta,
+	getAmount1Delta,
+	priceToTick,
+	tickToPrice,
+} from './math';
 import { FeesIncentivesCollectedEvent, PositionUpdateFailedEvent } from '../events';
 import { DexEndpoint } from '../endpoint';
 import { DexModule } from '../module';
-
-const { utils } = cryptography;
-
 import { PriceTicksStoreData, tickToBytes } from '../stores/priceTicksStore';
 import { ADDRESS_VALIDATOR_INCENTIVES } from '../../dexIncentives/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
@@ -90,6 +93,7 @@ import { PositionsStoreData } from '../stores/positionsStore';
 import { updatePoolIncentives } from './tokenEcnomicsFunctions';
 
 const abs = (x: bigint) => (x < BigInt(0) ? -x : x);
+const { utils } = cryptography;
 
 export const poolIdToAddress = (poolId: PoolID): Address => {
 	const _address: Buffer = utils.hash(poolId);
@@ -1056,7 +1060,7 @@ export const getCredibleDirectPrice = async (
 		await endpoint.getPool(methodContext, directPools[minToken1ValueLockedIndex])
 	).sqrtPrice;
 	return mulQ96(bytesToQ96(poolSqrtPrice), bytesToQ96(poolSqrtPrice));
-}
+};
 
 export const swapWithin = (
 	sqrtCurrentPrice: bigint,
@@ -1194,7 +1198,7 @@ export const getCurrentSqrtPrice = async (
 	}
 	return invQ96(q96SqrtPrice);
 };
-	
+
 export const getDexGlobalData = async (
 	methodContext: MethodContext,
 	stores: NamedRegistry,

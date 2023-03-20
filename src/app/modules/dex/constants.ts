@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-
 import { createHash } from 'crypto';
 import { TextEncoder } from 'util';
 import { Q96 } from './types';
@@ -166,4 +165,3 @@ export const FEE_TIER_PARTITION = 1000000;
 export const ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES = sha256(
 	'liquidityProviderIncentivesAccount',
 ).slice(0, NUM_BYTES_ADDRESS);
-

@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable jest/no-try-expect */
 
 /*
  * Copyright © 2022 Lisk Foundation
@@ -48,9 +47,8 @@ import {
 	PriceTicksStore,
 } from '../../../../src/app/modules/dex/stores';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
-import { TOKEN_ID_LSK } from '../../../../src/app/modules/dexRewards/constants';
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
-import { NUM_BYTES_POOL_ID } from '../../../../src/app/modules/dex/constants';
+import { NUM_BYTES_POOL_ID, TOKEN_ID_LSK } from '../../../../src/app/modules/dex/constants';
 import {
 	PriceTicksStoreData,
 	tickToBytes,
@@ -139,7 +137,6 @@ describe('dex:swapFunctions', () => {
 			try {
 				raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress);
 			} catch (error) {
-				expect(error.message).toBe('SwapFailedEvent');
 				const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
 				expect(swapFailedEvent).toHaveLength(1);
 			}

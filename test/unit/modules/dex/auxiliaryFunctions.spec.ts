@@ -428,7 +428,7 @@ describe('dex:auxiliaryFunctions', () => {
 			const exists = await poolsStore.has(methodContext, poolId);
 			expect(poolExistResult).toEqual(exists);
 		});
-		
+
 		it('getAdjacent', async () => {
 			const res = await getAdjacent(moduleEndpointContext, dexModule.stores, token0Id);
 			expect(res).not.toBeNull();

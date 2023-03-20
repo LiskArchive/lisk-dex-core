@@ -45,6 +45,8 @@ import { PositionsStore, PositionsStoreData } from './stores/positionsStore';
 import { PriceTicksStore, PriceTicksStoreData, tickToBytes } from './stores/priceTicksStore';
 import { uint32beInv } from './utils/bigEndian';
 import { getCredibleDirectPrice } from './utils/tokenEcnomicsFunctions';
+import { computeCurrentPrice, swap } from './utils/swapFunctions';
+import { dryRunSwapExactInRequestSchema, dryRunSwapExactOutRequestSchema } from './schemas';
 
 export class DexEndpoint extends BaseEndpoint {
 	public async getAllPoolIDs(methodContext): Promise<PoolID[]> {
