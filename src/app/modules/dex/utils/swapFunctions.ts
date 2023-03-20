@@ -21,7 +21,6 @@
  */
 
 import { ModuleEndpointContext, TokenMethod } from 'lisk-sdk';
-
 import { MethodContext } from 'lisk-framework/dist-node/state_machine';
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import {
@@ -715,6 +714,7 @@ export const getRoute = async (
 
 	return bestRoute;
 };
+
 export const getOptimalSwapPool = async (
 	methodContext,
 	stores: NamedRegistry,

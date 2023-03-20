@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright © 2020 Lisk Foundation
  *
@@ -12,11 +13,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { TokenModule, Transaction, ValidatorsModule, VerifyStatus } from 'lisk-framework';
+import {
+	FeeModule,
+	TokenModule,
+	Transaction,
+	ValidatorsModule,
+	VerifyStatus,
+} from 'lisk-framework';
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { testing } from 'lisk-sdk';
 import { DexModule } from '../../../../src/app/modules';
-import { MAX_TICK, MIN_TICK } from '../../../../src/app/modules/dex/constants';
 import { createPositionSchema } from '../../../../src/app/modules/dex/schemas';
 import { SettingsStore } from '../../../../src/app/modules/dex/stores';
 import {
@@ -35,9 +41,8 @@ import { Address, PoolID } from '../../../../src/app/modules/dex/types';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { q96ToBytes, numberToQ96 } from '../../../../src/app/modules/dex/utils/q96';
 import { createPositionFixtures } from './fixtures/createPositionFixture';
-import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 
-const { createTransactionContext } = testing;
+const { createTransactionContext, InMemoryPrefixedStateDB } = testing;
 
 const skipOnCI = process.env.CI ? describe.skip : describe;
 
@@ -46,6 +51,7 @@ describe('dex:command:createPosition', () => {
 	let dexModule: DexModule;
 	let tokenModule: TokenModule;
 	let validatorModule: ValidatorsModule;
+	let feeModule: FeeModule;
 
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	let commandCreatePosition;
@@ -53,7 +59,7 @@ describe('dex:command:createPosition', () => {
 	const poolsStoreData: PoolsStoreData = {
 		liquidity: BigInt(5),
 		sqrtPrice: q96ToBytes(BigInt('327099227039063106')),
-		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(1000))),
 		heightIncentivesUpdate: 5,
 		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
 		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(6))),
@@ -61,7 +67,7 @@ describe('dex:command:createPosition', () => {
 	};
 
 	const dexGlobalStoreData: DexGlobalStoreData = {
-		positionCounter: BigInt(10),
+		positionCounter: BigInt(15),
 		collectableLSKFees: BigInt(10),
 		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
 		incentivizedPools: [{ poolId, multiplier: 10 }],
@@ -94,11 +100,11 @@ describe('dex:command:createPosition', () => {
 	};
 
 	const positionsStoreData: PositionsStoreData = {
-		tickLower: MIN_TICK + 100,
-		tickUpper: MAX_TICK - 100,
-		liquidity: BigInt(2000000),
-		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(3))),
-		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(1))),
+		tickLower: -10,
+		tickUpper: 10,
+		liquidity: BigInt(1000),
+		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(0))),
+		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(0))),
 		ownerAddress: senderAddress,
 	};
 
@@ -106,13 +112,14 @@ describe('dex:command:createPosition', () => {
 		dexModule = new DexModule();
 		tokenModule = new TokenModule();
 		validatorModule = new ValidatorsModule();
+		feeModule = new FeeModule();
 
 		tokenModule.method.mint = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.lock = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.unlock = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.transfer = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.getLockedAmount = jest.fn().mockResolvedValue(BigInt(1000));
-		dexModule.addDependencies(tokenModule.method, validatorModule.method);
+		dexModule.addDependencies(tokenModule.method, validatorModule.method, feeModule.method);
 		commandCreatePosition = dexModule.commands.find(e => e.name === 'createPosition');
 		commandCreatePosition.init({ tokenMethod: tokenModule.method });
 	});

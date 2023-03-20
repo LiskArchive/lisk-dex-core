@@ -2,6 +2,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-floating-promises */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -17,10 +20,8 @@
  */
 
 import { MethodContext, TokenMethod, cryptography, ModuleEndpointContext } from 'lisk-sdk';
-
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 
-import { MAX_SINT32 } from '@liskhq/lisk-validator';
 import {
 	DexGlobalStore,
 	PoolsStore,
@@ -47,8 +48,8 @@ import {
 	POSITION_UPDATE_FAILED_NOT_EXISTS,
 	POSITION_UPDATE_FAILED_NOT_OWNER,
 	TOKEN_ID_LSK,
-	TOKEN_ID_REWARDS,
-	ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL,
+	TOKEN_ID_INCENTIVES,
+	ADDRESS_LIQUIDITY_PROVIDERS_INCENTIVES_POOL,
 	MODULE_NAME_DEX,
 } from '../constants';
 
@@ -60,6 +61,7 @@ import {
 	Q96,
 	routeInterface,
 	AdjacentEdgesInterface,
+	TickID,
 } from '../types';
 
 import {
@@ -70,17 +72,22 @@ import {
 	roundDownQ96,
 	q96ToBytes,
 	bytesToQ96,
+	invQ96,
 } from './q96';
 
 import { getAmount0Delta, getAmount1Delta, priceToTick, tickToPrice } from './math';
 import { FeesIncentivesCollectedEvent, PositionUpdateFailedEvent } from '../events';
-import { tickToBytes } from '../stores/priceTicksStore';
-import { ADDRESS_VALIDATOR_REWARDS_POOL } from '../../dexRewards/constants';
-import { DexGlobalStoreData } from '../stores/dexGlobalStore';
 import { DexEndpoint } from '../endpoint';
 import { DexModule } from '../module';
 
 const { utils } = cryptography;
+
+import { PriceTicksStoreData, tickToBytes } from '../stores/priceTicksStore';
+import { ADDRESS_VALIDATOR_INCENTIVES } from '../../dexIncentives/constants';
+import { DexGlobalStoreData } from '../stores/dexGlobalStore';
+import { PoolsStoreData } from '../stores/poolsStore';
+import { PositionsStoreData } from '../stores/positionsStore';
+import { updatePoolIncentives } from './tokenEcnomicsFunctions';
 
 const abs = (x: bigint) => (x < BigInt(0) ? -x : x);
 
@@ -168,7 +175,7 @@ export const transferToValidatorLSKPool = async (
 	await tokenMethod.transfer(
 		methodContext,
 		senderAddress,
-		ADDRESS_VALIDATOR_REWARDS_POOL,
+		ADDRESS_VALIDATOR_INCENTIVES,
 		TOKEN_ID_LSK,
 		amount,
 	);
@@ -228,12 +235,8 @@ export const collectFeesAndIncentives = async (
 	const positionInfo = await positionsStore.get(methodContext, positionID);
 	const ownerAddress = await getOwnerAddressOfPosition(methodContext, positionsStore, positionID);
 
-	const [
-		collectedFees0,
-		collectedFees1,
-		feeGrowthInside0,
-		feeGrowthInside1,
-	] = await computeCollectableFees(stores, methodContext, positionID);
+	const [collectedFees0, collectedFees1, feeGrowthInside0, feeGrowthInside1] =
+		await computeCollectableFees(stores, methodContext, positionID);
 
 	if (collectedFees0 > 0) {
 		await transferFromPool(
@@ -270,9 +273,9 @@ export const collectFeesAndIncentives = async (
 
 	await tokenMethod.transfer(
 		methodContext,
-		ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL,
+		ADDRESS_LIQUIDITY_PROVIDERS_INCENTIVES_POOL,
 		ownerAddress,
-		TOKEN_ID_REWARDS,
+		TOKEN_ID_INCENTIVES,
 		incentivesForPosition,
 	);
 	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.alloc(0));
@@ -287,7 +290,7 @@ export const collectFeesAndIncentives = async (
 		collectedFees1,
 		tokenID1: getToken1Id(poolID),
 		collectedIncentives: incentivesForPosition,
-		tokenIDIncentives: TOKEN_ID_REWARDS,
+		tokenIDIncentives: TOKEN_ID_INCENTIVES,
 	});
 };
 
@@ -343,8 +346,8 @@ export const computeCollectableIncentives = async (
 	const totalCollectableLSKFees = dexGlobalStoreData.collectableLSKFees;
 	const availableLPIncentives = await tokenMethod.getAvailableBalance(
 		methodContext,
-		ADDRESS_LIQUIDITY_PROVIDERS_REWARDS_POOL,
-		TOKEN_ID_REWARDS,
+		ADDRESS_LIQUIDITY_PROVIDERS_INCENTIVES_POOL,
+		TOKEN_ID_INCENTIVES,
 	);
 	const incentivesForPosition =
 		(availableLPIncentives * collectableFeesLSK) / totalCollectableLSKFees;
@@ -365,6 +368,7 @@ export const createPool = async (
 	tokenID1: TokenID,
 	feeTier: number,
 	initialSqrtPrice: Q96,
+	currentHeight: number,
 ): Promise<number> => {
 	const poolSetting = settings.feeTiers[feeTier];
 
@@ -381,7 +385,7 @@ export const createPool = async (
 		liquidity: BigInt(0),
 		sqrtPrice: q96ToBytes(initialSqrtPrice),
 		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
-		heightIncentivesUpdate: 0,
+		heightIncentivesUpdate: currentHeight,
 		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(0))),
 		protocolFees0: numberToQ96(BigInt(0)),
@@ -459,6 +463,7 @@ export const createPosition = async (
 		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(0))),
 		ownerAddress: senderAddress,
+		incentivesPerLiquidityLast: q96ToBytes(numberToQ96(BigInt(0))),
 	};
 	await positionsStore.set(methodContext, positionID, positionValue);
 	return [POSITION_CREATION_SUCCESS, positionID];
@@ -765,15 +770,131 @@ export const updatePosition = async (
 	return [amount0, amount1];
 };
 
+export const addPoolCreationSettings = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	feeTier: number,
+	tickSpacing: number,
+) => {
+	if (feeTier > 1000000) {
+		throw new Error('Fee tier can not be greater than 100%');
+	}
+	const settingGlobalStore = stores.get(SettingsStore);
+	const settingGlobalStoreData = await settingGlobalStore.get(methodContext, Buffer.alloc(0));
+	if (settingGlobalStoreData.poolCreationSettings.feeTier === feeTier) {
+		throw new Error('Can not update fee tier');
+	}
+	settingGlobalStoreData.poolCreationSettings[0] = { feeTier, tickSpacing };
+	await settingGlobalStore.set(methodContext, Buffer.alloc(0), settingGlobalStoreData);
+};
+
+export const getProtocolSettings = async (methodContext: MethodContext, stores: NamedRegistry) => {
+	const dexGlobalStoreData = await getDexGlobalData(methodContext, stores);
+	return dexGlobalStoreData;
+};
+
+export const updateIncentivizedPools = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	poolId: PoolID,
+	multiplier: number,
+	currentHeight: number,
+) => {
+	const dexGlobalStoreData = await getDexGlobalData(methodContext, stores);
+
+	for (const incentivizedPool of dexGlobalStoreData.incentivizedPools) {
+		await updatePoolIncentives(methodContext, stores, incentivizedPool.poolId, currentHeight);
+	}
+	dexGlobalStoreData.incentivizedPools.forEach((incentivizedPools, index) => {
+		if (incentivizedPools.poolId.equals(poolId)) {
+			dexGlobalStoreData.totalIncentivesMultiplier -= incentivizedPools.multiplier;
+			dexGlobalStoreData.incentivizedPools.splice(index, 1);
+		}
+	});
+	if (multiplier > 0) {
+		dexGlobalStoreData.totalIncentivesMultiplier += multiplier;
+		dexGlobalStoreData.incentivizedPools.push({ poolId, multiplier });
+		dexGlobalStoreData.incentivizedPools.sort((a, b) => (a.poolId < b.poolId ? -1 : 1));
+	}
+};
+
+export const getToken0Amount = async (
+	tokenMethod: TokenMethod,
+	methodContext: MethodContext,
+	poolId: PoolID,
+): Promise<bigint> => {
+	const address = poolIdToAddress(poolId);
+	const tokenId = getToken0Id(poolId);
+	return tokenMethod.getLockedAmount(methodContext, address, tokenId, MODULE_ID_DEX.toString());
+};
+
+export const getToken1Amount = async (
+	tokenMethod: TokenMethod,
+	methodContext: MethodContext,
+	poolId: PoolID,
+): Promise<bigint> => {
+	const address = poolIdToAddress(poolId);
+	const tokenId = getToken1Id(poolId);
+	return tokenMethod.getLockedAmount(methodContext, address, tokenId, MODULE_ID_DEX.toString());
+};
+
+export const getAllTicks = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+): Promise<TickID[]> => {
+	const tickIds: Buffer[] = [];
+	const priceTicksStore = stores.get(PriceTicksStore);
+	const allTickIds = await priceTicksStore.getAll(methodContext);
+	allTickIds.forEach(tickId => {
+		tickIds.push(tickId.key);
+	});
+	return tickIds;
+};
+
+export const poolExists = async (methodContext, poolsStore: PoolsStore, poolId: PoolID) => {
+	const result = poolsStore.has(methodContext, poolId);
+	return result;
+};
+
+export const computeCurrentPrice = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	tokenIn: TokenID,
+	tokenOut: TokenID,
+	swapRoute: PoolID[],
+): Promise<bigint> => {
+	let price = BigInt(1);
+	let tokenInPool = tokenIn;
+	// eslint-disable-next-line @typescript-eslint/no-misused-promises
+	for (const poolId of swapRoute) {
+		const pool = await getPool(methodContext, stores, poolId);
+		if ((await getPool(methodContext, stores, poolId)) == null) {
+			throw new Error('Not a valid pool');
+		}
+		if (tokenInPool.equals(getToken0Id(poolId))) {
+			price = mulQ96(price, bytesToQ96(pool.sqrtPrice));
+			tokenInPool = getToken1Id(poolId);
+		} else if (tokenInPool.equals(getToken1Id(poolId))) {
+			price = mulQ96(price, invQ96(bytesToQ96(pool.sqrtPrice)));
+			tokenInPool = getToken0Id(poolId);
+		} else {
+			throw new Error('Incorrect swap path for price computation');
+		}
+	}
+
+	if (!tokenInPool.equals(tokenOut)) {
+		throw new Error('Incorrect swap path for price computation');
+	}
+	return mulQ96(price, price);
+};
+
 export const getAdjacent = async (
-	methodContext: ModuleEndpointContext,
+	methodContext,
 	stores: NamedRegistry,
 	vertex: TokenID,
 ): Promise<AdjacentEdgesInterface[]> => {
 	const result: AdjacentEdgesInterface[] = [];
-	const dexModule = new DexModule();
-	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
-	const poolIDs = await endpoint.getAllPoolIDs(methodContext);
+	const poolIDs = await getAllPoolIDs(methodContext, stores.get(PoolsStore));
 	poolIDs.forEach(edge => {
 		if (getToken0Id(edge).equals(vertex)) {
 			result.push({ edge, vertex: getToken1Id(edge) });
@@ -820,6 +941,20 @@ export const computeRegularRoute = async (
 		return [tokenIn, tokenOut];
 	}
 	return [];
+};
+
+export const getAllPoolIDs = async (
+	methodContext: MethodContext,
+	poolStore: PoolsStore,
+): Promise<PoolID[]> => {
+	const poolIds: PoolID[] = [];
+	const allPoolIds = await poolStore.getAll(methodContext);
+	if (allPoolIds != null && allPoolIds.length > 0) {
+		allPoolIds.forEach(poolId => {
+			poolIds.push(poolId.key);
+		});
+	}
+	return poolIds;
 };
 
 export const computeExceptionalRoute = async (
@@ -921,4 +1056,193 @@ export const getCredibleDirectPrice = async (
 		await endpoint.getPool(methodContext, directPools[minToken1ValueLockedIndex])
 	).sqrtPrice;
 	return mulQ96(bytesToQ96(poolSqrtPrice), bytesToQ96(poolSqrtPrice));
+}
+
+export const swapWithin = (
+	sqrtCurrentPrice: bigint,
+	sqrtTargetPrice: bigint,
+	liquidity: bigint,
+	amountRemaining: bigint,
+	exactInput: boolean,
+): [bigint, bigint, bigint] => {
+	const zeroToOne: boolean = sqrtCurrentPrice >= sqrtTargetPrice;
+	let amountIn = BigInt(0);
+	let amountOut = BigInt(0);
+	let sqrtUpdatedPrice: bigint;
+	if (exactInput) {
+		if (zeroToOne) {
+			amountIn = getAmount0Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, true);
+		} else {
+			amountIn = getAmount1Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, true);
+		}
+	} else if (zeroToOne) {
+		amountOut = getAmount1Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, false);
+	} else {
+		amountOut = getAmount0Delta(sqrtCurrentPrice, sqrtTargetPrice, liquidity, false);
+	}
+	if (
+		(exactInput && amountRemaining >= amountIn) ||
+		(!exactInput && amountRemaining >= amountOut)
+	) {
+		sqrtUpdatedPrice = sqrtTargetPrice;
+	} else {
+		sqrtUpdatedPrice = computeNextPrice(
+			sqrtCurrentPrice,
+			liquidity,
+			amountRemaining,
+			zeroToOne,
+			exactInput,
+		);
+	}
+	if (zeroToOne) {
+		amountIn = getAmount0Delta(sqrtCurrentPrice, sqrtUpdatedPrice, liquidity, true);
+		amountOut = getAmount1Delta(sqrtCurrentPrice, sqrtUpdatedPrice, liquidity, false);
+	} else {
+		amountIn = getAmount1Delta(sqrtCurrentPrice, sqrtUpdatedPrice, liquidity, true);
+		amountOut = getAmount0Delta(sqrtCurrentPrice, sqrtUpdatedPrice, liquidity, false);
+	}
+	return [sqrtUpdatedPrice, amountIn, amountOut];
+};
+
+export const crossTick = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	tickId: TickID,
+	leftToRight: boolean,
+	currentHeight: number,
+) => {
+	const poolId = tickId.slice(0, NUM_BYTES_POOL_ID);
+	await updatePoolIncentives(methodContext, stores, poolId, currentHeight);
+	const poolStoreData = await getPool(methodContext, stores, poolId);
+	const priceTickStoreData = await getTickWithTickId(methodContext, stores, [tickId]);
+	if (leftToRight) {
+		poolStoreData.liquidity += priceTickStoreData.liquidityNet;
+	} else {
+		poolStoreData.liquidity -= priceTickStoreData.liquidityNet;
+	}
+	const feeGrowthGlobal0Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal0);
+	const feeGrowthOutside0Q96 = bytesToQ96(priceTickStoreData.feeGrowthOutside0);
+	priceTickStoreData.feeGrowthOutside0 = q96ToBytes(
+		subQ96(feeGrowthGlobal0Q96, feeGrowthOutside0Q96),
+	);
+	const feeGrowthGlobal1Q96 = bytesToQ96(poolStoreData.feeGrowthGlobal1);
+	const feeGrowthOutside1Q96 = bytesToQ96(priceTickStoreData.feeGrowthOutside1);
+	priceTickStoreData.feeGrowthOutside1 = q96ToBytes(
+		subQ96(feeGrowthGlobal1Q96, feeGrowthOutside1Q96),
+	);
+	const incentivesAccumulatorQ96 = bytesToQ96(poolStoreData.incentivesPerLiquidityAccumulator);
+	const incentivesOutsideQ96 = bytesToQ96(priceTickStoreData.incentivesPerLiquidityOutside);
+	priceTickStoreData.incentivesPerLiquidityOutside = q96ToBytes(
+		subQ96(incentivesAccumulatorQ96, incentivesOutsideQ96),
+	);
+};
+
+export const getAllTokenIDs = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+): Promise<Set<TokenID>> => {
+	const tokens = new Set<TokenID>();
+	const allPoolIds = await getAllPoolIDs(methodContext, stores.get(PoolsStore));
+
+	if (allPoolIds != null && allPoolIds.length > 0) {
+		allPoolIds.forEach(poolID => {
+			tokens.add(getToken0Id(poolID));
+			tokens.add(getToken1Id(poolID));
+		});
+	}
+
+	return tokens;
+};
+
+export const getAllPositionIDsInPool = (
+	poolId: PoolID,
+	positionIdsList: PositionID[],
+): Buffer[] => {
+	const result: Buffer[] = [];
+	positionIdsList.forEach(positionId => {
+		if (getPoolIDFromPositionID(positionId).equals(poolId)) {
+			result.push(positionId);
+		}
+	});
+	return result;
+};
+
+export const getPool = async (
+	methodContext,
+	stores: NamedRegistry,
+	poolID: PoolID,
+): Promise<PoolsStoreData> => {
+	const poolsStore = stores.get(PoolsStore);
+	const poolStoreData = await poolsStore.getKey(methodContext, [poolID]);
+	return poolStoreData;
+};
+
+export const getCurrentSqrtPrice = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	poolID: PoolID,
+	priceDirection: boolean,
+): Promise<Q96> => {
+	const pools = await getPool(methodContext, stores, poolID);
+	if (pools == null) {
+		throw new Error();
+	}
+
+	const q96SqrtPrice = bytesToQ96(pools.sqrtPrice);
+	if (priceDirection) {
+		return q96SqrtPrice;
+	}
+	return invQ96(q96SqrtPrice);
+};
+	
+export const getDexGlobalData = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+): Promise<DexGlobalStoreData> => {
+	const dexGlobalStore = stores.get(DexGlobalStore);
+	return dexGlobalStore.get(methodContext, Buffer.from([]));
+};
+
+export const getPosition = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	positionID: PositionID,
+	positionIdsList: PositionID[],
+): Promise<PositionsStoreData> => {
+	if (positionIdsList.includes(positionID)) {
+		throw new Error();
+	}
+	const positionsStore = stores.get(PositionsStore);
+	const positionStoreData = await positionsStore.get(methodContext, positionID);
+	return positionStoreData;
+};
+
+export const getTickWithTickId = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	tickId: TickID[],
+) => {
+	const priceTicksStore = stores.get(PriceTicksStore);
+	const priceTicksStoreData = await priceTicksStore.getKey(methodContext, tickId);
+	if (priceTicksStoreData == null) {
+		throw new Error('No tick with the specified poolId');
+	} else {
+		return priceTicksStoreData;
+	}
+};
+
+export const getTickWithPoolIdAndTickValue = async (
+	methodContext: MethodContext,
+	stores: NamedRegistry,
+	poolId: PoolID,
+	tickValue: number,
+): Promise<PriceTicksStoreData> => {
+	const priceTicksStore = stores.get(PriceTicksStore);
+	const key = poolId.toLocaleString() + tickToBytes(tickValue).toLocaleString();
+	const priceTicksStoreData = await priceTicksStore.get(methodContext, Buffer.from(key, 'hex'));
+	if (priceTicksStoreData == null) {
+		throw new Error('No tick with the specified poolId and tickValue');
+	} else {
+		return priceTicksStoreData;
+	}
 };

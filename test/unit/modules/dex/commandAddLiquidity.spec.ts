@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright © 2020 Lisk Foundation
  *
@@ -12,7 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { TokenModule, Transaction, ValidatorsModule, VerifyStatus } from 'lisk-framework';
+import {
+	FeeModule,
+	TokenModule,
+	Transaction,
+	ValidatorsModule,
+	VerifyStatus,
+} from 'lisk-framework';
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { testing } from 'lisk-sdk';
 import { DexModule } from '../../../../src/app/modules';
@@ -37,9 +44,8 @@ import { Address, PoolID } from '../../../../src/app/modules/dex/types';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { q96ToBytes, numberToQ96 } from '../../../../src/app/modules/dex/utils/q96';
 import { addLiquidityFixtures } from './fixtures/addLiquidityFixture';
-import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 
-const { createTransactionContext } = testing;
+const { createTransactionContext, InMemoryPrefixedStateDB } = testing;
 
 const skipOnCI = process.env.CI ? describe.skip : describe;
 
@@ -48,6 +54,7 @@ describe('dex:command:addLiquidity', () => {
 	let dexModule: DexModule;
 	let tokenModule: TokenModule;
 	let validatorModule: ValidatorsModule;
+	let feeModule: FeeModule;
 
 	const senderAddress: Address = Buffer.from('d4b6810c78e3a3023e6bfaefc2bf6b9fe0dbf89b', 'hex');
 	let commandAddLiquidity;
@@ -108,13 +115,14 @@ describe('dex:command:addLiquidity', () => {
 		dexModule = new DexModule();
 		tokenModule = new TokenModule();
 		validatorModule = new ValidatorsModule();
+		feeModule = new FeeModule();
 
 		tokenModule.method.mint = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.lock = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.unlock = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.transfer = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.getLockedAmount = jest.fn().mockResolvedValue(BigInt(1000));
-		dexModule.addDependencies(tokenModule.method, validatorModule.method);
+		dexModule.addDependencies(tokenModule.method, validatorModule.method, feeModule.method);
 		commandAddLiquidity = dexModule.commands.find(e => e.name === 'addLiquidity');
 		commandAddLiquidity.init({ tokenMethod: tokenModule.method });
 	});

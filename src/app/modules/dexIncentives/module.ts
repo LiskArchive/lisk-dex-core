@@ -17,46 +17,47 @@ import {
 	BaseCommand,
 	BaseModule,
 	BlockAfterExecuteContext,
+	FeeMethod,
 	ModuleMetadata,
 	RandomMethod,
 	TokenMethod,
 	ValidatorsMethod,
+	PoSMethod,
 } from 'lisk-sdk';
 import {
-	ADDRESS_LIQUIDITY_PROVIDER_REWARDS_POOL,
-	ADDRESS_TRADER_REWARDS_POOL,
-	BLOCK_REWARD_LIQUIDITY_PROVIDERS,
-	BLOCK_REWARD_TRADERS,
+	ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
 	MODULE_NAME_DEX,
 	TOKEN_ID_DEX_NATIVE,
 } from './constants';
 
-import { DexRewardsEndpoint } from './endpoint';
-import { GeneratorRewardMintedEvent, ValidatorTradeRewardsPayoutEvent } from './events';
+import { DexIncentivesEndpoint } from './endpoint';
+import { ValidatorIncentivesPayout } from './events';
 
-import { DexRewardsMethod } from './method';
-import { getValidatorBlockReward, transferValidatorLSKRewards } from './utils/auxiliaryFunctions';
+import { DexIncentivesMethod } from './method';
+import {
+	transferAllValidatorLSKIncentives,
+	getLiquidityIncentivesAtHeight,
+} from './utils/auxiliaryFunctions';
 
-export class DexRewardsModule extends BaseModule {
-	public endpoint = new DexRewardsEndpoint(this.stores, this.offchainStores);
-	public method = new DexRewardsMethod(this.stores, this.events);
+export class DexIncentivesModule extends BaseModule {
+	public endpoint = new DexIncentivesEndpoint(this.stores, this.offchainStores);
+	public method = new DexIncentivesMethod(this.stores, this.events);
 	public _tokenMethod!: TokenMethod;
 	public _randomMethod!: RandomMethod;
 	public _validatorsMethod!: ValidatorsMethod;
+	public _feeMethod!: FeeMethod;
+	public _posMethod!: PoSMethod;
 
 	public commands = [];
 
 	public constructor() {
 		super();
-		this.events.register(
-			ValidatorTradeRewardsPayoutEvent,
-			new ValidatorTradeRewardsPayoutEvent(this.name),
-		);
-		this.events.register(GeneratorRewardMintedEvent, new GeneratorRewardMintedEvent(this.name));
+		this.events.register(ValidatorIncentivesPayout, new ValidatorIncentivesPayout(this.name));
 	}
 
 	public metadata(): ModuleMetadata {
 		return {
+			stores: [],
 			endpoints: [],
 			commands: this.commands.map((command: BaseCommand) => ({
 				name: command.name,
@@ -67,7 +68,6 @@ export class DexRewardsModule extends BaseModule {
 				data: v.schema,
 			})),
 			assets: [],
-			stores: [],
 		};
 	}
 
@@ -75,72 +75,47 @@ export class DexRewardsModule extends BaseModule {
 		tokenMethod: TokenMethod,
 		validatorsMethod: ValidatorsMethod,
 		randomMethod: RandomMethod,
+		feeMethod: FeeMethod,
+		posMethod: PoSMethod,
 	) {
 		this._tokenMethod = tokenMethod;
 		this._validatorsMethod = validatorsMethod;
 		this._randomMethod = randomMethod;
+		this._feeMethod = feeMethod;
+		this._posMethod = posMethod;
 	}
 
 	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
 		const methodContext = context.getMethodContext();
 		const { header } = context;
-		const [blockReward, reduction] = await getValidatorBlockReward(
-			methodContext,
-			this._randomMethod,
-			header,
-			context.header.impliesMaxPrevotes,
-		);
 
-		if (blockReward > 0) {
-			await this._tokenMethod.mint(
-				methodContext,
-				header.generatorAddress,
-				TOKEN_ID_DEX_NATIVE,
-				blockReward,
-			);
-		}
-		this.events.get(GeneratorRewardMintedEvent).add(
-			methodContext,
-			{
-				amount: blockReward,
-				reduction,
-				generatorAddress: header.generatorAddress,
-			},
-			[header.generatorAddress],
-		);
+		const liquidityIncentive = getLiquidityIncentivesAtHeight(context.header.height);
 
 		await this._tokenMethod.mint(
 			methodContext,
-			ADDRESS_LIQUIDITY_PROVIDER_REWARDS_POOL,
+			ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
 			TOKEN_ID_DEX_NATIVE,
-			BLOCK_REWARD_LIQUIDITY_PROVIDERS,
+			liquidityIncentive,
 		);
 		await this._tokenMethod.lock(
 			methodContext,
-			ADDRESS_LIQUIDITY_PROVIDER_REWARDS_POOL,
+			ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
 			MODULE_NAME_DEX,
 			TOKEN_ID_DEX_NATIVE,
-			BLOCK_REWARD_LIQUIDITY_PROVIDERS,
-		);
-		await this._tokenMethod.mint(
-			methodContext,
-			ADDRESS_TRADER_REWARDS_POOL,
-			TOKEN_ID_DEX_NATIVE,
-			BLOCK_REWARD_TRADERS,
-		);
-		await this._tokenMethod.lock(
-			methodContext,
-			ADDRESS_TRADER_REWARDS_POOL,
-			MODULE_NAME_DEX,
-			TOKEN_ID_DEX_NATIVE,
-			BLOCK_REWARD_TRADERS,
+			liquidityIncentive,
 		);
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
 		const { validators } = await this._validatorsMethod.getValidatorsParams(methodContext);
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+		// // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 		if (header.height % validators.length === 0) {
-			await transferValidatorLSKRewards(validators, methodContext, this._tokenMethod, this.events);
+			await transferAllValidatorLSKIncentives(
+				validators,
+				methodContext,
+				this._tokenMethod,
+				this._posMethod,
+				this.events,
+			);
 		}
 	}
 }
