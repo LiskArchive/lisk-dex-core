@@ -16,7 +16,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseModule, ModuleMetadata, utils, TokenMethod, ValidatorsMethod } from 'lisk-sdk';
+import {
+	BaseModule,
+	ModuleMetadata,
+	utils,
+	TokenMethod,
+	ValidatorsMethod,
+	FeeMethod,
+} from 'lisk-sdk';
 
 import { MODULE_ID_DEX, defaultConfig } from './constants';
 
@@ -55,8 +62,8 @@ import {
 	getFeeTierRequestSchema,
 	getPoolIDFromTickIDRequestSchema,
 	getPoolIDFromTickIDResponseSchema,
-	getPositionIndexResponseSchema,
 	getPositionIndexRequestSchema,
+	getPositionIndexResponseSchema,
 	getAllTokenIdsResponseSchema,
 	getAllPositionIDsInPoolRequestSchema,
 	getAllPositionIDsInPoolResponseSchema,
@@ -83,6 +90,8 @@ import {
 	dryRunSwapExactOutResponseSchema,
 	dryRunSwapExactInRequestSchema,
 	dryRunSwapExactInResponseSchema,
+	getCollectableFeesAndIncentivesRequestSchema,
+	getCollectableFeesAndIncentivesResponseSchema,
 } from './schemas';
 
 import { SwappedEvent } from './events/swapped';
@@ -101,6 +110,7 @@ export class DexModule extends BaseModule {
 	public method = new DexMethod(this.stores, this.events);
 	public _tokenMethod!: TokenMethod;
 	public _validatorsMethod!: ValidatorsMethod;
+	public _feeMethod!: FeeMethod;
 	public _moduleConfig!: ModuleConfig;
 
 	private readonly _createPoolCommand = new CreatePoolCommand(this.stores, this.events);
@@ -239,11 +249,11 @@ export class DexModule extends BaseModule {
 					request: getAllPositionIDsInPoolRequestSchema,
 					response: getAllPositionIDsInPoolResponseSchema,
 				},
-				// {
-				// 	name: this.endpoint.getCollectableFeesAndIncentives.name,
-				// 	request: getCollectableFeesAndIncentivesRequestSchema,
-				// 	response: getCollectableFeesAndIncentivesResponseSchema,
-				// },
+				{
+					name: this.endpoint.getCollectableFeesAndIncentives.name,
+					request: getCollectableFeesAndIncentivesRequestSchema,
+					response: getCollectableFeesAndIncentivesResponseSchema,
+				},
 				{
 					name: this.endpoint.getAllTickIDsInPool.name,
 					request: getAllTickIDsInPoolRequestSchema,
@@ -273,9 +283,14 @@ export class DexModule extends BaseModule {
 		};
 	}
 
-	public addDependencies(tokenMethod: TokenMethod, validatorsMethod: ValidatorsMethod) {
+	public addDependencies(
+		tokenMethod: TokenMethod,
+		validatorsMethod: ValidatorsMethod,
+		feeMethod: FeeMethod,
+	) {
 		this._tokenMethod = tokenMethod;
 		this._validatorsMethod = validatorsMethod;
+		this._feeMethod = feeMethod;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

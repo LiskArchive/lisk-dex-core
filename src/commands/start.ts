@@ -3,12 +3,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
 import { Flags as flagParser } from '@oclif/core';
-import { FlagInput } from '@oclif/core/lib/interfaces';
 import { BaseStartCommand } from 'lisk-commander';
 import { Application, ApplicationConfig, PartialApplicationConfig } from 'lisk-sdk';
 import { ForgerPlugin } from '@liskhq/lisk-framework-forger-plugin';
 import { MonitorPlugin } from '@liskhq/lisk-framework-monitor-plugin';
-import { ReportMisbehaviorPlugin } from '@liskhq/lisk-framework-report-misbehavior-plugin';
 import { DashboardPlugin } from '@liskhq/lisk-framework-dashboard-plugin';
 import { FaucetPlugin } from '@liskhq/lisk-framework-faucet-plugin';
 import { join } from 'path';
@@ -42,11 +40,8 @@ const setPluginConfig = (config: ApplicationConfig, flags: Flags): void => {
 	}
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type StartFlags = typeof BaseStartCommand.flags & FlagInput<any>;
-
 export class StartCommand extends BaseStartCommand {
-	static flags: StartFlags = {
+	static flags = {
 		...BaseStartCommand.flags,
 		'enable-forger-plugin': flagParser.boolean({
 			description:
@@ -71,12 +66,6 @@ export class StartCommand extends BaseStartCommand {
 				'List of IPs in comma separated value to allow the connection. Environment variable "LISK_MONITOR_PLUGIN_WHITELIST" can also be used.',
 			env: 'LISK_MONITOR_PLUGIN_WHITELIST',
 			dependsOn: ['enable-monitor-plugin'],
-		}),
-		'enable-report-misbehavior-plugin': flagParser.boolean({
-			description:
-				'Enable ReportMisbehavior Plugin. Environment variable "LISK_ENABLE_REPORT_MISBEHAVIOR_PLUGIN" can also be used.',
-			env: 'LISK_ENABLE_MONITOR_PLUGIN',
-			default: false,
 		}),
 		'enable-faucet-plugin': flagParser.boolean({
 			description:
@@ -116,9 +105,6 @@ export class StartCommand extends BaseStartCommand {
 		}
 		if (flags['enable-monitor-plugin']) {
 			app.registerPlugin(new MonitorPlugin(), { loadAsChildProcess: true });
-		}
-		if (flags['enable-report-misbehavior-plugin']) {
-			app.registerPlugin(new ReportMisbehaviorPlugin(), { loadAsChildProcess: true });
 		}
 		if (flags['enable-faucet-plugin']) {
 			app.registerPlugin(new FaucetPlugin(), { loadAsChildProcess: true });

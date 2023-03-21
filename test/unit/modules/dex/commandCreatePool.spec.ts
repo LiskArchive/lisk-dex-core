@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright © 2020 Lisk Foundation
  *
@@ -12,7 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { TokenModule, Transaction, ValidatorsModule, VerifyStatus } from 'lisk-framework';
+import {
+	FeeModule,
+	TokenModule,
+	Transaction,
+	ValidatorsModule,
+	VerifyStatus,
+} from 'lisk-framework';
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { testing } from 'lisk-sdk';
 import { DexModule } from '../../../../src/app/modules';
@@ -32,9 +39,8 @@ import {
 	createPoolFixtures,
 	createRandomPoolFixturesGenerator,
 } from './fixtures/createPoolFixture';
-import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 
-const { createTransactionContext } = testing;
+const { createTransactionContext, InMemoryPrefixedStateDB } = testing;
 
 const skipOnCI = process.env.CI ? describe.skip : describe;
 
@@ -43,6 +49,7 @@ describe('dex:command:createPool', () => {
 	let dexModule: DexModule;
 	let tokenModule: TokenModule;
 	let validatorModule: ValidatorsModule;
+	let feeModule: FeeModule;
 
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
@@ -59,7 +66,7 @@ describe('dex:command:createPool', () => {
 	};
 
 	const dexGlobalStoreData: DexGlobalStoreData = {
-		positionCounter: BigInt(10),
+		positionCounter: BigInt(15),
 		collectableLSKFees: BigInt(10),
 		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
 		incentivizedPools: [{ poolId, multiplier: 10 }],
@@ -80,13 +87,14 @@ describe('dex:command:createPool', () => {
 		dexModule = new DexModule();
 		tokenModule = new TokenModule();
 		validatorModule = new ValidatorsModule();
+		feeModule = new FeeModule();
 
 		tokenModule.method.mint = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.lock = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.unlock = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.transfer = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.getLockedAmount = jest.fn().mockResolvedValue(BigInt(1000));
-		dexModule.addDependencies(tokenModule.method, validatorModule.method);
+		dexModule.addDependencies(tokenModule.method, validatorModule.method, feeModule.method);
 		command = dexModule.commands.find(e => e.name === 'createPool');
 		command.init({ moduleConfig: defaultConfig, tokenMethod: tokenModule.method });
 	});
@@ -101,7 +109,7 @@ describe('dex:command:createPool', () => {
 			const result = await command.verify(context.createCommandVerifyContext(createPoolSchema));
 
 			if (err === false) {
-				expect(result.error?.message).not.toBeDefined();
+				expect(result.error?.message).toBeUndefined();
 				expect(result.status).toEqual(VerifyStatus.OK);
 			} else {
 				expect(result.error?.message).toBe(err);

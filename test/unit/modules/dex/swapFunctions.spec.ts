@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable jest/no-try-expect */
 
 /*
  * Copyright © 2022 Lisk Foundation
@@ -44,10 +43,9 @@ import {
 	PriceTicksStore,
 } from '../../../../src/app/modules/dex/stores';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
-import { TOKEN_ID_LSK } from '../../../../src/app/modules/dexRewards/constants';
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { computeExceptionalRoute } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
-import { NUM_BYTES_POOL_ID } from '../../../../src/app/modules/dex/constants';
+import { NUM_BYTES_POOL_ID, TOKEN_ID_LSK } from '../../../../src/app/modules/dex/constants';
 import {
 	PriceTicksStoreData,
 	tickToBytes,

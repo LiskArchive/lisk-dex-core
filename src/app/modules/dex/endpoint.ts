@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable no-param-reassign */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 
 /*
  * Copyright © 2022 Lisk Foundation
@@ -34,9 +35,10 @@ import { PoolsStore } from './stores';
 import { PoolID, PositionID, Q96, TickID, TokenID } from './types';
 // eslint-disable-next-line import/no-cycle
 import {
+	computeCollectableFees,
+	computeCollectableIncentives,
 	computeExceptionalRoute,
 	computeRegularRoute,
-	getCredibleDirectPrice,
 	getPoolIDFromPositionID,
 	getToken0Id,
 	getToken1Id,
@@ -50,6 +52,7 @@ import {
 	getPositionIndexRequestSchema,
 	dryRunSwapExactInRequestSchema,
 	dryRunSwapExactOutRequestSchema,
+	getCollectableFeesAndIncentivesRequestSchema,
 } from './schemas';
 
 import { addQ96, bytesToQ96, divQ96, invQ96, roundDownQ96, mulQ96 } from './utils/q96';
@@ -57,11 +60,10 @@ import { DexGlobalStore, DexGlobalStoreData } from './stores/dexGlobalStore';
 import { PositionsStore, PositionsStoreData } from './stores/positionsStore';
 import { PriceTicksStore, PriceTicksStoreData, tickToBytes } from './stores/priceTicksStore';
 import { uint32beInv } from './utils/bigEndian';
+import { getCredibleDirectPrice } from './utils/tokenEcnomicsFunctions';
 
 export class DexEndpoint extends BaseEndpoint {
-	public async getAllPoolIDs(
-		methodContext: ModuleEndpointContext | MethodContext,
-	): Promise<PoolID[]> {
+	public async getAllPoolIDs(methodContext): Promise<PoolID[]> {
 		const poolStore = this.stores.get(PoolsStore);
 		const store = await poolStore.getAll(methodContext);
 		const poolIds: PoolID[] = [];
@@ -318,7 +320,7 @@ export class DexEndpoint extends BaseEndpoint {
 			tokenIdIn: string;
 			amountIn: bigint;
 			tokenIdOut: string;
-			minAmountOut: BigInt;
+			minAmountOut: bigint;
 			swapRoute: string[];
 		}>(dryRunSwapExactInRequestSchema, moduleEndpointContext.params);
 
@@ -487,5 +489,40 @@ export class DexEndpoint extends BaseEndpoint {
 		);
 
 		return [tokens[tokens.length - 1].amount, newAmountOut, priceBefore, priceAfter];
+	}
+
+	public async getCollectableFeesAndIncentives(
+		methodContext: ModuleEndpointContext,
+		tokenMethod: TokenMethod,
+	) {
+		validator.validate<{ positionId: string }>(
+			getCollectableFeesAndIncentivesRequestSchema,
+			methodContext.params,
+		);
+
+		const positionId = Buffer.from(methodContext.params.positionId, 'hex');
+		const positionsStore = this.stores.get(PositionsStore);
+		const hasPositionData = await positionsStore.has(methodContext, positionId);
+
+		if (!hasPositionData) {
+			throw new Error('The position is not registered!');
+		}
+
+		const [collectableFees0, collectableFees1] = await computeCollectableFees(
+			this.stores,
+			methodContext,
+			positionId,
+		);
+
+		const dexGlobalStore = this.stores.get(DexGlobalStore);
+		const [collectableIncentives] = await computeCollectableIncentives(
+			dexGlobalStore,
+			tokenMethod,
+			methodContext,
+			positionId,
+			collectableFees0,
+			collectableFees1,
+		);
+		return [collectableFees0, collectableFees1, collectableIncentives];
 	}
 }

@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -36,16 +37,28 @@ import {
 	transferToPool,
 	transferPoolToPool,
 	transferToProtocolFeeAccount,
+	transferToValidatorLSKPool,
+	getLiquidityForAmount0,
 	updatePosition,
-	getCredibleDirectPrice,
+	collectFeesAndIncentives,
 	computeExceptionalRoute,
 	computeRegularRoute,
 	getAdjacent,
+	poolExists,
+	addPoolCreationSettings,
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
+
+import { getCredibleDirectPrice } from '../../../../src/app/modules/dex/utils/tokenEcnomicsFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
 import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
-import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
+import {
+	numberToQ96,
+	q96ToBytes,
+	mulDivQ96,
+	roundDownQ96,
+	subQ96,
+} from '../../../../src/app/modules/dex/utils/q96';
 import { DexModule } from '../../../../src/app/modules';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import {
@@ -262,7 +275,7 @@ describe('dex:auxiliaryFunctions', () => {
 
 		it('should return 0 as POOL_CREATION_SUCCESS', async () => {
 			expect(
-				await createPool(settings, methodContext, poolsStore, token0Id, token1Id, 0, sqrtPrice),
+				await createPool(settings, methodContext, poolsStore, token0Id, token1Id, 0, sqrtPrice, 10),
 			).toBe(0);
 		});
 
@@ -407,9 +420,14 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('priceToTick', () => {
-			expect(priceToTick(tickToPrice(-735247))).toEqual(-735247);
+			expect(priceToTick(tickToPrice(-735247))).toBe(-735247);
 		});
 
+		it('poolExists', async () => {
+			const poolExistResult = await poolExists(methodContext, poolsStore, poolId);
+			const exists = await poolsStore.has(methodContext, poolId);
+			expect(poolExistResult).toEqual(exists);
+		});
 		it('getAdjacent', async () => {
 			const res = await getAdjacent(moduleEndpointContext, dexModule.stores, token0Id);
 			expect(res).not.toBeNull();
@@ -460,7 +478,8 @@ describe('dex:auxiliaryFunctions', () => {
 				),
 			];
 			await poolsStore.setKey(methodContext, newTokenIDsArray, poolsStoreData);
-			await poolsStore.set(methodContext, Buffer.alloc(0), poolsStoreData);
+			Buffer.concat(newTokenIDsArray);
+			await poolsStore.set(methodContext, Buffer.concat(newTokenIDsArray), poolsStoreData);
 			await getCredibleDirectPrice(
 				tokenMethod,
 				tempModuleEndpointContext,
@@ -471,5 +490,51 @@ describe('dex:auxiliaryFunctions', () => {
 				expect(res.toString()).toBe('79267784519130042428790663800');
 			});
 		});
+	});
+
+	it('addPoolCreationSettings', async () => {
+		const tickSpacing = 10;
+		const feeTier = 10;
+		await addPoolCreationSettings(methodContext, dexModule.stores, feeTier, tickSpacing);
+
+		const settingGlobalStore = dexModule.stores.get(SettingsStore);
+		const settingGlobalStoreData = await settingGlobalStore.get(methodContext, Buffer.alloc(0));
+
+		expect(settingGlobalStoreData.poolCreationSettings[0].feeTier).toEqual(feeTier);
+		expect(settingGlobalStoreData.poolCreationSettings[0].feeTier).toEqual(tickSpacing);
+	});
+
+	it('transferToValidatorLSKPool', async () => {
+		await transferToValidatorLSKPool(tokenMethod, methodContext, senderAddress, BigInt(1));
+
+		expect(tokenMethod.transfer).toHaveBeenCalled();
+	});
+
+	it('collectFeesAndIncentives', async () => {
+		await collectFeesAndIncentives(
+			dexModule.events,
+			dexModule.stores,
+			tokenMethod,
+			methodContext,
+			positionId,
+		);
+		expect(tokenMethod.transfer).toHaveBeenCalled();
+	});
+
+	it('getLiquidityForAmount0', () => {
+		const lowerSqrtPrice = BigInt(10);
+		const upperSqrtPrice = BigInt(100);
+		const amount0 = BigInt(50);
+
+		const intermediate = mulDivQ96(lowerSqrtPrice, upperSqrtPrice, numberToQ96(BigInt(1)));
+		const result = mulDivQ96(
+			numberToQ96(amount0),
+			intermediate,
+			subQ96(upperSqrtPrice, lowerSqrtPrice),
+		);
+
+		const functionResult = getLiquidityForAmount0(lowerSqrtPrice, upperSqrtPrice, amount0);
+
+		expect(functionResult).toEqual(roundDownQ96(result));
 	});
 });

@@ -99,6 +99,8 @@ export const genesisDEXSchema = {
 					'poolId',
 					'liquidity',
 					'sqrtPrice',
+					'incentivesPerLiquidityAccumulator',
+					'heightIncentivesUpdate',
 					'feeGrowthGlobal0',
 					'feeGrowthGlobal1',
 					'tickSpacing',
@@ -118,19 +120,28 @@ export const genesisDEXSchema = {
 						maxLength: MAX_NUM_BYTES_Q96,
 						fieldNumber: 3,
 					},
-					feeGrowthGlobal0: {
+					incentivesPerLiquidityAccumulator: {
 						dataType: 'bytes',
 						maxLength: MAX_NUM_BYTES_Q96,
+						fieldNumber: 3,
+					},
+					heightIncentivesUpdate: {
+						dataType: 'uint32',
 						fieldNumber: 4,
 					},
-					feeGrowthGlobal1: {
+					feeGrowthGlobal0: {
 						dataType: 'bytes',
 						maxLength: MAX_NUM_BYTES_Q96,
 						fieldNumber: 5,
 					},
+					feeGrowthGlobal1: {
+						dataType: 'bytes',
+						maxLength: MAX_NUM_BYTES_Q96,
+						fieldNumber: 6,
+					},
 					tickSpacing: {
 						dataType: 'uint32',
-						fieldNumber: 6,
+						fieldNumber: 7,
 					},
 				},
 			},
@@ -146,6 +157,7 @@ export const genesisDEXSchema = {
 					'liquidityGross',
 					'feeGrowthOutside0',
 					'feeGrowthOutside1',
+					'incentivesPerLiquidityOutside',
 				],
 				properties: {
 					tickId: {
@@ -171,6 +183,11 @@ export const genesisDEXSchema = {
 						maxLength: MAX_NUM_BYTES_Q96,
 						fieldNumber: 5,
 					},
+					incentivesPerLiquidityOutside: {
+						dataType: 'bytes',
+						maxLength: MAX_NUM_BYTES_Q96,
+						fieldNumber: 6,
+					},
 				},
 			},
 		},
@@ -186,6 +203,8 @@ export const genesisDEXSchema = {
 					'liquidity',
 					'feeGrowthInsideLast0',
 					'feeGrowthInsideLast1',
+					'ownerAddress',
+					'incentivesPerLiquidityLast',
 				],
 				properties: {
 					positionId: {
@@ -219,6 +238,11 @@ export const genesisDEXSchema = {
 						dataType: 'bytes',
 						length: NUM_BYTES_ADDRESS,
 						fieldNumber: 7,
+					},
+					incentivesPerLiquidityLast: {
+						dataType: 'bytes',
+						maxLength: MAX_NUM_BYTES_Q96,
+						fieldNumber: 8,
 					},
 				},
 			},
@@ -477,30 +501,14 @@ export const getAllPoolIdsResponseSchema = {
 	},
 };
 
-export const getAllTokenIdsRequestSchema = {
-	$id: 'dex/getAllTokenIds',
+export const getFeeTierResquestSchema = {
+	$id: 'dex/getFeeTier',
 	type: 'object',
-	required: ['stores'],
+	required: ['poolId'],
 	properties: {
-		stores: {
-			dataType: 'object',
+		poolId: {
+			dataType: 'bytes',
 			fieldNumber: 1,
-			poolIDArray: {
-				type: 'array',
-				fieldNumber: 1,
-				items: {
-					type: 'object',
-					required: ['poolID'],
-					properties: {
-						poolID: {
-							dataType: 'bytes',
-							minLength: NUM_BYTES_POOL_ID,
-							maxLength: NUM_BYTES_POOL_ID,
-							fieldNumber: 1,
-						},
-					},
-				},
-			},
 		},
 	},
 };
@@ -526,7 +534,6 @@ export const getAllTokenIdsResponseSchema = {
 		},
 	},
 };
-
 export const getAllPositionIDsInPoolRequestSchema = {
 	$id: 'dex/endpoint/getAllPositionIDsInPoolRequest',
 	type: 'object',
@@ -638,6 +645,28 @@ export const getPositionResponseSchema = {
 		position: {
 			dataType: 'object',
 			fieldNumber: 1,
+		},
+	},
+};
+
+export const getAllTickIDsInPoolRsponseSchema = {
+	$id: 'dex/endpoint/getAllTickIDsInPool',
+	type: 'object',
+	required: ['tickIDs'],
+	properties: {
+		tickIDs: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['tickId'],
+				properties: {
+					positionID: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+				},
+			},
 		},
 	},
 };
@@ -769,10 +798,10 @@ export const getFeeTierRequestSchema = {
 export const getFeeTierResponseSchema = {
 	$id: 'dex/endpoint/getFeeTierResponse',
 	type: 'object',
-	required: ['feeTier'],
+	required: ['stores', 'poolID'],
 	properties: {
-		feeTier: {
-			dataType: 'uint32',
+		stores: {
+			dataType: 'object',
 			fieldNumber: 1,
 		},
 	},
@@ -785,7 +814,7 @@ export const getToken1AmountRequestSchema = {
 	properties: {
 		poolID: {
 			dataType: 'bytes',
-			fieldNumber: 1,
+			fieldNumber: 2,
 		},
 	},
 };
@@ -947,6 +976,48 @@ export const getAllTickIDsInPoolResponseSchema = {
 					tickID: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+					},
+				},
+			},
+		},
+	},
+};
+
+export const getCollectableFeesAndIncentivesRequestSchema = {
+	$id: 'dex/endpoint/getCollectableFeesAndIncentives',
+	type: 'object',
+	required: ['positionID'],
+	properties: {
+		positionID: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+	},
+};
+
+export const getCollectableFeesAndIncentivesResponseSchema = {
+	$id: 'dex/endpoint/getCollectableFeesAndIncentives',
+	type: 'object',
+	required: ['feesAndIncentives'],
+	properties: {
+		feesAndIncentives: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['collectableFees0', 'collectableFees1', 'collectableIncentives'],
+				properties: {
+					collectableFees0: {
+						dataType: 'uint64',
+						fieldNumber: 1,
+					},
+					collectableFees1: {
+						dataType: 'uint64',
+						fieldNumber: 2,
+					},
+					collectableIncentives: {
+						dataType: 'uint64',
+						fieldNumber: 3,
 					},
 				},
 			},

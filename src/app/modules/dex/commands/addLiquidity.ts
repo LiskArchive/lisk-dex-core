@@ -66,10 +66,10 @@ export class AddLiquidityCommand extends BaseCommand {
 		const { amount0Min, amount0Desired, amount1Min, amount1Desired } = ctx.params;
 
 		/*
-        TODO: Not yet implemented on SDK
-        if lastBlockheader.timestamp > ctx.params.maxTimestampValid:
-            raise Exception()        
-        */
+				TODO: Not yet implemented on SDK
+				if lastBlockheader.timestamp > ctx.params.maxTimestampValid:
+						raise Exception()        
+				*/
 
 		if (amount0Min > amount0Desired || amount1Min > amount1Desired) {
 			return {

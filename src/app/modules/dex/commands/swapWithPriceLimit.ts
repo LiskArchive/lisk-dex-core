@@ -2,6 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 /*
  * Copyright © 2021 Lisk Foundation
  *
@@ -114,14 +116,8 @@ export class SwapExactWithPriceLimitCommand extends BaseCommand {
 
 	public async execute(ctx: CommandExecuteContext<swapWithPriceLimitParamsData>): Promise<void> {
 		const senderAddress = ctx.transaction.senderPublicKey.slice(0, NUM_BYTES_ADDRESS);
-		const {
-			tokenIdIn,
-			maxAmountTokenIn,
-			tokenIdOut,
-			minAmountTokenOut,
-			poolId,
-			sqrtLimitPrice,
-		} = ctx.params;
+		const { tokenIdIn, maxAmountTokenIn, tokenIdOut, minAmountTokenOut, poolId, sqrtLimitPrice } =
+			ctx.params;
 		const methodContext = ctx.getMethodContext();
 
 		let priceBefore: bigint;

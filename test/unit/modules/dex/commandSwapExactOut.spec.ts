@@ -168,7 +168,7 @@ describe('swapEactOutn', () => {
 			const result = await command.verify(
 				context.createCommandVerifyContext(swapExactOutCommandSchema),
 			);
-			expect(result.error?.message).not.toBeDefined();
+			expect(result.error?.message).toBeUndefined();
 			expect(result.status).toEqual(VerifyStatus.OK);
 		});
 	});

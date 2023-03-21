@@ -195,7 +195,7 @@ describe('dex:command:removeLiquidity', () => {
 			const result = await command.verify(
 				context.createCommandVerifyContext(removeLiquiditySchema),
 			);
-			expect(result.error?.message).not.toBeDefined();
+			expect(result.error?.message).toBeUndefined();
 			expect(result.status).toEqual(VerifyStatus.OK);
 		});
 	});
@@ -390,7 +390,7 @@ describe('dex:command:removeLiquidity', () => {
 					params: {
 						positionID: positionId,
 						liquidityToRemove,
-						amount0Min: BigInt(158456325028528675187087900671),
+						amount0Min: BigInt(1000),
 						amount1Min: BigInt(0),
 						maxTimestampValid: BigInt(1000),
 					},
