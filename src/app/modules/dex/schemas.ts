@@ -13,6 +13,7 @@
  */
 
 import {
+	ADDRESS_LENGTH,
 	MAX_NUM_BYTES_Q96,
 	NUM_BYTES_ADDRESS,
 	NUM_BYTES_POOL_ID,
@@ -1005,6 +1006,33 @@ export const getAllPositionIDsInPoolResponseSchema = {
 					positionID: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+					},
+				},
+			},
+		},
+	},
+};
+
+export const tokenDistributionSchema = {
+	$id: 'dex/tokenDistribution',
+	type: 'object',
+	required: ['accounts'],
+	properties: {
+		accounts: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['address', 'amount'],
+				properties: {
+					address: {
+						dataType: 'bytes',
+						length: ADDRESS_LENGTH,
+						fieldNumber: 1,
+					},
+					balance: {
+						dataType: 'uint64',
+						fieldNumber: 2,
 					},
 				},
 			},
