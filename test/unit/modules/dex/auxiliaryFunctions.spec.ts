@@ -19,8 +19,11 @@
 
 import { MethodContext, TokenMethod } from 'lisk-framework';
 import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_machine';
-import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
+import { genesisTokenStoreSchema } from 'lisk-framework/dist-node/modules/token';
+import { GenesisTokenStore } from 'lisk-framework/dist-node/modules/token/types';
+import { codec } from 'lisk-sdk';
 
+import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 import {
 	getToken0Id,
 	getToken1Id,
@@ -84,9 +87,6 @@ import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGl
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
-import { codec } from 'lisk-sdk';
-import { genesisTokenStoreSchema } from 'lisk-framework/dist-node/modules/token';
-import { GenesisTokenStore } from 'lisk-framework/dist-node/modules/token/types';
 import { ALL_SUPPORTED_TOKENS_KEY, TOKEN_ID_DEX } from '../../../../src/app/modules/dex/constants';
 
 describe('dex:auxiliaryFunctions', () => {

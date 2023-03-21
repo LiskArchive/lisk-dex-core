@@ -20,8 +20,9 @@
  */
 
 import { MethodContext, TokenMethod, cryptography, ModuleEndpointContext, codec } from 'lisk-sdk';
-
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
+import { genesisTokenStoreSchema } from 'lisk-framework/dist-node/modules/token';
+import { GenesisTokenStore } from 'lisk-framework/dist-node/modules/token/types';
 
 import {
 	DexGlobalStore,
@@ -66,7 +67,6 @@ import {
 	routeInterface,
 	AdjacentEdgesInterface,
 	TickID,
-	GenesisTokenStore,
 	TokenDistribution,
 } from '../types';
 
@@ -96,7 +96,6 @@ import { PoolsStoreData } from '../stores/poolsStore';
 import { PositionsStoreData } from '../stores/positionsStore';
 
 import { updatePoolIncentives } from './tokenEcnomicsFunctions';
-import { genesisTokenStoreSchema } from 'lisk-framework/dist-node/modules/token';
 
 const { utils } = cryptography;
 
@@ -1192,14 +1191,14 @@ export const getTickWithPoolIdAndTickValue = async (
 };
 
 export const computeTokenGenesisAsset = (tokenDistribution: TokenDistribution) => {
-	let tokenModuleAsset: GenesisTokenStore = {
+	const tokenModuleAsset: GenesisTokenStore = {
 		userSubstore: [],
 		supplySubstore: [],
 		escrowSubstore: [],
 		supportedTokensSubstore: [],
 	};
-	let totalSupply: bigint = BigInt(0);
-	for (let account of tokenDistribution.accounts) {
+	let totalSupply = BigInt(0);
+	for (const account of tokenDistribution.accounts) {
 		tokenModuleAsset.userSubstore.push({
 			address: account.address,
 			tokenID: TOKEN_ID_DEX,
@@ -1212,7 +1211,7 @@ export const computeTokenGenesisAsset = (tokenDistribution: TokenDistribution) =
 
 	tokenModuleAsset.supplySubstore.push({
 		tokenID: TOKEN_ID_DEX,
-		totalSupply: totalSupply,
+		totalSupply,
 	});
 
 	tokenModuleAsset.supportedTokensSubstore.push({
