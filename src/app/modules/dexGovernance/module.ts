@@ -60,7 +60,10 @@ import {
 	DECISION_PASS,
 	VOTE_DURATION,
 	QUORUM_DURATION,
-	PROPOSAL_STATUS_ACTIVE, PROPOSAL_STATUS_FAILED_QUORUM, PROPOSAL_STATUS_FINISHED_ACCEPTED, QUORUM_PERCENTAGE,
+	PROPOSAL_STATUS_ACTIVE,
+	PROPOSAL_STATUS_FAILED_QUORUM,
+	PROPOSAL_STATUS_FINISHED_ACCEPTED,
+	QUORUM_PERCENTAGE,
 } from './constants';
 import { IndexStoreData } from './stores/indexStore';
 import { getVoteOutcome, hasEnded } from './utils/auxiliaryFunctions';
@@ -338,8 +341,15 @@ export class DexGovernanceModule extends BaseModule {
 		const proposalsStore = this.stores.get(ProposalsStore);
 		const indexStoreData = await indexStore.get(context, Buffer.alloc(0));
 
-
-		while (await hasEnded(context, proposalsStore, indexStoreData.nextQuorumCheckIndex, height, QUORUM_DURATION)) {
+		while (
+			await hasEnded(
+				context,
+				proposalsStore,
+				indexStoreData.nextQuorumCheckIndex,
+				height,
+				QUORUM_DURATION,
+			)
+		) {
 			const index = indexStoreData.nextQuorumCheckIndex;
 			const indexBuffer = Buffer.alloc(4);
 			indexBuffer.writeUInt32BE(index, 0);
@@ -348,22 +358,33 @@ export class DexGovernanceModule extends BaseModule {
 			const turnout = proposal.votesYes + proposal.votesNo + proposal.votesPass;
 
 			const tokenTotalSupply = await this._tokenMethod.getTotalSupply(context);
-			if (turnout * BigInt(1000000) < QUORUM_PERCENTAGE * tokenTotalSupply.totalSupply[0].totalSupply) {
-				proposal.status = PROPOSAL_STATUS_FAILED_QUORUM
+			if (
+				turnout * BigInt(1000000) <
+				QUORUM_PERCENTAGE * tokenTotalSupply.totalSupply[0].totalSupply
+			) {
+				proposal.status = PROPOSAL_STATUS_FAILED_QUORUM;
 			}
 
 			this.events.get(ProposalQuorumCheckedEvent).add(
 				context,
 				{
 					index,
-					status: proposal.status
-				}, [indexBuffer]
-			)
+					status: proposal.status,
+				},
+				[indexBuffer],
+			);
 			indexStoreData.nextQuorumCheckIndex += 1;
 		}
 
-
-		while (await hasEnded(context, proposalsStore, indexStoreData.nextOutcomeCheckIndex, height, VOTE_DURATION)) {
+		while (
+			await hasEnded(
+				context,
+				proposalsStore,
+				indexStoreData.nextOutcomeCheckIndex,
+				height,
+				VOTE_DURATION,
+			)
+		) {
 			const index = indexStoreData.nextOutcomeCheckIndex;
 			const indexBuffer = Buffer.alloc(4);
 			indexBuffer.writeUInt32BE(index, 0);
@@ -371,22 +392,38 @@ export class DexGovernanceModule extends BaseModule {
 			const proposal = await proposalsStore.get(context, indexBuffer);
 
 			if (proposal.status === PROPOSAL_STATUS_ACTIVE) {
-				const outcome = await getVoteOutcome(context, this._tokenMethod, proposal.votesYes, proposal.votesNo, proposal.votesPass);
+				const outcome = await getVoteOutcome(
+					context,
+					this._tokenMethod,
+					proposal.votesYes,
+					proposal.votesNo,
+					proposal.votesPass,
+				);
 				proposal.status = outcome;
 
-				if (proposal.type === PROPOSAL_TYPE_INCENTIVIZATION && outcome === PROPOSAL_STATUS_FINISHED_ACCEPTED) {
-					await updateIncentivizedPools(context, this.stores, proposal.content.poolID, proposal.content.multiplier, height);
+				if (
+					proposal.type === PROPOSAL_TYPE_INCENTIVIZATION &&
+					outcome === PROPOSAL_STATUS_FINISHED_ACCEPTED
+				) {
+					await updateIncentivizedPools(
+						context,
+						this.stores,
+						proposal.content.poolID,
+						proposal.content.multiplier,
+						height,
+					);
 				}
 
 				this.events.get(ProposalOutcomeCheckedEvent).add(
 					context,
 					{
 						index,
-						status: outcome
-					}, [indexBuffer]
-				)
+						status: outcome,
+					},
+					[indexBuffer],
+				);
 			}
-			indexStoreData.nextOutcomeCheckIndex += 1
+			indexStoreData.nextOutcomeCheckIndex += 1;
 		}
 	}
 }

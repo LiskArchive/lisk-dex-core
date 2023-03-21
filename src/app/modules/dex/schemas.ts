@@ -930,10 +930,9 @@ export const swapWithPriceLimitCommandSchema = {
 		sqrtLimitPrice: {
 			dataType: 'uint64',
 			fieldNumber: 7,
-		}
-	}
-}
-
+		},
+	},
+};
 
 export const getTickWithTickIdRequestSchema = {
 	$id: 'dex/getTickWithTickId',

@@ -37,7 +37,12 @@ import { DexGovernanceEndpoint } from '../../../../src/app/modules/dexGovernance
 import { Index, Proposal, Vote } from '../../../../src/app/modules/dexGovernance/types';
 import { PoolID } from '../../../../src/app/modules/dex/types';
 
-import { MODULE_NAME_DEX_GOVERNANCE, PROPOSAL_STATUS_ACTIVE, PROPOSAL_TYPE_INCENTIVIZATION, VOTE_DURATION } from '../../../../src/app/modules/dexGovernance/constants';
+import {
+	MODULE_NAME_DEX_GOVERNANCE,
+	PROPOSAL_STATUS_ACTIVE,
+	PROPOSAL_TYPE_INCENTIVIZATION,
+	VOTE_DURATION,
+} from '../../../../src/app/modules/dexGovernance/constants';
 
 import { DexGovernanceMethod } from '../../../../src/app/modules/dexGovernance/method';
 import { IndexStoreData } from '../../../../src/app/modules/dexGovernance/stores/indexStore';
@@ -118,7 +123,9 @@ describe('DexGovernanceModule', () => {
 		tokenModule.method.unlock = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.transfer = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.getLockedAmount = jest.fn().mockResolvedValue(BigInt(1000));
-		tokenModule.method.getTotalSupply = jest.fn().mockResolvedValue({ totalSupply: [{ totalSupply: BigInt(1000000) }] });
+		tokenModule.method.getTotalSupply = jest
+			.fn()
+			.mockResolvedValue({ totalSupply: [{ totalSupply: BigInt(1000000) }] });
 
 		dexGovernanceModule.addDependencies(tokenModule.method, posModule.method);
 	});
@@ -194,7 +201,6 @@ describe('DexGovernanceModule', () => {
 				header: blockHeader,
 			}).getBlockExecuteContext();
 
-
 			const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 			const proposal: Proposal = {
 				creationHeight: 1,
@@ -238,7 +244,6 @@ describe('DexGovernanceModule', () => {
 			await proposalsStore.set(blockExecuteContext, indexBuffer, proposal);
 			await indexStore.set(blockExecuteContext, Buffer.alloc(0), index);
 			await votesStore.set(blockExecuteContext, Buffer.from('0', 'hex'), vote);
-
 		});
 		it(`should call token methods and emit events`, async () => {
 			await dexGovernanceModule.beforeTransactionsExecute(blockExecuteContext);
