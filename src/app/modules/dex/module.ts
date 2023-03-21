@@ -22,6 +22,7 @@ import {
 	FeeMethod,
 	PoSMethod,
 	RandomMethod,
+	SidechainInteroperabilityMethod,
 } from 'lisk-sdk';
 
 import { DynamicRewardMethod } from 'lisk-framework/dist-node/modules/dynamic_rewards';
@@ -105,6 +106,7 @@ export class DexModule extends BaseModule {
 	public _validatorsMethod!: ValidatorsMethod;
 	public _tokenMethod!: TokenMethod;
 	public _feeMethod!: FeeMethod;
+	public _interoperabilityMethod!: SidechainInteroperabilityMethod;
 	public _posMethod!: PoSMethod;
 	public _randomMethod!: RandomMethod;
 	public _dynamicRewardMethod!: DynamicRewardMethod;
@@ -268,6 +270,7 @@ export class DexModule extends BaseModule {
 		validatorsMethod: ValidatorsMethod,
 		tokenMethod: TokenMethod,
 		feeMethod: FeeMethod,
+		interoperability: SidechainInteroperabilityMethod,
 		posMethod: PoSMethod,
 		randomMethod: RandomMethod,
 		dynamicRewardMethod: DynamicRewardMethod,
@@ -278,6 +281,7 @@ export class DexModule extends BaseModule {
 		this._validatorsMethod = validatorsMethod;
 		this._tokenMethod = tokenMethod;
 		this._feeMethod = feeMethod;
+		this._interoperabilityMethod = interoperability;
 		this._posMethod = posMethod;
 		this._randomMethod = randomMethod;
 		this._dynamicRewardMethod = dynamicRewardMethod;

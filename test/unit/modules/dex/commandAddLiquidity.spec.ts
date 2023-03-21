@@ -18,6 +18,7 @@ import {
 	FeeModule,
 	PoSModule,
 	RandomModule,
+	SidechainInteroperabilityModule,
 	TokenModule,
 	Transaction,
 	ValidatorsModule,
@@ -60,6 +61,7 @@ describe('dex:command:addLiquidity', () => {
 	let validatorModule = new ValidatorsModule();
 	let tokenModule = new TokenModule();
 	let feeModule = new FeeModule();
+	let interoperabilityModule = new SidechainInteroperabilityModule();
 	let posModule = new PoSModule();
 	let randomModule = new RandomModule();
 	let dynamicRewardModule = new DynamicRewardModule();
@@ -127,6 +129,7 @@ describe('dex:command:addLiquidity', () => {
 		validatorModule = new ValidatorsModule();
 		tokenModule = new TokenModule();
 		feeModule = new FeeModule();
+		interoperabilityModule = new SidechainInteroperabilityModule();
 		posModule = new PoSModule();
 		randomModule = new RandomModule();
 		dynamicRewardModule = new DynamicRewardModule();
@@ -143,6 +146,7 @@ describe('dex:command:addLiquidity', () => {
 			validatorModule.method,
 			tokenModule.method,
 			feeModule.method,
+			interoperabilityModule.method,
 			posModule.method,
 			randomModule.method,
 			dynamicRewardModule.method,

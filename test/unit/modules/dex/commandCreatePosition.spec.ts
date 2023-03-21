@@ -22,6 +22,7 @@ import {
 	RandomModule,
 	Transaction,
 	VerifyStatus,
+	SidechainInteroperabilityModule,
 } from 'lisk-framework';
 import { DynamicRewardModule } from 'lisk-framework/dist-node/modules/dynamic_rewards';
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
@@ -57,6 +58,7 @@ describe('dex:command:createPosition', () => {
 	let validatorModule = new ValidatorsModule();
 	let tokenModule = new TokenModule();
 	let feeModule = new FeeModule();
+	let interoperabilityModule = new SidechainInteroperabilityModule();
 	let posModule = new PoSModule();
 	let randomModule = new RandomModule();
 	let dynamicRewardModule = new DynamicRewardModule();
@@ -124,6 +126,7 @@ describe('dex:command:createPosition', () => {
 		validatorModule = new ValidatorsModule();
 		tokenModule = new TokenModule();
 		feeModule = new FeeModule();
+		interoperabilityModule = new SidechainInteroperabilityModule();
 		posModule = new PoSModule();
 		randomModule = new RandomModule();
 		dynamicRewardModule = new DynamicRewardModule();
@@ -140,6 +143,7 @@ describe('dex:command:createPosition', () => {
 			validatorModule.method,
 			tokenModule.method,
 			feeModule.method,
+			interoperabilityModule.method,
 			posModule.method,
 			randomModule.method,
 			dynamicRewardModule.method,

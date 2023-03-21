@@ -7,6 +7,7 @@ import {
 	FeeModule,
 	PoSModule,
 	RandomModule,
+	SidechainInteroperabilityModule,
 } from 'lisk-sdk';
 
 import { DynamicRewardModule } from 'lisk-framework/dist-node/modules/dynamic_rewards';
@@ -20,6 +21,7 @@ export const getApplication = (config: PartialApplicationConfig): Application =>
 	const validatorModule = new ValidatorsModule();
 	const tokenModule = new TokenModule();
 	const feeModule = new FeeModule();
+	const interoperability = new SidechainInteroperabilityModule();
 	const posModule = new PoSModule();
 	const randomModule = new RandomModule();
 	const dynamicRewardModule = new DynamicRewardModule();
@@ -31,6 +33,7 @@ export const getApplication = (config: PartialApplicationConfig): Application =>
 		validatorModule.method,
 		tokenModule.method,
 		feeModule.method,
+		interoperability.method,
 		posModule.method,
 		randomModule.method,
 		dynamicRewardModule.method,
