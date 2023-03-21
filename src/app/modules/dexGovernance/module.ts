@@ -64,6 +64,7 @@ import {
 } from './constants';
 import { IndexStoreData } from './stores/indexStore';
 import { getVoteOutcome, hasEnded } from './utils/auxiliaryFunctions';
+import { updateIncentivizedPools } from '../dex/utils/auxiliaryFunctions';
 
 export class DexGovernanceModule extends BaseModule {
 	public endpoint = new DexGovernanceEndpoint(this.stores, this.offchainStores);
@@ -233,7 +234,6 @@ export class DexGovernanceModule extends BaseModule {
 			previousCreationHeight = proposal.creationHeight;
 		}
 		for (const proposal of proposalsStore) {
-			console.log({ proposal_creationHeight: proposal.creationHeight, height });
 			if (proposal.creationHeight >= height) {
 				throw new Error('Proposal can not be created in the future');
 			}
@@ -375,7 +375,7 @@ export class DexGovernanceModule extends BaseModule {
 				proposal.status = outcome;
 
 				if (proposal.type === PROPOSAL_TYPE_INCENTIVIZATION && outcome === PROPOSAL_STATUS_FINISHED_ACCEPTED) {
-					// updateIncentivizedPools(proposal.content.poolID, proposal.content.multiplier, height)
+					await updateIncentivizedPools(context, this.stores, proposal.content.poolID, proposal.content.multiplier, height);
 				}
 
 				this.events.get(ProposalOutcomeCheckedEvent).add(

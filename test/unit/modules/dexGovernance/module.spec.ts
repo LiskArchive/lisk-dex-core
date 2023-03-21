@@ -118,6 +118,7 @@ describe('DexGovernanceModule', () => {
 		tokenModule.method.unlock = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.transfer = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.getLockedAmount = jest.fn().mockResolvedValue(BigInt(1000));
+		tokenModule.method.getTotalSupply = jest.fn().mockResolvedValue({ totalSupply: [{ totalSupply: BigInt(1000000) }] });
 
 		dexGovernanceModule.addDependencies(tokenModule.method, posModule.method);
 	});
@@ -174,7 +175,7 @@ describe('DexGovernanceModule', () => {
 				Error('Incentivization proposal must contain a valid pool ID'),
 			);
 
-			proposalsStoreData2.creationHeight = 10000;
+			proposalsStoreData2.creationHeight = 1000000;
 			proposalsStoreData2.type = 0;
 			genesisDEXGovernanceData.proposalsStore = [proposalsStoreData2];
 			mockAssets = codec.encode(genesisDEXGovernanceSchema, genesisDEXGovernanceData);
@@ -232,8 +233,7 @@ describe('DexGovernanceModule', () => {
 				],
 			};
 
-			const indexBuffer = Buffer.alloc(4);
-			indexBuffer.writeUInt32BE(0, 0);
+			const indexBuffer = Buffer.from('00000064', 'hex');
 			const indexStore = dexGovernanceModule.stores.get(IndexStore);
 			await proposalsStore.set(blockExecuteContext, indexBuffer, proposal);
 			await indexStore.set(blockExecuteContext, Buffer.alloc(0), index);
@@ -247,7 +247,7 @@ describe('DexGovernanceModule', () => {
 			const proposalQuorumCheckedEvents = events.filter(
 				e => e.toObject().name === 'proposalQuorumChecked',
 			);
-			expect(proposalQuorumCheckedEvents).toHaveLength(0);
+			expect(proposalQuorumCheckedEvents).toHaveLength(1);
 
 			const proposalOutcomeCheckedEvents = events.filter(
 				e => e.toObject().name === 'proposalOutcomeChecked',
