@@ -133,3 +133,35 @@ export type feesInterface = {
 	in: bigint;
 	out: bigint;
 };
+
+export interface GenesisTokenStore {
+	userSubstore: {
+		address: Buffer;
+		tokenID: Buffer;
+		availableBalance: bigint;
+		lockedBalances: {
+			module: string;
+			amount: bigint;
+		}[];
+	}[];
+	supplySubstore: {
+		tokenID: Buffer;
+		totalSupply: bigint;
+	}[];
+	escrowSubstore: {
+		escrowedChainID: Buffer;
+		tokenID: Buffer;
+		amount: bigint;
+	}[];
+	supportedTokensSubstore: {
+		chainID: Buffer;
+		supportedTokenIDs: Buffer[];
+	}[];
+}
+
+export interface TokenDistribution {
+	accounts: {
+		address: Buffer;
+		balance: bigint;
+	}[];
+}
