@@ -38,6 +38,8 @@ import { Index, Proposal, Vote } from '../../../../src/app/modules/dexGovernance
 import { PoolID } from '../../../../src/app/modules/dex/types';
 
 import {
+	EVENT_NAME_PROPOSAL_OUTCOME_CHECKED,
+	EVENT_NAME_PROPOSAL_QUORUM_CHECKED,
 	MODULE_NAME_DEX_GOVERNANCE,
 	PROPOSAL_STATUS_ACTIVE,
 	PROPOSAL_TYPE_INCENTIVIZATION,
@@ -250,12 +252,12 @@ describe('DexGovernanceModule', () => {
 
 			const events = blockExecuteContext.eventQueue.getEvents();
 			const proposalQuorumCheckedEvents = events.filter(
-				e => e.toObject().name === 'proposalQuorumChecked',
+				e => e.toObject().name === EVENT_NAME_PROPOSAL_QUORUM_CHECKED,
 			);
 			expect(proposalQuorumCheckedEvents).toHaveLength(1);
 
 			const proposalOutcomeCheckedEvents = events.filter(
-				e => e.toObject().name === 'proposalOutcomeChecked',
+				e => e.toObject().name === EVENT_NAME_PROPOSAL_OUTCOME_CHECKED,
 			);
 			expect(proposalOutcomeCheckedEvents).toHaveLength(1);
 		});
