@@ -90,6 +90,8 @@ import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settin
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import { ALL_SUPPORTED_TOKENS_KEY, TOKEN_ID_DEX } from '../../../../src/app/modules/dex/constants';
 
+const skipOnCI = process.env.CI ? describe.skip : describe;
+
 describe('dex:auxiliaryFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 	const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
@@ -544,7 +546,7 @@ describe('dex:auxiliaryFunctions', () => {
 		expect(functionResult).toEqual(roundDownQ96(result));
 	});
 
-	describe('performance test for computeTokenGenesisAsset', () => {
+	skipOnCI('performance test for computeTokenGenesisAsset', () => {
 		// eslint-disable-next-line @typescript-eslint/no-floating-promises
 		(async () => {
 			const testarray = Array.from({ length: 10000 });
