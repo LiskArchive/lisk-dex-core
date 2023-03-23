@@ -14,20 +14,15 @@
  */
 
 import {
-	AuthModule,
 	FeeModule,
-	PoSModule,
-	RandomModule,
-	SidechainInteroperabilityModule,
 	TokenModule,
 	Transaction,
 	ValidatorsModule,
 	VerifyStatus,
 } from 'lisk-framework';
-import { DynamicRewardModule } from 'lisk-framework/dist-node/modules/dynamic_rewards';
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { testing } from 'lisk-sdk';
-import { DexGovernanceModule, DexIncentivesModule, DexModule } from '../../../../src/app/modules';
+import { DexModule } from '../../../../src/app/modules';
 import { defaultConfig } from '../../../../src/app/modules/dex/constants';
 import { createPoolSchema } from '../../../../src/app/modules/dex/schemas';
 import { SettingsStore } from '../../../../src/app/modules/dex/stores';
@@ -52,16 +47,9 @@ const skipOnCI = process.env.CI ? describe.skip : describe;
 describe('dex:command:createPool', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 	let dexModule: DexModule;
-	let authModule = new AuthModule();
-	let validatorModule = new ValidatorsModule();
-	let tokenModule = new TokenModule();
-	let feeModule = new FeeModule();
-	let interoperabilityModule = new SidechainInteroperabilityModule();
-	let posModule = new PoSModule();
-	let randomModule = new RandomModule();
-	let dynamicRewardModule = new DynamicRewardModule();
-	let dexIncentivesModule = new DexIncentivesModule();
-	let dexGovernanceModule = new DexGovernanceModule();
+	let tokenModule: TokenModule;
+	let validatorModule: ValidatorsModule;
+	let feeModule: FeeModule;
 
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
@@ -97,34 +85,16 @@ describe('dex:command:createPool', () => {
 
 	beforeEach(() => {
 		dexModule = new DexModule();
-		authModule = new AuthModule();
-		validatorModule = new ValidatorsModule();
 		tokenModule = new TokenModule();
+		validatorModule = new ValidatorsModule();
 		feeModule = new FeeModule();
-		interoperabilityModule = new SidechainInteroperabilityModule();
-		posModule = new PoSModule();
-		randomModule = new RandomModule();
-		dynamicRewardModule = new DynamicRewardModule();
-		dexIncentivesModule = new DexIncentivesModule();
-		dexGovernanceModule = new DexGovernanceModule();
 
 		tokenModule.method.mint = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.lock = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.unlock = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.transfer = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.getLockedAmount = jest.fn().mockResolvedValue(BigInt(1000));
-		dexModule.addDependencies(
-			authModule.method,
-			validatorModule.method,
-			tokenModule.method,
-			feeModule.method,
-			interoperabilityModule.method,
-			posModule.method,
-			randomModule.method,
-			dynamicRewardModule.method,
-			dexIncentivesModule.method,
-			dexGovernanceModule.method,
-		);
+		dexModule.addDependencies(tokenModule.method, validatorModule.method, feeModule.method);
 		command = dexModule.commands.find(e => e.name === 'createPool');
 		command.init({ moduleConfig: defaultConfig, tokenMethod: tokenModule.method });
 	});

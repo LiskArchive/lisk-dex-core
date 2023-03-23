@@ -21,25 +21,35 @@ export const getApplication = (config: PartialApplicationConfig): Application =>
 	const validatorModule = new ValidatorsModule();
 	const tokenModule = new TokenModule();
 	const feeModule = new FeeModule();
-	const interoperability = new SidechainInteroperabilityModule();
+	const interoperabilityModule = new SidechainInteroperabilityModule();
 	const posModule = new PoSModule();
 	const randomModule = new RandomModule();
 	const dynamicRewardModule = new DynamicRewardModule();
 	const dexIncentivesModule = new DexIncentivesModule();
 	const dexGovernanceModule = new DexGovernanceModule();
 
-	dexModule.addDependencies(
-		authModule.method,
+	// resolve dependencies
+	feeModule.addDependencies(tokenModule.method, interoperabilityModule.method);
+	dynamicRewardModule.addDependencies(
+		tokenModule.method,
+		randomModule.method,
+		validatorModule.method,
+		posModule.method,
+	);
+	posModule.addDependencies(
+		randomModule.method,
 		validatorModule.method,
 		tokenModule.method,
 		feeModule.method,
-		interoperability.method,
-		posModule.method,
-		randomModule.method,
-		dynamicRewardModule.method,
-		dexIncentivesModule.method,
-		dexGovernanceModule.method,
 	);
+	tokenModule.addDependencies(interoperabilityModule.method, feeModule.method);
+
+	// resolve interoperability dependencies
+	interoperabilityModule.addDependencies(validatorModule.method, tokenModule.method);
+	interoperabilityModule.registerInteroperableModule(tokenModule);
+	interoperabilityModule.registerInteroperableModule(feeModule);
+
+	dexModule.addDependencies(tokenModule.method, validatorModule.method, feeModule.method);
 	dexIncentivesModule.addDependencies(
 		tokenModule.method,
 		validatorModule.method,
@@ -48,6 +58,16 @@ export const getApplication = (config: PartialApplicationConfig): Application =>
 		posModule.method,
 	);
 	dexGovernanceModule.addDependencies(tokenModule.method, posModule.method);
+	app.registerModule(authModule);
+	app.registerModule(validatorModule);
+	app.registerModule(tokenModule);
+	app.registerModule(feeModule);
+	app.registerModule(interoperabilityModule);
+	app.registerModule(posModule);
+	app.registerModule(randomModule);
+	app.registerModule(dynamicRewardModule);
+	app.registerModule(dexIncentivesModule);
+	app.registerModule(dexGovernanceModule);
 	app.registerModule(dexModule);
 
 	return app;
