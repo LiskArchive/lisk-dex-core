@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -16,13 +20,14 @@ import { codec } from '@liskhq/lisk-codec';
 import {
 	BaseCommand,
 	BaseModule,
+	BlockExecuteContext,
 	GenesisBlockExecuteContext,
 	ModuleMetadata,
 	PoSMethod,
 	TokenMethod,
 } from 'lisk-sdk';
-import { NUM_BYTES_POOL_ID } from '../dex/constants';
 
+import { NUM_BYTES_POOL_ID } from '../dex/constants';
 import { DexGovernanceEndpoint } from './endpoint';
 import {
 	ProposalCreatedEvent,
@@ -55,8 +60,14 @@ import {
 	DECISION_PASS,
 	VOTE_DURATION,
 	QUORUM_DURATION,
+	PROPOSAL_STATUS_ACTIVE,
+	PROPOSAL_STATUS_FAILED_QUORUM,
+	PROPOSAL_STATUS_FINISHED_ACCEPTED,
+	QUORUM_PERCENTAGE,
 } from './constants';
 import { IndexStoreData } from './stores/indexStore';
+import { getVoteOutcome, hasEnded } from './utils/auxiliaryFunctions';
+import { updateIncentivizedPools } from '../dex/utils/auxiliaryFunctions';
 
 export class DexGovernanceModule extends BaseModule {
 	public endpoint = new DexGovernanceEndpoint(this.stores, this.offchainStores);
@@ -80,20 +91,6 @@ export class DexGovernanceModule extends BaseModule {
 
 	public metadata(): ModuleMetadata {
 		return {
-			stores: [
-				{
-					key: 'IndexStore',
-					data: indexSchema,
-				},
-				{
-					key: 'ProposalsStore',
-					data: proposalSchema,
-				},
-				{
-					key: 'VotesStore',
-					data: votesSchema,
-				},
-			],
 			endpoints: [
 				{
 					name: this.endpoint.getProposal.name,
@@ -119,6 +116,20 @@ export class DexGovernanceModule extends BaseModule {
 				data: v.schema,
 			})),
 			assets: [],
+			stores: [
+				{
+					key: IndexStore.name,
+					data: indexSchema,
+				},
+				{
+					key: ProposalsStore.name,
+					data: proposalSchema,
+				},
+				{
+					key: VotesStore.name,
+					data: votesSchema,
+				},
+			],
 		};
 	}
 
@@ -322,6 +333,97 @@ export class DexGovernanceModule extends BaseModule {
 			) {
 				throw new Error('Incorrect vote data about the proposals with recorded votes');
 			}
+		}
+	}
+	public async beforeTransactionsExecute(context: BlockExecuteContext): Promise<void> {
+		const { height } = context.header;
+		const indexStore = this.stores.get(IndexStore);
+		const proposalsStore = this.stores.get(ProposalsStore);
+		const indexStoreData = await indexStore.get(context, Buffer.alloc(0));
+
+		while (
+			await hasEnded(
+				context,
+				proposalsStore,
+				indexStoreData.nextQuorumCheckIndex,
+				height,
+				QUORUM_DURATION,
+			)
+		) {
+			const index = indexStoreData.nextQuorumCheckIndex;
+			const indexBuffer = Buffer.alloc(4);
+			indexBuffer.writeUInt32BE(index, 0);
+
+			const proposal = await proposalsStore.get(context, indexBuffer);
+			const turnout = proposal.votesYes + proposal.votesNo + proposal.votesPass;
+
+			const tokenTotalSupply = await this._tokenMethod.getTotalSupply(context);
+			if (
+				turnout * BigInt(1000000) <
+				QUORUM_PERCENTAGE * tokenTotalSupply.totalSupply[0].totalSupply
+			) {
+				proposal.status = PROPOSAL_STATUS_FAILED_QUORUM;
+			}
+
+			this.events.get(ProposalQuorumCheckedEvent).add(
+				context,
+				{
+					index,
+					status: proposal.status,
+				},
+				[indexBuffer],
+			);
+			indexStoreData.nextQuorumCheckIndex += 1;
+		}
+
+		while (
+			await hasEnded(
+				context,
+				proposalsStore,
+				indexStoreData.nextOutcomeCheckIndex,
+				height,
+				VOTE_DURATION,
+			)
+		) {
+			const index = indexStoreData.nextOutcomeCheckIndex;
+			const indexBuffer = Buffer.alloc(4);
+			indexBuffer.writeUInt32BE(index, 0);
+
+			const proposal = await proposalsStore.get(context, indexBuffer);
+
+			if (proposal.status === PROPOSAL_STATUS_ACTIVE) {
+				const outcome = await getVoteOutcome(
+					context,
+					this._tokenMethod,
+					proposal.votesYes,
+					proposal.votesNo,
+					proposal.votesPass,
+				);
+				proposal.status = outcome;
+
+				if (
+					proposal.type === PROPOSAL_TYPE_INCENTIVIZATION &&
+					outcome === PROPOSAL_STATUS_FINISHED_ACCEPTED
+				) {
+					await updateIncentivizedPools(
+						context,
+						this.stores,
+						proposal.content.poolID,
+						proposal.content.multiplier,
+						height,
+					);
+				}
+
+				this.events.get(ProposalOutcomeCheckedEvent).add(
+					context,
+					{
+						index,
+						status: outcome,
+					},
+					[indexBuffer],
+				);
+			}
+			indexStoreData.nextOutcomeCheckIndex += 1;
 		}
 	}
 }

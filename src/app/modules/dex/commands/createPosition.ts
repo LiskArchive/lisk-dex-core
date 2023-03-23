@@ -43,8 +43,8 @@ import {
 	getLiquidityForAmounts,
 	getToken0Id,
 	getToken1Id,
-	transferToValidatorLSKPool,
 	updatePosition,
+	transferToValidatorLSKPool,
 } from '../utils/auxiliaryFunctions';
 import { tickToPrice } from '../utils/math';
 import { bytesToQ96, q96ToInt } from '../utils/q96';
@@ -89,10 +89,10 @@ export class CreatePositionCommand extends BaseCommand {
 		}
 
 		/*
-        TODO: Not yet implemented on SDK
-        if lastBlockheader.timestamp > ctx.params.maxTimestampValid:
-            raise Exception()        
-        */
+				TODO: Not yet implemented on SDK
+				if lastBlockheader.timestamp > ctx.params.maxTimestampValid:
+						raise Exception()        
+				*/
 
 		return {
 			status: VerifyStatus.OK,
@@ -178,6 +178,7 @@ export class CreatePositionCommand extends BaseCommand {
 			throw new Error();
 		}
 
+		// TODO:
 		await transferToValidatorLSKPool(
 			this._tokenMethod,
 			methodContext,
