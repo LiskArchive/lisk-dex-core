@@ -118,7 +118,7 @@ export const transferValidatorIncentives = async (
 	posMethod.updateSharedRewards(methodContext, validatorAddress, TOKEN_ID_LSK, amount);
 	events.get(ValidatorIncentivesPayout).add(methodContext, {
 		amount,
-	});
+	}, [validatorAddress]);
 };
 
 export const getLiquidityIncentivesAtHeight = (height: number): bigint => {
