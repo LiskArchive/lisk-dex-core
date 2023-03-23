@@ -546,6 +546,47 @@ describe('dex:auxiliaryFunctions', () => {
 		expect(functionResult).toEqual(roundDownQ96(result));
 	});
 
+	it('computeTokenGenesisAsset', () => {
+		const account0 = {
+			address: token0Id,
+			balance: BigInt(1),
+		};
+		const account1 = {
+			address: token1Id,
+			balance: BigInt(1),
+		};
+		const tokenDistribution: TokenDistribution = {
+			accounts: [account0, account1],
+		};
+		const result = computeTokenGenesisAsset(tokenDistribution);
+
+		const expectedGenesisTokenStore: GenesisTokenStore = {
+			userSubstore: [
+				{
+					address: token0Id,
+					tokenID: TOKEN_ID_DEX,
+					availableBalance: BigInt(1),
+					lockedBalances: [],
+				},
+				{
+					address: token1Id,
+					tokenID: TOKEN_ID_DEX,
+					availableBalance: BigInt(1),
+					lockedBalances: [],
+				},
+			],
+			supplySubstore: [{ tokenID: TOKEN_ID_DEX, totalSupply: BigInt(2) }],
+			escrowSubstore: [],
+			supportedTokensSubstore: [{ chainID: ALL_SUPPORTED_TOKENS_KEY, supportedTokenIDs: [] }],
+		};
+		const expectedResult = {
+			module: 'token',
+			data: codec.encode(genesisTokenStoreSchema, expectedGenesisTokenStore),
+		};
+
+		expect(result).toStrictEqual(expectedResult);
+	});
+
 	skipOnCI('performance test for computeTokenGenesisAsset', () => {
 		// eslint-disable-next-line @typescript-eslint/no-floating-promises
 		(async () => {
@@ -554,17 +595,13 @@ describe('dex:auxiliaryFunctions', () => {
 		})();
 
 		function testComputeTokenGenesisAsset() {
-			it('computeTokenGenesisAsset', () => {
-				const account0 = {
+			it('test computeTokenGenesisAsset', () => {
+				const account = {
 					address: token0Id,
 					balance: BigInt(1),
 				};
-				const account1 = {
-					address: token1Id,
-					balance: BigInt(1),
-				};
 				const tokenDistribution: TokenDistribution = {
-					accounts: [account0, account1],
+					accounts: [account],
 				};
 				const result = computeTokenGenesisAsset(tokenDistribution);
 
@@ -576,14 +613,8 @@ describe('dex:auxiliaryFunctions', () => {
 							availableBalance: BigInt(1),
 							lockedBalances: [],
 						},
-						{
-							address: token1Id,
-							tokenID: TOKEN_ID_DEX,
-							availableBalance: BigInt(1),
-							lockedBalances: [],
-						},
 					],
-					supplySubstore: [{ tokenID: TOKEN_ID_DEX, totalSupply: BigInt(2) }],
+					supplySubstore: [{ tokenID: TOKEN_ID_DEX, totalSupply: BigInt(1) }],
 					escrowSubstore: [],
 					supportedTokensSubstore: [{ chainID: ALL_SUPPORTED_TOKENS_KEY, supportedTokenIDs: [] }],
 				};
