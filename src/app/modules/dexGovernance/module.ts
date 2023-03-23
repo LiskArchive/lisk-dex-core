@@ -61,9 +61,9 @@ export class DexGovernanceModule extends BaseModule {
 	public _posEndpoint!: PoSEndpoint;
 	public _feeMethod!: FeeMethod;
 
-	private readonly __createPorposalCommand = new CreateProposalCommand(this.stores, this.events);
+	private readonly __createProposalCommand = new CreateProposalCommand(this.stores, this.events);
 
-	public commands = [this.__createPorposalCommand];
+	public commands = [this.__createProposalCommand];
 
 	public constructor() {
 		super();
@@ -133,7 +133,7 @@ export class DexGovernanceModule extends BaseModule {
 		const { moduleConfig } = args;
 		this._moduleConfig = utils.objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfig;
 
-		this.__createPorposalCommand.init({
+		this.__createProposalCommand.init({
 			tokenMethod: this._tokenMethod,
 			posEndpoint: this._posEndpoint,
 			feeMethod: this._feeMethod,

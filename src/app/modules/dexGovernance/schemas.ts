@@ -195,7 +195,7 @@ export const genesisDEXGovernanceSchema = {
 };
 
 export const createProposalParamsSchema = {
-	$id: '/dexGovernance/index',
+	$id: '/dexGovernance/createProposalParams',
 	type: 'object',
 	required: ['type', 'content'],
 	properties: {

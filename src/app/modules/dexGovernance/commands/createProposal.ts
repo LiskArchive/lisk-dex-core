@@ -39,7 +39,7 @@ import { sha256 } from '../../dexRewards/constants';
 import { DexModule } from '../../dex/module';
 import { DexEndpoint } from '../../dex/endpoint';
 import { addQ96, numberToQ96, q96ToBytes } from '../../dex/utils/q96';
-import { ProposalCreatedEvent } from '../events';
+import { ProposalCreatedEvent, ProposalCreationFailedEvent } from '../events';
 import { createProposalParamsSchema } from '../schemas';
 import {
 	FEE_PROPOSAL_CREATION,
@@ -161,6 +161,15 @@ export class CreateProposalCommand extends BaseCommand {
 		if (!hasEndedRes) {
 			emitProposalCreationFailedEvent(methodContext, 0, this.events);
 			throw new Error('Limit of proposals with recoded votes is reached');
+		}
+
+		try {
+			await endpoint.getPool(methodContext, ctx.params.content.poolID);
+		} catch (error) {
+			this.events.get(ProposalCreationFailedEvent).add(methodContext, {
+				reason: 1,
+			});
+			throw new Error('poolID doenst exist');
 		}
 
 		if (!(await endpoint.getPool(methodContext, ctx.params.content.poolID))) {

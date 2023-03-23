@@ -145,7 +145,7 @@ describe('dexGovernance:command:createproposal', () => {
 		tokenMethod.transfer = transferMock;
 		tokenMethod.lock = lockMock;
 		tokenMethod.unlock = unlockMock;
-		tokenMethod.getAvailableBalance = jest.fn().mockReturnValue(BigInt(500000));
+		tokenMethod.getAvailableBalance = jest.fn().mockReturnValue(BigInt(100000001));
 		posEndpoint.getLockedStakedAmount = getLockedStakedAmountMock.mockReturnValue({ amount: 5 });
 		feeMethod.payFee = jest.fn();
 
@@ -160,8 +160,8 @@ describe('dexGovernance:command:createproposal', () => {
 		it('should be successful when all the parameters are correct', async () => {
 			const context = createTransactionContext({
 				transaction: new Transaction({
-					module: 'dex',
-					command: 'createproposal',
+					module: 'dexGovernance',
+					command: 'createProposal',
 					fee: BigInt(5000000),
 					nonce: BigInt(0),
 					senderPublicKey: senderAddress,
@@ -178,10 +178,82 @@ describe('dexGovernance:command:createproposal', () => {
 			expect(result.error?.message).toBeUndefined();
 			expect(result.status).toEqual(VerifyStatus.OK);
 		});
+		it('should be unsuccessful as user has insufficient total balance', async () => {
+			tokenMethod.getAvailableBalance = jest.fn().mockReturnValue(BigInt(1000000));
+			const context = createTransactionContext({
+				transaction: new Transaction({
+					module: 'dexGovernance',
+					command: 'createProposal',
+					fee: BigInt(5000000),
+					nonce: BigInt(0),
+					senderPublicKey: senderAddress,
+					params: codec.encode(createProposalParamsSchema, {
+						type,
+						content,
+					}),
+					signatures: [utils.getRandomBytes(64)],
+				}),
+			});
+			const result = await command.verify(
+				context.createCommandVerifyContext(createProposalParamsSchema),
+			);
+			expect(result.error?.message).toBe(
+				'Insufficient DEX native token balance to create proposal',
+			);
+			expect(result.status).toEqual(VerifyStatus.FAIL);
+		});
+		it('should be unsuccessful as user created an incentivization proposal but forgot to mention pool id or multiplier', async () => {
+			content.poolID = Buffer.from('0000000000000000000001000000000000c8', 'hex').slice(0, 16);
+			content.text = Buffer.from('', 'hex');
+			const context = createTransactionContext({
+				transaction: new Transaction({
+					module: 'dexGovernance',
+					command: 'createProposal',
+					fee: BigInt(5000000),
+					nonce: BigInt(0),
+					senderPublicKey: senderAddress,
+					params: codec.encode(createProposalParamsSchema, {
+						type: 0,
+						content,
+					}),
+					signatures: [utils.getRandomBytes(64)],
+				}),
+			});
+			const result = await command.verify(
+				context.createCommandVerifyContext(createProposalParamsSchema),
+			);
+			expect(result.error?.message).toBe('Proposal text can not be empty for universal proposal');
+			expect(result.status).toEqual(VerifyStatus.FAIL);
+		});
+		it('should be unsuccessful as user created a universal proposal but poolID is not empty or multiplier is not 0', async () => {
+			content.poolID = Buffer.from('', 'hex');
+			const context = createTransactionContext({
+				transaction: new Transaction({
+					module: 'dexGovernance',
+					command: 'createProposal',
+					fee: BigInt(5000000),
+					nonce: BigInt(0),
+					senderPublicKey: senderAddress,
+					params: codec.encode(createProposalParamsSchema, {
+						type,
+						content,
+					}),
+					signatures: [utils.getRandomBytes(64)],
+				}),
+			});
+			const result = await command.verify(
+				context.createCommandVerifyContext(createProposalParamsSchema),
+			);
+			expect(result.error?.message).toBe(
+				'Pool ID must be provided for an incentivization proposal',
+			);
+			expect(result.status).toEqual(VerifyStatus.FAIL);
+		});
 	});
 
 	describe('execute', () => {
 		it('execute block should pass', async () => {
+			content.poolID = Buffer.from('0000000000000000000001000000000000c8', 'hex').slice(0, 16);
 			const blockHeader = createBlockHeaderWithDefaults({ height: 260001 });
 			const blockAfterExecuteContext = createBlockContext({
 				header: blockHeader,
@@ -207,8 +279,8 @@ describe('dexGovernance:command:createproposal', () => {
 					getMethodContext: () => methodContext,
 					assets: { getAsset: jest.fn() },
 					transaction: new Transaction({
-						module: 'dex',
-						command: 'createproposal',
+						module: 'dexGovernance',
+						command: 'createProposal',
 						fee: BigInt(5000000),
 						nonce: BigInt(0),
 						senderPublicKey: senderAddress,
@@ -225,6 +297,52 @@ describe('dexGovernance:command:createproposal', () => {
 				e => e.toObject().name === 'proposalCreated',
 			);
 			expect(validatorRemoveLiquidityEvents).toHaveLength(1);
+		});
+		it('execute block should pass with event ProposalCreationFailedEvent', async () => {
+			content.poolID = Buffer.from('', 'hex');
+			const blockHeader = createBlockHeaderWithDefaults({ height: 260001 });
+			const blockAfterExecuteContext = createBlockContext({
+				header: blockHeader,
+			}).getBlockAfterExecuteContext();
+			methodContext = createMethodContext({
+				contextStore: new Map(),
+				stateStore,
+				eventQueue: blockAfterExecuteContext.eventQueue,
+			});
+			await expect(
+				command.execute({
+					contextStore: new Map(),
+					stateStore,
+					chainID: utils.getRandomBytes(32),
+					params: {
+						type,
+						content,
+					},
+					logger: loggerMock,
+					header: blockHeader,
+					eventQueue: blockAfterExecuteContext.eventQueue,
+					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+					getMethodContext: () => methodContext,
+					assets: { getAsset: jest.fn() },
+					transaction: new Transaction({
+						module: 'dexGovernance',
+						command: 'createProposal',
+						fee: BigInt(5000000),
+						nonce: BigInt(0),
+						senderPublicKey: senderAddress,
+						params: codec.encode(createProposalParamsSchema, {
+							type,
+							content,
+						}),
+						signatures: [utils.getRandomBytes(64)],
+					}),
+				}),
+			).rejects.toThrow('poolID doenst exist');
+			const events = blockAfterExecuteContext.eventQueue.getEvents();
+			const validatorProposalCreationFailedEvents = events.filter(
+				e => e.toObject().name === 'proposalCreationFailed',
+			);
+			expect(validatorProposalCreationFailedEvents).toHaveLength(1);
 		});
 	});
 });
