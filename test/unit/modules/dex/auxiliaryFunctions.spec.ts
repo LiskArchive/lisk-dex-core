@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -543,44 +544,54 @@ describe('dex:auxiliaryFunctions', () => {
 		expect(functionResult).toEqual(roundDownQ96(result));
 	});
 
-	it('computeTokenGenesisAsset', () => {
-		const account0 = {
-			address: token0Id,
-			balance: BigInt(1),
-		};
-		const account1 = {
-			address: token1Id,
-			balance: BigInt(1),
-		};
-		const tokenDistribution: TokenDistribution = {
-			accounts: [account0, account1],
-		};
-		const result = computeTokenGenesisAsset(tokenDistribution);
+	describe('performance test for computeTokenGenesisAsset', () => {
+		// eslint-disable-next-line @typescript-eslint/no-floating-promises
+		(async () => {
+			const testarray = Array.from({ length: 10000 });
+			await Promise.all(testarray.map(() => testComputeTokenGenesisAsset()));
+		})();
 
-		const expectedGenesisTokenStore: GenesisTokenStore = {
-			userSubstore: [
-				{
+		function testComputeTokenGenesisAsset() {
+			it('computeTokenGenesisAsset', () => {
+				const account0 = {
 					address: token0Id,
-					tokenID: TOKEN_ID_DEX,
-					availableBalance: BigInt(1),
-					lockedBalances: [],
-				},
-				{
+					balance: BigInt(1),
+				};
+				const account1 = {
 					address: token1Id,
-					tokenID: TOKEN_ID_DEX,
-					availableBalance: BigInt(1),
-					lockedBalances: [],
-				},
-			],
-			supplySubstore: [{ tokenID: TOKEN_ID_DEX, totalSupply: BigInt(2) }],
-			escrowSubstore: [],
-			supportedTokensSubstore: [{ chainID: ALL_SUPPORTED_TOKENS_KEY, supportedTokenIDs: [] }],
-		};
-		const expectedResult = {
-			module: 'token',
-			data: codec.encode(genesisTokenStoreSchema, expectedGenesisTokenStore),
-		};
+					balance: BigInt(1),
+				};
+				const tokenDistribution: TokenDistribution = {
+					accounts: [account0, account1],
+				};
+				const result = computeTokenGenesisAsset(tokenDistribution);
 
-		expect(result).toStrictEqual(expectedResult);
+				const expectedGenesisTokenStore: GenesisTokenStore = {
+					userSubstore: [
+						{
+							address: token0Id,
+							tokenID: TOKEN_ID_DEX,
+							availableBalance: BigInt(1),
+							lockedBalances: [],
+						},
+						{
+							address: token1Id,
+							tokenID: TOKEN_ID_DEX,
+							availableBalance: BigInt(1),
+							lockedBalances: [],
+						},
+					],
+					supplySubstore: [{ tokenID: TOKEN_ID_DEX, totalSupply: BigInt(2) }],
+					escrowSubstore: [],
+					supportedTokensSubstore: [{ chainID: ALL_SUPPORTED_TOKENS_KEY, supportedTokenIDs: [] }],
+				};
+				const expectedResult = {
+					module: 'token',
+					data: codec.encode(genesisTokenStoreSchema, expectedGenesisTokenStore),
+				};
+
+				expect(result).toStrictEqual(expectedResult);
+			});
+		}
 	});
 });
