@@ -149,8 +149,8 @@ export const getLPIncentiveInRange = (startHeight: number, endHeight: number): b
 		BOOTSTRAP_PERIOD_OFFSET + LENGTH_EPOCH_REWARDS_INCENTIVES,
 		BOOTSTRAP_PERIOD_OFFSET + 2 * LENGTH_EPOCH_REWARDS_INCENTIVES,
 		BOOTSTRAP_PERIOD_OFFSET + 3 * LENGTH_EPOCH_REWARDS_INCENTIVES,
-		BOOTSTRAP_PERIOD_OFFSET + 4 * LENGTH_EPOCH_REWARDS_INCENTIVES
-	].map(BigInt)
+		BOOTSTRAP_PERIOD_OFFSET + 4 * LENGTH_EPOCH_REWARDS_INCENTIVES,
+	].map(BigInt);
 
 	let height: bigint = BigInt(startHeight + 1); // incentive for the start block are excluded
 	let incentives: bigint = BigInt(0);
