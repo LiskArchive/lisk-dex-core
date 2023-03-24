@@ -133,3 +133,10 @@ export type feesInterface = {
 	in: bigint;
 	out: bigint;
 };
+
+export interface TokenDistribution {
+	accounts: {
+		address: Buffer;
+		balance: bigint;
+	}[];
+}

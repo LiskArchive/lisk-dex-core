@@ -19,9 +19,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MethodContext, TokenMethod, cryptography, ModuleEndpointContext } from 'lisk-sdk';
-
+import { MethodContext, TokenMethod, cryptography, ModuleEndpointContext, codec } from 'lisk-sdk';
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
+import { genesisTokenStoreSchema } from 'lisk-framework/dist-node/modules/token';
+import { GenesisTokenStore } from 'lisk-framework/dist-node/modules/token/types';
 
 import {
 	DexGlobalStore,
@@ -52,6 +53,9 @@ import {
 	TOKEN_ID_INCENTIVES,
 	ADDRESS_LIQUIDITY_PROVIDERS_INCENTIVES_POOL,
 	MODULE_NAME_DEX,
+	TOKEN_ID_DEX,
+	ALL_SUPPORTED_TOKENS_KEY,
+	MODULE_NAME_TOKEN,
 } from '../constants';
 
 import {
@@ -63,6 +67,7 @@ import {
 	routeInterface,
 	AdjacentEdgesInterface,
 	TickID,
+	TokenDistribution,
 } from '../types';
 
 import {
@@ -1183,4 +1188,40 @@ export const getTickWithPoolIdAndTickValue = async (
 	} else {
 		return priceTicksStoreData;
 	}
+};
+
+export const computeTokenGenesisAsset = (tokenDistribution: TokenDistribution) => {
+	const tokenModuleAsset: GenesisTokenStore = {
+		userSubstore: [],
+		supplySubstore: [],
+		escrowSubstore: [],
+		supportedTokensSubstore: [],
+	};
+	let totalSupply = BigInt(0);
+	for (const account of tokenDistribution.accounts) {
+		tokenModuleAsset.userSubstore.push({
+			address: account.address,
+			tokenID: TOKEN_ID_DEX,
+			availableBalance: account.balance,
+			lockedBalances: [],
+		});
+		totalSupply += account.balance;
+	}
+	tokenModuleAsset.userSubstore.sort((a, b) => (a.address < b.address ? -1 : 1));
+
+	tokenModuleAsset.supplySubstore.push({
+		tokenID: TOKEN_ID_DEX,
+		totalSupply,
+	});
+
+	tokenModuleAsset.supportedTokensSubstore.push({
+		chainID: ALL_SUPPORTED_TOKENS_KEY,
+		supportedTokenIDs: [],
+	});
+
+	const data = codec.encode(genesisTokenStoreSchema, tokenModuleAsset);
+	return {
+		module: MODULE_NAME_TOKEN,
+		data,
+	};
 };

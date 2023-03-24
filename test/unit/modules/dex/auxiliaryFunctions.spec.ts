@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -19,8 +20,11 @@
 
 import { MethodContext, TokenMethod } from 'lisk-framework';
 import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_machine';
-import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
+import { genesisTokenStoreSchema } from 'lisk-framework/dist-node/modules/token';
+import { GenesisTokenStore } from 'lisk-framework/dist-node/modules/token/types';
+import { codec } from 'lisk-sdk';
 
+import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 import {
 	getToken0Id,
 	getToken1Id,
@@ -46,11 +50,18 @@ import {
 	getAdjacent,
 	poolExists,
 	addPoolCreationSettings,
+	computeTokenGenesisAsset,
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
 import { getCredibleDirectPrice } from '../../../../src/app/modules/dex/utils/tokenEcnomicsFunctions';
 
-import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
+import {
+	Address,
+	PoolID,
+	PositionID,
+	TokenID,
+	TokenDistribution,
+} from '../../../../src/app/modules/dex/types';
 import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import {
 	numberToQ96,
@@ -77,6 +88,9 @@ import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGl
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
+import { ALL_SUPPORTED_TOKENS_KEY, TOKEN_ID_DEX } from '../../../../src/app/modules/dex/constants';
+
+const skipOnCI = process.env.CI ? describe.skip : describe;
 
 describe('dex:auxiliaryFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
@@ -530,5 +544,87 @@ describe('dex:auxiliaryFunctions', () => {
 		const functionResult = getLiquidityForAmount0(lowerSqrtPrice, upperSqrtPrice, amount0);
 
 		expect(functionResult).toEqual(roundDownQ96(result));
+	});
+
+	it('computeTokenGenesisAsset', () => {
+		const account0 = {
+			address: token0Id,
+			balance: BigInt(1),
+		};
+		const account1 = {
+			address: token1Id,
+			balance: BigInt(1),
+		};
+		const tokenDistribution: TokenDistribution = {
+			accounts: [account0, account1],
+		};
+		const result = computeTokenGenesisAsset(tokenDistribution);
+
+		const expectedGenesisTokenStore: GenesisTokenStore = {
+			userSubstore: [
+				{
+					address: token0Id,
+					tokenID: TOKEN_ID_DEX,
+					availableBalance: BigInt(1),
+					lockedBalances: [],
+				},
+				{
+					address: token1Id,
+					tokenID: TOKEN_ID_DEX,
+					availableBalance: BigInt(1),
+					lockedBalances: [],
+				},
+			],
+			supplySubstore: [{ tokenID: TOKEN_ID_DEX, totalSupply: BigInt(2) }],
+			escrowSubstore: [],
+			supportedTokensSubstore: [{ chainID: ALL_SUPPORTED_TOKENS_KEY, supportedTokenIDs: [] }],
+		};
+		const expectedResult = {
+			module: 'token',
+			data: codec.encode(genesisTokenStoreSchema, expectedGenesisTokenStore),
+		};
+
+		expect(result).toStrictEqual(expectedResult);
+	});
+
+	skipOnCI('performance test for computeTokenGenesisAsset', () => {
+		// eslint-disable-next-line @typescript-eslint/no-floating-promises
+		(async () => {
+			const testarray = Array.from({ length: 10000 });
+			await Promise.all(testarray.map(() => testComputeTokenGenesisAsset()));
+		})();
+
+		function testComputeTokenGenesisAsset() {
+			it('test computeTokenGenesisAsset', () => {
+				const account = {
+					address: token0Id,
+					balance: BigInt(1),
+				};
+				const tokenDistribution: TokenDistribution = {
+					accounts: [account],
+				};
+				const result = computeTokenGenesisAsset(tokenDistribution);
+
+				const expectedGenesisTokenStore: GenesisTokenStore = {
+					userSubstore: [
+						{
+							address: token0Id,
+							tokenID: TOKEN_ID_DEX,
+							availableBalance: BigInt(1),
+							lockedBalances: [],
+						},
+					],
+					supplySubstore: [{ tokenID: TOKEN_ID_DEX, totalSupply: BigInt(1) }],
+					escrowSubstore: [],
+					supportedTokensSubstore: [{ chainID: ALL_SUPPORTED_TOKENS_KEY, supportedTokenIDs: [] }],
+				};
+				const expectedResult = {
+					module: 'token',
+					data: codec.encode(genesisTokenStoreSchema, expectedGenesisTokenStore),
+				};
+
+				expect(result).toStrictEqual(expectedResult);
+			});
+		}
 	});
 });
