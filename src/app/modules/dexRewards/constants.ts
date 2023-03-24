@@ -52,7 +52,7 @@ export const ADDRESS_VALIDATOR_REWARDS_POOL = Buffer.from(sha256('validatorRewar
 	NUM_BYTES_ADDRESS,
 );
 
-export const TOKEN_ID_DEX_NATIVE = Buffer.from(hexToBytes('0x0000000100000001')); // Token ID of the native token of DEX sidechain.
+export const TOKEN_ID_DEX = Buffer.from(hexToBytes('0x0000000100000001')); // Token ID of the native token of DEX sidechain.
 export const TOKEN_ID_LSK = Buffer.from(hexToBytes('0x0000000100000000')); // Token ID of the LSK token.
 export const BLOCK_REWARD_LIQUIDITY_PROVIDERS = BigInt('90000000'); // Amount of liquidity provider rewards per block, in DEX native token.
 export const BLOCK_REWARD_TRADERS = BigInt('60000000'); // Amount of trader rewards per block, in DEX native token.

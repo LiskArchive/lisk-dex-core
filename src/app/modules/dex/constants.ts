@@ -165,3 +165,7 @@ export enum SwapFailedReasons {
 	SWAP_FAILED_NOT_ENOUGH,
 	SWAP_FAILED_INVALID_LIMIT_PRICE,
 }
+
+// DEXGOVERNANCE Module Constants
+export const MODULE_NAME_DEX_GOVERNANCE = 'dexGovernance';
+export const COMMAND_CREATE_PROPOSAL = 'createProposal'; // Command ID of CREATE_PORPOSAL command.

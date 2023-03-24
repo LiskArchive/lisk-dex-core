@@ -23,6 +23,7 @@ import {
 } from './constants';
 
 export const proposalContentSchema = {
+	$id: '/dexGovernance/proposalContentSchema',
 	type: 'object',
 	required: ['text', 'poolID', 'multiplier', 'metadata'],
 	properties: {
@@ -188,6 +189,22 @@ export const genesisDEXGovernanceSchema = {
 					},
 				},
 			},
+		},
+	},
+};
+
+export const createProposalParamsSchema = {
+	$id: '/dexGovernance/createProposalParams',
+	type: 'object',
+	required: ['type', 'content'],
+	properties: {
+		type: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		content: {
+			...proposalContentSchema,
+			fieldNumber: 2,
 		},
 	},
 };

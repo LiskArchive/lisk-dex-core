@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import { MethodContext, TokenMethod } from 'lisk-sdk';
 import {
 	DECISION_YES,
@@ -20,6 +21,7 @@ import {
 	PROPOSAL_STATUS_FINISHED_ACCEPTED,
 	PROPOSAL_STATUS_FINISHED_FAILED,
 } from '../constants';
+import { ProposalCreationFailedEvent } from '../events';
 import { ProposalsStore } from '../stores';
 
 export const getVoteOutcome = async (
@@ -94,4 +96,19 @@ export const addVotes = async (
 		throw new Error('Decision does not exist');
 	}
 	await proposalsStore.set(methodContext, indexBuffer, proposal);
+};
+
+export const emitProposalCreationFailedEvent = (
+	methodContext: MethodContext,
+	reason: number,
+	events: NamedRegistry,
+) => {
+	events.get(ProposalCreationFailedEvent).add(
+		methodContext,
+		{
+			reason,
+		},
+		[],
+		true,
+	);
 };

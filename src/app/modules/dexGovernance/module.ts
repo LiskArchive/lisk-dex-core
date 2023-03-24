@@ -17,17 +17,23 @@
  */
 import { codec } from '@liskhq/lisk-codec';
 
+import { PoSEndpoint } from 'lisk-framework/dist-node/modules/pos/endpoint';
 import {
 	BaseCommand,
 	BaseModule,
-	BlockExecuteContext,
-	GenesisBlockExecuteContext,
+	FeeMethod,
+	ModuleInitArgs,
 	ModuleMetadata,
 	PoSMethod,
 	TokenMethod,
+	utils,
+	BlockExecuteContext,
+	GenesisBlockExecuteContext,
 } from 'lisk-sdk';
-
-import { NUM_BYTES_POOL_ID } from '../dex/constants';
+import { MODULE_NAME_DEX_GOVERNANCE, NUM_BYTES_POOL_ID } from '../dex/constants';
+import { PoolsStore } from '../dex/stores';
+import { ModuleConfig } from '../dex/types';
+import { CreateProposalCommand } from './commands/createProposal';
 import { DexGovernanceEndpoint } from './endpoint';
 import {
 	ProposalCreatedEvent,
@@ -64,24 +70,32 @@ import {
 	PROPOSAL_STATUS_FAILED_QUORUM,
 	PROPOSAL_STATUS_FINISHED_ACCEPTED,
 	QUORUM_PERCENTAGE,
+	defaultConfig,
 } from './constants';
 import { IndexStoreData } from './stores/indexStore';
 import { getVoteOutcome, hasEnded } from './utils/auxiliaryFunctions';
 import { updateIncentivizedPools } from '../dex/utils/auxiliaryFunctions';
 
 export class DexGovernanceModule extends BaseModule {
+	public id = MODULE_NAME_DEX_GOVERNANCE;
 	public endpoint = new DexGovernanceEndpoint(this.stores, this.offchainStores);
 	public method = new DexGovernanceMethod(this.stores, this.events);
 	public _tokenMethod!: TokenMethod;
 	public _posMethod!: PoSMethod;
+	public _moduleConfig!: ModuleConfig;
+	public _posEndpoint!: PoSEndpoint;
+	public _feeMethod!: FeeMethod;
 
-	public commands = [];
+	private readonly __createProposalCommand = new CreateProposalCommand(this.stores, this.events);
+
+	public commands = [this.__createProposalCommand];
 
 	public constructor() {
 		super();
 		this.stores.register(IndexStore, new IndexStore(this.name));
 		this.stores.register(ProposalsStore, new ProposalsStore(this.name));
 		this.stores.register(VotesStore, new VotesStore(this.name));
+		this.stores.register(PoolsStore, new PoolsStore(this.name));
 		this.events.register(ProposalCreatedEvent, new ProposalCreatedEvent(this.name));
 		this.events.register(ProposalCreationFailedEvent, new ProposalCreationFailedEvent(this.name));
 		this.events.register(ProposalOutcomeCheckedEvent, new ProposalOutcomeCheckedEvent(this.name));
@@ -133,9 +147,22 @@ export class DexGovernanceModule extends BaseModule {
 		};
 	}
 
-	public addDependencies(tokenMethod: TokenMethod, posMethod: PoSMethod) {
+	public addDependencies(tokenMethod: TokenMethod, posMethod: PoSMethod, feeMethod: FeeMethod) {
 		this._tokenMethod = tokenMethod;
 		this._posMethod = posMethod;
+		this._feeMethod = feeMethod;
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async init(args: ModuleInitArgs) {
+		const { moduleConfig } = args;
+		this._moduleConfig = utils.objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfig;
+
+		this.__createProposalCommand.init({
+			tokenMethod: this._tokenMethod,
+			posEndpoint: this._posEndpoint,
+			feeMethod: this._feeMethod,
+		});
 	}
 
 	public hasEnded(

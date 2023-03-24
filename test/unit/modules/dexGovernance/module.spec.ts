@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { FeeMethod } from 'lisk-framework';
 import {
 	BaseModule,
 	PoSModule,
@@ -58,6 +59,7 @@ describe('DexGovernanceModule', () => {
 	let dexGovernanceModule: DexGovernanceModule;
 	let tokenModule: TokenModule;
 	let posModule: PoSModule;
+	let feeMethod: FeeMethod;
 
 	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
 	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
@@ -114,6 +116,7 @@ describe('DexGovernanceModule', () => {
 		dexGovernanceModule = new DexGovernanceModule();
 		tokenModule = new TokenModule();
 		posModule = new PoSModule();
+		feeMethod = new FeeMethod(dexGovernanceModule.stores, dexGovernanceModule.events);
 		proposalsStore = dexGovernanceModule.stores.get(ProposalsStore);
 		votesStore = dexGovernanceModule.stores.get(VotesStore);
 
@@ -129,7 +132,7 @@ describe('DexGovernanceModule', () => {
 			.fn()
 			.mockResolvedValue({ totalSupply: [{ totalSupply: BigInt(1000000) }] });
 
-		dexGovernanceModule.addDependencies(tokenModule.method, posModule.method);
+		dexGovernanceModule.addDependencies(tokenModule.method, posModule.method, feeMethod);
 	});
 
 	it('should inherit from BaseModule', () => {

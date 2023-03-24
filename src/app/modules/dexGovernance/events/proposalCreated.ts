@@ -32,7 +32,8 @@ export const ProposalCreatedEventSchema = {
 	properties: {
 		creator: {
 			dataType: 'bytes',
-			length: LENGTH_ADDRESS,
+			minLength: LENGTH_ADDRESS,
+			maxLength: LENGTH_ADDRESS,
 			fieldNumber: 1,
 		},
 		index: {
