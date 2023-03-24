@@ -92,7 +92,7 @@ export class CreateProposalCommand extends BaseCommand {
 		const lockedBalance = (await this._posEndpoint.getLockedStakedAmount(moduleEndpointContext))
 			.amount;
 
-		if ((availableBalance + BigInt(lockedBalance)) < MINIMAL_BALANCE_PROPOSE) {
+		if (availableBalance + BigInt(lockedBalance) < MINIMAL_BALANCE_PROPOSE) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error('Insufficient DEX native token balance to create proposal'),
