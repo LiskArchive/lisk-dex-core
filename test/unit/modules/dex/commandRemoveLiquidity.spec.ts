@@ -390,7 +390,7 @@ describe('dex:command:removeLiquidity', () => {
 					params: {
 						positionID: positionId,
 						liquidityToRemove,
-						amount0Min: BigInt(1000),
+						amount0Min: BigInt('158456325028528675187087900671'),
 						amount1Min: BigInt(0),
 						maxTimestampValid: BigInt(1000),
 					},

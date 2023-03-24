@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable no-param-reassign */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
@@ -21,7 +22,6 @@
  */
 
 import { ModuleEndpointContext, TokenMethod } from 'lisk-sdk';
-
 import { MethodContext } from 'lisk-framework/dist-node/state_machine';
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
 import {
@@ -66,6 +66,8 @@ import {
 	NUM_BYTES_POOL_ID,
 	TOKEN_ID_LSK,
 	VALIDATORS_LSK_INCENTIVE_PART,
+	MAX_UINT_64,
+	MAX_HOPS_SWAP,
 } from '../constants';
 import { DexGlobalStore, PriceTicksStore } from '../stores';
 import { tickToBytes } from '../stores/priceTicksStore';
@@ -452,7 +454,9 @@ export const swap = async (
 	const dexModule = new DexModule();
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
 	const feeTier = endpoint.getFeeTier(poolID);
+
 	const poolInfo = await endpoint.getPool(methodContext, poolID);
+
 	const priceTicksStore = stores.get(PriceTicksStore);
 
 	let poolSqrtPriceQ96 = bytesToQ96(poolInfo.sqrtPrice);
@@ -493,11 +497,9 @@ export const swap = async (
 			throw new Error('Crossed too many ticks');
 		}
 		const currentTick = priceToTick(poolSqrtPriceQ96);
-
 		if (await endpoint.getTickWithPoolIdAndTickValue(methodContext, poolID, currentTick)) {
 			tickExist = true;
 		}
-
 		if (
 			zeroToOne &&
 			tickExist &&
@@ -629,4 +631,176 @@ export const swap = async (
 	}
 	poolInfo.sqrtPrice = q96ToBytes(poolSqrtPriceQ96);
 	return [amountTotalIn, amountTotalOut, totalFeesIn, totalFeesOut, numCrossedTicks];
+};
+
+export const getRoute = async (
+	methodContext: ModuleEndpointContext,
+	stores: NamedRegistry,
+	tokenIn: TokenID,
+	tokenOut: TokenID,
+	amount: bigint,
+	exactIn: boolean,
+): Promise<TokenID[]> => {
+	let bestRoute: Buffer[] = [];
+	const regularRoute = await computeRegularRoute(methodContext, stores, tokenIn, tokenOut);
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	if (regularRoute.length > 0) {
+		if (exactIn) {
+			let poolTokenIn = tokenIn;
+			let poolAmountIn = amount;
+			for (const regularRouteRt of regularRoute) {
+				const [optimalPool, poolAmountOut] = await getOptimalSwapPool(
+					methodContext,
+					stores,
+					poolTokenIn,
+					regularRouteRt,
+					poolAmountIn,
+					exactIn,
+				);
+				bestRoute.push(optimalPool);
+				poolTokenIn = regularRouteRt;
+				poolAmountIn = poolAmountOut;
+			}
+		} else {
+			let poolTokenOut = tokenOut;
+			let poolAmountOut = amount;
+			for (let i = regularRoute.length - 1; i >= 0; i -= 1) {
+				const [optimalPool, poolAmountIn] = await getOptimalSwapPool(
+					methodContext,
+					stores,
+					regularRoute[i],
+					poolTokenOut,
+					poolAmountOut,
+					exactIn,
+				);
+				bestRoute.push(optimalPool);
+				poolTokenOut = regularRoute[i];
+				poolAmountOut = poolAmountIn;
+			}
+			bestRoute = bestRoute.reverse();
+		}
+		return bestRoute;
+	}
+	const exceptionalRoute = await computeExceptionalRoute(methodContext, stores, tokenIn, tokenOut);
+	if (exceptionalRoute.length === 0 || exceptionalRoute.length > MAX_HOPS_SWAP) {
+		return [];
+	}
+	let poolTokenIn = tokenIn;
+	for (const exceptionalRt of exceptionalRoute) {
+		const candidatePools: Buffer[] = [];
+		const token0 = poolTokenIn.sort();
+		const token1 = exceptionalRt.sort();
+		const dexGlobalData = await endpoint.getDexGlobalData(methodContext);
+
+		for (const setting of dexGlobalData.poolCreationSettings) {
+			const feeTierBuffer = Buffer.alloc(4);
+			feeTierBuffer.writeInt8(setting.feeTier, 0);
+			const candidatePool = Buffer.concat([token0, token1, feeTierBuffer]);
+			candidatePools.push(candidatePool);
+		}
+
+		let maxLiquidity = BigInt(0);
+		let searchPool;
+		for (const candidatePool of candidatePools) {
+			const pool = await endpoint.getPool(methodContext, candidatePool);
+			if (pool.liquidity > maxLiquidity) {
+				maxLiquidity = pool.liquidity;
+				searchPool = candidatePool;
+			}
+		}
+		bestRoute.push(searchPool);
+		poolTokenIn = exceptionalRt;
+	}
+
+	return bestRoute;
+};
+
+export const getOptimalSwapPool = async (
+	methodContext,
+	stores: NamedRegistry,
+	tokenIn: TokenID,
+	tokenOut: TokenID,
+	amount: bigint,
+	exactIn: boolean,
+): Promise<[PoolID, bigint]> => {
+	let tokensArray = [tokenIn, tokenOut].sort((a, b) => (a < b ? -1 : 1));
+	const token0 = tokensArray[0];
+	const token1 = tokensArray[1];
+	const candidatePools: Buffer[] = [];
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	const dexGlobalData = await endpoint.getDexGlobalData(methodContext);
+	let searchindex;
+	let searchElement;
+
+	for (const settings of dexGlobalData.poolCreationSettings) {
+		tokensArray = [token0, token1];
+		const concatedTokenIDs = Buffer.concat(tokensArray);
+		const tokenIDAndSettingsArray = [
+			concatedTokenIDs,
+			q96ToBytes(numberToQ96(BigInt(settings.feeTier))),
+		];
+		const potentialPoolId: Buffer = Buffer.concat(tokenIDAndSettingsArray);
+		if (await endpoint.getPool(methodContext, potentialPoolId)) {
+			candidatePools.push(potentialPoolId);
+		}
+		if (candidatePools.length === 0) {
+			throw new Error('No pool swapping this pair of tokens');
+		}
+	}
+
+	const computedAmounts: bigint[] = [];
+
+	for (const pool of candidatePools) {
+		if (exactIn) {
+			try {
+				methodContext.params = {
+					tokenIdIn: tokenIn,
+					amountIn: amount,
+					tokenIdOut: tokenOut,
+					minAmountOut: BigInt(0),
+					swapRoute: [pool],
+				};
+				const amountOut = (await endpoint.dryRunSwapExactIn(methodContext))[1];
+				computedAmounts.push(amountOut);
+			} catch (error) {
+				throw new Error();
+			}
+		} else {
+			try {
+				methodContext.params = {
+					tokenIdIn: tokenIn,
+					maxAmountIn: MAX_UINT_64,
+					tokenIdOut: tokenOut,
+					amountOut: amount,
+					swapRoute: [pool],
+				};
+				const amountIn = (await endpoint.dryRunSwapExactOut(methodContext))[0];
+				computedAmounts.push(amountIn);
+			} catch (error) {
+				throw new Error();
+			}
+		}
+	}
+
+	if (exactIn) {
+		searchElement = BigInt(Number.MIN_SAFE_INTEGER);
+		for (let i = 0; i < computedAmounts.length; i += 1) {
+			if (computedAmounts[i] > searchElement) {
+				searchindex = i;
+				searchElement = computedAmounts[i];
+			}
+		}
+	} else {
+		searchElement = MAX_UINT_64;
+		for (let i = 0; i < computedAmounts.length; i += 1) {
+			if (computedAmounts[i] < searchElement) {
+				searchindex = i;
+				searchElement = computedAmounts[i];
+			}
+		}
+	}
+
+	return [candidatePools[searchindex], searchElement];
 };

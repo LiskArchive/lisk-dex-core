@@ -72,6 +72,15 @@ export interface RemoveLiquidityParamsData {
 	maxTimestampValid: bigint;
 }
 
+export interface SwapExactOutParamsData {
+	tokenIdIn: Buffer;
+	maxAmountTokenIn: bigint;
+	tokenIdOut: Buffer;
+	amountTokenOut: bigint;
+	swapRoute: Buffer[];
+	maxTimestampValid: bigint;
+}
+
 export interface CollectFeesParamData {
 	positions: Buffer[];
 }

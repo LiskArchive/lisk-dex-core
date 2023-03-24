@@ -40,6 +40,7 @@ import {
 	transferToValidatorLSKPool,
 	getLiquidityForAmount0,
 	updatePosition,
+	getCredibleDirectPrice,
 	collectFeesAndIncentives,
 	computeExceptionalRoute,
 	computeRegularRoute,
@@ -47,8 +48,6 @@ import {
 	poolExists,
 	addPoolCreationSettings,
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
-
-import { getCredibleDirectPrice } from '../../../../src/app/modules/dex/utils/tokenEcnomicsFunctions';
 
 import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
 import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
@@ -76,6 +75,7 @@ import {
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
+
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
 
 describe('dex:auxiliaryFunctions', () => {
@@ -428,6 +428,7 @@ describe('dex:auxiliaryFunctions', () => {
 			const exists = await poolsStore.has(methodContext, poolId);
 			expect(poolExistResult).toEqual(exists);
 		});
+
 		it('getAdjacent', async () => {
 			const res = await getAdjacent(moduleEndpointContext, dexModule.stores, token0Id);
 			expect(res).not.toBeNull();

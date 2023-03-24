@@ -24,15 +24,19 @@ import { DexModule } from '../../../../src/app/modules';
 import {
 	computeCurrentPrice,
 	computeRegularRoute,
+	computeExceptionalRoute,
 	constructPoolsGraph,
 	crossTick,
 	getAdjacent,
 	swap,
 	swapWithin,
 	transferFeesFromPool,
+	getOptimalSwapPool,
+	getRoute,
+	raiseSwapException,
 } from '../../../../src/app/modules/dex/utils/swapFunctions';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
-import { PoolID, TokenID } from '../../../../src/app/modules/dex/types';
+import { Address, PoolID, TokenID } from '../../../../src/app/modules/dex/types';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 import { bytesToQ96, numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
@@ -44,7 +48,6 @@ import {
 } from '../../../../src/app/modules/dex/stores';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
-import { computeExceptionalRoute } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import { NUM_BYTES_POOL_ID, TOKEN_ID_LSK } from '../../../../src/app/modules/dex/constants';
 import {
 	PriceTicksStoreData,
@@ -68,6 +71,7 @@ describe('dex:swapFunctions', () => {
 	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
 	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
+	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 
 	const transferMock = jest.fn();
 	const lockMock = jest.fn();
@@ -128,6 +132,14 @@ describe('dex:swapFunctions', () => {
 			tokenMethod.transfer = transferMock;
 			tokenMethod.lock = lockMock;
 			tokenMethod.unlock = unlockMock;
+		});
+		it('raiseSwapException', () => {
+			try {
+				raiseSwapException(dexModule.events, methodContext, 1, token0Id, token1Id, senderAddress);
+			} catch (error) {
+				const swapFailedEvent = dexModule.events.values().filter(e => e.name === 'swapFailed');
+				expect(swapFailedEvent).toHaveLength(1);
+			}
 		});
 
 		it('swapWithin', () => {
@@ -210,12 +222,6 @@ describe('dex:swapFunctions', () => {
 			expect(regularRoute).toStrictEqual([adjacentToken, adjacentToken, adjacentToken]);
 		});
 
-		it('computeExceptionalRoute should return 0', async () => {
-			expect(
-				await computeExceptionalRoute(moduleEndpointContext, dexModule.stores, token0Id, token1Id),
-			).toHaveLength(0);
-		});
-
 		it('computeExceptionalRoute should return route with tokenID', async () => {
 			expect(
 				(
@@ -276,6 +282,82 @@ describe('dex:swapFunctions', () => {
 					10,
 				),
 			).toStrictEqual([BigInt(6), BigInt(5), BigInt(0), BigInt(0), 1]);
+		});
+
+		it('getOptimalSwapPool should return route with tokenID', async () => {
+			const tokensArray = [token0Id, token1Id];
+			const concatedTokenIDs = Buffer.concat(tokensArray);
+			const tokenIDAndSettingsArray = [
+				concatedTokenIDs,
+				q96ToBytes(numberToQ96(BigInt(dexGlobalStoreData.poolCreationSettings[0].feeTier))),
+			];
+
+			const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
+
+			const potentialPoolId: Buffer = Buffer.concat(tokenIDAndSettingsArray);
+			const poolIDAndTickID = Buffer.concat([potentialPoolId, tickToBytes(currentTick)]);
+			await priceTicksStore.setKey(methodContext, [poolIDAndTickID], priceTicksStoreDataTickUpper);
+
+			await poolsStore.set(methodContext, potentialPoolId, poolsStoreData);
+			let res = await getOptimalSwapPool(
+				moduleEndpointContext,
+				dexModule.stores,
+				token0Id,
+				token1Id,
+				BigInt(10),
+				false,
+			);
+
+			expect(res[0]).toStrictEqual(potentialPoolId);
+			expect(res[1]).toBe(BigInt(10));
+
+			res = await getOptimalSwapPool(
+				moduleEndpointContext,
+				dexModule.stores,
+				token0Id,
+				token1Id,
+				BigInt(15),
+				true,
+			);
+			expect(res[0]).toStrictEqual(potentialPoolId);
+			expect(res[1]).toBe(BigInt(15));
+		});
+
+		it('getRoute', async () => {
+			const adjacentToken = Buffer.from('0000000100000000', 'hex');
+			const tokensArray = [adjacentToken, adjacentToken];
+			const concatedTokenIDs = Buffer.concat(tokensArray);
+			const tokenIDAndSettingsArray = [
+				concatedTokenIDs,
+				q96ToBytes(numberToQ96(BigInt(dexGlobalStoreData.poolCreationSettings[0].feeTier))),
+			];
+
+			const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
+
+			const potentialPoolId: Buffer = Buffer.concat(tokenIDAndSettingsArray);
+			const poolIDAndTickID = Buffer.concat([potentialPoolId, tickToBytes(currentTick)]);
+			await priceTicksStore.setKey(methodContext, [poolIDAndTickID], priceTicksStoreDataTickUpper);
+
+			await poolsStore.set(methodContext, potentialPoolId, poolsStoreData);
+			let bestRoute = await getRoute(
+				moduleEndpointContext,
+				dexModule.stores,
+				adjacentToken,
+				adjacentToken,
+				BigInt(15),
+				false,
+			);
+			expect(bestRoute).toStrictEqual([potentialPoolId, potentialPoolId, potentialPoolId]);
+
+			bestRoute = await getRoute(
+				moduleEndpointContext,
+				dexModule.stores,
+				adjacentToken,
+				adjacentToken,
+				BigInt(15),
+				true,
+			);
+			expect(bestRoute).toStrictEqual([potentialPoolId, potentialPoolId, potentialPoolId]);
 		});
 	});
 });

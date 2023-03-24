@@ -18,9 +18,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseEndpoint, ModuleEndpointContext, TokenMethod, MethodContext } from 'lisk-sdk';
-import { validator } from '@liskhq/lisk-validator';
 
+import { BaseEndpoint, ModuleEndpointContext, TokenMethod } from 'lisk-sdk';
+import { validator } from '@liskhq/lisk-validator';
+import { MethodContext } from 'lisk-framework/dist-node/state_machine';
 import {
 	MODULE_ID_DEX,
 	NUM_BYTES_POOL_ID,
@@ -28,8 +29,8 @@ import {
 	NUM_BYTES_ADDRESS,
 	NUM_BYTES_POSITION_ID,
 	MAX_HOPS_SWAP,
-	MAX_SQRT_RATIO,
 	MIN_SQRT_RATIO,
+	MAX_SQRT_RATIO,
 } from './constants';
 import { PoolsStore } from './stores';
 import { PoolID, PositionID, Q96, TickID, TokenID } from './types';
@@ -61,6 +62,7 @@ import { PositionsStore, PositionsStoreData } from './stores/positionsStore';
 import { PriceTicksStore, PriceTicksStoreData, tickToBytes } from './stores/priceTicksStore';
 import { uint32beInv } from './utils/bigEndian';
 import { getCredibleDirectPrice } from './utils/tokenEcnomicsFunctions';
+
 
 export class DexEndpoint extends BaseEndpoint {
 	public async getAllPoolIDs(methodContext): Promise<PoolID[]> {
@@ -428,14 +430,11 @@ export class DexEndpoint extends BaseEndpoint {
 		let priceBefore: bigint;
 		let newAmountOut = BigInt(0);
 
-		if (
-			tokenIdIn.equals(tokenIdOut) ||
-			swapRoute.length === 0 ||
-			swapRoute.length > MAX_HOPS_SWAP
-		) {
+		if (swapRoute.length === 0 || swapRoute.length > MAX_HOPS_SWAP) {
 			throw new Error('Invalid parameters');
 		}
 		try {
+
 			priceBefore = await computeCurrentPrice(
 				moduleEndpointContext,
 				this.stores,
@@ -480,6 +479,7 @@ export class DexEndpoint extends BaseEndpoint {
 		if (tokens[tokens.length - 1].amount > maxAmountIn) {
 			throw new Error('Too high input amount');
 		}
+
 		const priceAfter = await computeCurrentPrice(
 			moduleEndpointContext,
 			this.stores,
