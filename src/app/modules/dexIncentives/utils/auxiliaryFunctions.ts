@@ -22,7 +22,7 @@
  */
 
 import { PoSMethod, TokenMethod } from 'lisk-sdk';
-import { MODULE_NAME_DEX } from '../../dex/constants';
+import { BOOTSTRAP_PERIOD_OFFSET, MODULE_NAME_DEX } from '../../dex/constants';
 import { divQ96, mulQ96, numberToQ96, roundDownQ96 } from '../../dex/utils/q96';
 import {
 	ADDRESS_VALIDATOR_INCENTIVES,
@@ -129,16 +129,19 @@ export const transferValidatorIncentives = async (
 };
 
 export const getLiquidityIncentivesAtHeight = (height: number): bigint => {
-	if (height < EPOCH_LENGTH_INCENTIVE_REDUCTION) {
+	if (height < BOOTSTRAP_PERIOD_OFFSET) {
+		return BigInt(0);
+	}
+	if (height < BOOTSTRAP_PERIOD_OFFSET + LENGTH_EPOCH_REWARDS_INCENTIVES) {
 		return BigInt('400000000');
 	}
-	if (height < BigInt(2) * EPOCH_LENGTH_INCENTIVE_REDUCTION) {
+	if (height < BOOTSTRAP_PERIOD_OFFSET + 2 * LENGTH_EPOCH_REWARDS_INCENTIVES) {
 		return BigInt('350000000');
 	}
-	if (height < BigInt(3) * EPOCH_LENGTH_INCENTIVE_REDUCTION) {
+	if (height < BOOTSTRAP_PERIOD_OFFSET + 3 * LENGTH_EPOCH_REWARDS_INCENTIVES) {
 		return BigInt('300000000');
 	}
-	if (height < BigInt(4) * EPOCH_LENGTH_INCENTIVE_REDUCTION) {
+	if (height < BOOTSTRAP_PERIOD_OFFSET + 4 * LENGTH_EPOCH_REWARDS_INCENTIVES) {
 		return BigInt('250000000');
 	}
 	return BigInt('200000000');
