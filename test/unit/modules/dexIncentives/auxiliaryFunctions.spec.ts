@@ -23,8 +23,14 @@ import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateRead
 
 import { Address } from '../../../../src/app/modules/dex/types';
 import { DexIncentivesModule } from '../../../../src/app/modules';
-import { getLPIncentivesInRange, transferValidatorIncentives } from '../../../../src/app/modules/dexIncentives/utils/auxiliaryFunctions';
-import { BOOTSTRAP_PERIOD_OFFSET, EVENT_NAME_VALIDATOR_INCENTIVES_PAYOUT } from '../../../../src/app/modules/dexIncentives/constants';
+import {
+	getLPIncentivesInRange,
+	transferValidatorIncentives,
+} from '../../../../src/app/modules/dexIncentives/utils/auxiliaryFunctions';
+import {
+	BOOTSTRAP_PERIOD_OFFSET,
+	EVENT_NAME_VALIDATOR_INCENTIVES_PAYOUT,
+} from '../../../../src/app/modules/dexIncentives/constants';
 
 const { InMemoryPrefixedStateDB } = testing;
 
@@ -83,14 +89,10 @@ describe('dexIncentives:auxiliaryFunctions', () => {
 		});
 
 		it('getLPIncentivesInRange', () => {
-			expect(() => getLPIncentivesInRange(
-				1,
-				0,
-			)).toThrow();
-			expect(getLPIncentivesInRange(
-				BOOTSTRAP_PERIOD_OFFSET,
-				BOOTSTRAP_PERIOD_OFFSET + 1,
-			)).toBe(BigInt("400000000"));
+			expect(() => getLPIncentivesInRange(1, 0)).toThrow();
+			expect(getLPIncentivesInRange(BOOTSTRAP_PERIOD_OFFSET, BOOTSTRAP_PERIOD_OFFSET + 1)).toBe(
+				BigInt('400000000'),
+			);
 		});
 	});
 });
