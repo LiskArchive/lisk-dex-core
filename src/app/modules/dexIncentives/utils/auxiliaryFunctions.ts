@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable import/no-cycle */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -143,7 +144,7 @@ export const getLiquidityIncentivesAtHeight = (height: number): bigint => {
 	return BigInt('200000000');
 };
 
-export const getLPIncentiveInRange = (startHeight: number, endHeight: number): bigint => {
+export const getLPIncentivesInRange = (startHeight: number, endHeight: number): bigint => {
 	if (endHeight < startHeight) {
 		throw new Error();
 	}
