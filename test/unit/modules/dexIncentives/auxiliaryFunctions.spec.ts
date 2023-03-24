@@ -21,8 +21,6 @@ import { MethodContext, PoSMethod, TokenMethod, testing } from 'lisk-framework';
 import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_machine';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 
-
-
 import { Address } from '../../../../src/app/modules/dex/types';
 import { DexIncentivesModule } from '../../../../src/app/modules';
 import { transferValidatorIncentives } from '../../../../src/app/modules/dexIncentives/utils/auxiliaryFunctions';
@@ -33,7 +31,11 @@ const { InMemoryPrefixedStateDB } = testing;
 describe('dexIncentives:auxiliaryFunctions', () => {
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const dexIncentivesModule = new DexIncentivesModule();
-	const tokenMethod = new TokenMethod(dexIncentivesModule.stores, dexIncentivesModule.events, dexIncentivesModule.name);
+	const tokenMethod = new TokenMethod(
+		dexIncentivesModule.stores,
+		dexIncentivesModule.events,
+		dexIncentivesModule.name,
+	);
 	const posMethod = new PoSMethod(dexIncentivesModule.stores, dexIncentivesModule.events);
 
 	const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -63,7 +65,14 @@ describe('dexIncentives:auxiliaryFunctions', () => {
 		});
 
 		it('transferValidatorIncentives', async () => {
-			await transferValidatorIncentives(methodContext, tokenMethod, posMethod, senderAddress, BigInt(1), dexIncentivesModule.events);
+			await transferValidatorIncentives(
+				methodContext,
+				tokenMethod,
+				posMethod,
+				senderAddress,
+				BigInt(1),
+				dexIncentivesModule.events,
+			);
 			expect(dexIncentivesModule._tokenMethod.transfer).toHaveBeenCalledTimes(1);
 
 			const events = methodContext.eventQueue.getEvents();
