@@ -47,7 +47,7 @@ export class DexGovernanceEndpoint extends BaseEndpoint {
 		const voterAddress = Buffer.from(context.params.voterAddress, 'hex');
 
 		if (!(await votesStore.has(context, voterAddress))) {
-			return { voteInfos: [] };
+			return {} as Vote;
 		}
 
 		const votesByAddress = await votesStore.get(context, voterAddress);

@@ -35,13 +35,19 @@ export interface Proposal {
 }
 
 export interface Vote {
+	address: Buffer;
 	voteInfos: [
 		{
 			proposalIndex: number;
 			decision: number;
 			amount: bigint;
-		}?,
+		},
 	];
+}
+
+export interface VoteStore {
+	address: Buffer;
+	votes: Vote;
 }
 
 export interface Index {
@@ -73,4 +79,9 @@ export interface proposalContentSchema {
 export interface CreateProposalParamsData {
 	type: number;
 	content: proposalContentSchema;
+}
+
+export interface GenesisDEXGovernanceData {
+	proposalsStore: Proposal[];
+	votesStore: VoteStore[];
 }

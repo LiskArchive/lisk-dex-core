@@ -12,12 +12,23 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { BaseStore } from 'lisk-sdk';
+import { NUM_BYTES_POOL_ID } from '../constants';
+
+export interface IncentivizedPools {
+	poolId: Buffer;
+	multiplier: number;
+}
+
+export interface PoolCreationSettings {
+	feeTier: number;
+	tickSpacing: number;
+}
 
 export interface DexGlobalStoreData {
 	positionCounter: bigint;
 	collectableLSKFees: bigint;
-	poolCreationSettings;
-	incentivizedPools;
+	poolCreationSettings: PoolCreationSettings[];
+	incentivizedPools: IncentivizedPools[];
 	totalIncentivesMultiplier: number;
 }
 
@@ -67,10 +78,12 @@ export const dexGlobalStoreSchema = {
 				properties: {
 					poolId: {
 						dataType: 'bytes',
+						maxLength: NUM_BYTES_POOL_ID,
 						fieldNumber: 1,
 					},
 					multiplier: {
 						dataType: 'uint32',
+						maxLength: NUM_BYTES_POOL_ID,
 						fieldNumber: 2,
 					},
 				},

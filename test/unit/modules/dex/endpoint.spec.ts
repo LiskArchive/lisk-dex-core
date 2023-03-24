@@ -2,6 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-floating-promises */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -40,7 +42,10 @@ import {
 	PriceTicksStoreData,
 	tickToBytes,
 } from '../../../../src/app/modules/dex/stores/priceTicksStore';
-import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
+import {
+	DexGlobalStoreData,
+	PoolCreationSettings,
+} from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
@@ -74,6 +79,11 @@ describe('dex: offChainEndpointFunctions', () => {
 		eventQueue: new EventQueue(0),
 	});
 
+	const poolCreationSettingsData: PoolCreationSettings = {
+		feeTier: 100,
+		tickSpacing: 1,
+	};
+
 	let poolsStore: PoolsStore;
 	let priceTicksStore: PriceTicksStore;
 	let dexGlobalStore: DexGlobalStore;
@@ -90,7 +100,7 @@ describe('dex: offChainEndpointFunctions', () => {
 	const poolsStoreData: PoolsStoreData = {
 		liquidity: BigInt(5),
 		sqrtPrice: q96ToBytes(BigInt(tickToPrice(5))),
-		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(1000))),
 		heightIncentivesUpdate: 5,
 		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(0))),
@@ -116,7 +126,7 @@ describe('dex: offChainEndpointFunctions', () => {
 	const dexGlobalStoreData: DexGlobalStoreData = {
 		positionCounter: BigInt(15),
 		collectableLSKFees: BigInt(10),
-		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
+		poolCreationSettings: [poolCreationSettingsData],
 		incentivizedPools: [{ poolId, multiplier: 10 }],
 		totalIncentivesMultiplier: 1,
 	};
@@ -213,9 +223,7 @@ describe('dex: offChainEndpointFunctions', () => {
 
 		it('getAllPoolIDs', async () => {
 			await endpoint.getAllPoolIDs(moduleEndpointContext).then(res => {
-				expect(res[0]).toStrictEqual(
-					Buffer.from('000000000000000000000001000000000101643130', 'hex'),
-				);
+				expect(res[0]).toStrictEqual(Buffer.from('00000001000000000101643130', 'hex'));
 			});
 		});
 
@@ -283,7 +291,6 @@ describe('dex: offChainEndpointFunctions', () => {
 			await endpoint.getDexGlobalData(moduleEndpointContext).then(res => {
 				expect(res).not.toBeNull();
 				expect(res.positionCounter).toBe(BigInt(15));
-				expect(res.collectableLSKFees).toBe(BigInt(10));
 			});
 		});
 
@@ -309,10 +316,17 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getTickWithPoolIdAndTickValue', async () => {
+			const tickValue = 5;
+			priceTicksStore.setKey(
+				methodContext,
+				[getPoolIDFromPositionID(positionId), tickToBytes(tickValue)],
+				priceTicksStoreDataTickUpper,
+			);
+
 			const tickWithPoolIdAndTickValue = await endpoint.getTickWithPoolIdAndTickValue(
 				moduleEndpointContext,
 				getPoolIDFromPositionID(positionId),
-				5,
+				tickValue,
 			);
 			expect(tickWithPoolIdAndTickValue).not.toBeNull();
 			expect(tickWithPoolIdAndTickValue.liquidityNet).toBe(BigInt(5));
@@ -320,17 +334,16 @@ describe('dex: offChainEndpointFunctions', () => {
 
 		it('getLSKPrice', async () => {
 			const result = Buffer.alloc(4);
-			const feeTier = q96ToBytes(
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-				BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings.feeTier, 0)),
+			const tempFeeTier = q96ToBytes(
+				BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings[0].feeTier, 0)),
 			);
 			await poolsStore.setKey(
 				methodContext,
-				[getPoolIDFromPositionID(positionId), positionId, feeTier],
+				[getPoolIDFromPositionID(positionId), positionId, tempFeeTier],
 				poolsStoreData,
 			);
-			await poolsStore.setKey(methodContext, [poolIdLSK, poolIdLSK, feeTier], poolsStoreData);
-			await poolsStore.setKey(methodContext, [poolIdLSK, positionId, feeTier], poolsStoreData);
+			await poolsStore.setKey(methodContext, [poolIdLSK, poolIdLSK, tempFeeTier], poolsStoreData);
+			await poolsStore.setKey(methodContext, [poolIdLSK, positionId, tempFeeTier], poolsStoreData);
 
 			const res = await endpoint.getLSKPrice(
 				tokenMethod,

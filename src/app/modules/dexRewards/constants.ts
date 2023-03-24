@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright © 2020 Lisk Foundation
  *
@@ -20,7 +21,7 @@ export const hexToBytes = hex => {
 	const bytes: number[] = [];
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 	for (let c = 0; c < hex.length; c += 2)
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 		bytes.push(parseInt(hex.substr(c, 2), 16));
 	return bytes;
 };

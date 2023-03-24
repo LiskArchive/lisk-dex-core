@@ -13,13 +13,37 @@
  */
 
 import { BaseStore, StoreGetter } from 'lisk-sdk';
-import { indexSchema } from '../schemas';
-import { Index } from '../types';
 
-export class IndexStore extends BaseStore<Index> {
-	public schema = indexSchema;
+export interface IndexStoreData {
+	newestIndex: number;
+	nextOutcomeCheckIndex: number;
+	nextQuorumCheckIndex: number;
+}
 
-	public async getKey(context: StoreGetter, keys: Buffer[]): Promise<Index> {
+export const indexStoreSchema = {
+	$id: '/dexGovernance/store/index',
+	type: 'object',
+	required: ['newestIndex', 'nextOutcomeCheckIndex', 'nextQuorumCheckIndex'],
+	properties: {
+		newestIndex: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		nextOutcomeCheckIndex: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+		nextQuorumCheckIndex: {
+			dataType: 'uint32',
+			fieldNumber: 3,
+		},
+	},
+};
+
+export class IndexStore extends BaseStore<IndexStoreData> {
+	public schema = indexStoreSchema;
+
+	public async getKey(context: StoreGetter, keys: Buffer[]): Promise<IndexStoreData> {
 		const key = Buffer.concat(keys);
 		return this.get(context, key);
 	}
@@ -29,7 +53,7 @@ export class IndexStore extends BaseStore<Index> {
 		return this.has(context, key);
 	}
 
-	public async setKey(context: StoreGetter, keys: Buffer[], value: Index): Promise<void> {
+	public async setKey(context: StoreGetter, keys: Buffer[], value: IndexStoreData): Promise<void> {
 		const key = Buffer.concat(keys);
 		await this.set(context, key, value);
 	}
