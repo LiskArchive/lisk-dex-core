@@ -63,7 +63,6 @@ import { PriceTicksStore, PriceTicksStoreData, tickToBytes } from './stores/pric
 import { uint32beInv } from './utils/bigEndian';
 import { getCredibleDirectPrice } from './utils/tokenEcnomicsFunctions';
 
-
 export class DexEndpoint extends BaseEndpoint {
 	public async getAllPoolIDs(methodContext): Promise<PoolID[]> {
 		const poolStore = this.stores.get(PoolsStore);
@@ -434,7 +433,6 @@ export class DexEndpoint extends BaseEndpoint {
 			throw new Error('Invalid parameters');
 		}
 		try {
-
 			priceBefore = await computeCurrentPrice(
 				moduleEndpointContext,
 				this.stores,

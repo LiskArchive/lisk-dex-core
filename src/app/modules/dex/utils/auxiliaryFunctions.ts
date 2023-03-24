@@ -93,7 +93,6 @@ import { PoolsStoreData } from '../stores/poolsStore';
 import { PositionsStoreData } from '../stores/positionsStore';
 import { updatePoolIncentives } from './tokenEcnomicsFunctions';
 
-
 const abs = (x: bigint) => (x < BigInt(0) ? -x : x);
 const { utils } = cryptography;
 
