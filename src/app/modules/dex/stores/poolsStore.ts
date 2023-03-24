@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/member-ordering */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -94,7 +95,7 @@ export class PoolsStore extends BaseStore<PoolsStoreData> {
 		return this.iterate(context, {
 			gte: Buffer.alloc(16, 0),
 			lte: Buffer.alloc(16, 255),
-			reverse: true,
+			reverse: false,
 		});
 	}
 }

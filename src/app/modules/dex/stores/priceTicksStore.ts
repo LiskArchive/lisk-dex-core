@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/member-ordering */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -12,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { MethodContext } from 'lisk-framework/dist-node/state_machine';
-import { BaseStore, StoreGetter, ImmutableStoreGetter, ModuleEndpointContext } from 'lisk-sdk';
+import { BaseStore, ImmutableStoreGetter, ModuleEndpointContext, StoreGetter } from 'lisk-sdk';
 import { MAX_NUM_BYTES_Q96, MAX_TICK, MIN_TICK } from '../constants';
 
 export const tickToBytes = (tickValue: number): Buffer => {
