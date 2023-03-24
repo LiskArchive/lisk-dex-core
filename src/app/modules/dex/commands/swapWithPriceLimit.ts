@@ -122,7 +122,7 @@ export class SwapExactWithPriceLimitCommand extends BaseCommand {
 		const methodContext = ctx.getMethodContext();
 
 		let priceBefore: bigint;
-		let zeroToOne;
+		let zeroToOne: boolean;
 		/* 
 						const currentHeight = height of the block containing trs
 				*/

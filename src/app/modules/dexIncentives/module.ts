@@ -24,11 +24,7 @@ import {
 	ValidatorsMethod,
 	PoSMethod,
 } from 'lisk-sdk';
-import {
-	ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
-	MODULE_NAME_DEX,
-	TOKEN_ID_DEX_NATIVE,
-} from './constants';
+import { ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES, MODULE_NAME_DEX, TOKEN_ID_DEX } from './constants';
 
 import { DexIncentivesEndpoint } from './endpoint';
 import { ValidatorIncentivesPayout } from './events';
@@ -94,14 +90,14 @@ export class DexIncentivesModule extends BaseModule {
 		await this._tokenMethod.mint(
 			methodContext,
 			ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
-			TOKEN_ID_DEX_NATIVE,
+			TOKEN_ID_DEX,
 			liquidityIncentive,
 		);
 		await this._tokenMethod.lock(
 			methodContext,
 			ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
 			MODULE_NAME_DEX,
-			TOKEN_ID_DEX_NATIVE,
+			TOKEN_ID_DEX,
 			liquidityIncentive,
 		);
 

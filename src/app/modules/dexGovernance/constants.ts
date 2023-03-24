@@ -12,14 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const TOKEN_ID_DEX_NATIVE = Buffer.from('0000000200000000', 'hex'); // Token ID of the native token of DEX sidechain.
+export const TOKEN_ID_DEX = Buffer.from('0000000200000000', 'hex'); // Token ID of the native token of DEX sidechain.
 export const VOTE_DURATION = 260000; // Length of the vote period in blocks. This LIP assumes that the constant `LOCKING_PERIOD_STAKES` of [LIP 57][posModule] satisfies: `VOTE_DURATION >= LOCKING_PERIOD_STAKES` so the PoS locked tokens cannot be unlocked and used twice to vote from two different accounts. For the same reason the outcome of a proposal is checked before executing any block transactions (see [`beforeTransactionsExecute` hook](#before-transactions-execution)).
 export const QUORUM_DURATION = 130000; // Length of the quorum period in blocks. After this period the quorum is checked.
-export const FEE_PROPOSAL_CREATION = BigInt(5000); // * 10^8|Amount of fee to be paid for proposal creation in DEX native tokens.
-export const MINIMAL_BALANCE_PROPOSE = BigInt(100000); // * 10^8|Minimal amount of DEX native tokens an account should have to create a proposal (including PoS locked tokens).
-export const QUORUM_PERCENTAGE = 10000; // Relative amount of votes required for a proposal to pass the quorum, in parts-per-million of the amount of the total supply.
+export const FEE_PROPOSAL_CREATION = BigInt(500000000000); // * 10^8|Amount of fee to be paid for proposal creation in DEX native tokens.
+export const MINIMAL_BALANCE_PROPOSE = BigInt(10000000000000); // * 10^8|Minimal amount of DEX native tokens an account should have to create a proposal (including PoS locked tokens).
+export const QUORUM_PERCENTAGE = BigInt(10000); // Relative amount of votes required for a proposal to pass the quorum, in parts-per-million of the amount of the total supply.
 export const MAX_NUM_RECORDED_VOTES = 100; // Maximal number of proposals allowed to exist simultaneously.
-export const MAX_LENGTH_PROPOSAL_TEXT = 10; // 1024|The maximal allowed length for proposal text, in bytes.
+export const MAX_LENGTH_PROPOSAL_TEXT = 10240; // 1024|The maximal allowed length for proposal text, in bytes.
 export const MAX_LENGTH_METADATA_TITLE = 124; // The maximal allowed length for data in the `title` property in proposal metadata, in bytes.
 export const MAX_LENGTH_METADATA_AUTHOR = 200; // The maximal allowed length for data in the `author` property in proposal metadata, in bytes.
 export const MAX_LENGTH_METADATA_SUMMARY = 500; // The maximal allowed length for `summary` property of proposal metadata, in bytes.

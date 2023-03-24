@@ -56,6 +56,7 @@ export const LENGTH_EPOCH_REWARDS_INCENTIVES = 3153600;
 export const BOOTSTRAP_PERIOD_OFFSET = 259975;
 
 export const TOKEN_ID_DEX_NATIVE = Buffer.from(hexToBytes('0x0000000100000001')); // Token ID of the native token of DEX sidechain.
+export const TOKEN_ID_DEX = Buffer.from(hexToBytes('0x0000000100000001')); // Token ID of token of DEX sidechain.
 export const TOKEN_ID_LSK = Buffer.from(hexToBytes('0x0000000100000000')); // Token ID of the LSK token.
 export const EVENT_NAME_VALIDATOR_TRADE_INCENTIVES_PAYOUT = 'validatorTradeIncentivesPayout'; // Name of the validator trade incentives payout event.
 export const EVENT_NAME_GENERATOR_INCENTIVES_PAYOUT = 'generatorIncentivesPayout'; // Name of the generator incentives payout event.

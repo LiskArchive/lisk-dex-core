@@ -152,6 +152,12 @@ export const defaultConfig = {
 };
 
 // Swap Constants
+export const ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES = sha256(
+	'liquidityProviderIncentivesAccount',
+).slice(0, NUM_BYTES_ADDRESS);
+
+export const FEE_TIER_PARTITION = 1000000;
+// Swap Constants
 
 export enum SwapFailedReasons {
 	SWAP_FAILED_INVALID_ROUTE,
@@ -160,8 +166,6 @@ export enum SwapFailedReasons {
 	SWAP_FAILED_INVALID_LIMIT_PRICE,
 }
 
-export const FEE_TIER_PARTITION = 1000000;
-
-export const ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES = sha256(
-	'liquidityProviderIncentivesAccount',
-).slice(0, NUM_BYTES_ADDRESS);
+// DEXGOVERNANCE Module Constants
+export const MODULE_NAME_DEX_GOVERNANCE = 'dexGovernance';
+export const COMMAND_CREATE_PROPOSAL = 'createProposal'; // Command ID of CREATE_PORPOSAL command.
