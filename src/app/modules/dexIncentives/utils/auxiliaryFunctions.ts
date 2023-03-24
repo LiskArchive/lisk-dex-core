@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable import/no-cycle */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -21,12 +22,12 @@
  */
 
 import { PoSMethod, TokenMethod } from 'lisk-sdk';
-import { BOOTSTRAP_PERIOD_OFFSET, MODULE_NAME_DEX } from '../../dex/constants';
+import { MODULE_NAME_DEX } from '../../dex/constants';
 import { divQ96, mulQ96, numberToQ96, roundDownQ96 } from '../../dex/utils/q96';
 import {
 	ADDRESS_VALIDATOR_INCENTIVES,
 	TOKEN_ID_LSK,
-	EPOCH_LENGTH_INCENTIVE_REDUCTION,
+	BOOTSTRAP_PERIOD_OFFSET,
 	LENGTH_EPOCH_REWARDS_INCENTIVES,
 } from '../constants';
 import { ValidatorIncentivesPayout } from '../events';
@@ -145,17 +146,18 @@ export const getLiquidityIncentivesAtHeight = (height: number): bigint => {
 	return BigInt('200000000');
 };
 
-export const getLPIncentiveInRange = (startHeight: number, endHeight: number): bigint => {
+export const getLPIncentivesInRange = (startHeight: number, endHeight: number): bigint => {
 	if (endHeight < startHeight) {
 		throw new Error();
 	}
 
 	const EPOCHS = [
-		EPOCH_LENGTH_INCENTIVE_REDUCTION,
-		BigInt(2) * EPOCH_LENGTH_INCENTIVE_REDUCTION,
-		BigInt(3) * EPOCH_LENGTH_INCENTIVE_REDUCTION,
-		BigInt(4) * EPOCH_LENGTH_INCENTIVE_REDUCTION,
-	];
+		BOOTSTRAP_PERIOD_OFFSET,
+		BOOTSTRAP_PERIOD_OFFSET + LENGTH_EPOCH_REWARDS_INCENTIVES,
+		BOOTSTRAP_PERIOD_OFFSET + 2 * LENGTH_EPOCH_REWARDS_INCENTIVES,
+		BOOTSTRAP_PERIOD_OFFSET + 3 * LENGTH_EPOCH_REWARDS_INCENTIVES,
+		BOOTSTRAP_PERIOD_OFFSET + 4 * LENGTH_EPOCH_REWARDS_INCENTIVES,
+	].map(BigInt);
 
 	let height: bigint = BigInt(startHeight + 1); // incentive for the start block are excluded
 	let incentives: bigint = BigInt(0);
