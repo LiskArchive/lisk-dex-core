@@ -15,7 +15,7 @@ import { DynamicRewardModule } from 'lisk-framework/dist-node/modules/dynamic_re
 import { DexModule, DexIncentivesModule, DexGovernanceModule } from './modules';
 
 export const getApplication = (config: PartialApplicationConfig): Application => {
-	const { app } = Application.defaultApplication(config);
+	const app = new Application(config);
 	const dexModule = new DexModule();
 	const authModule = new AuthModule();
 	const validatorModule = new ValidatorsModule();
@@ -29,6 +29,7 @@ export const getApplication = (config: PartialApplicationConfig): Application =>
 	const dexGovernanceModule = new DexGovernanceModule();
 
 	// resolve dependencies
+	interoperabilityModule.addDependencies(validatorModule.method, tokenModule.method);
 	feeModule.addDependencies(tokenModule.method, interoperabilityModule.method);
 	dynamicRewardModule.addDependencies(
 		tokenModule.method,
@@ -45,7 +46,6 @@ export const getApplication = (config: PartialApplicationConfig): Application =>
 	tokenModule.addDependencies(interoperabilityModule.method, feeModule.method);
 
 	// resolve interoperability dependencies
-	interoperabilityModule.addDependencies(validatorModule.method, tokenModule.method);
 	interoperabilityModule.registerInteroperableModule(tokenModule);
 	interoperabilityModule.registerInteroperableModule(feeModule);
 
@@ -66,9 +66,9 @@ export const getApplication = (config: PartialApplicationConfig): Application =>
 	app.registerModule(posModule);
 	app.registerModule(randomModule);
 	app.registerModule(dynamicRewardModule);
+	app.registerModule(dexModule);
 	app.registerModule(dexIncentivesModule);
 	app.registerModule(dexGovernanceModule);
-	app.registerModule(dexModule);
 
 	return app;
 };
