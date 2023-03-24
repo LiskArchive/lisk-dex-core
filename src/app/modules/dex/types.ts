@@ -147,7 +147,6 @@ export interface SwapExactInParamsData {
 	maxTimestampValid: bigint;
 }
 
-
 export type feesInterface = {
 	in: bigint;
 	out: bigint;
