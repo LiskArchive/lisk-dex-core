@@ -145,7 +145,7 @@ describe('dexGovernance:command:createproposal', () => {
 		tokenMethod.transfer = transferMock;
 		tokenMethod.lock = lockMock;
 		tokenMethod.unlock = unlockMock;
-		tokenMethod.getAvailableBalance = jest.fn().mockReturnValue(BigInt(100000001));
+		tokenMethod.getAvailableBalance = jest.fn().mockReturnValue(BigInt(10000000000001));
 		posEndpoint.getLockedStakedAmount = getLockedStakedAmountMock.mockReturnValue({ amount: 5 });
 		feeMethod.payFee = jest.fn();
 
@@ -202,7 +202,7 @@ describe('dexGovernance:command:createproposal', () => {
 			);
 			expect(result.status).toEqual(VerifyStatus.FAIL);
 		});
-		it('should be unsuccessful as user created an incentivization proposal but forgot to mention pool id or multiplier', async () => {
+		it('should be unsuccessful as user created a universal proposal but forgot to mention proposal text', async () => {
 			content.poolID = Buffer.from('0000000000000000000001000000000000c8', 'hex').slice(0, 16);
 			content.text = Buffer.from('', 'hex');
 			const context = createTransactionContext({
@@ -225,7 +225,7 @@ describe('dexGovernance:command:createproposal', () => {
 			expect(result.error?.message).toBe('Proposal text can not be empty for universal proposal');
 			expect(result.status).toEqual(VerifyStatus.FAIL);
 		});
-		it('should be unsuccessful as user created a universal proposal but poolID is not empty or multiplier is not 0', async () => {
+		it('should be unsuccessful as user created an incentivization proposal but forgot to mention pool id', async () => {
 			content.poolID = Buffer.from('', 'hex');
 			const context = createTransactionContext({
 				transaction: new Transaction({

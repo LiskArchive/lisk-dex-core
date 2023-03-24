@@ -22,6 +22,6 @@ describe('DexGovernanceModule:constants', () => {
 	it('should generate addresses', () => {
 		expect(TOKEN_ID_DEX).toHaveLength(8);
 		expect(SUBSTORE_PREFIX_PROPOSALS).toHaveLength(2);
-		expect(FEE_PROPOSAL_CREATION).toBe(BigInt(5000));
+		expect(FEE_PROPOSAL_CREATION).toBe(BigInt(500000000000));
 	});
 });
