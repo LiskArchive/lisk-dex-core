@@ -36,7 +36,7 @@ import {
 	raiseSwapException,
 } from '../../../../src/app/modules/dex/utils/swapFunctions';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
-import { PoolID, TokenID, Address } from '../../../../src/app/modules/dex/types';
+import { Address, PoolID, TokenID } from '../../../../src/app/modules/dex/types';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 import { bytesToQ96, numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
@@ -59,7 +59,6 @@ describe('dex:swapFunctions', () => {
 	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
 	const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
 	const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
-	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const amount = 0;
 	const sqrtCurrentPrice = BigInt(5);
 	const sqrtTargetPrice = BigInt(10);
@@ -72,6 +71,7 @@ describe('dex:swapFunctions', () => {
 	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
 	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
+	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 
 	const transferMock = jest.fn();
 	const lockMock = jest.fn();
@@ -160,9 +160,13 @@ describe('dex:swapFunctions', () => {
 		});
 
 		it('computeCurrentPrice', async () => {
+			const tempModuleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { poolID },
+			});
 			const swapRoute = [poolID];
 			const currentPrice = await computeCurrentPrice(
-				moduleEndpointContext,
+				tempModuleEndpointContext,
 				dexModule.stores,
 				token0Id,
 				token1Id,
@@ -244,6 +248,12 @@ describe('dex:swapFunctions', () => {
 			await priceTicksStore.setKey(
 				methodContext,
 				[Buffer.from('000000000000000000000000000000000000000000000006', 'hex')],
+				priceTicksStoreDataTickUpper,
+			);
+
+			await priceTicksStore.setKey(
+				methodContext,
+				[Buffer.from(poolID.toLocaleString() + tickToBytes(100).toLocaleString(), 'hex')],
 				priceTicksStoreDataTickUpper,
 			);
 

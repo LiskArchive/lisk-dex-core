@@ -1,3 +1,7 @@
+/* eslint-disable import/no-cycle */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/member-ordering */
 /*
  * Copyright © 2022 Lisk Foundation
@@ -24,7 +28,6 @@ import {
 
 import { MODULE_ID_DEX, defaultConfig } from './constants';
 
-import { DexEndpoint } from './endpoint';
 import { ModuleConfig, ModuleInitArgs } from './types';
 
 import {
@@ -49,43 +52,52 @@ import { CollectFeesCommand } from './commands/collectFees';
 import { RemoveLiquidityFailedEvent } from './events/removeLiquidityFailed';
 import { RemoveLiquidityEvent } from './events/removeLiquidity';
 import { RemoveLiquidityCommand } from './commands/removeLiquidity';
+
 import {
-	getAllPoolIdsRequestSchema,
 	getAllPoolIdsResponseSchema,
 	getToken1AmountRequestSchema,
 	getToken1AmountResponseSchema,
 	getToken0AmountRequestSchema,
 	getToken0AmountResponseSchema,
 	getFeeTierResponseSchema,
-	getFeeTierResquestSchema,
+	getFeeTierRequestSchema,
 	getPoolIDFromTickIDRequestSchema,
-	ggetPositionIndexResquestSchema,
+	getPoolIDFromTickIDResponseSchema,
+	getPositionIndexRequestSchema,
 	getPositionIndexResponseSchema,
-	getAllTokenIdsRequestSchema,
 	getAllTokenIdsResponseSchema,
 	getAllPositionIDsInPoolRequestSchema,
 	getAllPositionIDsInPoolResponseSchema,
+	getPoolResponseSchema,
+	getPoolRequestSchema,
 	getCurrentSqrtPriceRequestSchema,
 	getCurrentSqrtPriceResponseSchema,
-	getDexGlobalDataRequestSchema,
 	getDexGlobalDataResponseSchema,
-	getPoolRequestSchema,
-	getPoolResponseSchema,
-	getTickWithPoolIdAndTickValueRequestSchema,
-	getTickWithPoolIdAndTickValueResponseSchema,
+	getPositionRequestSchema,
+	getPositionResponseSchema,
 	getTickWithTickIdRequestSchema,
 	getTickWithTickIdResponseSchema,
+	getTickWithPoolIdAndTickValueRequestSchema,
+	getTickWithPoolIdAndTickValueResponseSchema,
 	getLSKPriceRequestSchema,
 	getLSKPriceResponseSchema,
 	getTVLRequestSchema,
 	getTVLResponseSchema,
 	getAllTicksRequestSchema,
 	getAllTicksResponseSchema,
+	getAllTickIDsInPoolResponseSchema,
 	getAllTickIDsInPoolRequestSchema,
-	getAllTickIDsInPoolRsponseSchema,
+	dryRunSwapExactOutRequestSchema,
+	dryRunSwapExactOutResponseSchema,
+	dryRunSwapExactInRequestSchema,
+	dryRunSwapExactInResponseSchema,
+	getCollectableFeesAndIncentivesRequestSchema,
+	getCollectableFeesAndIncentivesResponseSchema,
 } from './schemas';
+
 import { SwappedEvent } from './events/swapped';
 import { SwapFailedEvent } from './events/swapFailed';
+import { DexEndpoint } from './endpoint';
 import { poolsStoreSchema } from './stores/poolsStore';
 import { positionsStoreSchema } from './stores/positionsStore';
 import { priceTicksStoreSchema } from './stores/priceTicksStore';
@@ -157,7 +169,6 @@ export class DexModule extends BaseModule {
 			endpoints: [
 				{
 					name: this.endpoint.getAllPoolIDs.name,
-					request: getAllPoolIdsRequestSchema,
 					response: getAllPoolIdsResponseSchema,
 				},
 				{
@@ -172,33 +183,27 @@ export class DexModule extends BaseModule {
 				},
 				{
 					name: this.endpoint.getFeeTier.name,
-					request: getFeeTierResquestSchema,
+					request: getFeeTierRequestSchema,
 					response: getFeeTierResponseSchema,
 				},
 				{
 					name: this.endpoint.getPoolIDFromTickID.name,
 					request: getPoolIDFromTickIDRequestSchema,
-					response: getPoolIDFromTickIDRequestSchema,
+					response: getPoolIDFromTickIDResponseSchema,
 				},
 				{
 					name: this.endpoint.getPositionIndex.name,
-					request: ggetPositionIndexResquestSchema,
+					request: getPositionIndexRequestSchema,
 					response: getPositionIndexResponseSchema,
 				},
 				{
 					name: this.endpoint.getAllTokenIDs.name,
-					request: getAllTokenIdsRequestSchema,
 					response: getAllTokenIdsResponseSchema,
 				},
 				{
-					name: this.endpoint.getAllPositionIDsInPool.name,
-					request: getAllPositionIDsInPoolRequestSchema,
-					response: getAllPositionIDsInPoolResponseSchema,
-				},
-				{
 					name: this.endpoint.getPool.name,
-					request: getPoolResponseSchema,
-					response: getPoolRequestSchema,
+					request: getPoolRequestSchema,
+					response: getPoolResponseSchema,
 				},
 				{
 					name: this.endpoint.getCurrentSqrtPrice.name,
@@ -207,13 +212,12 @@ export class DexModule extends BaseModule {
 				},
 				{
 					name: this.endpoint.getDexGlobalData.name,
-					request: getDexGlobalDataRequestSchema,
 					response: getDexGlobalDataResponseSchema,
 				},
 				{
 					name: this.endpoint.getPosition.name,
-					request: getDexGlobalDataRequestSchema,
-					response: getDexGlobalDataResponseSchema,
+					request: getPositionRequestSchema,
+					response: getPositionResponseSchema,
 				},
 				{
 					name: this.endpoint.getTickWithTickId.name,
@@ -225,6 +229,7 @@ export class DexModule extends BaseModule {
 					request: getTickWithPoolIdAndTickValueRequestSchema,
 					response: getTickWithPoolIdAndTickValueResponseSchema,
 				},
+
 				{
 					name: this.endpoint.getLSKPrice.name,
 					request: getLSKPriceRequestSchema,
@@ -241,9 +246,29 @@ export class DexModule extends BaseModule {
 					response: getAllTicksResponseSchema,
 				},
 				{
+					name: this.endpoint.getAllPositionIDsInPool.name,
+					request: getAllPositionIDsInPoolRequestSchema,
+					response: getAllPositionIDsInPoolResponseSchema,
+				},
+				{
+					name: this.endpoint.getCollectableFeesAndIncentives.name,
+					request: getCollectableFeesAndIncentivesRequestSchema,
+					response: getCollectableFeesAndIncentivesResponseSchema,
+				},
+				{
 					name: this.endpoint.getAllTickIDsInPool.name,
 					request: getAllTickIDsInPoolRequestSchema,
-					response: getAllTickIDsInPoolRsponseSchema,
+					response: getAllTickIDsInPoolResponseSchema,
+				},
+				{
+					name: this.endpoint.dryRunSwapExactOut.name,
+					request: dryRunSwapExactOutRequestSchema,
+					response: dryRunSwapExactOutResponseSchema,
+				},
+				{
+					name: this.endpoint.dryRunSwapExactIn.name,
+					request: dryRunSwapExactInRequestSchema,
+					response: dryRunSwapExactInResponseSchema,
 				},
 			],
 			commands: this.commands.map(command => ({
