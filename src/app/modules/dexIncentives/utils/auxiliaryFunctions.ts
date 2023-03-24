@@ -22,7 +22,7 @@
  */
 
 import { PoSMethod, TokenMethod } from 'lisk-sdk';
-import { BOOTSTRAP_PERIOD_OFFSET, MODULE_NAME_DEX } from '../../dex/constants';
+import { MODULE_NAME_DEX } from '../../dex/constants';
 import { divQ96, mulQ96, numberToQ96, roundDownQ96 } from '../../dex/utils/q96';
 import {
 	ADDRESS_VALIDATOR_INCENTIVES,
