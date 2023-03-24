@@ -27,7 +27,6 @@ import { divQ96, mulQ96, numberToQ96, roundDownQ96 } from '../../dex/utils/q96';
 import {
 	ADDRESS_VALIDATOR_INCENTIVES,
 	TOKEN_ID_LSK,
-	EPOCH_LENGTH_INCENTIVE_REDUCTION,
 	BOOTSTRAP_PERIOD_OFFSET,
 	LENGTH_EPOCH_REWARDS_INCENTIVES,
 } from '../constants';
