@@ -89,9 +89,9 @@ import { ADDRESS_VALIDATOR_INCENTIVES } from '../../dexIncentives/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
 import { PoolsStoreData } from '../stores/poolsStore';
 import { PositionsStoreData } from '../stores/positionsStore';
-
 import { updatePoolIncentives } from './tokenEcnomicsFunctions';
-import { getTickWithTickId } from './offChainEndpoints';
+import { DexModule } from '../module';
+import { DexEndpoint } from '../endpoint';
 
 const { utils } = cryptography;
 
@@ -1054,7 +1054,9 @@ export const crossTick = async (
 	const poolId = tickId.slice(0, NUM_BYTES_POOL_ID);
 	await updatePoolIncentives(methodContext, stores, poolId, currentHeight);
 	const poolStoreData = await getPool(methodContext, stores, poolId);
-	const priceTickStoreData = await getTickWithTickId(methodContext, stores, [tickId]);
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	const priceTickStoreData = await endpoint.getTickWithTickId(methodContext, [tickId]);
 	if (leftToRight) {
 		poolStoreData.liquidity += priceTickStoreData.liquidityNet;
 	} else {
