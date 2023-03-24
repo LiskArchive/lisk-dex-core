@@ -38,7 +38,7 @@ import { emitProposalCreationFailedEvent, hasEnded } from '../utils/auxiliaryFun
 import { sha256 } from '../../dexRewards/constants';
 import { DexModule } from '../../dex/module';
 import { DexEndpoint } from '../../dex/endpoint';
-import { addQ96, numberToQ96, q96ToBytes } from '../../dex/utils/q96';
+import { numberToQ96, q96ToBytes } from '../../dex/utils/q96';
 import { ProposalCreatedEvent, ProposalCreationFailedEvent } from '../events';
 import { createProposalParamsSchema } from '../schemas';
 import {
@@ -92,7 +92,7 @@ export class CreateProposalCommand extends BaseCommand {
 		const lockedBalance = (await this._posEndpoint.getLockedStakedAmount(moduleEndpointContext))
 			.amount;
 
-		if (addQ96(availableBalance, BigInt(lockedBalance)) < MINIMAL_BALANCE_PROPOSE) {
+		if ((availableBalance + BigInt(lockedBalance)) < MINIMAL_BALANCE_PROPOSE) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error('Insufficient DEX native token balance to create proposal'),
