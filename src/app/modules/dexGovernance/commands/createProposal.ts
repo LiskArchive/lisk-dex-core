@@ -149,7 +149,6 @@ export class CreateProposalCommand extends BaseCommand {
 
 		const indexStore = this.stores.get(IndexStore);
 		const indexStoreData = await indexStore.get(methodContext, Buffer.from('0'));
-
 		const hasEndedRes = await hasEnded(
 			methodContext,
 			this.stores.get(ProposalsStore),
@@ -169,7 +168,7 @@ export class CreateProposalCommand extends BaseCommand {
 			this.events.get(ProposalCreationFailedEvent).add(methodContext, {
 				reason: 1,
 			});
-			throw new Error('poolID doenst exist');
+			throw new Error('PoolID does not exist');
 		}
 
 		if (!(await endpoint.getPool(methodContext, ctx.params.content.poolID))) {

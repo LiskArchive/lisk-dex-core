@@ -337,7 +337,7 @@ describe('dexGovernance:command:createproposal', () => {
 						signatures: [utils.getRandomBytes(64)],
 					}),
 				}),
-			).rejects.toThrow('poolID doenst exist');
+			).rejects.toThrow('PoolID does not exist');
 			const events = blockAfterExecuteContext.eventQueue.getEvents();
 			const validatorProposalCreationFailedEvents = events.filter(
 				e => e.toObject().name === 'proposalCreationFailed',
