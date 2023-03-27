@@ -1207,7 +1207,7 @@ export const computeTokenGenesisAsset = (tokenDistribution: TokenDistribution) =
 		});
 		totalSupply += account.balance;
 	}
-	tokenModuleAsset.userSubstore.sort((a, b) => (a.address < b.address ? -1 : 1));
+	tokenModuleAsset.userSubstore.sort((a, b) => a.address.compare(b.address));
 
 	tokenModuleAsset.supplySubstore.push({
 		tokenID: TOKEN_ID_DEX,

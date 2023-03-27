@@ -548,11 +548,11 @@ describe('dex:auxiliaryFunctions', () => {
 
 	it('computeTokenGenesisAsset', () => {
 		const account0 = {
-			address: token0Id,
+			address: Buffer.from('d4b6810c78e3a3023e6bfaefc2bf6b9fe0dbf89b', 'hex'),
 			balance: BigInt(1),
 		};
 		const account1 = {
-			address: token1Id,
+			address: Buffer.from('a2badd91e7ed423b56322b68f2beee4c638f0506', 'hex'),
 			balance: BigInt(1),
 		};
 		const tokenDistribution: TokenDistribution = {
@@ -563,13 +563,13 @@ describe('dex:auxiliaryFunctions', () => {
 		const expectedGenesisTokenStore: GenesisTokenStore = {
 			userSubstore: [
 				{
-					address: token0Id,
+					address: account1.address,
 					tokenID: TOKEN_ID_DEX,
 					availableBalance: BigInt(1),
 					lockedBalances: [],
 				},
 				{
-					address: token1Id,
+					address: account0.address,
 					tokenID: TOKEN_ID_DEX,
 					availableBalance: BigInt(1),
 					lockedBalances: [],
@@ -597,7 +597,7 @@ describe('dex:auxiliaryFunctions', () => {
 		function testComputeTokenGenesisAsset() {
 			it('test computeTokenGenesisAsset', () => {
 				const account = {
-					address: token0Id,
+					address: Buffer.from('d4b6810c78e3a3023e6bfaefc2bf6b9fe0dbf89b', 'hex'),
 					balance: BigInt(1),
 				};
 				const tokenDistribution: TokenDistribution = {
@@ -608,7 +608,7 @@ describe('dex:auxiliaryFunctions', () => {
 				const expectedGenesisTokenStore: GenesisTokenStore = {
 					userSubstore: [
 						{
-							address: token0Id,
+							address: account.address,
 							tokenID: TOKEN_ID_DEX,
 							availableBalance: BigInt(1),
 							lockedBalances: [],
