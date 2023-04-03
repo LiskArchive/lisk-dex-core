@@ -103,15 +103,12 @@ export class SwapExactOutCommand extends BaseCommand {
 			};
 		}
 
-		/*
-				TODO: Not yet implemented on SDK
-				if (maxTimestampValid < lastBlockheader.timestamp){
-						return {
+		if (ctx.header.timestamp > ctx.params.maxTimestampValid) {
+			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('maxTimestampValid is less than lastBlockheader.timestamp'),
+				error: new Error('Current timestamp is over maxTimestampValid'),
 			};
-				}
-				*/
+		}
 
 		return {
 			status: VerifyStatus.OK,
