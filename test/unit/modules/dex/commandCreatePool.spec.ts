@@ -39,8 +39,9 @@ import {
 	createPoolFixtures,
 	createRandomPoolFixturesGenerator,
 } from './fixtures/createPoolFixture';
+import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 
-const { createTransactionContext, InMemoryPrefixedStateDB } = testing;
+const { createTransactionContext } = testing;
 
 const skipOnCI = process.env.CI ? describe.skip : describe;
 

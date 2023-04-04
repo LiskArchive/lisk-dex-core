@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 
 /*
  * Copyright © 2022 Lisk Foundation
@@ -32,20 +33,17 @@ import {
 	PriceTicksStore,
 	SettingsStore,
 } from '../../../../src/app/modules/dex/stores';
-import { Address, PoolID, PositionID } from '../../../../src/app/modules/dex/types';
+import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/modules/dex/types';
 
-import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
+import { numberToQ96, q96ToBytes, bytesToQ96 } from '../../../../src/app/modules/dex/utils/q96';
+import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 
-import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import {
 	PriceTicksStoreData,
 	tickToBytes,
 } from '../../../../src/app/modules/dex/stores/priceTicksStore';
-import {
-	DexGlobalStoreData,
-	PoolCreationSettings,
-} from '../../../../src/app/modules/dex/stores/dexGlobalStore';
+import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
@@ -53,6 +51,7 @@ import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/a
 import { DexEndpoint } from '../../../../src/app/modules/dex/endpoint';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
+import { NUM_BYTES_POOL_ID } from '../../../../src/app/modules/dex/constants';
 
 describe('dex: offChainEndpointFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
@@ -61,6 +60,8 @@ describe('dex: offChainEndpointFunctions', () => {
 	const dexModule = new DexModule();
 	const feeTierNumber = Number('0x00000c8');
 	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
+	const token0Id: TokenID = Buffer.from('0000000000000000', 'hex');
+	const token1Id: TokenID = Buffer.from('0000010000000000', 'hex');
 
 	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
@@ -79,11 +80,6 @@ describe('dex: offChainEndpointFunctions', () => {
 		eventQueue: new EventQueue(0),
 	});
 
-	const poolCreationSettingsData: PoolCreationSettings = {
-		feeTier: 100,
-		tickSpacing: 1,
-	};
-
 	let poolsStore: PoolsStore;
 	let priceTicksStore: PriceTicksStore;
 	let dexGlobalStore: DexGlobalStore;
@@ -98,12 +94,12 @@ describe('dex: offChainEndpointFunctions', () => {
 	const lockedAmountMock = jest.fn().mockReturnValue(BigInt(5));
 
 	const poolsStoreData: PoolsStoreData = {
-		liquidity: BigInt(5),
-		sqrtPrice: q96ToBytes(BigInt(tickToPrice(5))),
-		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(1000))),
+		liquidity: BigInt(5000000),
+		sqrtPrice: q96ToBytes(BigInt(tickToPrice(100))),
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(10))),
 		heightIncentivesUpdate: 5,
-		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(0))),
-		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(0))),
+		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
+		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(10))),
 		tickSpacing: 1,
 	};
 
@@ -118,18 +114,19 @@ describe('dex: offChainEndpointFunctions', () => {
 	const priceTicksStoreDataTickUpper: PriceTicksStoreData = {
 		liquidityNet: BigInt(5),
 		liquidityGross: BigInt(5),
-		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(0))),
-		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(0))),
+		feeGrowthOutside0: q96ToBytes(numberToQ96(BigInt(5))),
+		feeGrowthOutside1: q96ToBytes(numberToQ96(BigInt(5))),
 		incentivesPerLiquidityOutside: q96ToBytes(numberToQ96(BigInt(3))),
 	};
 
 	const dexGlobalStoreData: DexGlobalStoreData = {
 		positionCounter: BigInt(15),
 		collectableLSKFees: BigInt(10),
-		poolCreationSettings: [poolCreationSettingsData],
+		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
 		incentivizedPools: [{ poolId, multiplier: 10 }],
 		totalIncentivesMultiplier: 1,
 	};
+
 	const positionsStoreData: PositionsStoreData = {
 		tickLower: -10,
 		tickUpper: 10,
@@ -159,7 +156,6 @@ describe('dex: offChainEndpointFunctions', () => {
 			endpoint = new DexEndpoint(dexModule.stores, dexModule.offchainStores);
 
 			await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData);
-
 			await settingsStore.set(methodContext, Buffer.from([]), settingStoreData);
 
 			await poolsStore.setKey(
@@ -180,12 +176,13 @@ describe('dex: offChainEndpointFunctions', () => {
 
 			await priceTicksStore.setKey(
 				methodContext,
-				[
-					Buffer.from(
-						getPoolIDFromPositionID(positionId).toLocaleString() + tickToBytes(5).toLocaleString(),
-						'hex',
-					),
-				],
+				[Buffer.concat([getPoolIDFromPositionID(positionId), tickToBytes(5)])],
+				priceTicksStoreDataTickLower,
+			);
+
+			await priceTicksStore.setKey(
+				methodContext,
+				[poolId, tickToBytes(100)],
 				priceTicksStoreDataTickLower,
 			);
 
@@ -252,7 +249,10 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getPositionIndex', () => {
-			expect(endpoint.getPositionIndex(positionId)).toBe(1);
+			moduleEndpointContext.params = {
+				positionID: positionId,
+			};
+			expect(endpoint.getPositionIndex(moduleEndpointContext)).toBe(1);
 		});
 
 		it('getAllTokenIDs', async () => {
@@ -268,12 +268,21 @@ describe('dex: offChainEndpointFunctions', () => {
 			expect(positionIDs.indexOf(positionId)).not.toBe(-1);
 		});
 
+		it('getTickWithTickId', async () => {
+			const tickWithTickID = await endpoint.getTickWithTickId(moduleEndpointContext, [
+				getPoolIDFromPositionID(positionId),
+				tickToBytes(positionsStoreData.tickLower),
+			]);
+			expect(tickWithTickID).not.toBeNull();
+			expect(tickWithTickID.liquidityNet).toBe(BigInt(5));
+		});
+
 		it('getPool', async () => {
 			await endpoint
 				.getPool(moduleEndpointContext, getPoolIDFromPositionID(positionId))
 				.then(res => {
 					expect(res).not.toBeNull();
-					expect(res.liquidity).toBe(BigInt(5));
+					expect(res.liquidity).toBe(BigInt(5000000));
 				});
 		});
 
@@ -286,7 +295,7 @@ describe('dex: offChainEndpointFunctions', () => {
 						false,
 					)
 				).toString(),
-			).toBe('79208358939348018173455069823');
+			).toBe('78833030112140176575862854576');
 		});
 
 		it('getDexGlobalData', async () => {
@@ -308,25 +317,22 @@ describe('dex: offChainEndpointFunctions', () => {
 				});
 		});
 
-		it('getTickWithTickId', async () => {
-			const tickWithTickID = await endpoint.getTickWithTickId(moduleEndpointContext, [
-				getPoolIDFromPositionID(positionId),
-				tickToBytes(positionsStoreData.tickLower),
-			]);
-			expect(tickWithTickID).not.toBeNull();
-			expect(tickWithTickID.liquidityNet).toBe(BigInt(5));
-		});
-
 		it('getTickWithPoolIdAndTickValue', async () => {
 			const tickValue = 5;
 			priceTicksStore.setKey(
 				methodContext,
-				[getPoolIDFromPositionID(positionId), tickToBytes(tickValue)],
+				[
+					Buffer.from(
+						getPoolIDFromPositionID(positionId).toLocaleString() +
+							tickToBytes(tickValue).toLocaleString(),
+						'hex',
+					),
+				],
 				priceTicksStoreDataTickUpper,
 			);
 
 			const tickWithPoolIdAndTickValue = await endpoint.getTickWithPoolIdAndTickValue(
-				moduleEndpointContext,
+				methodContext,
 				getPoolIDFromPositionID(positionId),
 				tickValue,
 			);
@@ -383,6 +389,67 @@ describe('dex: offChainEndpointFunctions', () => {
 				}
 			});
 			expect(ifKeyExists).toBe(true);
+		});
+
+		it('dryRunSwapExactIn', async () => {
+			const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
+			const currentTickID = q96ToBytes(BigInt(currentTick));
+			await poolsStore.setKey(
+				methodContext,
+				[currentTickID.slice(0, NUM_BYTES_POOL_ID)],
+				poolsStoreData,
+			);
+
+			await priceTicksStore.setKey(methodContext, [currentTickID], priceTicksStoreDataTickUpper);
+
+			await priceTicksStore.setKey(
+				methodContext,
+				[Buffer.from('000000000000000000000000000000000000000000000006', 'hex')],
+				priceTicksStoreDataTickUpper,
+			);
+
+			const amountIn = BigInt(50);
+			const minAmountOut = BigInt(10);
+			moduleEndpointContext.params = {
+				tokenIdIn: token0Id,
+				amountIn,
+				tokenIdOut: token1Id,
+				minAmountOut,
+				swapRoute: [poolId],
+			};
+			const result = await endpoint.dryRunSwapExactIn(moduleEndpointContext);
+			expect(result).toEqual([BigInt(51), BigInt(50), BigInt(0), BigInt(0)]);
+		});
+
+		it('dryRunSwapExactOut', async () => {
+			const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
+			const currentTickID = q96ToBytes(BigInt(currentTick));
+			await poolsStore.setKey(
+				methodContext,
+				[currentTickID.slice(0, NUM_BYTES_POOL_ID)],
+				poolsStoreData,
+			);
+
+			await priceTicksStore.setKey(methodContext, [currentTickID], priceTicksStoreDataTickUpper);
+
+			await priceTicksStore.setKey(
+				methodContext,
+				[Buffer.from('000000000000000000000000000000000000000000000006', 'hex')],
+				priceTicksStoreDataTickUpper,
+			);
+
+			const maxAmountIn = BigInt(10);
+			const amountOut = BigInt(10);
+			moduleEndpointContext.params = {
+				tokenIdIn: token0Id,
+				maxAmountIn,
+				tokenIdOut: token1Id,
+				amountOut,
+				swapRoute: [poolId],
+			};
+			const result = await endpoint.dryRunSwapExactOut(moduleEndpointContext);
+
+			expect(result).toStrictEqual([BigInt(10), BigInt(10), BigInt(0), BigInt(0)]);
 		});
 	});
 });

@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable no-param-reassign */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
@@ -300,7 +301,7 @@ export const collectFeesAndIncentives = async (
 
 export const computeCollectableFees = async (
 	stores: NamedRegistry,
-	methodContext: MethodContext,
+	methodContext,
 	positionID: PositionID,
 ): Promise<[bigint, bigint, Q96, Q96]> => {
 	const positionsStore = stores.get(PositionsStore);
@@ -1118,7 +1119,9 @@ export const crossTick = async (
 	const poolId = tickId.slice(0, NUM_BYTES_POOL_ID);
 	await updatePoolIncentives(methodContext, stores, poolId, currentHeight);
 	const poolStoreData = await getPool(methodContext, stores, poolId);
-	const priceTickStoreData = await getTickWithTickId(methodContext, stores, [tickId]);
+	const dexModule = new DexModule();
+	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	const priceTickStoreData = await endpoint.getTickWithTickId(methodContext, [tickId]);
 	if (leftToRight) {
 		poolStoreData.liquidity += priceTickStoreData.liquidityNet;
 	} else {
@@ -1219,20 +1222,6 @@ export const getPosition = async (
 	const positionsStore = stores.get(PositionsStore);
 	const positionStoreData = await positionsStore.get(methodContext, positionID);
 	return positionStoreData;
-};
-
-export const getTickWithTickId = async (
-	methodContext: MethodContext,
-	stores: NamedRegistry,
-	tickId: TickID[],
-) => {
-	const priceTicksStore = stores.get(PriceTicksStore);
-	const priceTicksStoreData = await priceTicksStore.getKey(methodContext, tickId);
-	if (priceTicksStoreData == null) {
-		throw new Error('No tick with the specified poolId');
-	} else {
-		return priceTicksStoreData;
-	}
 };
 
 export const getTickWithPoolIdAndTickValue = async (
