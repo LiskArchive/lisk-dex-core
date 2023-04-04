@@ -109,7 +109,6 @@ export class CreatePoolCommand extends BaseCommand {
 			};
 		}
 
-
 		if (ctx.header.timestamp > ctx.params.maxTimestampValid) {
 			return {
 				status: VerifyStatus.FAIL,

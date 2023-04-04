@@ -221,7 +221,7 @@ describe('dex:command:removeLiquidity', () => {
 			const result = await command.verify(
 				context.createCommandVerifyContext(removeLiquiditySchema),
 			);
-			expect(result.error?.message).toBe("Current timestamp is over maxTimestampValid");
+			expect(result.error?.message).toBe('Current timestamp is over maxTimestampValid');
 			expect(result.status).toEqual(VerifyStatus.FAIL);
 		});
 	});

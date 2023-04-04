@@ -99,7 +99,11 @@ describe('dex:command:createPool', () => {
 		tokenModule.method.getLockedAmount = jest.fn().mockResolvedValue(BigInt(1000));
 		dexModule.addDependencies(tokenModule.method, validatorModule.method, feeModule.method);
 		command = dexModule.commands.find(e => e.name === 'createPool');
-		command.init({ moduleConfig: defaultConfig, tokenMethod: tokenModule.method, feeMethod: feeModule.method });
+		command.init({
+			moduleConfig: defaultConfig,
+			tokenMethod: tokenModule.method,
+			feeMethod: feeModule.method,
+		});
 	});
 
 	describe('verify', () => {
