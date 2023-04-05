@@ -12,7 +12,7 @@ import { getApplication } from '../../src/app/app';
 import { DexGovernanceModule, DexIncentivesModule, DexModule } from '../../src/app/modules';
 
 describe('app', () => {
-	it('modules should be registered in a correct order', () => {
+	it('modules should be registered in a correct order', async () => {
 		const dexModule = new DexModule();
 		const authModule = new AuthModule();
 		const validatorModule = new ValidatorsModule();
@@ -71,6 +71,6 @@ describe('app', () => {
 		];
 
 		const application = getApplication({ genesis: { chainID: '30000000' } });
-		expect(application.getRegisteredModules()).toStrictEqual(expectedRegisteredModules);
+		expect((await application).getRegisteredModules()).toStrictEqual(expectedRegisteredModules);
 	});
 });

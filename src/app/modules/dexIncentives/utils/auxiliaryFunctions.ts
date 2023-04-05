@@ -26,7 +26,7 @@ import { divQ96, mulQ96, numberToQ96, roundDownQ96 } from '../../dex/utils/q96';
 import {
 	ADDRESS_VALIDATOR_INCENTIVES,
 	TOKEN_ID_LSK,
-	EPOCH_LENGTH_INCENTIVE_REDUCTION,
+	LENGTH_EPOCH_REWARDS_INCENTIVES,
 } from '../constants';
 import { ValidatorIncentivesPayout } from '../events';
 import { Address } from '../types';
@@ -122,16 +122,16 @@ export const transferValidatorIncentives = async (
 };
 
 export const getLiquidityIncentivesAtHeight = (height: number): bigint => {
-	if (height < EPOCH_LENGTH_INCENTIVE_REDUCTION) {
+	if (height < LENGTH_EPOCH_REWARDS_INCENTIVES) {
 		return BigInt('400000000');
 	}
-	if (height < BigInt(2) * EPOCH_LENGTH_INCENTIVE_REDUCTION) {
+	if (height < BigInt(2) * LENGTH_EPOCH_REWARDS_INCENTIVES) {
 		return BigInt('350000000');
 	}
-	if (height < BigInt(3) * EPOCH_LENGTH_INCENTIVE_REDUCTION) {
+	if (height < BigInt(3) * LENGTH_EPOCH_REWARDS_INCENTIVES) {
 		return BigInt('300000000');
 	}
-	if (height < BigInt(4) * EPOCH_LENGTH_INCENTIVE_REDUCTION) {
+	if (height < BigInt(4) * LENGTH_EPOCH_REWARDS_INCENTIVES) {
 		return BigInt('250000000');
 	}
 	return BigInt('200000000');
@@ -143,10 +143,10 @@ export const getLPIncentiveInRange = (startHeight: number, endHeight: number): b
 	}
 
 	const EPOCHS = [
-		EPOCH_LENGTH_INCENTIVE_REDUCTION,
-		BigInt(2) * EPOCH_LENGTH_INCENTIVE_REDUCTION,
-		BigInt(3) * EPOCH_LENGTH_INCENTIVE_REDUCTION,
-		BigInt(4) * EPOCH_LENGTH_INCENTIVE_REDUCTION,
+		LENGTH_EPOCH_REWARDS_INCENTIVES,
+		BigInt(2) * LENGTH_EPOCH_REWARDS_INCENTIVES,
+		BigInt(3) * LENGTH_EPOCH_REWARDS_INCENTIVES,
+		BigInt(4) * LENGTH_EPOCH_REWARDS_INCENTIVES,
 	];
 
 	let height: bigint = BigInt(startHeight + 1); // incentive for the start block are excluded

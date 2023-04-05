@@ -18,8 +18,8 @@
 		"composite": true,
 		"declaration": true,
 		"noImplicitAny": false,
-		"rootDir": "./src",
+		"rootDir": ".",
 		"outDir": "./dist"
 	},
-	"include": ["./src/**/*.ts", "./src/**/*.json"]
+	"include": ["./src/**/*.ts", "./config/**/*.json", "./src/**/*.json"]
 }
