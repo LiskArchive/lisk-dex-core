@@ -115,6 +115,8 @@ describe('dex:command:createPosition', () => {
 		validatorModule = new ValidatorsModule();
 		feeModule = new FeeModule();
 
+		feeModule.method.payFee = jest.fn();
+
 		tokenModule.method.mint = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.lock = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.unlock = jest.fn().mockImplementation(async () => Promise.resolve());
@@ -122,7 +124,7 @@ describe('dex:command:createPosition', () => {
 		tokenModule.method.getLockedAmount = jest.fn().mockResolvedValue(BigInt(1000));
 		dexModule.addDependencies(tokenModule.method, validatorModule.method, feeModule.method);
 		commandCreatePosition = dexModule.commands.find(e => e.name === 'createPosition');
-		commandCreatePosition.init({ tokenMethod: tokenModule.method });
+		commandCreatePosition.init({ tokenMethod: tokenModule.method, feeMethod: feeModule.method });
 	});
 
 	describe('verify', () => {
@@ -212,8 +214,8 @@ describe('dex:command:createPosition', () => {
 			await commandCreatePosition.execute(
 				contextPosition.createCommandExecuteContext(createPositionSchema),
 			);
-			expect(dexModule._tokenMethod.lock).toHaveBeenCalledTimes(1);
-			expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(2);
+			expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(1);
+			expect(dexModule._feeMethod.payFee).toHaveBeenCalledTimes(1);
 
 			const events = contextPosition.eventQueue.getEvents();
 			const positionCreatedEvents = events.filter(e => e.toObject().name === 'positionCreated');
@@ -236,8 +238,8 @@ describe('dex:command:createPosition', () => {
 					await commandCreatePosition.execute(
 						contextPosition.createCommandExecuteContext(createPositionSchema),
 					);
-					expect(dexModule._tokenMethod.lock).toHaveBeenCalledTimes(1);
-					expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(2);
+					expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(1);
+					expect(dexModule._feeMethod.payFee).toHaveBeenCalledTimes(1);
 
 					const events = contextPosition.eventQueue.getEvents();
 					const positionCreatedEvents = events.filter(e => e.toObject().name === 'positionCreated');

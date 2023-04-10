@@ -302,6 +302,7 @@ export class DexModule extends BaseModule {
 		this._createPoolCommand.init({
 			moduleConfig: this._moduleConfig,
 			tokenMethod: this._tokenMethod,
+			feeMethod: this._feeMethod,
 		});
 		this._addLiquidityCommand.init({
 			tokenMethod: this._tokenMethod,
@@ -309,6 +310,7 @@ export class DexModule extends BaseModule {
 
 		this._createPositionCommand.init({
 			tokenMethod: this._tokenMethod,
+			feeMethod: this._feeMethod,
 		});
 
 		this._collectFeeCommand.init({
