@@ -16,19 +16,10 @@ import { MethodContext, TokenMethod } from 'lisk-framework';
 import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_machine';
 
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
-import {
-	getPoolIDFromPositionID,
-} from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
-import {
-	Address,
-	PoolID,
-	PositionID,
-} from '../../../../src/app/modules/dex/types';
+import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
+import { Address, PoolID, PositionID } from '../../../../src/app/modules/dex/types';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
-import {
-	numberToQ96,
-	q96ToBytes,
-} from '../../../../src/app/modules/dex/utils/q96';
+import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
 import { DexModule } from '../../../../src/app/modules';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import {
@@ -56,7 +47,6 @@ describe('dex:auxiliaryFunctions', () => {
 
 	const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
-
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
 		stateStore,
@@ -74,7 +64,6 @@ describe('dex:auxiliaryFunctions', () => {
 	const unlockMock = jest.fn();
 	const getAvailableBalanceMock = jest.fn().mockReturnValue(BigInt(250));
 	const getLockedAmountMock = jest.fn().mockReturnValue(BigInt(5));
-
 
 	const poolsStoreData: PoolsStoreData = {
 		liquidity: BigInt(5),
@@ -148,11 +137,7 @@ describe('dex:auxiliaryFunctions', () => {
 			);
 			await poolsStore.set(methodContext, getPoolIDFromPositionID(positionId), poolsStoreData);
 
-			await poolsStore.setKey(
-				methodContext,
-				[senderAddress, poolId],
-				poolsStoreData,
-			);
+			await poolsStore.setKey(methodContext, [senderAddress, poolId], poolsStoreData);
 			await poolsStore.set(methodContext, poolId, poolsStoreData);
 
 			await priceTicksStore.setKey(
@@ -224,8 +209,12 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('getCurrentSqrtPrice', async () => {
-			const currentSqrtPrice = await dexModule.method.getCurrentSqrtPrice(methodContext, poolId, true);
-			expect(currentSqrtPrice).toEqual(BigInt("79247971040445709311708648151"))
+			const currentSqrtPrice = await dexModule.method.getCurrentSqrtPrice(
+				methodContext,
+				poolId,
+				true,
+			);
+			expect(currentSqrtPrice).toEqual(BigInt('79247971040445709311708648151'));
 		});
 	});
 });

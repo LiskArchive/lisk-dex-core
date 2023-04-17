@@ -433,7 +433,7 @@ export class DexGovernanceModule extends BaseModule {
 					proposal.type === PROPOSAL_TYPE_INCENTIVIZATION &&
 					outcome === PROPOSAL_STATUS_FINISHED_ACCEPTED
 				) {
-					const dexModule = new DexModule()
+					const dexModule = new DexModule();
 					await dexModule.method.updateIncentivizedPools(
 						context,
 						proposal.content.poolID,
