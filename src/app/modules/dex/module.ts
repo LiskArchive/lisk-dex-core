@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * Copyright © 2022 Lisk Foundation
  *

@@ -12,11 +12,8 @@ import {
 import { DynamicRewardModule } from 'lisk-framework/dist-node/modules/dynamic_rewards';
 
 import { DexModule, DexIncentivesModule, DexGovernanceModule } from './modules';
-import { genesis as genesisConfig } from '../../config/default/config.json';
-import { BOOTSTRAP_PERIOD_OFFSET } from './modules/dex/constants';
-import { LENGTH_EPOCH_REWARDS_INCENTIVES } from './modules/dexIncentives/constants';
 
-export const getApplication = async (config: PartialApplicationConfig): Promise<Application> => {
+export const getApplication = (config: PartialApplicationConfig): Application => {
 	const app = new Application(config);
 	const dexModule = new DexModule();
 	const authModule = new AuthModule();
@@ -27,14 +24,6 @@ export const getApplication = async (config: PartialApplicationConfig): Promise<
 	const posModule = new PoSModule();
 	const randomModule = new RandomModule();
 	const dynamicRewardModule = new DynamicRewardModule();
-	await dynamicRewardModule.init({
-		genesisConfig,
-		moduleConfig: {
-			offset: Number(BOOTSTRAP_PERIOD_OFFSET),
-			distance: Number(LENGTH_EPOCH_REWARDS_INCENTIVES),
-			brackets: ['400000000', '350000000', '300000000', '250000000', '200000000'],
-		}
-	})
 	const dexIncentivesModule = new DexIncentivesModule();
 	const dexGovernanceModule = new DexGovernanceModule();
 
