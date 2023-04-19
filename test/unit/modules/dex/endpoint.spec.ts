@@ -268,13 +268,13 @@ describe('dex: offChainEndpointFunctions', () => {
 			expect(positionIDs.indexOf(positionId)).not.toBe(-1);
 		});
 
-		it('getTickWithTickId', async () => {
-			const tickWithTickID = await endpoint.getTickWithTickId(moduleEndpointContext, [
+		it('getTick', async () => {
+			const tick = await endpoint.getTick(moduleEndpointContext, [
 				getPoolIDFromPositionID(positionId),
 				tickToBytes(positionsStoreData.tickLower),
 			]);
-			expect(tickWithTickID).not.toBeNull();
-			expect(tickWithTickID.liquidityNet).toBe(BigInt(5));
+			expect(tick).not.toBeNull();
+			expect(tick.liquidityNet).toBe(BigInt(5));
 		});
 
 		it('getPool', async () => {

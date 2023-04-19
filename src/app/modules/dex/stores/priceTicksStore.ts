@@ -108,7 +108,7 @@ export class PriceTicksStore extends BaseStore<PriceTicksStoreData> {
 		await this.del(context, key);
 	}
 
-	public async getAll(context: StoreGetter) {
+	public async getAll(context: ImmutableStoreGetter) {
 		return this.iterate(context, {
 			gte: Buffer.alloc(16, 0),
 			lte: Buffer.alloc(16, 255),

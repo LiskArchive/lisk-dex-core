@@ -36,12 +36,12 @@ import { IndexStore, ProposalsStore } from '../stores';
 import { CreateProposalParamsData } from '../types';
 import { emitProposalCreationFailedEvent, hasEnded } from '../utils/auxiliaryFunctions';
 import { sha256 } from '../../dexRewards/constants';
-import { DexModule } from '../../dex/module';
-import { DexEndpoint } from '../../dex/endpoint';
 import { numberToQ96, q96ToBytes } from '../../dex/utils/q96';
-import { ProposalCreatedEvent, ProposalCreationFailedEvent } from '../events';
+import { ProposalCreatedEvent } from '../events';
 import { createProposalParamsSchema } from '../schemas';
 import {
+	CREATION_FAILED_LIMIT_RECORDED_VOTES,
+	CREATION_FAILED_NO_POOL,
 	FEE_PROPOSAL_CREATION,
 	LENGTH_ADDRESS,
 	MAX_NUM_RECORDED_VOTES,
@@ -53,6 +53,7 @@ import {
 	VOTE_DURATION,
 } from '../constants';
 import { COMMAND_CREATE_PROPOSAL, NUM_BYTES_POOL_ID } from '../../dex/constants';
+import { PoolsStore } from '../../dex/stores';
 
 export class CreateProposalCommand extends BaseCommand {
 	public id = COMMAND_CREATE_PROPOSAL;
@@ -143,8 +144,6 @@ export class CreateProposalCommand extends BaseCommand {
 			0,
 			LENGTH_ADDRESS,
 		);
-		const dexModule = new DexModule();
-		const endpoint = new DexEndpoint(this.stores, dexModule.offchainStores);
 		const methodContext = ctx.getMethodContext();
 
 		const indexStore = this.stores.get(IndexStore);
@@ -158,31 +157,28 @@ export class CreateProposalCommand extends BaseCommand {
 		);
 
 		if (!hasEndedRes) {
-			emitProposalCreationFailedEvent(methodContext, 0, this.events);
+			emitProposalCreationFailedEvent(
+				methodContext,
+				CREATION_FAILED_LIMIT_RECORDED_VOTES,
+				this.events,
+			);
 			throw new Error('Limit of proposals with recoded votes is reached');
 		}
 
-		try {
-			await endpoint.getPool(methodContext, ctx.params.content.poolID);
-		} catch (error) {
-			this.events.get(ProposalCreationFailedEvent).add(methodContext, {
-				reason: 1,
-			});
-			throw new Error('PoolID does not exist');
-		}
-
-		if (!(await endpoint.getPool(methodContext, ctx.params.content.poolID))) {
-			if (ctx.params.type === PROPOSAL_TYPE_INCENTIVIZATION) {
-				emitProposalCreationFailedEvent(methodContext, 0, this.events);
-				throw new Error('Incentivized pool does not exist');
-			}
+		const poolsStore = this.stores.get(PoolsStore);
+		if (
+			ctx.params.type === PROPOSAL_TYPE_INCENTIVIZATION &&
+			!(await poolsStore.has(methodContext, ctx.params.content.poolID))
+		) {
+			emitProposalCreationFailedEvent(methodContext, CREATION_FAILED_NO_POOL, this.events);
+			throw new Error('Incentivized pool does not exist');
 		}
 
 		this._feeMethod.payFee(methodContext, FEE_PROPOSAL_CREATION);
 		const index = indexStoreData.newestIndex + 1;
 		const currentHeight = ctx.header.height;
 		const indexBuffer = Buffer.alloc(4);
-		indexBuffer.writeUInt32BE(indexStoreData.newestIndex + 1, 0);
+		indexBuffer.writeUInt32BE(index, 0);
 
 		const Proposal = {
 			creationHeight: currentHeight,

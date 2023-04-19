@@ -1121,7 +1121,7 @@ export const crossTick = async (
 	const poolStoreData = await getPool(methodContext, stores, poolId);
 	const dexModule = new DexModule();
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
-	const priceTickStoreData = await endpoint.getTickWithTickId(methodContext, [tickId]);
+	const priceTickStoreData = await endpoint.getTick(methodContext, [tickId]);
 	if (leftToRight) {
 		poolStoreData.liquidity += priceTickStoreData.liquidityNet;
 	} else {

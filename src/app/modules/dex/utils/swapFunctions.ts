@@ -418,7 +418,7 @@ export const crossTick = async (
 	const poolId = tickId.slice(0, NUM_BYTES_POOL_ID);
 	await updatePoolIncentives(methodContext, stores, poolId, currentHeight);
 	const poolStoreData = await endpoint.getPool(methodContext, poolId);
-	const priceTickStoreData = await endpoint.getTickWithTickId(methodContext, [tickId]);
+	const priceTickStoreData = await endpoint.getTick(methodContext, [tickId]);
 	if (leftToRight) {
 		poolStoreData.liquidity += priceTickStoreData.liquidityNet;
 	} else {

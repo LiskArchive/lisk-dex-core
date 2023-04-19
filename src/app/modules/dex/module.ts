@@ -220,7 +220,7 @@ export class DexModule extends BaseModule {
 					response: getPositionResponseSchema,
 				},
 				{
-					name: this.endpoint.getTickWithTickId.name,
+					name: this.endpoint.getTick.name,
 					request: getTickWithTickIdRequestSchema,
 					response: getTickWithTickIdResponseSchema,
 				},
