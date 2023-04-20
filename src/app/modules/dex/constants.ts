@@ -32,7 +32,7 @@ export const NUM_BYTES_POSITION_ID = 24; // The number of bytes of a position ID
 export const MAX_NUMBER_CROSSED_TICKS = 100; // Maximum number of price ticks to be crossed by a single swap. (uint32)
 export const MAX_HOPS_SWAP = 5; // Maximum number of different pools that a complete swap can interact with. (uint32)
 export const MAX_NUM_POSITIONS_FEE_COLLECTION = 100; // The maximum number of positions for which it is possible to collect fees in one transaction. (uint32)
-export const TOKEN_ID_FEE_DEX = Buffer.from('0000', 'hex'); // The ID of the token used for fees. This defines the type of token in which the additional fees for pool creation and position creation are paid. (bytes)
+export const TOKEN_ID_FEE_DEX = Buffer.from('0000000100000000', 'hex'); // The ID of the token used for fees. This defines the type of token in which the additional fees for pool creation and position creation are paid. (bytes)
 export const POOL_CREATION_FEE = BigInt(1000000000); // This amount of tokens is transferred to the protocol fee account when creating a new pool. (uint64) (configurable)
 export const POSITION_CREATION_FEE = BigInt(5000000); // This amount of tokens is transferred to the protocol fee account when creating a new position. (uint64) (configurable)
 

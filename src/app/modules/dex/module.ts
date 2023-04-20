@@ -22,7 +22,7 @@ import {
 	FeeMethod,
 } from 'lisk-sdk';
 
-import { MODULE_ID_DEX, defaultConfig } from './constants';
+import { CHAIN_ID, MODULE_ID_DEX, defaultConfig } from './constants';
 
 import { DexEndpoint } from './endpoint';
 import { ModuleConfig, ModuleInitArgs } from './types';
@@ -261,11 +261,13 @@ export class DexModule extends BaseModule {
 		this._feeMethod = feeMethod;
 	}
 
+
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs) {
 		const { moduleConfig } = args;
 		this._moduleConfig = utils.objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfig;
 
+		this._tokenMethod.init({ ownChainID: CHAIN_ID, userAccountInitializationFee: BigInt(0), escrowAccountInitializationFee: BigInt(0) })
 		this._createPoolCommand.init({
 			moduleConfig: this._moduleConfig,
 			tokenMethod: this._tokenMethod,

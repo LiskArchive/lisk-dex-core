@@ -90,6 +90,8 @@ export class DexIncentivesModule extends BaseModule {
 
 		const liquidityIncentive = getLiquidityIncentivesAtHeight(context.header.height);
 
+		await this._tokenMethod.initializeToken(context, TOKEN_ID_DEX_NATIVE);
+
 		await this._tokenMethod.mint(
 			methodContext,
 			ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
