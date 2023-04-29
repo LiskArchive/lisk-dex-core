@@ -5,7 +5,7 @@
 <!-- ![GitHub tag (latest by date)](add link to image)
 ![GitHub repo size](add link to image) -->
 
-[![DeepScan grade](https://deepscan.io/api/teams/6759/projects/8870/branches/113510/badge/grade.svg)](https://deepscan.io/dashboard/#view=project&tid=6759&pid=8870&bid=113510)
+[![DeepScan grade]]
 
 <!-- ![GitHub issues]
 ![GitHub closed issues]
@@ -110,6 +110,10 @@ lisk generate:plugin httpAPI
 ### Automated tests
 
 All automated tests will run with the below command.
+
+```
+npm test
+```
 
 ## Contributors
 
