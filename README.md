@@ -1,16 +1,11 @@
 ![Read Me](https://user-images.githubusercontent.com/44484700/235153140-7efc04d9-4cb4-49b7-9026-949cab424c7e.png)
 
-
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
-
-<!-- ![GitHub tag (latest by date)](add link to image)
-![GitHub repo size](add link to image) -->
-
-[![DeepScan grade]]
-
-<!-- ![GitHub issues]
-![GitHub closed issues]
-[![Code coverage]] -->
+![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/liskHQ/lisk-dex-core)
+![GitHub repo size](https://img.shields.io/github/repo-size/liskhq/lisk-dex-core)
+[![DeepScan grade](https://deepscan.io/api/teams/6759/projects/8870/branches/113510/badge/grade.svg)](https://deepscan.io/dashboard/#view=project&tid=19600&pid=23052&bid=748279)
+![GitHub issues](https://img.shields.io/github/issues-raw/liskhq/lisk-dex-core)
+![GitHub closed issues](https://img.shields.io/github/issues-closed-raw/liskhq/lisk-dex-core)
 
 # Lisk DEX Core
 
