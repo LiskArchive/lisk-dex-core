@@ -56,6 +56,7 @@ import {
 	TOKEN_ID_DEX,
 	ALL_SUPPORTED_TOKENS_KEY,
 	MODULE_NAME_TOKEN,
+	ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
 } from '../constants';
 
 import {
@@ -1191,6 +1192,33 @@ export const getTickWithPoolIdAndTickValue = async (
 };
 
 export const computeTokenGenesisAsset = (tokenDistribution: TokenDistribution) => {
+	// initialize account with address ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES
+	let accountIndex = tokenDistribution.accounts.findIndex(
+		el => el.address === ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
+	);
+	if (accountIndex === -1) {
+		tokenDistribution.accounts.push({
+			address: ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
+			balance: BigInt(0),
+		});
+	} else {
+		// eslint-disable-next-line no-param-reassign
+		tokenDistribution.accounts[accountIndex].balance = BigInt(0);
+	}
+
+	accountIndex = tokenDistribution.accounts.findIndex(
+		el => el.address === ADDRESS_VALIDATOR_INCENTIVES,
+	);
+	if (accountIndex === -1) {
+		tokenDistribution.accounts.push({
+			address: ADDRESS_VALIDATOR_INCENTIVES,
+			balance: BigInt(0),
+		});
+	} else {
+		// eslint-disable-next-line no-param-reassign
+		tokenDistribution.accounts[accountIndex].balance = BigInt(0);
+	}
+
 	const tokenModuleAsset: GenesisTokenStore = {
 		userSubstore: [],
 		supplySubstore: [],
@@ -1198,6 +1226,7 @@ export const computeTokenGenesisAsset = (tokenDistribution: TokenDistribution) =
 		supportedTokensSubstore: [],
 	};
 	let totalSupply = BigInt(0);
+
 	for (const account of tokenDistribution.accounts) {
 		tokenModuleAsset.userSubstore.push({
 			address: account.address,
