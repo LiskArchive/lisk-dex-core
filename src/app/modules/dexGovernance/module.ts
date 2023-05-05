@@ -37,9 +37,9 @@ export class DexGovernanceModule extends BaseModule {
 
 	public constructor() {
 		super();
-		this.stores.register(IndexStore, new IndexStore(this.name));
-		this.stores.register(ProposalsStore, new ProposalsStore(this.name));
-		this.stores.register(VotesStore, new VotesStore(this.name));
+		this.stores.register(IndexStore, new IndexStore(this.name, 0));
+		this.stores.register(ProposalsStore, new ProposalsStore(this.name, 1));
+		this.stores.register(VotesStore, new VotesStore(this.name, 2));
 		this.events.register(ProposalCreatedEvent, new ProposalCreatedEvent(this.name));
 		this.events.register(ProposalCreationFailedEvent, new ProposalCreationFailedEvent(this.name));
 		this.events.register(ProposalOutcomeCheckedEvent, new ProposalOutcomeCheckedEvent(this.name));

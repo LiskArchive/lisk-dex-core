@@ -272,7 +272,7 @@ export const collectFeesAndIncentives = async (
 	positionInfo.feeGrowthInsideLast1 = q96ToBytes(feeGrowthInside1);
 
 	await positionsStore.set(methodContext, positionID, positionInfo);
-	const [collectableFeesLSK, incentivesForPosition] = await computeCollectableIncentives(
+	const [_, incentivesForPosition] = await computeCollectableIncentives(
 		dexGlobalStore,
 		tokenMethod,
 		methodContext,
@@ -289,7 +289,7 @@ export const collectFeesAndIncentives = async (
 		incentivesForPosition,
 	);
 	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.alloc(0));
-	dexGlobalStoreData.collectableLSKFees -= collectableFeesLSK;
+	// dexGlobalStoreData.collectableLSKFees -= collectableFeesLSK;
 	await dexGlobalStore.set(methodContext, Buffer.alloc(0), dexGlobalStoreData);
 
 	events.get(FeesIncentivesCollectedEvent).log(methodContext, {

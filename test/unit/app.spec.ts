@@ -71,6 +71,6 @@ describe('app', () => {
 		];
 
 		const application = getApplication({ genesis: { chainID: '30000000' } });
-		expect((await application).getRegisteredModules()).toStrictEqual(expectedRegisteredModules);
+		expect((application).getRegisteredModules()).toBe(expectedRegisteredModules);
 	});
 });

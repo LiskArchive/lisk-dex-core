@@ -16,7 +16,6 @@ import { NUM_BYTES_POOL_ID } from '../constants';
 
 export interface DexGlobalStoreData {
 	positionCounter: bigint;
-	collectableLSKFees: bigint;
 	poolCreationSettings;
 	incentivizedPools;
 	totalIncentivesMultiplier: number;
@@ -26,63 +25,57 @@ export const dexGlobalStoreSchema = {
 	$id: '/dex/store/global',
 	type: 'object',
 	required: [
-		'positionCounter',
-		'collectableLSKFees',
-		'poolCreationSettings',
-		'incentivizedPools',
-		'totalIncentivesMultiplier',
+		"positionCounter",
+		"poolCreationSettings",
+		"incentivizedPools",
+		"totalIncentivesMultiplier"
 	],
-	properties: {
-		positionCounter: {
-			dataType: 'uint64',
-			fieldNumber: 1,
+	"properties": {
+		"positionCounter": {
+			"dataType": "uint64",
+			"fieldNumber": 1
 		},
-		collectableLSKFees: {
-			dataType: 'uint64',
-			fieldNumber: 2,
-		},
-		poolCreationSettings: {
-			type: 'array',
-			fieldNumber: 3,
-			items: {
-				type: 'object',
-				required: ['feeTier', 'tickSpacing'],
-				properties: {
-					feeTier: {
-						dataType: 'uint32',
-						fieldNumber: 1,
+		"poolCreationSettings": {
+			"type": "array",
+			"fieldNumber": 2,
+			"items": {
+				"type": "object",
+				"required": ["feeTier", "tickSpacing"],
+				"properties": {
+					"feeTier": {
+						"dataType": "uint32",
+						"fieldNumber": 1
 					},
-					tickSpacing: {
-						dataType: 'uint32',
-						fieldNumber: 2,
-					},
-				},
-			},
+					"tickSpacing": {
+						"dataType": "uint32",
+						"fieldNumber": 2
+					}
+				}
+			}
 		},
-		incentivizedPools: {
-			type: 'array',
-			fieldNumber: 4,
-			items: {
-				type: 'object',
-				required: ['poolId', 'multiplier'],
-				properties: {
-					poolId: {
-						dataType: 'bytes',
-						maxLength: NUM_BYTES_POOL_ID,
-						fieldNumber: 1,
+		"incentivizedPools": {
+			"type": "array",
+			"fieldNumber": 3,
+			"items": {
+				"type": "object",
+				"required": ["poolId", "multiplier"],
+				"properties": {
+					"poolId": {
+						"dataType": "bytes",
+						"maxLength": NUM_BYTES_POOL_ID,
+						"fieldNumber": 1
 					},
-					multiplier: {
-						dataType: 'uint32',
-						maxLength: NUM_BYTES_POOL_ID,
-						fieldNumber: 2,
-					},
-				},
-			},
+					"multiplier": {
+						"dataType": "uint32",
+						"fieldNumber": 2
+					}
+				}
+			}
 		},
-		totalIncentivesMultiplier: {
-			dataType: 'uint32',
-			fieldNumber: 5,
-		},
+		"totalIncentivesMultiplier": {
+			"dataType": "uint32",
+			"fieldNumber": 4
+		}
 	},
 };
 
