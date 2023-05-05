@@ -52,8 +52,8 @@ export const ADDRESS_VALIDATOR_INCENTIVES = Buffer.from(sha256('validatorIncenti
 	NUM_BYTES_ADDRESS,
 );
 
-export const TOKEN_ID_DEX_NATIVE = Buffer.from(('0000000100000001'), 'hex'); // Token ID of the native token of DEX sidechain.
-export const TOKEN_ID_LSK = Buffer.from(('0000000100000000'), 'hex'); // Token ID of the LSK token.
+export const TOKEN_ID_DEX_NATIVE = Buffer.from('0000000100000001', 'hex'); // Token ID of the native token of DEX sidechain.
+export const TOKEN_ID_LSK = Buffer.from('0000000100000000', 'hex'); // Token ID of the LSK token.
 export const EVENT_NAME_VALIDATOR_TRADE_INCENTIVES_PAYOUT = 'validatorTradeIncentivesPayout'; // Name of the validator trade incentives payout event.
 export const EVENT_NAME_GENERATOR_INCENTIVES_PAYOUT = 'generatorIncentivesPayout'; // Name of the generator incentives payout event.
 export const INCENTIVE_NO_REDUCTION = 0; // Return code for no block incentive reduction.

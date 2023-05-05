@@ -28,7 +28,7 @@ export type GenesisDEX = {
 	priceTickSubstore: PriceTicksStoreData[];
 	positionSubstore: PositionsStoreData[];
 	settingsSubstore: SettingsStoreData[];
-}
+};
 export interface FeeTiers {
 	[id: number]: number;
 }

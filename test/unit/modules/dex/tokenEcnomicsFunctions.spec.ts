@@ -118,7 +118,7 @@ describe('dex:tokenEcnomicsFunctions', () => {
 		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(0))),
 		ownerAddress: senderAddress,
-		incentivesPerLiquidityLast: Buffer.alloc(0)
+		incentivesPerLiquidityLast: Buffer.alloc(0),
 	};
 
 	const settingStoreData: SettingsStoreData = {

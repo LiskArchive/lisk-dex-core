@@ -29,7 +29,14 @@ import {
 } from 'lisk-sdk';
 import { isDeepStrictEqual } from 'util';
 
-import { CHAIN_ID, MAX_TICK, MIN_TICK, MODULE_ID_DEX, NUM_BYTES_POOL_ID, defaultConfig } from './constants';
+import {
+	CHAIN_ID,
+	MAX_TICK,
+	MIN_TICK,
+	MODULE_ID_DEX,
+	NUM_BYTES_POOL_ID,
+	defaultConfig,
+} from './constants';
 
 import { DexEndpoint } from './endpoint';
 import { GenesisDEX, ModuleConfig, ModuleInitArgs } from './types';
@@ -99,7 +106,10 @@ import { positionsStoreSchema } from './stores/positionsStore';
 import { bytesToTick, priceTicksStoreSchema } from './stores/priceTicksStore';
 import { settingsStoreSchema } from './stores/settingsStore';
 import { computeTokenGenesisAsset } from './utils/auxiliaryFunctions';
-import { ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES, ADDRESS_VALIDATOR_INCENTIVES } from '../dexIncentives/constants';
+import {
+	ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
+	ADDRESS_VALIDATOR_INCENTIVES,
+} from '../dexIncentives/constants';
 
 function intToBuffer(input: number, bufferSize: number): Buffer {
 	const outputBuffer = Buffer.alloc(bufferSize);
@@ -277,13 +287,16 @@ export class DexModule extends BaseModule {
 		this._feeMethod = feeMethod;
 	}
 
-
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs) {
 		const { moduleConfig } = args;
 		this._moduleConfig = utils.objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfig;
 
-		this._tokenMethod.init({ ownChainID: CHAIN_ID, userAccountInitializationFee: BigInt(0), escrowAccountInitializationFee: BigInt(0) })
+		this._tokenMethod.init({
+			ownChainID: CHAIN_ID,
+			userAccountInitializationFee: BigInt(0),
+			escrowAccountInitializationFee: BigInt(0),
+		});
 		this._createPoolCommand.init({
 			moduleConfig: this._moduleConfig,
 			tokenMethod: this._tokenMethod,
@@ -310,46 +323,49 @@ export class DexModule extends BaseModule {
 		if (!assetBytes) {
 			return;
 		}
-		const genesisData = codec.decode<GenesisDEX>(
-			genesisDEXSchema,
-			assetBytes,
-		);
+		const genesisData = codec.decode<GenesisDEX>(genesisDEXSchema, assetBytes);
 		const { poolSubstore, positionSubstore, priceTickSubstore, stateStore } = genesisData;
 
 		function hasDuplicateParams(input, param: string) {
-			const paramValues = input.map(i => (i[param] as unknown))
+			const paramValues = input.map(i => i[param] as unknown);
 			return paramValues.length !== new Set(paramValues).size;
 		}
 
 		if (genesisData.stateStore.positionCounter !== BigInt(genesisData.positionSubstore.length)) {
-			throw new Error("Incorrect position counter.");
+			throw new Error('Incorrect position counter.');
 		}
 
 		if (hasDuplicateParams(poolSubstore, 'poolId')) {
-			throw new Error("Duplicate poolId in poolSubstore.");
+			throw new Error('Duplicate poolId in poolSubstore.');
 		}
 
 		if (hasDuplicateParams(priceTickSubstore, 'tickId')) {
-			throw new Error("Duplicate tickId.");
+			throw new Error('Duplicate tickId.');
 		}
 
 		if (hasDuplicateParams(positionSubstore, 'positionId')) {
-			throw new Error("Duplicate positionId.");
+			throw new Error('Duplicate positionId.');
 		}
 
 		if (hasDuplicateParams(stateStore.incentivizedPools, 'poolId')) {
-			throw new Error("Duplicate poolId in incentivizedPools.");
+			throw new Error('Duplicate poolId in incentivizedPools.');
 		}
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		const sortedIncentivizedPools = [...stateStore.incentivizedPools].sort(Buffer.compare);
 
 		if (!isDeepStrictEqual(sortedIncentivizedPools, stateStore.incentivizedPools)) {
-			throw new Error("Entries in stateStore.incentivizedPools must be sorted with respect to poolId in ascending order.");
+			throw new Error(
+				'Entries in stateStore.incentivizedPools must be sorted with respect to poolId in ascending order.',
+			);
 		}
 
 		for (const position of positionSubstore) {
-			if (position.tickLower < MIN_TICK || position.tickUpper > MAX_TICK || position.tickLower > position.tickUpper) {
+			if (
+				position.tickLower < MIN_TICK ||
+				position.tickUpper > MAX_TICK ||
+				position.tickLower > position.tickUpper
+			) {
 				throw new Error('Invalid tick values in positionSubstore');
 			}
 		}
@@ -377,10 +393,10 @@ export class DexModule extends BaseModule {
 		}
 
 		for (const [tickId, _] of priceTickSubstore.entries()) {
-			const tickValueBytes = intToBuffer(tickId, 4).slice(-4)
-			const tickValue = bytesToTick(tickValueBytes)
+			const tickValueBytes = intToBuffer(tickId, 4).slice(-4);
+			const tickValue = bytesToTick(tickValueBytes);
 			const poolId = intToBuffer(tickId, 4).slice(0, NUM_BYTES_POOL_ID);
-			const pool = poolSubstore[Number(poolId)]
+			const pool = poolSubstore[Number(poolId)];
 			if (tickValue % pool.tickSpacing !== 0) {
 				throw new Error(`Invalid tickValue for selected tickSpacing on tickId ${tickId}`);
 			}
@@ -389,16 +405,20 @@ export class DexModule extends BaseModule {
 		for (const [positionId, position] of positionSubstore.entries()) {
 			const poolId = intToBuffer(positionId, 4).slice(0, NUM_BYTES_POOL_ID);
 			const pool = poolSubstore[Number(poolId)];
-			if (position.tickLower % pool.tickSpacing !== 0 ||
-				position.tickUpper % pool.tickSpacing !== 0) {
+			if (
+				position.tickLower % pool.tickSpacing !== 0 ||
+				position.tickUpper % pool.tickSpacing !== 0
+			) {
 				throw new Error(`Wrong tickSpacing on ${positionId}`);
 			}
 		}
 
 		for (const [tickId, _] of priceTickSubstore.entries()) {
-			const tickValueBytes = intToBuffer(tickId, 4).slice(-4)
+			const tickValueBytes = intToBuffer(tickId, 4).slice(-4);
 			const tickValue = bytesToTick(tickValueBytes);
-			const position = positionSubstore.find(e => e.tickLower === tickValue || e.tickUpper === tickValue)
+			const position = positionSubstore.find(
+				e => e.tickLower === tickValue || e.tickUpper === tickValue,
+			);
 			if (!position) {
 				throw new Error(`Could not find position where tickLower or tickUpper is ${tickValue}`);
 			}
@@ -406,25 +426,28 @@ export class DexModule extends BaseModule {
 
 		for (const [positionId, position] of positionSubstore.entries()) {
 			const poolId = intToBuffer(positionId, 4).slice(0, NUM_BYTES_POOL_ID);
-			const priceTickLower = Number(Buffer.concat([poolId, intToBuffer(position.tickLower, 4)]))
-			const priceTickUpper = Number(Buffer.concat([poolId, intToBuffer(position.tickUpper, 4)]))
+			const priceTickLower = Number(Buffer.concat([poolId, intToBuffer(position.tickLower, 4)]));
+			const priceTickUpper = Number(Buffer.concat([poolId, intToBuffer(position.tickUpper, 4)]));
 
-			if (position.tickLower !== priceTickLower ||
-				position.tickUpper !== priceTickUpper) {
-				throw new Error(`Missing price ticks for ${priceTickLower} or ${priceTickUpper} not found`)
+			if (position.tickLower !== priceTickLower || position.tickUpper !== priceTickUpper) {
+				throw new Error(`Missing price ticks for ${priceTickLower} or ${priceTickUpper} not found`);
 			}
 		}
 
 		for (const { feeTier } of stateStore.poolCreationSettings.entries()) {
 			if (feeTier > 10 ** 6) {
 				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-				throw new Error(`Invalid fee tier ${feeTier}`)
+				throw new Error(`Invalid fee tier ${feeTier}`);
 			}
 		}
 
-		const totalIncentivizedPoolMultiplier = stateStore.incentivizedPools.reduce((e: { multiplier: number }, acc: number) => acc + e.multiplier)
+		const totalIncentivizedPoolMultiplier = stateStore.incentivizedPools.reduce(
+			(e: { multiplier: number }, acc: number) => acc + e.multiplier,
+		);
 		if (stateStore.totalIncentivesMultiplier !== totalIncentivizedPoolMultiplier) {
-			throw new Error('totalIncentivesMultiplier is not equal to the sum of multipliers in all the incentivized pools.')
+			throw new Error(
+				'totalIncentivesMultiplier is not equal to the sum of multipliers in all the incentivized pools.',
+			);
 		}
 	}
 
@@ -451,7 +474,7 @@ export class DexModule extends BaseModule {
 				heightIncentivesUpdate: pool.heightIncentivesUpdate,
 				feeGrowthGlobal0: pool.feeGrowthGlobal0,
 				feeGrowthGlobal1: pool.feeGrowthGlobal1,
-				tickSpacing: pool.tickSpacing
+				tickSpacing: pool.tickSpacing,
 			});
 		}
 
@@ -461,7 +484,7 @@ export class DexModule extends BaseModule {
 				liquidityGross: priceTick.liquidityGross,
 				feeGrowthOutside0: priceTick.feeGrowthOutside0,
 				feeGrowthOutside1: priceTick.feeGrowthOutside1,
-				incentivesPerLiquidityOutside: priceTick.incentivesPerLiquidityOutside
+				incentivesPerLiquidityOutside: priceTick.incentivesPerLiquidityOutside,
 			});
 		}
 
@@ -473,31 +496,32 @@ export class DexModule extends BaseModule {
 				feeGrowthInsideLast0: position.feeGrowthInsideLast0,
 				feeGrowthInsideLast1: position.feeGrowthInsideLast1,
 				ownerAddress: position.ownerAddress,
-				incentivesPerLiquidityLast: position.incentivesPerLiquidityLast
+				incentivesPerLiquidityLast: position.incentivesPerLiquidityLast,
 			});
 		}
-
 
 		await dexGlobalStore.set(context, Buffer.alloc(0), {
 			positionCounter: stateStore.positionCounter,
 			poolCreationSettings: stateStore.poolCreationSettings.map(setting => ({
 				feeTier: setting.feeTier,
-				tickSpacing: setting.tickSpacing
+				tickSpacing: setting.tickSpacing,
 			})),
-			incentivizedPools: stateStore.incentivizedPools.map(({ poolId, multiplier }) => ({ poolId, multiplier })),
-			totalIncentivesMultiplier: stateStore.totalIncentivesMultiplier
+			incentivizedPools: stateStore.incentivizedPools.map(({ poolId, multiplier }) => ({
+				poolId,
+				multiplier,
+			})),
+			totalIncentivesMultiplier: stateStore.totalIncentivesMultiplier,
 		});
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async insertAssets(ctx: InsertAssetContext): Promise<void> {
-
 		const tokenDistribution = {
 			accounts: [
-				{ "address": ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES, "balance": BigInt(0) },
-				{ "address": ADDRESS_VALIDATOR_INCENTIVES, "balance": BigInt(0) }
-			]
+				{ address: ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES, balance: BigInt(0) },
+				{ address: ADDRESS_VALIDATOR_INCENTIVES, balance: BigInt(0) },
+			],
 		};
-		ctx.assets.setAsset('token', computeTokenGenesisAsset(tokenDistribution).data)
+		ctx.assets.setAsset('token', computeTokenGenesisAsset(tokenDistribution).data);
 	}
 }

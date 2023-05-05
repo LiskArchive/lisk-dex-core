@@ -35,7 +35,7 @@ export const positionsStoreSchema = {
 		'feeGrowthInsideLast0',
 		'feeGrowthInsideLast1',
 		'ownerAddress',
-		'incentivesPerLiquidityLast'
+		'incentivesPerLiquidityLast',
 	],
 	properties: {
 		tickLower: {
@@ -66,10 +66,10 @@ export const positionsStoreSchema = {
 			fieldNumber: 6,
 		},
 		incentivesPerLiquidityLast: {
-			dataType: "bytes",
+			dataType: 'bytes',
 			maxLength: MAX_NUM_BYTES_Q96,
-			fieldNumber: 7
-		}
+			fieldNumber: 7,
+		},
 	},
 };
 
