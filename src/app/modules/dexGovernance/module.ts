@@ -75,7 +75,7 @@ import {
 } from './constants';
 import { IndexStoreData } from './stores/indexStore';
 import { getVoteOutcome, hasEnded } from './utils/auxiliaryFunctions';
-import { updateIncentivizedPools } from '../dex/utils/auxiliaryFunctions';
+import { DexModule } from '../dex/module';
 
 export class DexGovernanceModule extends BaseModule {
 	public id = MODULE_NAME_DEX_GOVERNANCE;
@@ -433,9 +433,9 @@ export class DexGovernanceModule extends BaseModule {
 					proposal.type === PROPOSAL_TYPE_INCENTIVIZATION &&
 					outcome === PROPOSAL_STATUS_FINISHED_ACCEPTED
 				) {
-					await updateIncentivizedPools(
+					const dexModule = new DexModule();
+					await dexModule.method.updateIncentivizedPools(
 						context,
-						this.stores,
 						proposal.content.poolID,
 						proposal.content.multiplier,
 						height,
