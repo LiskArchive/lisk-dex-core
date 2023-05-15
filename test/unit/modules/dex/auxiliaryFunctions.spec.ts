@@ -88,7 +88,12 @@ import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGl
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
-import { ALL_SUPPORTED_TOKENS_KEY, TOKEN_ID_DEX } from '../../../../src/app/modules/dex/constants';
+import {
+	ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
+	ADDRESS_VALIDATOR_INCENTIVES,
+	ALL_SUPPORTED_TOKENS_KEY,
+	TOKEN_ID_DEX,
+} from '../../../../src/app/modules/dex/constants';
 
 const skipOnCI = process.env.CI ? describe.skip : describe;
 
@@ -563,6 +568,18 @@ describe('dex:auxiliaryFunctions', () => {
 		const expectedGenesisTokenStore: GenesisTokenStore = {
 			userSubstore: [
 				{
+					address: ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
+					tokenID: TOKEN_ID_DEX,
+					availableBalance: BigInt(0),
+					lockedBalances: [],
+				},
+				{
+					address: ADDRESS_VALIDATOR_INCENTIVES,
+					tokenID: TOKEN_ID_DEX,
+					availableBalance: BigInt(0),
+					lockedBalances: [],
+				},
+				{
 					address: account1.address,
 					tokenID: TOKEN_ID_DEX,
 					availableBalance: BigInt(1),
@@ -608,6 +625,18 @@ describe('dex:auxiliaryFunctions', () => {
 				const expectedGenesisTokenStore: GenesisTokenStore = {
 					userSubstore: [
 						{
+							address: ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
+							tokenID: TOKEN_ID_DEX,
+							availableBalance: BigInt(0),
+							lockedBalances: [],
+						},
+						{
+							address: ADDRESS_VALIDATOR_INCENTIVES,
+							tokenID: TOKEN_ID_DEX,
+							availableBalance: BigInt(0),
+							lockedBalances: [],
+						},
+						{
 							address: account.address,
 							tokenID: TOKEN_ID_DEX,
 							availableBalance: BigInt(1),
@@ -626,5 +655,38 @@ describe('dex:auxiliaryFunctions', () => {
 				expect(result).toStrictEqual(expectedResult);
 			});
 		}
+	});
+
+	it('computeTokenGenesisAsset initialize account with address ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES', () => {
+		const tokenDistribution: TokenDistribution = {
+			accounts: [],
+		};
+		const result = computeTokenGenesisAsset(tokenDistribution);
+
+		const expectedGenesisTokenStore: GenesisTokenStore = {
+			userSubstore: [
+				{
+					address: ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
+					tokenID: TOKEN_ID_DEX,
+					availableBalance: BigInt(0),
+					lockedBalances: [],
+				},
+				{
+					address: ADDRESS_VALIDATOR_INCENTIVES,
+					tokenID: TOKEN_ID_DEX,
+					availableBalance: BigInt(0),
+					lockedBalances: [],
+				},
+			],
+			supplySubstore: [{ tokenID: TOKEN_ID_DEX, totalSupply: BigInt(0) }],
+			escrowSubstore: [],
+			supportedTokensSubstore: [{ chainID: ALL_SUPPORTED_TOKENS_KEY, supportedTokenIDs: [] }],
+		};
+		const expectedResult = {
+			module: 'token',
+			data: codec.encode(genesisTokenStoreSchema, expectedGenesisTokenStore),
+		};
+
+		expect(result).toStrictEqual(expectedResult);
 	});
 });
