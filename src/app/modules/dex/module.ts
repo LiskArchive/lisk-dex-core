@@ -30,7 +30,6 @@ import {
 import { isDeepStrictEqual } from 'util';
 
 import {
-	CHAIN_ID,
 	MAX_TICK,
 	MIN_TICK,
 	MODULE_ID_DEX,
@@ -292,11 +291,6 @@ export class DexModule extends BaseModule {
 		const { moduleConfig } = args;
 		this._moduleConfig = utils.objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfig;
 
-		this._tokenMethod.init({
-			ownChainID: CHAIN_ID,
-			userAccountInitializationFee: BigInt(0),
-			escrowAccountInitializationFee: BigInt(0),
-		});
 		this._createPoolCommand.init({
 			moduleConfig: this._moduleConfig,
 			tokenMethod: this._tokenMethod,

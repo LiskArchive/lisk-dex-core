@@ -128,7 +128,7 @@ export const BLS_PUBLIC_KEY_LENGTH = 48;
 export const BLS_POP_LENGTH = 96;
 
 // Engine specific constants
-export const CHAIN_ID = Buffer.from('00000001', 'hex'); // chain id of sidechain
+export const CHAIN_ID = Buffer.from('04000011', 'hex'); // chain id of sidechain
 export const MAX_TRANSACTIONS_SIZE_BYTES = 15360; // Max size of transaction in bytes
 export const MAX_ASSET_DATA_SIZE_BYTES = 18; // Max asset data size in bytes
 export const BLOCK_TIME = 10; // Blocking time

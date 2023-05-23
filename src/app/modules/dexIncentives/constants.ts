@@ -14,7 +14,10 @@
  */
 
 import { createHash } from 'crypto';
+import { cryptography } from 'lisk-sdk';
 import { TextEncoder } from 'util';
+
+const { address } = cryptography;
 
 // Convert a hex string to a byte array
 export const hexToBytes = hex => {
@@ -36,9 +39,9 @@ export const MODULE_NAME_DEX = 'dex'; // Name of the DEX module, as defined in t
 export const NUM_BYTES_ADDRESS = 20; // The number of bytes of an address.
 
 // The address of the liquidity provider incentives pool, as defined in the DEX module.
-export const ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES = Buffer.from(
-	sha256('liquidityProviderIncentivesAccount'),
-).slice(0, NUM_BYTES_ADDRESS);
+export const ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES = address.getAddressFromLisk32Address("lskgn7m77b769frqvgq7uko74wcrroqtcjv7nhv95"); // Buffer.from(
+// 	sha256('liquidityProviderIncentivesAccount'),
+// ).slice(0, NUM_BYTES_ADDRESS);
 
 // The address of the trader incentives pool, as defined in the DEX module.
 export const ADDRESS_TRADER_INCENTIVES = Buffer.from(sha256('traderIncentivesAcount')).slice(
@@ -52,8 +55,8 @@ export const ADDRESS_VALIDATOR_INCENTIVES = Buffer.from(sha256('validatorIncenti
 	NUM_BYTES_ADDRESS,
 );
 
-export const TOKEN_ID_DEX_NATIVE = Buffer.from('0000000100000001', 'hex'); // Token ID of the native token of DEX sidechain.
-export const TOKEN_ID_LSK = Buffer.from('0000000100000000', 'hex'); // Token ID of the LSK token.
+export const TOKEN_ID_DEX_NATIVE = Buffer.from('0400001100000000', 'hex'); // Token ID of the native token of DEX sidechain.
+export const TOKEN_ID_LSK = Buffer.from('0400000000000000', 'hex'); // Token ID of the LSK token.
 export const EVENT_NAME_VALIDATOR_TRADE_INCENTIVES_PAYOUT = 'validatorTradeIncentivesPayout'; // Name of the validator trade incentives payout event.
 export const EVENT_NAME_GENERATOR_INCENTIVES_PAYOUT = 'generatorIncentivesPayout'; // Name of the generator incentives payout event.
 export const INCENTIVE_NO_REDUCTION = 0; // Return code for no block incentive reduction.
