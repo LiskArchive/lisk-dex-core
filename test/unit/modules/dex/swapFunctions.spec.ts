@@ -104,7 +104,6 @@ describe('dex:swapFunctions', () => {
 
 	const dexGlobalStoreData: DexGlobalStoreData = {
 		positionCounter: BigInt(15),
-		collectableLSKFees: BigInt(10),
 		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
 		incentivizedPools: [{ poolId: poolID, multiplier: 10 }],
 		totalIncentivesMultiplier: 1,
@@ -289,6 +288,7 @@ describe('dex:swapFunctions', () => {
 			const concatedTokenIDs = Buffer.concat(tokensArray);
 			const tokenIDAndSettingsArray = [
 				concatedTokenIDs,
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				q96ToBytes(numberToQ96(BigInt(dexGlobalStoreData.poolCreationSettings[0].feeTier))),
 			];
 
@@ -329,6 +329,7 @@ describe('dex:swapFunctions', () => {
 			const concatedTokenIDs = Buffer.concat(tokensArray);
 			const tokenIDAndSettingsArray = [
 				concatedTokenIDs,
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				q96ToBytes(numberToQ96(BigInt(dexGlobalStoreData.poolCreationSettings[0].feeTier))),
 			];
 
