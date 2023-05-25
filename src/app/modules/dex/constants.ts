@@ -44,7 +44,7 @@ export const NUM_BYTES_TOKEN_ID = 8; // The number of bytes of a token ID. (uint
 export const STORE_PREFIX_POOL = Buffer.from('0000', 'hex'); // Store prefix of the pools substore.
 export const STORE_PREFIX_PRICE_TICK = Buffer.from('8000', 'hex'); // Store prefix of the price ticks substore.
 export const STORE_PREFIX_POSITION = Buffer.from('c000', 'hex'); // Store prefix of the positions substore.
-export const STORE_PREFIX_SETTINGS = Buffer.from('e000', 'hex'); // Store prefix of the protocol settings substore.
+export const STORE_PREFIX_DATA = Buffer.from('e000', 'hex'); // Store prefix of the data substore.
 
 // DEX Module Command IDs and Names
 export const COMMAND_ID_SWAP_EXACT_INPUT = Buffer.from('0000', 'hex'); // Command ID of swap exact input command.
@@ -155,6 +155,7 @@ export const defaultConfig = {
 export const ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES = sha256(
 	'liquidityProviderIncentivesAccount',
 ).slice(0, NUM_BYTES_ADDRESS);
+
 export const FEE_TIER_PARTITION = 1000000;
 // Swap Constants
 
@@ -164,3 +165,7 @@ export enum SwapFailedReasons {
 	SWAP_FAILED_NOT_ENOUGH,
 	SWAP_FAILED_INVALID_LIMIT_PRICE,
 }
+
+// DEXGOVERNANCE Module Constants
+export const MODULE_NAME_DEX_GOVERNANCE = 'dexGovernance';
+export const COMMAND_CREATE_PROPOSAL = 'createProposal'; // Command ID of CREATE_PORPOSAL command.

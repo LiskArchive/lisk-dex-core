@@ -14,6 +14,16 @@
 import { BaseStore } from 'lisk-sdk';
 import { NUM_BYTES_POOL_ID } from '../constants';
 
+export interface IncentivizedPools {
+	poolId: Buffer;
+	multiplier: number;
+}
+
+export interface PoolCreationSettings {
+	feeTier: number;
+	tickSpacing: number;
+}
+
 export interface DexGlobalStoreData {
 	positionCounter: bigint;
 	poolCreationSettings;

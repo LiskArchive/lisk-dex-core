@@ -44,6 +44,7 @@ import {
 	transferToValidatorLSKPool,
 	getLiquidityForAmount0,
 	updatePosition,
+	getCredibleDirectPrice,
 	collectFeesAndIncentives,
 	computeExceptionalRoute,
 	computeRegularRoute,
@@ -53,15 +54,7 @@ import {
 	computeTokenGenesisAsset,
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
-import { getCredibleDirectPrice } from '../../../../src/app/modules/dex/utils/tokenEcnomicsFunctions';
-
-import {
-	Address,
-	PoolID,
-	PositionID,
-	TokenID,
-	TokenDistribution,
-} from '../../../../src/app/modules/dex/types';
+import { Address, PoolID, PositionID, TokenDistribution, TokenID } from '../../../../src/app/modules/dex/types';
 import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import {
 	numberToQ96,
@@ -87,6 +80,7 @@ import {
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
+
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import {
 	ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
@@ -108,7 +102,9 @@ describe('dex:auxiliaryFunctions', () => {
 	const INVALID_ADDRESS = '1234';
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
 
-	const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(
+		new InMemoryPrefixedStateDB(),
+	);
 
 	const moduleEndpointContext = createTransientModuleEndpointContext({
 		stateStore,
@@ -445,6 +441,7 @@ describe('dex:auxiliaryFunctions', () => {
 			const exists = await poolsStore.has(methodContext, poolId);
 			expect(poolExistResult).toEqual(exists);
 		});
+
 		it('getAdjacent', async () => {
 			const res = await getAdjacent(moduleEndpointContext, dexModule.stores, token0Id);
 			expect(res).not.toBeNull();
@@ -482,6 +479,10 @@ describe('dex:auxiliaryFunctions', () => {
 		});
 
 		it('getCredibleDirectPrice', async () => {
+			const tempModuleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { poolID: getPoolIDFromPositionID(positionId) },
+			});
 			const result = Buffer.alloc(4);
 			const newTokenIDsArray = [
 				token0Id,
@@ -495,7 +496,7 @@ describe('dex:auxiliaryFunctions', () => {
 			await poolsStore.set(methodContext, Buffer.concat(newTokenIDsArray), poolsStoreData);
 			await getCredibleDirectPrice(
 				tokenMethod,
-				moduleEndpointContext,
+				tempModuleEndpointContext,
 				dexModule.stores,
 				token0Id,
 				token1Id,

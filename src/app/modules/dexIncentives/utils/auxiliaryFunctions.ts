@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable import/no-cycle */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -27,6 +28,7 @@ import {
 	ADDRESS_VALIDATOR_INCENTIVES,
 	TOKEN_ID_LSK,
 	LENGTH_EPOCH_REWARDS_INCENTIVES,
+	BOOTSTRAP_PERIOD_OFFSET,
 } from '../constants';
 import { ValidatorIncentivesPayout } from '../events';
 import { Address } from '../types';
@@ -116,38 +118,46 @@ export const transferValidatorIncentives = async (
 		amount,
 	);
 	posMethod.updateSharedRewards(methodContext, validatorAddress, TOKEN_ID_LSK, amount);
-	events.get(ValidatorIncentivesPayout).add(methodContext, {
-		amount,
-	});
+	events.get(ValidatorIncentivesPayout).add(
+		methodContext,
+		{
+			amount,
+		},
+		[validatorAddress],
+	);
 };
 
 export const getLiquidityIncentivesAtHeight = (height: number): bigint => {
-	if (height < LENGTH_EPOCH_REWARDS_INCENTIVES) {
+	if (height < BOOTSTRAP_PERIOD_OFFSET) {
+		return BigInt(0);
+	}
+	if (height < BOOTSTRAP_PERIOD_OFFSET + LENGTH_EPOCH_REWARDS_INCENTIVES) {
 		return BigInt('400000000');
 	}
-	if (height < BigInt(2) * LENGTH_EPOCH_REWARDS_INCENTIVES) {
+	if (height < BOOTSTRAP_PERIOD_OFFSET + BigInt(2) * LENGTH_EPOCH_REWARDS_INCENTIVES) {
 		return BigInt('350000000');
 	}
-	if (height < BigInt(3) * LENGTH_EPOCH_REWARDS_INCENTIVES) {
+	if (height < BOOTSTRAP_PERIOD_OFFSET + BigInt(3) * LENGTH_EPOCH_REWARDS_INCENTIVES) {
 		return BigInt('300000000');
 	}
-	if (height < BigInt(4) * LENGTH_EPOCH_REWARDS_INCENTIVES) {
+	if (height < BOOTSTRAP_PERIOD_OFFSET + BigInt(4) * LENGTH_EPOCH_REWARDS_INCENTIVES) {
 		return BigInt('250000000');
 	}
 	return BigInt('200000000');
 };
 
-export const getLPIncentiveInRange = (startHeight: number, endHeight: number): bigint => {
+export const getLPIncentivesInRange = (startHeight: number, endHeight: number): bigint => {
 	if (endHeight < startHeight) {
 		throw new Error();
 	}
 
 	const EPOCHS = [
-		LENGTH_EPOCH_REWARDS_INCENTIVES,
-		BigInt(2) * LENGTH_EPOCH_REWARDS_INCENTIVES,
-		BigInt(3) * LENGTH_EPOCH_REWARDS_INCENTIVES,
-		BigInt(4) * LENGTH_EPOCH_REWARDS_INCENTIVES,
-	];
+		BOOTSTRAP_PERIOD_OFFSET,
+		BOOTSTRAP_PERIOD_OFFSET + LENGTH_EPOCH_REWARDS_INCENTIVES,
+		BOOTSTRAP_PERIOD_OFFSET + BigInt(2) * LENGTH_EPOCH_REWARDS_INCENTIVES,
+		BOOTSTRAP_PERIOD_OFFSET + BigInt(3) * LENGTH_EPOCH_REWARDS_INCENTIVES,
+		BOOTSTRAP_PERIOD_OFFSET + BigInt(4) * LENGTH_EPOCH_REWARDS_INCENTIVES,
+	].map(BigInt);
 
 	let height: bigint = BigInt(startHeight + 1); // incentive for the start block are excluded
 	let incentives: bigint = BigInt(0);

@@ -19,7 +19,7 @@ export const getApplication = (config: PartialApplicationConfig): Application =>
 		method.fee,
 		method.pos,
 	);
-	dexGovernanceModule.addDependencies(method.token, method.pos);
+	dexGovernanceModule.addDependencies(method.token, method.pos, method.fee);
 
 	app.registerModule(dexModule);
 	app.registerModule(dexIncentivesModule);

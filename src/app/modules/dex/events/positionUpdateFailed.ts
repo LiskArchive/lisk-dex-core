@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/member-ordering */
 /*
  * Copyright © 2022 Lisk Foundation
  *
