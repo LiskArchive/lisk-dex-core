@@ -783,52 +783,9 @@ export const updatePosition = async (
 	return [amount0, amount1];
 };
 
-export const addPoolCreationSettings = async (
-	methodContext: MethodContext,
-	stores: NamedRegistry,
-	feeTier: number,
-	tickSpacing: number,
-) => {
-	if (feeTier > 1000000) {
-		throw new Error('Fee tier can not be greater than 100%');
-	}
-	const settingGlobalStore = stores.get(SettingsStore);
-	const settingGlobalStoreData = await settingGlobalStore.get(methodContext, Buffer.alloc(0));
-	if (settingGlobalStoreData.poolCreationSettings.feeTier === feeTier) {
-		throw new Error('Can not update fee tier');
-	}
-	settingGlobalStoreData.poolCreationSettings[0] = { feeTier, tickSpacing };
-	await settingGlobalStore.set(methodContext, Buffer.alloc(0), settingGlobalStoreData);
-};
-
 export const getProtocolSettings = async (methodContext: MethodContext, stores: NamedRegistry) => {
 	const dexGlobalStoreData = await getDexGlobalData(methodContext, stores);
 	return dexGlobalStoreData;
-};
-
-export const updateIncentivizedPools = async (
-	methodContext: MethodContext,
-	stores: NamedRegistry,
-	poolId: PoolID,
-	multiplier: number,
-	currentHeight: number,
-) => {
-	const dexGlobalStoreData = await getDexGlobalData(methodContext, stores);
-
-	for (const incentivizedPool of dexGlobalStoreData.incentivizedPools) {
-		await updatePoolIncentives(methodContext, stores, incentivizedPool.poolId, currentHeight);
-	}
-	dexGlobalStoreData.incentivizedPools.forEach((incentivizedPools, index) => {
-		if (incentivizedPools.poolId.equals(poolId)) {
-			dexGlobalStoreData.totalIncentivesMultiplier -= incentivizedPools.multiplier;
-			dexGlobalStoreData.incentivizedPools.splice(index, 1);
-		}
-	});
-	if (multiplier > 0) {
-		dexGlobalStoreData.totalIncentivesMultiplier += multiplier;
-		dexGlobalStoreData.incentivizedPools.push({ poolId, multiplier });
-		dexGlobalStoreData.incentivizedPools.sort((a, b) => (a.poolId < b.poolId ? -1 : 1));
-	}
 };
 
 export const getToken0Amount = async (
@@ -862,11 +819,6 @@ export const getAllTicks = async (
 		tickIds.push(tickId.key);
 	});
 	return tickIds;
-};
-
-export const poolExists = async (methodContext, poolsStore: PoolsStore, poolId: PoolID) => {
-	const result = poolsStore.has(methodContext, poolId);
-	return result;
 };
 
 export const computeCurrentPrice = async (
@@ -1190,24 +1142,6 @@ export const getPool = async (
 	const poolsStore = stores.get(PoolsStore);
 	const poolStoreData = await poolsStore.getKey(methodContext, [poolID]);
 	return poolStoreData;
-};
-
-export const getCurrentSqrtPrice = async (
-	methodContext: MethodContext,
-	stores: NamedRegistry,
-	poolID: PoolID,
-	priceDirection: boolean,
-): Promise<Q96> => {
-	const pools = await getPool(methodContext, stores, poolID);
-	if (pools == null) {
-		throw new Error();
-	}
-
-	const q96SqrtPrice = bytesToQ96(pools.sqrtPrice);
-	if (priceDirection) {
-		return q96SqrtPrice;
-	}
-	return invQ96(q96SqrtPrice);
 };
 
 export const getDexGlobalData = async (

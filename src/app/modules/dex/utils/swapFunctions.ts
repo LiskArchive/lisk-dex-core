@@ -72,6 +72,7 @@ import {
 } from '../constants';
 import { DexGlobalStore, PriceTicksStore } from '../stores';
 import { tickToBytes } from '../stores/priceTicksStore';
+import { getLPIncentivesInRange } from '../../dexIncentives/utils/auxiliaryFunctions';
 
 export const swapWithin = (
 	sqrtCurrentPrice: bigint,
@@ -392,9 +393,8 @@ export const computeNewIncentivesPerLiquidity = async (
 		throw new Error('Invalid arguments');
 	}
 
-	// Todo Update after implementing DEXIncentives.getLPIncentivesInRange
 	const poolMultiplier = BigInt(incentivizedPools.multiplier);
-	const totalIncentives = BigInt(0);
+	const totalIncentives = getLPIncentivesInRange(pool.heightIncentivesUpdate, currentHeight);
 
 	const incentives = mulDivQ96(
 		numberToQ96(totalIncentives),
