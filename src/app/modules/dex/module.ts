@@ -24,7 +24,6 @@ import {
 	ValidatorsMethod,
 	FeeMethod,
 	GenesisBlockExecuteContext,
-	InsertAssetContext,
 	codec,
 } from 'lisk-sdk';
 import { isDeepStrictEqual } from 'util';
@@ -104,11 +103,6 @@ import { poolsStoreSchema } from './stores/poolsStore';
 import { positionsStoreSchema } from './stores/positionsStore';
 import { bytesToTick, priceTicksStoreSchema } from './stores/priceTicksStore';
 import { settingsStoreSchema } from './stores/settingsStore';
-import { computeTokenGenesisAsset } from './utils/auxiliaryFunctions';
-import {
-	ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
-	ADDRESS_VALIDATOR_INCENTIVES,
-} from '../dexIncentives/constants';
 
 function intToBuffer(input: number, bufferSize: number): Buffer {
 	const outputBuffer = Buffer.alloc(bufferSize);
@@ -506,16 +500,5 @@ export class DexModule extends BaseModule {
 			})),
 			totalIncentivesMultiplier: stateStore.totalIncentivesMultiplier,
 		});
-	}
-
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async insertAssets(ctx: InsertAssetContext): Promise<void> {
-		const tokenDistribution = {
-			accounts: [
-				{ address: ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES, balance: BigInt(0) },
-				{ address: ADDRESS_VALIDATOR_INCENTIVES, balance: BigInt(0) },
-			],
-		};
-		ctx.assets.setAsset('token', computeTokenGenesisAsset(tokenDistribution).data);
 	}
 }
