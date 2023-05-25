@@ -24,7 +24,11 @@ import {
 	ValidatorsMethod,
 	PoSMethod,
 } from 'lisk-sdk';
-import { ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES, MODULE_NAME_DEX, TOKEN_ID_DEX_NATIVE } from './constants';
+import {
+	ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
+	MODULE_NAME_DEX,
+	TOKEN_ID_DEX_NATIVE,
+} from './constants';
 
 import { DexIncentivesEndpoint } from './endpoint';
 import { ValidatorIncentivesPayout } from './events';

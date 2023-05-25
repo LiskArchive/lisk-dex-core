@@ -1,7 +1,4 @@
-import {
-	Application,
-	PartialApplicationConfig,
-} from 'lisk-sdk';
+import { Application, PartialApplicationConfig } from 'lisk-sdk';
 
 import { DexModule, DexIncentivesModule, DexGovernanceModule } from './modules';
 

@@ -39,7 +39,9 @@ export const MODULE_NAME_DEX = 'dex'; // Name of the DEX module, as defined in t
 export const NUM_BYTES_ADDRESS = 20; // The number of bytes of an address.
 
 // The address of the liquidity provider incentives pool, as defined in the DEX module.
-export const ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES = address.getAddressFromLisk32Address("lskgn7m77b769frqvgq7uko74wcrroqtcjv7nhv95"); // Buffer.from(
+export const ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES = address.getAddressFromLisk32Address(
+	'lskgn7m77b769frqvgq7uko74wcrroqtcjv7nhv95',
+); // Buffer.from(
 // 	sha256('liquidityProviderIncentivesAccount'),
 // ).slice(0, NUM_BYTES_ADDRESS);
 

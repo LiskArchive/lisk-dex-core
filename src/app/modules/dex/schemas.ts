@@ -984,7 +984,6 @@ export const getAllTickIDsInPoolResponseSchema = {
 	},
 };
 
-
 export const tokenDistributionSchema = {
 	$id: 'dex/tokenDistribution',
 	type: 'object',
@@ -1001,11 +1000,11 @@ export const tokenDistributionSchema = {
 				balance: {
 					dataType: 'uint64',
 					fieldNumber: 2,
-				}
-			}
-		}
-	}
-}
+				},
+			},
+		},
+	},
+};
 
 export const getCollectableFeesAndIncentivesRequestSchema = {
 	$id: 'dex/endpoint/getCollectableFeesAndIncentives',
@@ -1042,7 +1041,7 @@ export const getCollectableFeesAndIncentivesResponseSchema = {
 			},
 		},
 	},
-}
+};
 
 export const dryRunSwapExactInRequestSchema = {
 	$id: 'dex/dryRunSwapExactIn',

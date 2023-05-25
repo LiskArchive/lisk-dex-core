@@ -54,7 +54,13 @@ import {
 	computeTokenGenesisAsset,
 } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 
-import { Address, PoolID, PositionID, TokenDistribution, TokenID } from '../../../../src/app/modules/dex/types';
+import {
+	Address,
+	PoolID,
+	PositionID,
+	TokenDistribution,
+	TokenID,
+} from '../../../../src/app/modules/dex/types';
 import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import {
 	numberToQ96,
