@@ -122,7 +122,7 @@ describe('dex:command:removeLiquidity', () => {
 		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(3))),
 		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(1))),
 		ownerAddress: senderAddress,
-		incentivesPerLiquidityLast: Buffer.alloc(0)
+		incentivesPerLiquidityLast: Buffer.alloc(0),
 	};
 
 	beforeEach(async () => {
