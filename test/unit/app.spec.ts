@@ -54,7 +54,7 @@ describe('app', () => {
 			feeModule.method,
 			posModule.method,
 		);
-		dexGovernanceModule.addDependencies(tokenModule.method, posModule.method);
+		dexGovernanceModule.addDependencies(tokenModule.method, posModule.method, feeModule.method);
 
 		const expectedRegisteredModules = [
 			authModule,

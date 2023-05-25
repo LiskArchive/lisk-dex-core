@@ -75,11 +75,11 @@ describe('DexModule', () => {
 			const moduleConfig = {
 				feeTiers: defaultConfig.feeTiers,
 			} as any;
-			await expect(dexModule.init({ moduleConfig: defaultConfig })).resolves.not.toThrow();
+			await expect(dexModule.init({ moduleConfig: defaultConfig, genesisConfig: {} as any })).resolves.not.toThrow();
 			expect(dexModule['_moduleConfig']).toEqual(moduleConfig);
 		});
 		it('should initialize fee tiers', async () => {
-			await expect(dexModule.init({ moduleConfig: defaultConfig })).resolves.not.toThrow();
+			await expect(dexModule.init({ moduleConfig: defaultConfig, genesisConfig: {} as any })).resolves.not.toThrow();
 
 			const defaultFeeTiers = {};
 			defaultFeeTiers[100] = 2;
