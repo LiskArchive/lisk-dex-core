@@ -294,25 +294,35 @@
 					{
 						"address": "lsk956ygebkmda7yx7vx2mr3vsfzt2n59j9u44smc",
 						"tokenID": "0400001100000001",
-						"availableBalance": "0",
+						"availableBalance": "1000000000000000000",
 						"lockedBalances": []
 					},
 					{
 						"address": "lsk72cat7foquqzb25drquj3jreqzc563qs63aqk6",
 						"tokenID": "0400001100000001",
-						"availableBalance": "0",
+						"availableBalance": "1000000000000000000",
 						"lockedBalances": []
 					},
 					{
 						"address": "lskgn7m77b769frqvgq7uko74wcrroqtcjv7nhv95",
 						"tokenID": "0400001100000001",
-						"availableBalance": "0",
+						"availableBalance": "1000000000000000000",
 						"lockedBalances": []
 					}
 				],
-				"supplySubstore": [{ "tokenID": "0400001100000001", "totalSupply": "0" }],
+				"supplySubstore": [
+					{
+						"tokenID": "0400001100000001",
+						"totalSupply": "3000000000000000000"
+					}
+				],
 				"escrowSubstore": [],
-				"supportedTokensSubstore": [{ "chainID": "04000011", "supportedTokenIDs": [] }]
+				"supportedTokensSubstore": [
+					{
+						"chainID": "04000011",
+						"supportedTokenIDs": []
+					}
+				]
 			},
 			"schema": {
 				"$id": "/token/module/genesis",
