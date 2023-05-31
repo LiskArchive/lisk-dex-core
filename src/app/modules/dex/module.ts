@@ -30,7 +30,15 @@ import {
 } from 'lisk-sdk';
 import { isDeepStrictEqual } from 'util';
 
-import { MAX_TICK, MIN_TICK, MODULE_ID_DEX, NUM_BYTES_POOL_ID, NUM_BYTES_POSITION_ID, NUM_BYTES_TICK_ID, defaultConfig } from './constants';
+import {
+	MAX_TICK,
+	MIN_TICK,
+	MODULE_ID_DEX,
+	NUM_BYTES_POOL_ID,
+	NUM_BYTES_POSITION_ID,
+	NUM_BYTES_TICK_ID,
+	defaultConfig,
+} from './constants';
 
 import {
 	AmountBelowMinEvent,

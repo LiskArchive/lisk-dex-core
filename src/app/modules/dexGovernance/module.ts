@@ -393,7 +393,7 @@ export class DexGovernanceModule extends BaseModule {
 			) {
 				await proposalsStore.set(context, indexBuffer, {
 					...proposal,
-					status: PROPOSAL_STATUS_FAILED_QUORUM
+					status: PROPOSAL_STATUS_FAILED_QUORUM,
 				});
 			}
 
@@ -408,7 +408,7 @@ export class DexGovernanceModule extends BaseModule {
 
 			await indexStore.set(context, Buffer.alloc(0), {
 				...indexStoreData,
-				nextQuorumCheckIndex: indexStoreData.nextQuorumCheckIndex + 1
+				nextQuorumCheckIndex: indexStoreData.nextQuorumCheckIndex + 1,
 			});
 		}
 
@@ -437,8 +437,8 @@ export class DexGovernanceModule extends BaseModule {
 				);
 				await proposalsStore.set(context, indexBuffer, {
 					...proposal,
-					status: outcome
-				})
+					status: outcome,
+				});
 
 				if (
 					proposal.type === PROPOSAL_TYPE_INCENTIVIZATION &&
@@ -465,7 +465,7 @@ export class DexGovernanceModule extends BaseModule {
 
 			await indexStore.set(context, Buffer.alloc(0), {
 				...indexStoreData,
-				nextOutcomeCheckIndex: indexStoreData.nextOutcomeCheckIndex + 1
+				nextOutcomeCheckIndex: indexStoreData.nextOutcomeCheckIndex + 1,
 			});
 		}
 	}
