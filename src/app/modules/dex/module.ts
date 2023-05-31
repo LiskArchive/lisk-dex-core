@@ -30,7 +30,7 @@ import {
 } from 'lisk-sdk';
 import { isDeepStrictEqual } from 'util';
 
-import { MAX_TICK, MIN_TICK, MODULE_ID_DEX, NUM_BYTES_POOL_ID, defaultConfig } from './constants';
+import { MAX_TICK, MIN_TICK, MODULE_ID_DEX, NUM_BYTES_POOL_ID, NUM_BYTES_POSITION_ID, NUM_BYTES_TICK_ID, defaultConfig } from './constants';
 
 import {
 	AmountBelowMinEvent,
@@ -488,7 +488,7 @@ export class DexModule extends BaseModule {
 		const dexGlobalStore = this.stores.get(DexGlobalStore);
 
 		for (const [poolId, pool] of poolSubstoreData.entries()) {
-			await poolsStore.set(context, intToBuffer(poolId, 4), {
+			await poolsStore.set(context, intToBuffer(poolId, NUM_BYTES_POOL_ID), {
 				liquidity: pool.liquidity,
 				sqrtPrice: pool.sqrtPrice,
 				incentivesPerLiquidityAccumulator: pool.incentivesPerLiquidityAccumulator,
@@ -500,7 +500,7 @@ export class DexModule extends BaseModule {
 		}
 
 		for (const [priceTickId, priceTick] of priceTickSubstoreData.entries()) {
-			await priceTicksStore.set(context, intToBuffer(priceTickId, 4), {
+			await priceTicksStore.set(context, intToBuffer(priceTickId, NUM_BYTES_TICK_ID), {
 				liquidityNet: priceTick.liquidityNet,
 				liquidityGross: priceTick.liquidityGross,
 				feeGrowthOutside0: priceTick.feeGrowthOutside0,
@@ -510,7 +510,7 @@ export class DexModule extends BaseModule {
 		}
 
 		for (const [positionId, position] of positionSubstoreData.entries()) {
-			await positionsStore.set(context, intToBuffer(positionId, 4), {
+			await positionsStore.set(context, intToBuffer(positionId, NUM_BYTES_POSITION_ID), {
 				tickLower: position.tickLower,
 				tickUpper: position.tickUpper,
 				liquidity: position.liquidity,

@@ -139,9 +139,8 @@ export const votesSchema = {
 		},
 	},
 };
-
-export const indexSchema = {
-	$id: '/dexGovernance/index',
+export const indexStoreSchema = {
+	$id: '/dexGovernance/store/index',
 	type: 'object',
 	required: ['newestIndex', 'nextOutcomeCheckIndex', 'nextQuorumCheckIndex'],
 	properties: {
