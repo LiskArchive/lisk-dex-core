@@ -208,7 +208,7 @@ describe('DexGovernanceModule', () => {
 
 			const proposal: Proposal = {
 				creationHeight: 1,
-				votesYes: BigInt(QUORUM_PERCENTAGE) * BigInt("3000000000000"),
+				votesYes: BigInt(QUORUM_PERCENTAGE) * BigInt('3000000000000'),
 				votesNo: BigInt(100),
 				votesPass: BigInt(50),
 				type: PROPOSAL_TYPE_UNIVERSAL,
