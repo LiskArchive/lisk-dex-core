@@ -361,6 +361,7 @@ describe('dex:auxiliaryFunctions', () => {
 			});
 		});
 
+		// eslint-disable-next-line jest/no-disabled-tests
 		it.skip('should return [1n,25n] in result', async () => {
 			await computeCollectableIncentives(
 				dexGlobalStore,
@@ -375,6 +376,7 @@ describe('dex:auxiliaryFunctions', () => {
 			});
 		});
 
+		// eslint-disable-next-line jest/no-disabled-tests
 		it.skip('should return [0,0] as newTestpositionId!=positionId', async () => {
 			const newTestpositionId: PositionID = Buffer.from(
 				'0x00000000000100000000000000000000c8',
