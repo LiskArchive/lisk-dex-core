@@ -374,7 +374,7 @@ export class DexGovernanceModule extends BaseModule {
 			await hasEnded(
 				context,
 				proposalsStore,
-				indexStoreData.nextQuorumCheckIndex,
+				(await indexStore.get(context, Buffer.alloc(0))).nextQuorumCheckIndex,
 				height,
 				QUORUM_DURATION,
 			)
@@ -416,7 +416,7 @@ export class DexGovernanceModule extends BaseModule {
 			await hasEnded(
 				context,
 				proposalsStore,
-				indexStoreData.nextOutcomeCheckIndex,
+				(await indexStore.get(context, Buffer.alloc(0))).nextOutcomeCheckIndex,
 				height,
 				VOTE_DURATION,
 			)

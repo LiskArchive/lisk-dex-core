@@ -36,14 +36,14 @@ import {
 import { DexGovernanceModule } from '../../../../src/app/modules/dexGovernance/module';
 import { DexGovernanceEndpoint } from '../../../../src/app/modules/dexGovernance/endpoint';
 import { Index, Proposal, Vote } from '../../../../src/app/modules/dexGovernance/types';
-import { PoolID } from '../../../../src/app/modules/dex/types';
 
 import {
 	EVENT_NAME_PROPOSAL_OUTCOME_CHECKED,
 	EVENT_NAME_PROPOSAL_QUORUM_CHECKED,
 	MODULE_NAME_DEX_GOVERNANCE,
 	PROPOSAL_STATUS_ACTIVE,
-	PROPOSAL_TYPE_INCENTIVIZATION,
+	PROPOSAL_TYPE_UNIVERSAL,
+	QUORUM_PERCENTAGE,
 	VOTE_DURATION,
 } from '../../../../src/app/modules/dexGovernance/constants';
 
@@ -206,16 +206,15 @@ describe('DexGovernanceModule', () => {
 				header: blockHeader,
 			}).getBlockExecuteContext();
 
-			const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 			const proposal: Proposal = {
 				creationHeight: 1,
-				votesYes: BigInt(200),
+				votesYes: BigInt(QUORUM_PERCENTAGE) * BigInt("3000000000000"),
 				votesNo: BigInt(100),
 				votesPass: BigInt(50),
-				type: PROPOSAL_TYPE_INCENTIVIZATION,
+				type: PROPOSAL_TYPE_UNIVERSAL,
 				content: {
 					text: Buffer.alloc(1),
-					poolID: poolId,
+					poolID: Buffer.alloc(0),
 					multiplier: 2,
 					metadata: {
 						title: Buffer.alloc(1),
