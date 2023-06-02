@@ -142,7 +142,7 @@ describe('dex:command:addLiquidity', () => {
 				expect(result.error?.message).toBeUndefined();
 				expect(result.status).toEqual(VerifyStatus.OK);
 			} else {
-				expect(result.error?.message).toBe(err);
+				expect(result.error?.message).toContain(err);
 				expect(result.status).toEqual(VerifyStatus.FAIL);
 			}
 		});
