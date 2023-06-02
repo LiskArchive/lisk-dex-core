@@ -69,7 +69,7 @@ export class AddLiquidityCommand extends BaseCommand {
 		if (ctx.header.timestamp > ctx.params.maxTimestampValid) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('Current timestamp is over maxTimestampValid'),
+				error: new Error(`Current timestamp is over maxTimestampValid: ${maxTimestampValid}`),
 			};
 		}
 
