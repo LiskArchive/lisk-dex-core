@@ -44,7 +44,8 @@
 			"brackets": ["400000000", "350000000", "300000000", "250000000", "200000000"]
 		},
 		"fee": {
-			"feeTokenID": "0400001100000000"
+			"feeTokenID": "0400001100000000",
+			"feePoolAddress": "lsk9e3umcuq2xbg26kkugygyk4ztqzg2w2e6z8hap"
 		},
 		"token": {
 			"feeTokenID": "0400001100000000"
