@@ -51,10 +51,10 @@ import {
 	getProposalResponseSchema,
 	getUserVotesRequestSchema,
 	getUserVotesResponseSchema,
-	indexSchema,
 	proposalSchema,
 	votesSchema,
 	genesisDEXGovernanceSchema,
+	indexStoreSchema,
 } from './schemas';
 import { IndexStore, ProposalsStore, VotesStore } from './stores';
 import { GenesisDEXGovernanceData } from './types';
@@ -72,10 +72,11 @@ import {
 	PROPOSAL_STATUS_FINISHED_ACCEPTED,
 	QUORUM_PERCENTAGE,
 	defaultConfig,
+	LENGTH_PROPOSAL_ID,
 } from './constants';
 import { IndexStoreData } from './stores/indexStore';
 import { getVoteOutcome, hasEnded } from './utils/auxiliaryFunctions';
-import { updateIncentivizedPools } from '../dex/utils/auxiliaryFunctions';
+import { DexModule } from '../dex/module';
 
 export class DexGovernanceModule extends BaseModule {
 	public id = MODULE_NAME_DEX_GOVERNANCE;
@@ -93,10 +94,10 @@ export class DexGovernanceModule extends BaseModule {
 
 	public constructor() {
 		super();
-		this.stores.register(IndexStore, new IndexStore(this.name));
-		this.stores.register(ProposalsStore, new ProposalsStore(this.name));
-		this.stores.register(VotesStore, new VotesStore(this.name));
-		this.stores.register(PoolsStore, new PoolsStore(this.name));
+		this.stores.register(IndexStore, new IndexStore(this.name, 0));
+		this.stores.register(ProposalsStore, new ProposalsStore(this.name, 1));
+		this.stores.register(VotesStore, new VotesStore(this.name, 2));
+		this.stores.register(PoolsStore, new PoolsStore(this.name, 3));
 		this.events.register(ProposalCreatedEvent, new ProposalCreatedEvent(this.name));
 		this.events.register(ProposalCreationFailedEvent, new ProposalCreationFailedEvent(this.name));
 		this.events.register(ProposalOutcomeCheckedEvent, new ProposalOutcomeCheckedEvent(this.name));
@@ -134,7 +135,7 @@ export class DexGovernanceModule extends BaseModule {
 			stores: [
 				{
 					key: IndexStore.name,
-					data: indexSchema,
+					data: indexStoreSchema,
 				},
 				{
 					key: ProposalsStore.name,
@@ -241,7 +242,7 @@ export class DexGovernanceModule extends BaseModule {
 			nextQuorumCheckIndex,
 		};
 
-		await indexStore.set(context, Buffer.from([]), indexStoreData);
+		await indexStore.set(context, Buffer.alloc(0), indexStoreData);
 	}
 
 	public verifyGenesisBlock(context: GenesisBlockExecuteContext) {
@@ -373,7 +374,9 @@ export class DexGovernanceModule extends BaseModule {
 			await hasEnded(
 				context,
 				proposalsStore,
-				indexStoreData.nextQuorumCheckIndex,
+				(
+					await indexStore.get(context, Buffer.alloc(0))
+				).nextQuorumCheckIndex,
 				height,
 				QUORUM_DURATION,
 			)
@@ -390,7 +393,10 @@ export class DexGovernanceModule extends BaseModule {
 				turnout * BigInt(1000000) <
 				QUORUM_PERCENTAGE * tokenTotalSupply.totalSupply[0].totalSupply
 			) {
-				proposal.status = PROPOSAL_STATUS_FAILED_QUORUM;
+				await proposalsStore.set(context, indexBuffer, {
+					...proposal,
+					status: PROPOSAL_STATUS_FAILED_QUORUM,
+				});
 			}
 
 			this.events.get(ProposalQuorumCheckedEvent).add(
@@ -401,20 +407,26 @@ export class DexGovernanceModule extends BaseModule {
 				},
 				[indexBuffer],
 			);
-			indexStoreData.nextQuorumCheckIndex += 1;
+
+			await indexStore.set(context, Buffer.alloc(0), {
+				...indexStoreData,
+				nextQuorumCheckIndex: indexStoreData.nextQuorumCheckIndex + 1,
+			});
 		}
 
 		while (
 			await hasEnded(
 				context,
 				proposalsStore,
-				indexStoreData.nextOutcomeCheckIndex,
+				(
+					await indexStore.get(context, Buffer.alloc(0))
+				).nextOutcomeCheckIndex,
 				height,
 				VOTE_DURATION,
 			)
 		) {
 			const index = indexStoreData.nextOutcomeCheckIndex;
-			const indexBuffer = Buffer.alloc(4);
+			const indexBuffer = Buffer.alloc(LENGTH_PROPOSAL_ID);
 			indexBuffer.writeUInt32BE(index, 0);
 
 			const proposal = await proposalsStore.get(context, indexBuffer);
@@ -427,15 +439,18 @@ export class DexGovernanceModule extends BaseModule {
 					proposal.votesNo,
 					proposal.votesPass,
 				);
-				proposal.status = outcome;
+				await proposalsStore.set(context, indexBuffer, {
+					...proposal,
+					status: outcome,
+				});
 
 				if (
 					proposal.type === PROPOSAL_TYPE_INCENTIVIZATION &&
 					outcome === PROPOSAL_STATUS_FINISHED_ACCEPTED
 				) {
-					await updateIncentivizedPools(
+					const dexModule = new DexModule();
+					await dexModule.method.updateIncentivizedPools(
 						context,
-						this.stores,
 						proposal.content.poolID,
 						proposal.content.multiplier,
 						height,
@@ -451,7 +466,11 @@ export class DexGovernanceModule extends BaseModule {
 					[indexBuffer],
 				);
 			}
-			indexStoreData.nextOutcomeCheckIndex += 1;
+
+			await indexStore.set(context, Buffer.alloc(0), {
+				...indexStoreData,
+				nextOutcomeCheckIndex: indexStoreData.nextOutcomeCheckIndex + 1,
+			});
 		}
 	}
 }

@@ -11,7 +11,7 @@
 		},
 		"blockTime": 10,
 		"bftBatchSize": 103,
-		"chainID": "04000000",
+		"chainID": "04000011",
 		"maxTransactionsSize": 15360
 	},
 	"generator": {
@@ -36,7 +36,21 @@
 		"minEntranceFeePriority": "0",
 		"minReplacementFeeDifference": "10"
 	},
-	"modules": {},
+	"modules": {
+		"dynamicReward": {
+			"tokenID": "0400001100000000",
+			"offset": 259975,
+			"distance": 3153600,
+			"brackets": ["400000000", "350000000", "300000000", "250000000", "200000000"]
+		},
+		"fee": {
+			"feeTokenID": "0400001100000000",
+			"feePoolAddress": "lsk9e3umcuq2xbg26kkugygyk4ztqzg2w2e6z8hap"
+		},
+		"token": {
+			"feeTokenID": "0400001100000000"
+		}
+	},
 	"plugins": {
 		"reportMisbehavior": {
 			"encryptedPassphrase": "iterations=10&cipherText=5dea8b928a3ea2481ebc02499ae77679b7552189181ff189d4aa1f8d89e8d07bf31f7ebd1c66b620769f878629e1b90499506a6f752bf3323799e3a54600f8db02f504c44d&iv=37e0b1753b76a90ed0b8c319&salt=963c5b91d3f7ba02a9d001eed49b5836&tag=c3e30e8f3440ba3f5b6d9fbaccc8918d&version=1"

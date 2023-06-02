@@ -14,32 +14,13 @@
  */
 
 import { BaseStore, StoreGetter } from 'lisk-sdk';
+import { indexStoreSchema } from '../schemas';
 
 export interface IndexStoreData {
 	newestIndex: number;
 	nextOutcomeCheckIndex: number;
 	nextQuorumCheckIndex: number;
 }
-
-export const indexStoreSchema = {
-	$id: '/dexGovernance/store/index',
-	type: 'object',
-	required: ['newestIndex', 'nextOutcomeCheckIndex', 'nextQuorumCheckIndex'],
-	properties: {
-		newestIndex: {
-			dataType: 'uint32',
-			fieldNumber: 1,
-		},
-		nextOutcomeCheckIndex: {
-			dataType: 'uint32',
-			fieldNumber: 2,
-		},
-		nextQuorumCheckIndex: {
-			dataType: 'uint32',
-			fieldNumber: 3,
-		},
-	},
-};
 
 export class IndexStore extends BaseStore<IndexStoreData> {
 	public schema = indexStoreSchema;

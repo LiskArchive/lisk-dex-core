@@ -20,9 +20,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MethodContext, TokenMethod, cryptography, ModuleEndpointContext } from 'lisk-sdk';
+import { MethodContext, TokenMethod, cryptography, ModuleEndpointContext, codec } from 'lisk-sdk';
 import { NamedRegistry } from 'lisk-framework/dist-node/modules/named_registry';
+import { genesisTokenStoreSchema } from 'lisk-framework/dist-node/modules/token';
+import { GenesisTokenStore } from 'lisk-framework/dist-node/modules/token/types';
 import { MAX_SINT32 } from '@liskhq/lisk-validator';
+
 import {
 	DexGlobalStore,
 	PoolsStore,
@@ -52,6 +55,10 @@ import {
 	TOKEN_ID_INCENTIVES,
 	ADDRESS_LIQUIDITY_PROVIDERS_INCENTIVES_POOL,
 	MODULE_NAME_DEX,
+	TOKEN_ID_DEX,
+	ALL_SUPPORTED_TOKENS_KEY,
+	MODULE_NAME_TOKEN,
+	ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
 } from '../constants';
 
 import {
@@ -63,6 +70,7 @@ import {
 	routeInterface,
 	AdjacentEdgesInterface,
 	TickID,
+	TokenDistribution,
 } from '../types';
 
 import {
@@ -267,7 +275,7 @@ export const collectFeesAndIncentives = async (
 	positionInfo.feeGrowthInsideLast1 = q96ToBytes(feeGrowthInside1);
 
 	await positionsStore.set(methodContext, positionID, positionInfo);
-	const [collectableFeesLSK, incentivesForPosition] = await computeCollectableIncentives(
+	const [_, incentivesForPosition] = await computeCollectableIncentives(
 		dexGlobalStore,
 		tokenMethod,
 		methodContext,
@@ -284,7 +292,7 @@ export const collectFeesAndIncentives = async (
 		incentivesForPosition,
 	);
 	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.alloc(0));
-	dexGlobalStoreData.collectableLSKFees -= collectableFeesLSK;
+	// dexGlobalStoreData.collectableLSKFees -= collectableFeesLSK;
 	await dexGlobalStore.set(methodContext, Buffer.alloc(0), dexGlobalStoreData);
 
 	events.get(FeesIncentivesCollectedEvent).log(methodContext, {
@@ -775,52 +783,9 @@ export const updatePosition = async (
 	return [amount0, amount1];
 };
 
-export const addPoolCreationSettings = async (
-	methodContext: MethodContext,
-	stores: NamedRegistry,
-	feeTier: number,
-	tickSpacing: number,
-) => {
-	if (feeTier > 1000000) {
-		throw new Error('Fee tier can not be greater than 100%');
-	}
-	const settingGlobalStore = stores.get(SettingsStore);
-	const settingGlobalStoreData = await settingGlobalStore.get(methodContext, Buffer.alloc(0));
-	if (settingGlobalStoreData.poolCreationSettings.feeTier === feeTier) {
-		throw new Error('Can not update fee tier');
-	}
-	settingGlobalStoreData.poolCreationSettings[0] = { feeTier, tickSpacing };
-	await settingGlobalStore.set(methodContext, Buffer.alloc(0), settingGlobalStoreData);
-};
-
 export const getProtocolSettings = async (methodContext: MethodContext, stores: NamedRegistry) => {
 	const dexGlobalStoreData = await getDexGlobalData(methodContext, stores);
 	return dexGlobalStoreData;
-};
-
-export const updateIncentivizedPools = async (
-	methodContext: MethodContext,
-	stores: NamedRegistry,
-	poolId: PoolID,
-	multiplier: number,
-	currentHeight: number,
-) => {
-	const dexGlobalStoreData = await getDexGlobalData(methodContext, stores);
-
-	for (const incentivizedPool of dexGlobalStoreData.incentivizedPools) {
-		await updatePoolIncentives(methodContext, stores, incentivizedPool.poolId, currentHeight);
-	}
-	dexGlobalStoreData.incentivizedPools.forEach((incentivizedPools, index) => {
-		if (incentivizedPools.poolId.equals(poolId)) {
-			dexGlobalStoreData.totalIncentivesMultiplier -= incentivizedPools.multiplier;
-			dexGlobalStoreData.incentivizedPools.splice(index, 1);
-		}
-	});
-	if (multiplier > 0) {
-		dexGlobalStoreData.totalIncentivesMultiplier += multiplier;
-		dexGlobalStoreData.incentivizedPools.push({ poolId, multiplier });
-		dexGlobalStoreData.incentivizedPools.sort((a, b) => (a.poolId < b.poolId ? -1 : 1));
-	}
 };
 
 export const getToken0Amount = async (
@@ -854,11 +819,6 @@ export const getAllTicks = async (
 		tickIds.push(tickId.key);
 	});
 	return tickIds;
-};
-
-export const poolExists = async (methodContext, poolsStore: PoolsStore, poolId: PoolID) => {
-	const result = poolsStore.has(methodContext, poolId);
-	return result;
 };
 
 export const computeCurrentPrice = async (
@@ -1184,24 +1144,6 @@ export const getPool = async (
 	return poolStoreData;
 };
 
-export const getCurrentSqrtPrice = async (
-	methodContext: MethodContext,
-	stores: NamedRegistry,
-	poolID: PoolID,
-	priceDirection: boolean,
-): Promise<Q96> => {
-	const pools = await getPool(methodContext, stores, poolID);
-	if (pools == null) {
-		throw new Error();
-	}
-
-	const q96SqrtPrice = bytesToQ96(pools.sqrtPrice);
-	if (priceDirection) {
-		return q96SqrtPrice;
-	}
-	return invQ96(q96SqrtPrice);
-};
-
 export const getDexGlobalData = async (
 	methodContext: MethodContext,
 	stores: NamedRegistry,
@@ -1238,4 +1180,68 @@ export const getTickWithPoolIdAndTickValue = async (
 	} else {
 		return priceTicksStoreData;
 	}
+};
+
+export const computeTokenGenesisAsset = (tokenDistribution: TokenDistribution) => {
+	// initialize account with address ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES
+	let accountIndex = tokenDistribution.accounts.findIndex(
+		el => el.address === ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
+	);
+	if (accountIndex === -1) {
+		tokenDistribution.accounts.push({
+			address: ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES,
+			balance: BigInt(0),
+		});
+	} else {
+		// eslint-disable-next-line no-param-reassign
+		tokenDistribution.accounts[accountIndex].balance = BigInt(0);
+	}
+
+	accountIndex = tokenDistribution.accounts.findIndex(
+		el => el.address === ADDRESS_VALIDATOR_INCENTIVES,
+	);
+	if (accountIndex === -1) {
+		tokenDistribution.accounts.push({
+			address: ADDRESS_VALIDATOR_INCENTIVES,
+			balance: BigInt(0),
+		});
+	} else {
+		// eslint-disable-next-line no-param-reassign
+		tokenDistribution.accounts[accountIndex].balance = BigInt(0);
+	}
+
+	const tokenModuleAsset: GenesisTokenStore = {
+		userSubstore: [],
+		supplySubstore: [],
+		escrowSubstore: [],
+		supportedTokensSubstore: [],
+	};
+	let totalSupply = BigInt(0);
+
+	for (const account of tokenDistribution.accounts) {
+		tokenModuleAsset.userSubstore.push({
+			address: account.address,
+			tokenID: TOKEN_ID_DEX,
+			availableBalance: account.balance,
+			lockedBalances: [],
+		});
+		totalSupply += account.balance;
+	}
+	tokenModuleAsset.userSubstore.sort((a, b) => a.address.compare(b.address));
+
+	tokenModuleAsset.supplySubstore.push({
+		tokenID: TOKEN_ID_DEX,
+		totalSupply,
+	});
+
+	tokenModuleAsset.supportedTokensSubstore.push({
+		chainID: ALL_SUPPORTED_TOKENS_KEY,
+		supportedTokenIDs: [],
+	});
+
+	const data = codec.encode(genesisTokenStoreSchema, tokenModuleAsset);
+	return {
+		module: MODULE_NAME_TOKEN,
+		data,
+	};
 };

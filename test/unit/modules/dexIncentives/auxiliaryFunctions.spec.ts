@@ -90,9 +90,12 @@ describe('dexIncentives:auxiliaryFunctions', () => {
 
 		it('getLPIncentivesInRange', () => {
 			expect(() => getLPIncentivesInRange(1, 0)).toThrow();
-			expect(getLPIncentivesInRange(BOOTSTRAP_PERIOD_OFFSET, BOOTSTRAP_PERIOD_OFFSET + 1)).toBe(
-				BigInt('400000000'),
-			);
+			expect(
+				getLPIncentivesInRange(
+					Number(BOOTSTRAP_PERIOD_OFFSET),
+					Number(BOOTSTRAP_PERIOD_OFFSET) + 1,
+				),
+			).toBe(BigInt('400000000'));
 		});
 	});
 });

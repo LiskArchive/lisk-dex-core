@@ -16,7 +16,19 @@ import { CCMsg } from 'lisk-framework/dist-node/modules/interoperability/types';
 import { ImmutableMethodContext } from 'lisk-framework/dist-node/state_machine';
 import { MethodContext } from 'lisk-framework/dist-node/state_machine/method_context';
 import { JSONObject } from 'lisk-sdk';
+import { DexGlobalStoreData } from './stores/dexGlobalStore';
+import { PoolsStoreData } from './stores/poolsStore';
+import { PositionsStoreData } from './stores/positionsStore';
+import { PriceTicksStoreData } from './stores/priceTicksStore';
+import { SettingsStoreData } from './stores/settingsStore';
 
+export type GenesisDEX = {
+	stateStore: DexGlobalStoreData;
+	poolSubstore: PoolsStoreData[];
+	priceTickSubstore: PriceTicksStoreData[];
+	positionSubstore: PositionsStoreData[];
+	settingsSubstore: SettingsStoreData[];
+};
 export interface FeeTiers {
 	[id: number]: number;
 }
@@ -152,6 +164,12 @@ export type feesInterface = {
 	out: bigint;
 };
 
+export interface TokenDistribution {
+	accounts: {
+		address: Buffer;
+		balance: bigint;
+	}[];
+}
 export interface swapWithPriceLimitParamsData {
 	tokenIdIn: Buffer;
 	maxAmountTokenIn: bigint;

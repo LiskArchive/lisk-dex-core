@@ -1,7 +1,3 @@
-/* eslint-disable import/no-cycle */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -15,15 +11,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 import { MethodContext, TokenMethod } from 'lisk-framework';
-import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_machine';
 
-import {
-	getPoolIDFromPositionID,
-	getPool,
-} from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
-
+import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
+import { getPoolIDFromPositionID } from '../../../../src/app/modules/dex/utils/auxiliaryFunctions';
 import { Address, PoolID, PositionID } from '../../../../src/app/modules/dex/types';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
@@ -44,21 +37,15 @@ import {
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
-import {
-	computeNewIncentivesPerLiquidity,
-	updatePoolIncentives,
-} from '../../../../src/app/modules/dex/utils/tokenEcnomicsFunctions';
 
-describe('dex:tokenEcnomicsFunctions', () => {
+describe('dex:auxiliaryFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
-	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
 	const dexModule = new DexModule();
-
-	const inMemoryPrefixedStateDB = new InMemoryPrefixedStateDB();
 	const tokenMethod = new TokenMethod(dexModule.stores, dexModule.events, dexModule.name);
-	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(inMemoryPrefixedStateDB);
+
+	const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
 	const methodContext: MethodContext = createMethodContext({
 		contextStore: new Map(),
@@ -81,7 +68,7 @@ describe('dex:tokenEcnomicsFunctions', () => {
 	const poolsStoreData: PoolsStoreData = {
 		liquidity: BigInt(5),
 		sqrtPrice: q96ToBytes(BigInt(tickToPrice(5))),
-		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(1))),
+		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
 		heightIncentivesUpdate: 5,
 		feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(0))),
 		feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(0))),
@@ -148,29 +135,16 @@ describe('dex:tokenEcnomicsFunctions', () => {
 				[senderAddress, getPoolIDFromPositionID(positionId)],
 				poolsStoreData,
 			);
-
-			await poolsStore.setKey(methodContext, [poolId], poolsStoreData);
-			await poolsStore.setKey(methodContext, [poolIdLSK], poolsStoreData);
-			await poolsStore.set(methodContext, poolIdLSK, poolsStoreData);
 			await poolsStore.set(methodContext, getPoolIDFromPositionID(positionId), poolsStoreData);
+
+			await poolsStore.setKey(methodContext, [senderAddress, poolId], poolsStoreData);
+			await poolsStore.set(methodContext, poolId, poolsStoreData);
 
 			await priceTicksStore.setKey(
 				methodContext,
 				[getPoolIDFromPositionID(positionId), tickToBytes(positionsStoreData.tickLower)],
 				priceTicksStoreDataTickLower,
 			);
-
-			await priceTicksStore.setKey(
-				methodContext,
-				[
-					Buffer.from(
-						getPoolIDFromPositionID(positionId).toLocaleString() + tickToBytes(5).toLocaleString(),
-						'hex',
-					),
-				],
-				priceTicksStoreDataTickLower,
-			);
-
 			await priceTicksStore.setKey(
 				methodContext,
 				[getPoolIDFromPositionID(positionId), tickToBytes(positionsStoreData.tickUpper)],
@@ -203,18 +177,44 @@ describe('dex:tokenEcnomicsFunctions', () => {
 			tokenMethod.getLockedAmount = getLockedAmountMock.mockReturnValue(BigInt(5));
 		});
 
-		it('updatePoolIncentives', async () => {
-			const pool = await getPool(methodContext, dexModule.stores, poolId);
-			await poolsStore.set(methodContext, poolId, poolsStoreData);
-			const currentHeight = pool.heightIncentivesUpdate + 10;
-			const newIncentivesPerLiquidity = await computeNewIncentivesPerLiquidity(
+		it('poolExists', async () => {
+			const poolExistResult = await dexModule.method.poolExists(methodContext, poolsStore, poolId);
+			const exists = await poolsStore.has(methodContext, poolId);
+			expect(poolExistResult).toEqual(exists);
+		});
+
+		it('addPoolCreationSettings', async () => {
+			const tickSpacing = 10;
+			const feeTier = 10;
+			await dexModule.method.addPoolCreationSettings(methodContext, feeTier, tickSpacing);
+
+			const settingGlobalStore = dexModule.stores.get(SettingsStore);
+			const settingGlobalStoreData = await settingGlobalStore.get(methodContext, Buffer.alloc(0));
+
+			expect(settingGlobalStoreData.poolCreationSettings[0].feeTier).toEqual(feeTier);
+			expect(settingGlobalStoreData.poolCreationSettings[0].feeTier).toEqual(tickSpacing);
+		});
+
+		it('updateIncentivizedPools', async () => {
+			const tickSpacing = 10;
+			const feeTier = 10;
+			await dexModule.method.addPoolCreationSettings(methodContext, feeTier, tickSpacing);
+			await dexModule.method.updateIncentivizedPools(methodContext, poolId, 100, 1000000);
+
+			const settingGlobalStore = dexModule.stores.get(SettingsStore);
+			const settingGlobalStoreData = await settingGlobalStore.get(methodContext, Buffer.alloc(0));
+
+			expect(settingGlobalStoreData.poolCreationSettings[0].feeTier).toEqual(feeTier);
+			expect(settingGlobalStoreData.poolCreationSettings[0].feeTier).toEqual(tickSpacing);
+		});
+
+		it('getCurrentSqrtPrice', async () => {
+			const currentSqrtPrice = await dexModule.method.getCurrentSqrtPrice(
 				methodContext,
-				dexModule.stores,
 				poolId,
-				currentHeight,
+				true,
 			);
-			await updatePoolIncentives(methodContext, dexModule.stores, poolId, currentHeight);
-			expect(newIncentivesPerLiquidity).toEqual(BigInt(79228162514264337593543950336));
+			expect(currentSqrtPrice).toEqual(BigInt('79247971040445709311708648151'));
 		});
 	});
 });

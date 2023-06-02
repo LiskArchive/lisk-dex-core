@@ -139,14 +139,13 @@ export const votesSchema = {
 		},
 	},
 };
-
-export const indexSchema = {
-	$id: '/dexGovernance/index',
+export const indexStoreSchema = {
+	$id: '/dexGovernance/store/index',
 	type: 'object',
 	required: ['newestIndex', 'nextOutcomeCheckIndex', 'nextQuorumCheckIndex'],
 	properties: {
 		newestIndex: {
-			dataType: 'uint32',
+			dataType: 'sint32',
 			fieldNumber: 1,
 		},
 		nextOutcomeCheckIndex: {
@@ -339,7 +338,7 @@ export const getIndexStoreResponseSchema = {
 			required: ['newestIndex', 'nextOutcomeCheckIndex', 'nextQuorumCheckIndex'],
 			newestIndex: {
 				type: 'string',
-				format: 'uint32',
+				format: 'sint32',
 			},
 			nextOutcomeCheckIndex: {
 				type: 'string',

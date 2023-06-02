@@ -38,7 +38,7 @@ const commonParams = {
 	amount1Desired: BigInt(1000),
 	amount0Min: BigInt(0),
 	amount1Min: BigInt(0),
-	maxTimestampValid: BigInt(1000),
+	maxTimestampValid: BigInt(100000000000),
 };
 export const addLiquidityFixtures: Fixtures = [
 	[
@@ -62,5 +62,16 @@ export const addLiquidityFixtures: Fixtures = [
 			}),
 		},
 		'Please specify valid amounts',
+	],
+	[
+		'should fail when header.timestamp > maxTimestampValid',
+		{
+			...commonTransactionAttrs,
+			params: codec.encode(addLiquiditySchema, {
+				...commonParams,
+				maxTimestampValid: BigInt(0),
+			}),
+		},
+		'Current timestamp is over maxTimestampValid',
 	],
 ];

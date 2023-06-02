@@ -68,7 +68,6 @@ describe('dex:command:createPool', () => {
 
 	const dexGlobalStoreData: DexGlobalStoreData = {
 		positionCounter: BigInt(15),
-		collectableLSKFees: BigInt(10),
 		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
 		incentivizedPools: [{ poolId, multiplier: 10 }],
 		totalIncentivesMultiplier: 1,
@@ -90,6 +89,8 @@ describe('dex:command:createPool', () => {
 		validatorModule = new ValidatorsModule();
 		feeModule = new FeeModule();
 
+		feeModule.method.payFee = jest.fn();
+
 		tokenModule.method.mint = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.lock = jest.fn().mockImplementation(async () => Promise.resolve());
 		tokenModule.method.unlock = jest.fn().mockImplementation(async () => Promise.resolve());
@@ -97,7 +98,11 @@ describe('dex:command:createPool', () => {
 		tokenModule.method.getLockedAmount = jest.fn().mockResolvedValue(BigInt(1000));
 		dexModule.addDependencies(tokenModule.method, validatorModule.method, feeModule.method);
 		command = dexModule.commands.find(e => e.name === 'createPool');
-		command.init({ moduleConfig: defaultConfig, tokenMethod: tokenModule.method });
+		command.init({
+			moduleConfig: defaultConfig,
+			tokenMethod: tokenModule.method,
+			feeMethod: feeModule.method,
+		});
 	});
 
 	describe('verify', () => {
@@ -145,7 +150,8 @@ describe('dex:command:createPool', () => {
 		it(`should call token methods and emit events`, async () => {
 			await command.execute(context.createCommandExecuteContext(createPoolSchema));
 			expect(dexModule._tokenMethod.lock).toHaveBeenCalledTimes(2);
-			expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(4);
+			expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(3);
+			expect(dexModule._feeMethod.payFee).toHaveBeenCalledTimes(1);
 
 			const events = context.eventQueue.getEvents();
 			const poolCreatedEvents = events.filter(e => e.toObject().name === 'poolCreated');
@@ -170,7 +176,8 @@ describe('dex:command:createPool', () => {
 					});
 					await command.execute(context.createCommandExecuteContext(createPoolSchema));
 					expect(dexModule._tokenMethod.lock).toHaveBeenCalledTimes(2);
-					expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(4);
+					expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(3);
+					expect(dexModule._feeMethod.payFee).toHaveBeenCalledTimes(1);
 					const events = context.eventQueue.getEvents();
 					const poolCreatedEvents = events.filter(e => e.toObject().name === 'poolCreated');
 					const positionCreatedEvents = events.filter(e => e.toObject().name === 'positionCreated');

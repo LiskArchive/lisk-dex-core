@@ -66,6 +66,8 @@ describe('dex:command:removeLiquidity', () => {
 	const positionId: PositionID = Buffer.from('00000001000000000101643130', 'hex');
 	const liquidityToRemove = BigInt(-2);
 
+	const maxTimestampValid = BigInt(100000000000);
+
 	const transferMock = jest.fn();
 	const lockMock = jest.fn();
 	const unlockMock = jest.fn();
@@ -111,7 +113,6 @@ describe('dex:command:removeLiquidity', () => {
 
 	const dexGlobalStoreData: DexGlobalStoreData = {
 		positionCounter: BigInt(10),
-		collectableLSKFees: BigInt(10),
 		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
 		incentivizedPools: [{ poolId, multiplier: 10 }],
 		totalIncentivesMultiplier: 1,
@@ -123,6 +124,7 @@ describe('dex:command:removeLiquidity', () => {
 		feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(3))),
 		feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(1))),
 		ownerAddress: senderAddress,
+		incentivesPerLiquidityLast: Buffer.alloc(0),
 	};
 
 	beforeEach(async () => {
@@ -187,7 +189,7 @@ describe('dex:command:removeLiquidity', () => {
 						liquidityToRemove: BigInt(250),
 						amount0Min: BigInt(1000),
 						amount1Min: BigInt(1000),
-						maxTimestampValid: BigInt(1000),
+						maxTimestampValid,
 					}),
 					signatures: [utils.getRandomBytes(64)],
 				}),
@@ -197,6 +199,30 @@ describe('dex:command:removeLiquidity', () => {
 			);
 			expect(result.error?.message).toBeUndefined();
 			expect(result.status).toEqual(VerifyStatus.OK);
+		});
+		it('should not be successful when current timestamp is over maxTimestampValid', async () => {
+			const context = createTransactionContext({
+				transaction: new Transaction({
+					module: 'dex',
+					command: 'removeLiquidty',
+					fee: BigInt(5000000),
+					nonce: BigInt(0),
+					senderPublicKey: senderAddress,
+					params: codec.encode(removeLiquiditySchema, {
+						positionID: Buffer.from('0000000100', 'hex'),
+						liquidityToRemove: BigInt(250),
+						amount0Min: BigInt(1000),
+						amount1Min: BigInt(1000),
+						maxTimestampValid: BigInt(0),
+					}),
+					signatures: [utils.getRandomBytes(64)],
+				}),
+			});
+			const result = await command.verify(
+				context.createCommandVerifyContext(removeLiquiditySchema),
+			);
+			expect(result.error?.message).toBe('Current timestamp is over maxTimestampValid');
+			expect(result.status).toEqual(VerifyStatus.FAIL);
 		});
 	});
 
@@ -212,7 +238,7 @@ describe('dex:command:removeLiquidity', () => {
 						liquidityToRemove,
 						amount0Min: BigInt(1000),
 						amount1Min: BigInt(1000),
-						maxTimestampValid: BigInt(1000),
+						maxTimestampValid,
 					},
 					logger: loggerMock,
 					header: createFakeBlockHeader(),
@@ -231,7 +257,7 @@ describe('dex:command:removeLiquidity', () => {
 							liquidityToRemove,
 							amount0Min: BigInt(1000),
 							amount1Min: BigInt(1000),
-							maxTimestampValid: BigInt(1000),
+							maxTimestampValid,
 						}),
 						signatures: [utils.getRandomBytes(64)],
 					}),
@@ -252,7 +278,7 @@ describe('dex:command:removeLiquidity', () => {
 						liquidityToRemove: BigInt(-1000000000000000),
 						amount0Min: BigInt(0),
 						amount1Min: BigInt(0),
-						maxTimestampValid: BigInt(1000),
+						maxTimestampValid,
 					},
 					logger: loggerMock,
 					header: createFakeBlockHeader(),
@@ -271,7 +297,7 @@ describe('dex:command:removeLiquidity', () => {
 							liquidityToRemove: BigInt(-1000000000000000),
 							amount0Min: BigInt(1000),
 							amount1Min: BigInt(1000),
-							maxTimestampValid: BigInt(1000),
+							maxTimestampValid,
 						}),
 						signatures: [utils.getRandomBytes(64)],
 					}),
@@ -302,7 +328,7 @@ describe('dex:command:removeLiquidity', () => {
 						liquidityToRemove,
 						amount0Min: BigInt(0),
 						amount1Min: BigInt(0),
-						maxTimestampValid: BigInt(1000),
+						maxTimestampValid,
 					},
 					logger: loggerMock,
 					header: blockHeader,
@@ -321,7 +347,7 @@ describe('dex:command:removeLiquidity', () => {
 							liquidityToRemove,
 							amount0Min: BigInt(1000),
 							amount1Min: BigInt(1000),
-							maxTimestampValid: BigInt(1000),
+							maxTimestampValid,
 						}),
 						signatures: [utils.getRandomBytes(64)],
 					}),
@@ -352,7 +378,7 @@ describe('dex:command:removeLiquidity', () => {
 						liquidityToRemove,
 						amount0Min: BigInt(0),
 						amount1Min: BigInt(1000),
-						maxTimestampValid: BigInt(1000),
+						maxTimestampValid,
 					},
 					logger: loggerMock,
 					header: createFakeBlockHeader(),
@@ -371,7 +397,7 @@ describe('dex:command:removeLiquidity', () => {
 							liquidityToRemove,
 							amount0Min: BigInt(1000),
 							amount1Min: BigInt(1000),
-							maxTimestampValid: BigInt(1000),
+							maxTimestampValid,
 						}),
 						signatures: [utils.getRandomBytes(64)],
 					}),
@@ -392,7 +418,7 @@ describe('dex:command:removeLiquidity', () => {
 						liquidityToRemove,
 						amount0Min: BigInt('158456325028528675187087900671'),
 						amount1Min: BigInt(0),
-						maxTimestampValid: BigInt(1000),
+						maxTimestampValid,
 					},
 					logger: loggerMock,
 					header: createFakeBlockHeader(),
@@ -411,7 +437,7 @@ describe('dex:command:removeLiquidity', () => {
 							liquidityToRemove,
 							amount0Min: BigInt(1000),
 							amount1Min: BigInt(1000),
-							maxTimestampValid: BigInt(1000),
+							maxTimestampValid,
 						}),
 						signatures: [utils.getRandomBytes(64)],
 					}),
@@ -450,7 +476,7 @@ describe('dex:command:removeLiquidity', () => {
 						liquidityToRemove: BigInt(-5),
 						amount0Min: BigInt(0),
 						amount1Min: BigInt(0),
-						maxTimestampValid: BigInt(1000),
+						maxTimestampValid,
 					},
 					logger: loggerMock,
 					header: blockHeader,
@@ -469,7 +495,7 @@ describe('dex:command:removeLiquidity', () => {
 							liquidityToRemove: BigInt(-5),
 							amount0Min: BigInt(1000),
 							amount1Min: BigInt(1000),
-							maxTimestampValid: BigInt(1000),
+							maxTimestampValid,
 						}),
 						signatures: [utils.getRandomBytes(64)],
 					}),

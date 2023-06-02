@@ -27,8 +27,8 @@ import { divQ96, mulQ96, numberToQ96, roundDownQ96 } from '../../dex/utils/q96';
 import {
 	ADDRESS_VALIDATOR_INCENTIVES,
 	TOKEN_ID_LSK,
-	BOOTSTRAP_PERIOD_OFFSET,
 	LENGTH_EPOCH_REWARDS_INCENTIVES,
+	BOOTSTRAP_PERIOD_OFFSET,
 } from '../constants';
 import { ValidatorIncentivesPayout } from '../events';
 import { Address } from '../types';
@@ -134,13 +134,13 @@ export const getLiquidityIncentivesAtHeight = (height: number): bigint => {
 	if (height < BOOTSTRAP_PERIOD_OFFSET + LENGTH_EPOCH_REWARDS_INCENTIVES) {
 		return BigInt('400000000');
 	}
-	if (height < BOOTSTRAP_PERIOD_OFFSET + 2 * LENGTH_EPOCH_REWARDS_INCENTIVES) {
+	if (height < BOOTSTRAP_PERIOD_OFFSET + BigInt(2) * LENGTH_EPOCH_REWARDS_INCENTIVES) {
 		return BigInt('350000000');
 	}
-	if (height < BOOTSTRAP_PERIOD_OFFSET + 3 * LENGTH_EPOCH_REWARDS_INCENTIVES) {
+	if (height < BOOTSTRAP_PERIOD_OFFSET + BigInt(3) * LENGTH_EPOCH_REWARDS_INCENTIVES) {
 		return BigInt('300000000');
 	}
-	if (height < BOOTSTRAP_PERIOD_OFFSET + 4 * LENGTH_EPOCH_REWARDS_INCENTIVES) {
+	if (height < BOOTSTRAP_PERIOD_OFFSET + BigInt(4) * LENGTH_EPOCH_REWARDS_INCENTIVES) {
 		return BigInt('250000000');
 	}
 	return BigInt('200000000');
@@ -154,9 +154,9 @@ export const getLPIncentivesInRange = (startHeight: number, endHeight: number): 
 	const EPOCHS = [
 		BOOTSTRAP_PERIOD_OFFSET,
 		BOOTSTRAP_PERIOD_OFFSET + LENGTH_EPOCH_REWARDS_INCENTIVES,
-		BOOTSTRAP_PERIOD_OFFSET + 2 * LENGTH_EPOCH_REWARDS_INCENTIVES,
-		BOOTSTRAP_PERIOD_OFFSET + 3 * LENGTH_EPOCH_REWARDS_INCENTIVES,
-		BOOTSTRAP_PERIOD_OFFSET + 4 * LENGTH_EPOCH_REWARDS_INCENTIVES,
+		BOOTSTRAP_PERIOD_OFFSET + BigInt(2) * LENGTH_EPOCH_REWARDS_INCENTIVES,
+		BOOTSTRAP_PERIOD_OFFSET + BigInt(3) * LENGTH_EPOCH_REWARDS_INCENTIVES,
+		BOOTSTRAP_PERIOD_OFFSET + BigInt(4) * LENGTH_EPOCH_REWARDS_INCENTIVES,
 	].map(BigInt);
 
 	let height: bigint = BigInt(startHeight + 1); // incentive for the start block are excluded

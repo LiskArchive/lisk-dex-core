@@ -62,6 +62,7 @@ describe('swapEactIn', () => {
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
 	const poolID: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 	const poolIDLSK = Buffer.from('0000000100000000', 'hex');
+	const maxTimestampValid = BigInt(100000000000);
 
 	const tokenIdIn: TokenID = Buffer.from('0000000000000000', 'hex');
 	const tokenIdOut: TokenID = Buffer.from('0000010000000000', 'hex');
@@ -87,7 +88,6 @@ describe('swapEactIn', () => {
 
 	const dexGlobalStoreData: DexGlobalStoreData = {
 		positionCounter: BigInt(15),
-		collectableLSKFees: BigInt(10),
 		poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
 		incentivizedPools: [{ poolId: poolID, multiplier: 10 }],
 		totalIncentivesMultiplier: 1,
@@ -162,7 +162,7 @@ describe('swapEactIn', () => {
 						tokenIdOut,
 						minAmountTokenOut: BigInt(10),
 						swapRoute: [poolID],
-						maxTimestampValid: BigInt(5),
+						maxTimestampValid,
 					}),
 					signatures: [utils.getRandomBytes(64)],
 				}),
@@ -172,6 +172,31 @@ describe('swapEactIn', () => {
 			);
 			expect(result.error?.message).toBeUndefined();
 			expect(result.status).toEqual(VerifyStatus.OK);
+		});
+		it('should fail when current timestamp is over maxTimestampValid', async () => {
+			const context = createTransactionContext({
+				transaction: new Transaction({
+					module: 'dex',
+					command: 'swapExactIn',
+					fee: BigInt(5000000),
+					nonce: BigInt(0),
+					senderPublicKey: senderAddress,
+					params: codec.encode(swapExactInCommandSchema, {
+						tokenIdIn,
+						amountTokenIn: BigInt(250),
+						tokenIdOut,
+						minAmountTokenOut: BigInt(10),
+						swapRoute: [poolID],
+						maxTimestampValid: BigInt(0),
+					}),
+					signatures: [utils.getRandomBytes(64)],
+				}),
+			});
+			const result = await command.verify(
+				context.createCommandVerifyContext(swapExactInCommandSchema),
+			);
+			expect(result.error?.message).toBe('Current timestamp is over maxTimestampValid');
+			expect(result.status).toEqual(VerifyStatus.FAIL);
 		});
 	});
 
@@ -188,7 +213,7 @@ describe('swapEactIn', () => {
 						tokenIdOut,
 						minAmountTokenOut: BigInt(10),
 						swapRoute: [poolID],
-						maxTimestampValid: BigInt(5),
+						maxTimestampValid,
 					},
 					logger: loggerMock,
 					header: createFakeBlockHeader(),
@@ -208,7 +233,7 @@ describe('swapEactIn', () => {
 							tokenIdOut,
 							minAmountTokenOut: BigInt(10),
 							swapRoute: [poolID],
-							maxTimestampValid: BigInt(5),
+							maxTimestampValid,
 						}),
 						signatures: [utils.getRandomBytes(64)],
 					}),

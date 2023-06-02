@@ -58,8 +58,12 @@ export class RemoveLiquidityCommand extends BaseCommand {
 			};
 		}
 
-		// if lastBlockheader.timestamp > trs.params.maxTimestampValid:
-		// raise Exception()
+		if (ctx.header.timestamp > ctx.params.maxTimestampValid) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Current timestamp is over maxTimestampValid'),
+			};
+		}
 
 		return {
 			status: VerifyStatus.OK,

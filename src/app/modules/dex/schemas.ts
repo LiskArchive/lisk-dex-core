@@ -13,6 +13,7 @@
  */
 
 import {
+	ADDRESS_LENGTH,
 	MAX_NUM_BYTES_Q96,
 	NUM_BYTES_ADDRESS,
 	NUM_BYTES_POOL_ID,
@@ -983,6 +984,28 @@ export const getAllTickIDsInPoolResponseSchema = {
 	},
 };
 
+export const tokenDistributionSchema = {
+	$id: 'dex/tokenDistribution',
+	type: 'object',
+	required: ['accounts'],
+	properties: {
+		accounts: {
+			required: ['address', 'amount'],
+			properties: {
+				address: {
+					dataType: 'bytes',
+					length: ADDRESS_LENGTH,
+					fieldNumber: 1,
+				},
+				balance: {
+					dataType: 'uint64',
+					fieldNumber: 2,
+				},
+			},
+		},
+	},
+};
+
 export const getCollectableFeesAndIncentivesRequestSchema = {
 	$id: 'dex/endpoint/getCollectableFeesAndIncentives',
 	type: 'object',
@@ -1001,24 +1024,19 @@ export const getCollectableFeesAndIncentivesResponseSchema = {
 	required: ['feesAndIncentives'],
 	properties: {
 		feesAndIncentives: {
-			type: 'array',
-			fieldNumber: 1,
-			items: {
-				type: 'object',
-				required: ['collectableFees0', 'collectableFees1', 'collectableIncentives'],
-				properties: {
-					collectableFees0: {
-						dataType: 'uint64',
-						fieldNumber: 1,
-					},
-					collectableFees1: {
-						dataType: 'uint64',
-						fieldNumber: 2,
-					},
-					collectableIncentives: {
-						dataType: 'uint64',
-						fieldNumber: 3,
-					},
+			required: ['collectableFees0', 'collectableFees1', 'collectableIncentives'],
+			properties: {
+				collectableFees0: {
+					dataType: 'uint64',
+					fieldNumber: 1,
+				},
+				collectableFees1: {
+					dataType: 'uint64',
+					fieldNumber: 2,
+				},
+				collectableIncentives: {
+					dataType: 'uint64',
+					fieldNumber: 3,
 				},
 			},
 		},
