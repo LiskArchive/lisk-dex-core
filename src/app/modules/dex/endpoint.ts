@@ -1,3 +1,8 @@
+/* eslint-disable import/no-cycle */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable no-param-reassign */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright © 2022 Lisk Foundation
@@ -14,19 +19,24 @@
  */
 
 import { BaseEndpoint, ModuleEndpointContext, TokenMethod } from 'lisk-sdk';
-
+import { validator } from '@liskhq/lisk-validator';
+import { MethodContext } from 'lisk-framework/dist-node/state_machine';
 import {
 	MODULE_ID_DEX,
 	NUM_BYTES_POOL_ID,
 	TOKEN_ID_LSK,
 	NUM_BYTES_ADDRESS,
 	NUM_BYTES_POSITION_ID,
+	MAX_HOPS_SWAP,
+	MIN_SQRT_RATIO,
+	MAX_SQRT_RATIO,
 } from './constants';
-
 import { PoolsStore } from './stores';
 import { PoolID, PositionID, Q96, TickID, TokenID } from './types';
 // eslint-disable-next-line import/no-cycle
 import {
+	computeCollectableFees,
+	computeCollectableIncentives,
 	computeExceptionalRoute,
 	computeRegularRoute,
 	getPoolIDFromPositionID,
@@ -34,7 +44,17 @@ import {
 	getToken1Id,
 	poolIdToAddress,
 } from './utils/auxiliaryFunctions';
+
+import { computeCurrentPrice, swap } from './utils/swapFunctions';
 import { PoolsStoreData } from './stores/poolsStore';
+
+import {
+	getPositionIndexRequestSchema,
+	dryRunSwapExactInRequestSchema,
+	dryRunSwapExactOutRequestSchema,
+	getCollectableFeesAndIncentivesRequestSchema,
+} from './schemas';
+
 import { addQ96, bytesToQ96, divQ96, invQ96, roundDownQ96, mulQ96 } from './utils/q96';
 import { DexGlobalStore, DexGlobalStoreData } from './stores/dexGlobalStore';
 import { PositionsStore, PositionsStoreData } from './stores/positionsStore';
@@ -47,15 +67,16 @@ export class DexEndpoint extends BaseEndpoint {
 		const poolStore = this.stores.get(PoolsStore);
 		const store = await poolStore.getAll(methodContext);
 		const poolIds: PoolID[] = [];
-		if (store?.length) {
-			store.forEach(poolId => {
-				poolIds.push(poolId.key);
+		// eslint-disable-next-line @typescript-eslint/prefer-optional-chain
+		if (store && store.length) {
+			store.forEach(poolID => {
+				poolIds.push(poolID.key);
 			});
 		}
 		return poolIds;
 	}
 
-	public async getAllTokenIDs(methodContext: ModuleEndpointContext): Promise<Set<TokenID>> {
+	public async getAllTokenIDs(methodContext): Promise<Set<TokenID>> {
 		const tokens = new Set<TokenID>();
 		const allPoolIds = await this.getAllPoolIDs(methodContext);
 		if (allPoolIds != null && allPoolIds.length > 0) {
@@ -77,10 +98,7 @@ export class DexEndpoint extends BaseEndpoint {
 		return result;
 	}
 
-	public async getPool(
-		methodContext: ModuleEndpointContext,
-		poolID: PoolID,
-	): Promise<PoolsStoreData> {
+	public async getPool(methodContext, poolID: PoolID): Promise<PoolsStoreData> {
 		const poolsStore = this.stores.get(PoolsStore);
 		const key = await poolsStore.getKey(methodContext, [poolID]);
 		return key;
@@ -102,7 +120,7 @@ export class DexEndpoint extends BaseEndpoint {
 		return invQ96(q96SqrtPrice);
 	}
 
-	public async getDexGlobalData(methodContext: ModuleEndpointContext): Promise<DexGlobalStoreData> {
+	public async getDexGlobalData(methodContext): Promise<DexGlobalStoreData> {
 		const dexGlobalStore = this.stores.get(DexGlobalStore);
 		return dexGlobalStore.get(methodContext, Buffer.from([]));
 	}
@@ -121,7 +139,7 @@ export class DexEndpoint extends BaseEndpoint {
 	}
 
 	public async getTickWithTickId(
-		methodContext: ModuleEndpointContext,
+		methodContext: ModuleEndpointContext | MethodContext,
 		tickId: TickID[],
 	): Promise<PriceTicksStoreData> {
 		const priceTicksStore = this.stores.get(PriceTicksStore);
@@ -134,13 +152,13 @@ export class DexEndpoint extends BaseEndpoint {
 	}
 
 	public async getTickWithPoolIdAndTickValue(
-		methodContext: ModuleEndpointContext,
+		methodContext,
 		poolId: PoolID,
 		tickValue: number,
 	): Promise<PriceTicksStoreData> {
 		const priceTicksStore = this.stores.get(PriceTicksStore);
-		const key = poolId.toLocaleString() + tickToBytes(tickValue).toLocaleString();
-		const priceTicksStoreData = await priceTicksStore.get(methodContext, Buffer.from(key, 'hex'));
+		const key = Buffer.concat([poolId, tickToBytes(tickValue)]);
+		const priceTicksStoreData = await priceTicksStore.get(methodContext, key);
 		if (priceTicksStoreData == null) {
 			throw new Error('No tick with the specified poolId and tickValue');
 		} else {
@@ -179,8 +197,10 @@ export class DexEndpoint extends BaseEndpoint {
 		return tickID.slice(0, NUM_BYTES_POOL_ID);
 	}
 
-	public getPositionIndex(positionId: PositionID): number {
-		const _buffer: Buffer = positionId.slice(-(2 * (NUM_BYTES_POSITION_ID - NUM_BYTES_ADDRESS)));
+	public getPositionIndex(methodContext): number {
+		validator.validate<{ positionID: Buffer }>(getPositionIndexRequestSchema, methodContext.params);
+		const { positionID } = methodContext.params;
+		const _buffer: Buffer = positionID.slice(-(2 * (NUM_BYTES_POSITION_ID - NUM_BYTES_ADDRESS)));
 		const _hexBuffer: string = _buffer.toString('hex');
 		return uint32beInv(_hexBuffer);
 	}
@@ -290,5 +310,216 @@ export class DexEndpoint extends BaseEndpoint {
 			}
 		});
 		return result;
+	}
+
+	public async dryRunSwapExactIn(
+		// methodContext: MethodContext,
+		moduleEndpointContext: ModuleEndpointContext,
+	): Promise<[bigint, bigint, bigint, bigint]> {
+		validator.validate<{
+			tokenIdIn: string;
+			amountIn: bigint;
+			tokenIdOut: string;
+			minAmountOut: bigint;
+			swapRoute: string[];
+		}>(dryRunSwapExactInRequestSchema, moduleEndpointContext.params);
+
+		const tokenIdIn = Buffer.from(moduleEndpointContext.params.tokenIdIn, 'hex');
+		const { amountIn, minAmountOut } = moduleEndpointContext.params;
+		const tokenIdOut = Buffer.from(moduleEndpointContext.params.tokenIdOut, 'hex');
+		const swapRoute = moduleEndpointContext.params.swapRoute.map(route =>
+			Buffer.from(route, 'hex'),
+		);
+
+		let zeroToOne = false;
+		let IdOut: TokenID = tokenIdIn;
+		const tokens = [{ id: tokenIdIn, amount: amountIn }];
+		const fees = [{}];
+		let amountOut: bigint;
+		let feesIn: bigint;
+		let feesOut: bigint;
+		let priceBefore: bigint;
+		let newAmountIn = BigInt(0);
+
+		if (tokenIdIn === tokenIdOut || swapRoute.length === 0 || swapRoute.length > MAX_HOPS_SWAP) {
+			throw new Error('Invalid parameters');
+		}
+		try {
+			priceBefore = await computeCurrentPrice(
+				moduleEndpointContext,
+				this.stores,
+				tokenIdIn,
+				tokenIdOut,
+				swapRoute,
+			);
+		} catch (error) {
+			throw new Error('Invalid swap route');
+		}
+
+		for (const poolId of swapRoute) {
+			const currentTokenIn = tokens[tokens.length - 1];
+
+			if (getToken0Id(poolId).equals(currentTokenIn.id)) {
+				zeroToOne = true;
+				IdOut = getToken1Id(poolId);
+			} else if (getToken1Id(poolId).equals(currentTokenIn.id)) {
+				zeroToOne = false;
+				IdOut = getToken0Id(poolId);
+			}
+			const sqrtLimitPrice = zeroToOne ? MIN_SQRT_RATIO : MAX_SQRT_RATIO;
+			const currentHeight = moduleEndpointContext.header.height;
+			try {
+				[newAmountIn, amountOut, feesIn, feesOut] = await swap(
+					moduleEndpointContext,
+					this.stores,
+					poolId,
+					zeroToOne,
+					sqrtLimitPrice,
+					currentTokenIn.amount,
+					false,
+					currentHeight,
+				);
+			} catch (error) {
+				throw new Error('Crossed too many ticks');
+			}
+			tokens.push({ id: IdOut, amount: amountOut });
+			fees.push({ in: feesIn, out: feesOut });
+		}
+
+		if (tokens[tokens.length - 1].amount < minAmountOut) {
+			throw new Error('Too low output amount');
+		}
+
+		const priceAfter = await computeCurrentPrice(
+			moduleEndpointContext,
+			this.stores,
+			tokenIdIn,
+			tokenIdOut,
+			swapRoute,
+		);
+		return [newAmountIn, tokens[tokens.length - 1].amount, priceBefore, priceAfter];
+	}
+
+	public async dryRunSwapExactOut(
+		moduleEndpointContext: ModuleEndpointContext,
+	): Promise<[bigint, bigint, bigint, bigint]> {
+		validator.validate<{
+			tokenIdIn: string;
+			maxAmountIn: bigint;
+			tokenIdOut: string;
+			amountOut: bigint;
+			swapRoute: string[];
+		}>(dryRunSwapExactOutRequestSchema, moduleEndpointContext.params);
+
+		const tokenIdIn = Buffer.from(moduleEndpointContext.params.tokenIdIn, 'hex');
+		const { maxAmountIn, amountOut } = moduleEndpointContext.params;
+		const tokenIdOut = Buffer.from(moduleEndpointContext.params.tokenIdOut, 'hex');
+		const swapRoute = moduleEndpointContext.params.swapRoute.map(route =>
+			Buffer.from(route, 'hex'),
+		);
+
+		let zeroToOne = false;
+		let IdIn = tokenIdIn;
+		const tokens = [{ id: tokenIdOut, amount: amountOut }];
+		const fees = [{}];
+		let amountIn: bigint;
+		let feesIn: bigint;
+		let feesOut: bigint;
+		let priceBefore: bigint;
+		let newAmountOut = BigInt(0);
+
+		if (swapRoute.length === 0 || swapRoute.length > MAX_HOPS_SWAP) {
+			throw new Error('Invalid parameters');
+		}
+		try {
+			priceBefore = await computeCurrentPrice(
+				moduleEndpointContext,
+				this.stores,
+				tokenIdIn,
+				tokenIdOut,
+				swapRoute,
+			);
+		} catch (error) {
+			throw new Error('Invalid swap route');
+		}
+
+		const inverseSwapRoute = swapRoute.reverse();
+
+		for (const poolId of inverseSwapRoute) {
+			const currentTokenOut = tokens[tokens.length - 1];
+			if (getToken0Id(poolId).equals(currentTokenOut.id)) {
+				zeroToOne = true;
+				IdIn = getToken1Id(poolId);
+			} else if (getToken1Id(poolId).equals(currentTokenOut.id)) {
+				zeroToOne = false;
+				IdIn = getToken0Id(poolId);
+			}
+			const sqrtLimitPrice = zeroToOne ? MIN_SQRT_RATIO : MAX_SQRT_RATIO;
+			const currentHeight = moduleEndpointContext.header.height;
+			try {
+				[amountIn, newAmountOut, feesIn, feesOut] = await swap(
+					moduleEndpointContext,
+					this.stores,
+					poolId,
+					zeroToOne,
+					sqrtLimitPrice,
+					currentTokenOut.amount,
+					true,
+					currentHeight,
+				);
+			} catch (error) {
+				throw new Error('Crossed too many ticks');
+			}
+			tokens.push({ id: IdIn, amount: amountIn });
+			fees.push({ in: feesIn, out: feesOut });
+		}
+		if (tokens[tokens.length - 1].amount > maxAmountIn) {
+			throw new Error('Too high input amount');
+		}
+
+		const priceAfter = await computeCurrentPrice(
+			moduleEndpointContext,
+			this.stores,
+			tokenIdIn,
+			tokenIdOut,
+			swapRoute,
+		);
+
+		return [tokens[tokens.length - 1].amount, newAmountOut, priceBefore, priceAfter];
+	}
+
+	public async getCollectableFeesAndIncentives(
+		methodContext: ModuleEndpointContext,
+		tokenMethod: TokenMethod,
+	) {
+		validator.validate<{ positionId: string }>(
+			getCollectableFeesAndIncentivesRequestSchema,
+			methodContext.params,
+		);
+
+		const positionId = Buffer.from(methodContext.params.positionId, 'hex');
+		const positionsStore = this.stores.get(PositionsStore);
+		const hasPositionData = await positionsStore.has(methodContext, positionId);
+
+		if (!hasPositionData) {
+			throw new Error('The position is not registered!');
+		}
+
+		const [collectableFees0, collectableFees1] = await computeCollectableFees(
+			this.stores,
+			methodContext,
+			positionId,
+		);
+
+		const dexGlobalStore = this.stores.get(DexGlobalStore);
+		const [collectableIncentives] = await computeCollectableIncentives(
+			dexGlobalStore,
+			tokenMethod,
+			methodContext,
+			positionId,
+			collectableFees0,
+			collectableFees1,
+		);
+		return [collectableFees0, collectableFees1, collectableIncentives];
 	}
 }

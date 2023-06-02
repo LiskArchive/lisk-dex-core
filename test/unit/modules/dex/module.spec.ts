@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseModule } from 'lisk-sdk';
+import { BaseModule, FeeModule, TokenModule, ValidatorsModule } from 'lisk-sdk';
 
 import { DexModule } from '../../../../src/app/modules/dex/module';
 import { DexEndpoint } from '../../../../src/app/modules/dex/endpoint';
@@ -28,9 +28,22 @@ import { createGenesisBlockContext } from '../../../../node_modules/lisk-framewo
 
 describe('DexModule', () => {
 	let dexModule: DexModule;
+	let tokenModule: TokenModule;
+	let validatorModule: ValidatorsModule;
+	let feeModule: FeeModule;
 
 	beforeAll(() => {
 		dexModule = new DexModule();
+		tokenModule = new TokenModule();
+		validatorModule = new ValidatorsModule();
+		feeModule = new FeeModule();
+
+		tokenModule.method.mint = jest.fn().mockImplementation(async () => Promise.resolve());
+		tokenModule.method.lock = jest.fn().mockImplementation(async () => Promise.resolve());
+		tokenModule.method.unlock = jest.fn().mockImplementation(async () => Promise.resolve());
+		tokenModule.method.transfer = jest.fn().mockImplementation(async () => Promise.resolve());
+		tokenModule.method.getLockedAmount = jest.fn().mockResolvedValue(BigInt(1000));
+		dexModule.addDependencies(tokenModule.method, validatorModule.method, feeModule.method);
 	});
 
 	it('should inherit from BaseModule', () => {
@@ -62,11 +75,15 @@ describe('DexModule', () => {
 			const moduleConfig = {
 				feeTiers: defaultConfig.feeTiers,
 			} as any;
-			await expect(dexModule.init({ moduleConfig: {} })).resolves.toBeUndefined();
+			await expect(
+				dexModule.init({ moduleConfig: defaultConfig, genesisConfig: {} as any }),
+			).resolves.not.toThrow();
 			expect(dexModule['_moduleConfig']).toEqual(moduleConfig);
 		});
 		it('should initialize fee tiers', async () => {
-			await expect(dexModule.init({ moduleConfig: defaultConfig })).resolves.toBeUndefined();
+			await expect(
+				dexModule.init({ moduleConfig: defaultConfig, genesisConfig: {} as any }),
+			).resolves.not.toThrow();
 
 			const defaultFeeTiers = {};
 			defaultFeeTiers[100] = 2;
@@ -79,9 +96,9 @@ describe('DexModule', () => {
 	});
 
 	describe('initGenesisState', () => {
-		it('should setup initial state', () => {
+		it('should setup initial state', async () => {
 			const context = createGenesisBlockContext({}).createInitGenesisStateContext();
-			return expect(dexModule.initGenesisState?.(context)).toBeUndefined();
+			await expect(dexModule.initGenesisState(context)).resolves.not.toThrow();
 		});
 	});
 });

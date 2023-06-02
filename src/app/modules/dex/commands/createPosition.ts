@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/member-ordering */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -21,6 +22,7 @@ import {
 	VerificationResult,
 	VerifyStatus,
 	TokenMethod,
+	FeeMethod,
 } from 'lisk-sdk';
 import { validator } from '@liskhq/lisk-validator';
 
@@ -44,7 +46,6 @@ import {
 	getToken0Id,
 	getToken1Id,
 	updatePosition,
-	transferToValidatorLSKPool,
 } from '../utils/auxiliaryFunctions';
 import { tickToPrice } from '../utils/math';
 import { bytesToQ96, q96ToInt } from '../utils/q96';
@@ -53,9 +54,11 @@ export class CreatePositionCommand extends BaseCommand {
 	public id = COMMAND_ID_CREATE_POSITION;
 	public schema = createPositionSchema;
 	private _tokenMethod!: TokenMethod;
+	private _feeMethod!: FeeMethod;
 
-	public init({ tokenMethod }): void {
+	public init({ tokenMethod, feeMethod }): void {
 		this._tokenMethod = tokenMethod;
+		this._feeMethod = feeMethod;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -88,11 +91,12 @@ export class CreatePositionCommand extends BaseCommand {
 			};
 		}
 
-		/*
-				TODO: Not yet implemented on SDK
-				if lastBlockheader.timestamp > ctx.params.maxTimestampValid:
-						raise Exception()        
-				*/
+		if (ctx.header.timestamp > ctx.params.maxTimestampValid) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Current timestamp is over maxTimestampValid'),
+			};
+		}
 
 		return {
 			status: VerifyStatus.OK,
@@ -178,13 +182,7 @@ export class CreatePositionCommand extends BaseCommand {
 			throw new Error();
 		}
 
-		// TODO:
-		await transferToValidatorLSKPool(
-			this._tokenMethod,
-			methodContext,
-			senderAddress,
-			POSITION_CREATION_FEE,
-		);
+		this._feeMethod.payFee(methodContext, POSITION_CREATION_FEE);
 
 		this.events.get(PositionCreatedEvent).add(
 			methodContext,

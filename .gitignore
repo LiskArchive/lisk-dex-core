@@ -36,7 +36,9 @@ sftp-config.json
 .secrets
 
 # Coverage directory used by tools like istanbul
+coverage
 .coverage/
+coverage/
 
 # Local config file useful for development
 config.local.json

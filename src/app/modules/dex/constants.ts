@@ -32,7 +32,7 @@ export const NUM_BYTES_POSITION_ID = 24; // The number of bytes of a position ID
 export const MAX_NUMBER_CROSSED_TICKS = 100; // Maximum number of price ticks to be crossed by a single swap. (uint32)
 export const MAX_HOPS_SWAP = 5; // Maximum number of different pools that a complete swap can interact with. (uint32)
 export const MAX_NUM_POSITIONS_FEE_COLLECTION = 100; // The maximum number of positions for which it is possible to collect fees in one transaction. (uint32)
-export const TOKEN_ID_FEE_DEX = Buffer.from('0000', 'hex'); // The ID of the token used for fees. This defines the type of token in which the additional fees for pool creation and position creation are paid. (bytes)
+export const TOKEN_ID_FEE_DEX = Buffer.from('0400001100000000', 'hex'); // The ID of the token used for fees. This defines the type of token in which the additional fees for pool creation and position creation are paid. (bytes)
 export const POOL_CREATION_FEE = BigInt(1000000000); // This amount of tokens is transferred to the protocol fee account when creating a new pool. (uint64) (configurable)
 export const POSITION_CREATION_FEE = BigInt(5000000); // This amount of tokens is transferred to the protocol fee account when creating a new position. (uint64) (configurable)
 
@@ -44,7 +44,7 @@ export const NUM_BYTES_TOKEN_ID = 8; // The number of bytes of a token ID. (uint
 export const STORE_PREFIX_POOL = Buffer.from('0000', 'hex'); // Store prefix of the pools substore.
 export const STORE_PREFIX_PRICE_TICK = Buffer.from('8000', 'hex'); // Store prefix of the price ticks substore.
 export const STORE_PREFIX_POSITION = Buffer.from('c000', 'hex'); // Store prefix of the positions substore.
-export const STORE_PREFIX_SETTINGS = Buffer.from('e000', 'hex'); // Store prefix of the protocol settings substore.
+export const STORE_PREFIX_DATA = Buffer.from('e000', 'hex'); // Store prefix of the data substore.
 
 // DEX Module Command IDs and Names
 export const COMMAND_ID_SWAP_EXACT_INPUT = Buffer.from('0000', 'hex'); // Command ID of swap exact input command.
@@ -61,8 +61,8 @@ export const COMMAND_ID_COLLECT_FEES = Buffer.from('0007', 'hex'); // Command ID
 export const MIN_TICK = -887272; // The minimum possible tick value as a sint32.
 export const MAX_TICK = 887272; // The maximum possible tick value as a sint32.
 export const LOG_MAX_TICK = 19;
-export const MIN_SQRT_RATIO = BigInt(4295128735); // Todo: check with devs	The minimum possible price value in the Q96 representation.
-export const MAX_SQRT_RATIO = BigInt('1461446704550679960896629428549052887957817041882'); // Todo: check with devs	The maximum possible price value in the Q96 representation.
+export const MIN_SQRT_RATIO = BigInt(4295128735); // The minimum possible price value in the Q96 representation.
+export const MAX_SQRT_RATIO = BigInt('1461446704550679960896629428549052887957817041882'); // The maximum possible price value in the Q96 representation.
 export const PRICE_VALUE_FOR_BIT_POSITION_IN_Q96: Q96[] = [
 	BigInt('79224201403219477170569942573'),
 	BigInt('79220240490215316061937756560'),
@@ -128,7 +128,7 @@ export const BLS_PUBLIC_KEY_LENGTH = 48;
 export const BLS_POP_LENGTH = 96;
 
 // Engine specific constants
-export const CHAIN_ID = Buffer.from('00000001', 'hex'); // chain id of sidechain
+export const CHAIN_ID = Buffer.from('04000011', 'hex'); // chain id of sidechain
 export const MAX_TRANSACTIONS_SIZE_BYTES = 15360; // Max size of transaction in bytes
 export const MAX_ASSET_DATA_SIZE_BYTES = 18; // Max asset data size in bytes
 export const BLOCK_TIME = 10; // Blocking time
@@ -155,6 +155,7 @@ export const defaultConfig = {
 export const ADDRESS_LIQUIDITY_PROVIDER_INCENTIVES = sha256(
 	'liquidityProviderIncentivesAccount',
 ).slice(0, NUM_BYTES_ADDRESS);
+
 export const FEE_TIER_PARTITION = 1000000;
 // Swap Constants
 
@@ -164,3 +165,7 @@ export enum SwapFailedReasons {
 	SWAP_FAILED_NOT_ENOUGH,
 	SWAP_FAILED_INVALID_LIMIT_PRICE,
 }
+
+// DEXGOVERNANCE Module Constants
+export const MODULE_NAME_DEX_GOVERNANCE = 'dexGovernance';
+export const COMMAND_CREATE_PROPOSAL = 'createProposal'; // Command ID of CREATE_PORPOSAL command.

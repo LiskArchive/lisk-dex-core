@@ -16,7 +16,19 @@ import { CCMsg } from 'lisk-framework/dist-node/modules/interoperability/types';
 import { ImmutableMethodContext } from 'lisk-framework/dist-node/state_machine';
 import { MethodContext } from 'lisk-framework/dist-node/state_machine/method_context';
 import { JSONObject } from 'lisk-sdk';
+import { DexGlobalStoreData } from './stores/dexGlobalStore';
+import { PoolsStoreData } from './stores/poolsStore';
+import { PositionsStoreData } from './stores/positionsStore';
+import { PriceTicksStoreData } from './stores/priceTicksStore';
+import { SettingsStoreData } from './stores/settingsStore';
 
+export type GenesisDEX = {
+	stateStore: DexGlobalStoreData;
+	poolSubstore: PoolsStoreData[];
+	priceTickSubstore: PriceTicksStoreData[];
+	positionSubstore: PositionsStoreData[];
+	settingsSubstore: SettingsStoreData[];
+};
 export interface FeeTiers {
 	[id: number]: number;
 }
@@ -69,6 +81,15 @@ export interface RemoveLiquidityParamsData {
 	liquidityToRemove: bigint;
 	amount0Min: bigint;
 	amount1Min: bigint;
+	maxTimestampValid: bigint;
+}
+
+export interface SwapExactOutParamsData {
+	tokenIdIn: Buffer;
+	maxAmountTokenIn: bigint;
+	tokenIdOut: Buffer;
+	amountTokenOut: bigint;
+	swapRoute: Buffer[];
 	maxTimestampValid: bigint;
 }
 
@@ -129,6 +150,15 @@ export type AdjacentEdgesInterface = {
 	vertex: Buffer;
 };
 
+export interface SwapExactInParamsData {
+	tokenIdIn: Buffer;
+	amountTokenIn: bigint;
+	tokenIdOut: Buffer;
+	minAmountTokenOut: bigint;
+	swapRoute: Buffer[];
+	maxTimestampValid: bigint;
+}
+
 export type feesInterface = {
 	in: bigint;
 	out: bigint;
@@ -139,4 +169,13 @@ export interface TokenDistribution {
 		address: Buffer;
 		balance: bigint;
 	}[];
+}
+export interface swapWithPriceLimitParamsData {
+	tokenIdIn: Buffer;
+	maxAmountTokenIn: bigint;
+	tokenIdOut: Buffer;
+	minAmountTokenOut: bigint;
+	poolId: Buffer;
+	maxTimestampValid: bigint;
+	sqrtLimitPrice: bigint;
 }

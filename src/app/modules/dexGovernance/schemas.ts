@@ -20,10 +20,10 @@ import {
 	MAX_LENGTH_METADATA_SUMMARY,
 	MAX_LENGTH_METADATA_LINK,
 	MAX_NUM_RECORDED_VOTES,
-	LENGTH_ADDRESS,
 } from './constants';
 
 export const proposalContentSchema = {
+	$id: '/dexGovernance/proposalContentSchema',
 	type: 'object',
 	required: ['text', 'poolID', 'multiplier', 'metadata'],
 	properties: {
@@ -139,28 +139,28 @@ export const votesSchema = {
 		},
 	},
 };
-
-export const indexSchema = {
-	$id: '/dexGovernance/index',
+export const indexStoreSchema = {
+	$id: '/dexGovernance/store/index',
 	type: 'object',
 	required: ['newestIndex', 'nextOutcomeCheckIndex', 'nextQuorumCheckIndex'],
 	properties: {
 		newestIndex: {
-			type: 'uint32',
+			dataType: 'sint32',
 			fieldNumber: 1,
 		},
 		nextOutcomeCheckIndex: {
-			type: 'uint32',
+			dataType: 'uint32',
 			fieldNumber: 2,
 		},
 		nextQuorumCheckIndex: {
-			type: 'uint32',
+			dataType: 'uint32',
 			fieldNumber: 3,
 		},
 	},
 };
 
 export const genesisDEXGovernanceSchema = {
+	$id: '/dexGovernance/genesisDEXGovernance',
 	type: 'object',
 	required: ['proposalsStore', 'votesStore'],
 	properties: {
@@ -180,7 +180,6 @@ export const genesisDEXGovernanceSchema = {
 				properties: {
 					address: {
 						dataType: 'bytes',
-						length: LENGTH_ADDRESS,
 						fieldNumber: 1,
 					},
 					votes: {
@@ -188,6 +187,166 @@ export const genesisDEXGovernanceSchema = {
 						...votesSchema,
 					},
 				},
+			},
+		},
+	},
+};
+
+export const createProposalParamsSchema = {
+	$id: '/dexGovernance/createProposalParams',
+	type: 'object',
+	required: ['type', 'content'],
+	properties: {
+		type: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		content: {
+			...proposalContentSchema,
+			fieldNumber: 2,
+		},
+	},
+};
+
+export const getProposalRequestSchema = {
+	$id: '/dexGovernance/endpoint/getProposal',
+	type: 'object',
+	properties: {
+		proposal: {
+			type: 'number',
+			format: 'uint32',
+		},
+	},
+	required: ['proposal'],
+};
+
+export const getProposalResponseSchema = {
+	$id: '/dexGovernance/endpoint/getProposalResponse',
+	type: 'object',
+	required: ['proposal'],
+	properties: {
+		type: 'object',
+		required: ['creationHeight', 'votesYes', 'votesNo', 'votesPass', 'type', 'content', 'status'],
+		properties: {
+			creationHeight: {
+				type: 'string',
+				format: 'uint32',
+			},
+			votesYes: {
+				type: 'string',
+				format: 'uint64',
+			},
+			votesNo: {
+				type: 'string',
+				format: 'uint64',
+			},
+			votesPass: {
+				type: 'string',
+				format: 'uint64',
+			},
+			type: {
+				type: 'string',
+				format: 'uint32',
+			},
+			content: {
+				type: 'object',
+				required: ['text', 'poolID', 'multiplier', 'metadata'],
+				properties: {
+					text: {
+						type: 'string',
+					},
+					poolID: {
+						type: 'string',
+					},
+					multiplier: {
+						type: 'string',
+					},
+					metadata: {
+						type: 'object',
+						required: ['title', 'author', 'summary', 'discussionsTo'],
+						fieldNumber: 4,
+						properties: {
+							title: {
+								type: 'string',
+							},
+							author: {
+								type: 'string',
+							},
+							summary: {
+								type: 'string',
+							},
+							discussionsTo: {
+								type: 'string',
+							},
+						},
+					},
+				},
+			},
+			status: {
+				type: 'string',
+				format: 'uint32',
+			},
+		},
+	},
+};
+
+export const getUserVotesRequestSchema = {
+	$id: '/dexGovernance/endpoint/getUserVotes',
+	type: 'object',
+	properties: {
+		voterAddress: {
+			type: 'string',
+		},
+	},
+	required: ['voterAddress'],
+};
+
+export const getUserVotesResponseSchema = {
+	$id: '/dexGovernance/endpoint/getUserVotesResponse',
+	type: 'object',
+	required: ['voteInfos'],
+	properties: {
+		voteInfos: {
+			type: 'array',
+			items: {
+				type: 'object',
+				required: ['proposalIndex', 'decision', 'amount'],
+				proposalIndex: {
+					type: 'string',
+					format: 'uint32',
+				},
+				decision: {
+					type: 'string',
+					format: 'uint32',
+				},
+				amount: {
+					type: 'string',
+					format: 'uint64',
+				},
+			},
+		},
+	},
+};
+
+export const getIndexStoreResponseSchema = {
+	$id: '/dexGovernance/endpoint/getIndexStoreResponse',
+	type: 'object',
+	required: ['indexStore'],
+	properties: {
+		indexStore: {
+			type: 'object',
+			required: ['newestIndex', 'nextOutcomeCheckIndex', 'nextQuorumCheckIndex'],
+			newestIndex: {
+				type: 'string',
+				format: 'sint32',
+			},
+			nextOutcomeCheckIndex: {
+				type: 'string',
+				format: 'uint32',
+			},
+			nextQuorumCheckIndex: {
+				type: 'string',
+				format: 'uint32',
 			},
 		},
 	},

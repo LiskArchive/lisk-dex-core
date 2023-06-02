@@ -7,6 +7,7 @@ import {
 	TokenModule,
 	ValidatorsModule,
 } from 'lisk-framework';
+import { inspect } from 'util';
 import { DynamicRewardModule } from 'lisk-framework/dist-node/modules/dynamic_rewards';
 import { getApplication } from '../../src/app/app';
 import { DexGovernanceModule, DexIncentivesModule, DexModule } from '../../src/app/modules';
@@ -54,7 +55,7 @@ describe('app', () => {
 			feeModule.method,
 			posModule.method,
 		);
-		dexGovernanceModule.addDependencies(tokenModule.method, posModule.method);
+		dexGovernanceModule.addDependencies(tokenModule.method, posModule.method, feeModule.method);
 
 		const expectedRegisteredModules = [
 			authModule,
@@ -71,6 +72,7 @@ describe('app', () => {
 		];
 
 		const application = getApplication({ genesis: { chainID: '30000000' } });
-		expect(application.getRegisteredModules()).toStrictEqual(expectedRegisteredModules);
+		const registeredModules = application.getRegisteredModules();
+		expect(inspect(registeredModules)).toEqual(inspect(expectedRegisteredModules));
 	});
 });

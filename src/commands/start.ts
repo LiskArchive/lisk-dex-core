@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
+/* eslint-disable @typescript-eslint/member-ordering */
 import { Flags as flagParser } from '@oclif/core';
 import { BaseStartCommand } from 'lisk-commander';
 import { Application, ApplicationConfig, PartialApplicationConfig } from 'lisk-sdk';
