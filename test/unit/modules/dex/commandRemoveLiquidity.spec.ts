@@ -48,7 +48,7 @@ const {
 	createBlockHeaderWithDefaults,
 	createFakeBlockHeader,
 	createTransactionContext,
-	InMemoryPrefixedStateDB
+	InMemoryPrefixedStateDB,
 } = testing;
 const { utils } = cryptography;
 

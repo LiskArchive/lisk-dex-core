@@ -365,7 +365,10 @@ export const computeNewIncentivesPerLiquidity = async (
 	const dexModule = new DexModule();
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
 	const dexGlobalStore = stores.get(DexGlobalStore);
-	const dexGlobalStoreData: DexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
+	const dexGlobalStoreData: DexGlobalStoreData = await dexGlobalStore.get(
+		methodContext,
+		Buffer.from([]),
+	);
 	let incentivizedPools: { poolId: Buffer; multiplier: number } | undefined;
 
 	dexGlobalStoreData.incentivizedPools.forEach(

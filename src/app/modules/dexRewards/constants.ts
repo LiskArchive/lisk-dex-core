@@ -18,8 +18,7 @@ import { TextEncoder } from 'util';
 // Convert a hex string to a byte array
 export const hexToBytes = (hex: string) => {
 	const bytes: number[] = [];
-	for (let c = 0; c < hex.length; c += 2)
-		bytes.push(parseInt(hex.substr(c, 2), 16));
+	for (let c = 0; c < hex.length; c += 2) bytes.push(parseInt(hex.substr(c, 2), 16));
 	return bytes;
 };
 

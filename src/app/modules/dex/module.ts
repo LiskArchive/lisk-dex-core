@@ -383,7 +383,12 @@ export class DexModule extends BaseModule {
 		// eslint-disable-next-line @typescript-eslint/unbound-method, @typescript-eslint/require-array-sort-compare
 		const sortedIncentivizedPools = stateStore.incentivizedPools.map(e => e.poolId).sort();
 
-		if (!isDeepStrictEqual(sortedIncentivizedPools, stateStore.incentivizedPools.map(e => e.poolId))) {
+		if (
+			!isDeepStrictEqual(
+				sortedIncentivizedPools,
+				stateStore.incentivizedPools.map(e => e.poolId),
+			)
+		) {
 			throw new Error(
 				'Entries in stateStore.incentivizedPools must be sorted with respect to poolId in ascending order.',
 			);
@@ -469,9 +474,9 @@ export class DexModule extends BaseModule {
 			}
 		}
 
-		const totalIncentivizedPoolMultiplier = stateStore.incentivizedPools.map(({ multiplier }) => multiplier).reduce(
-			(e, acc) => acc + e,
-		);
+		const totalIncentivizedPoolMultiplier = stateStore.incentivizedPools
+			.map(({ multiplier }) => multiplier)
+			.reduce((e, acc) => acc + e);
 
 		if (stateStore.totalIncentivesMultiplier !== totalIncentivizedPoolMultiplier) {
 			throw new Error(
