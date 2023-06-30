@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/member-ordering */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -14,6 +15,7 @@
 import { BaseEvent, EventQueuer } from 'lisk-sdk';
 
 export const enum ProposalOutcomeCheckedEventStatus {
+	PROPOSAL_STATUS_ACTIVE,
 	PROPOSAL_STATUS_FINISHED_ACCEPTED,
 	PROPOSAL_STATUS_FINISHED_FAILED,
 }

@@ -84,7 +84,7 @@ describe('dex:command:collectFees', () => {
 		const poolsStoreData: PoolsStoreData = {
 			liquidity: BigInt(5),
 			sqrtPrice: q96ToBytes(BigInt('327099227039063106')),
-			incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
+			incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(1000))),
 			heightIncentivesUpdate: 5,
 			feeGrowthGlobal0: q96ToBytes(numberToQ96(BigInt(10))),
 			feeGrowthGlobal1: q96ToBytes(numberToQ96(BigInt(6))),
@@ -108,19 +108,19 @@ describe('dex:command:collectFees', () => {
 		};
 
 		const dexGlobalStoreData: DexGlobalStoreData = {
-			positionCounter: BigInt(10),
-			collectableLSKFees: BigInt(10),
+			positionCounter: BigInt(15),
 			poolCreationSettings: [{ feeTier: 100, tickSpacing: 1 }],
 			incentivizedPools: [{ poolId, multiplier: 10 }],
 			totalIncentivesMultiplier: 1,
 		};
 		const positionsStoreData: PositionsStoreData = {
-			tickLower: -8,
-			tickUpper: -5,
-			liquidity: BigInt(15),
-			feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(3))),
-			feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(1))),
+			tickLower: -10,
+			tickUpper: 10,
+			liquidity: BigInt(1000),
+			feeGrowthInsideLast0: q96ToBytes(numberToQ96(BigInt(0))),
+			feeGrowthInsideLast1: q96ToBytes(numberToQ96(BigInt(0))),
 			ownerAddress: senderAddress,
+			incentivesPerLiquidityLast: Buffer.alloc(0),
 		};
 
 		beforeEach(async () => {
@@ -211,7 +211,7 @@ describe('dex:command:collectFees', () => {
 						nonce: BigInt(0),
 						senderPublicKey: senderAddress,
 						params: codec.encode(collectFeesSchema, {
-							positions: new Array(500).fill({ positionID: Buffer.from('0000000100', 'hex') }),
+							positions: new Array(101).fill({ positionID: Buffer.from('0000000100', 'hex') }),
 						}),
 						signatures: [utils.getRandomBytes(64)],
 					}),

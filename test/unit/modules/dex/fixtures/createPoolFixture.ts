@@ -29,7 +29,7 @@ let randomTokenID = 1111111111;
 const commonTransactionAttrs = {
 	module: 'dex',
 	command: 'createPool',
-	fee: BigInt(5000000),
+	fee: BigInt('5000000000000000000'),
 	nonce: BigInt(0),
 	senderPublicKey,
 	signatures: [signature],
@@ -46,7 +46,7 @@ const commonParams = {
 		amount0Desired: BigInt(1000),
 		amount1Desired: BigInt(1000),
 	},
-	maxTimestampValid: BigInt(1000),
+	maxTimestampValid: BigInt(100000000000),
 };
 
 export const createPoolFixtures: Fixtures = [
@@ -103,6 +103,17 @@ export const createPoolFixtures: Fixtures = [
 			}),
 		},
 		'Please specify valid tick values.',
+	],
+	[
+		'should fail when header.timestamp > maxTimestampValid',
+		{
+			...commonTransactionAttrs,
+			params: codec.encode(createPoolSchema, {
+				...commonParams,
+				maxTimestampValid: BigInt(0),
+			}),
+		},
+		'Current timestamp is over maxTimestampValid',
 	],
 ];
 

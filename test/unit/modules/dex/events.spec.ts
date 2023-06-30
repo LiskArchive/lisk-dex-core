@@ -13,23 +13,19 @@
  */
 
 import { BaseEvent } from 'lisk-sdk';
+import { DexModule } from '../../../../src/app/modules';
+import { SwapFailedEvent } from '../../../../src/app/modules/dex/events/swapFailed';
+import { SwappedEvent } from '../../../../src/app/modules/dex/events/swapped';
 
-import { DexRewardsModule } from '../../../../src/app/modules/dexRewards/module';
-
-import {
-	GeneratorRewardMintedEvent,
-	ValidatorTradeRewardsPayoutEvent,
-} from '../../../../src/app/modules/dexRewards/events';
-
-describe('DexRewardsModule:events', () => {
-	let dexRewardsModule: DexRewardsModule;
+describe('DexModule:events', () => {
+	let dexModule: DexModule;
 
 	beforeAll(() => {
-		dexRewardsModule = new DexRewardsModule();
+		dexModule = new DexModule();
 	});
 
 	it('events should be registered and inherit from BaseEvent', () => {
-		expect(dexRewardsModule.events.get(GeneratorRewardMintedEvent)).toBeInstanceOf(BaseEvent);
-		expect(dexRewardsModule.events.get(ValidatorTradeRewardsPayoutEvent)).toBeInstanceOf(BaseEvent);
+		expect(dexModule.events.get(SwapFailedEvent)).toBeInstanceOf(BaseEvent);
+		expect(dexModule.events.get(SwappedEvent)).toBeInstanceOf(BaseEvent);
 	});
 });

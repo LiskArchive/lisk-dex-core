@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/member-ordering */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -13,13 +14,18 @@
  */
 
 import { BaseStore, StoreGetter } from 'lisk-sdk';
-import { indexSchema } from '../schemas';
-import { Index } from '../types';
+import { indexStoreSchema } from '../schemas';
 
-export class IndexStore extends BaseStore<Index> {
-	public schema = indexSchema;
+export interface IndexStoreData {
+	newestIndex: number;
+	nextOutcomeCheckIndex: number;
+	nextQuorumCheckIndex: number;
+}
 
-	public async getKey(context: StoreGetter, keys: Buffer[]): Promise<Index> {
+export class IndexStore extends BaseStore<IndexStoreData> {
+	public schema = indexStoreSchema;
+
+	public async getKey(context: StoreGetter, keys: Buffer[]): Promise<IndexStoreData> {
 		const key = Buffer.concat(keys);
 		return this.get(context, key);
 	}
@@ -29,7 +35,7 @@ export class IndexStore extends BaseStore<Index> {
 		return this.has(context, key);
 	}
 
-	public async setKey(context: StoreGetter, keys: Buffer[], value: Index): Promise<void> {
+	public async setKey(context: StoreGetter, keys: Buffer[], value: IndexStoreData): Promise<void> {
 		const key = Buffer.concat(keys);
 		await this.set(context, key, value);
 	}

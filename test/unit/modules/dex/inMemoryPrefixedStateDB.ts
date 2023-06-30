@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/member-ordering */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -38,6 +39,8 @@ export class InMemoryPrefixedStateDB {
 	public async del(key: Buffer): Promise<void> {
 		return this._db.del(key);
 	}
+
+	public async close() {}
 
 	public async range(options?: IterateOptions): Promise<{ key: Buffer; value: Buffer }[]> {
 		const stream = this._db.iterate(options);

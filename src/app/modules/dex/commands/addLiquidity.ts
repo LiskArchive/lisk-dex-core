@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/member-ordering */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -65,11 +66,14 @@ export class AddLiquidityCommand extends BaseCommand {
 
 		const { amount0Min, amount0Desired, amount1Min, amount1Desired } = ctx.params;
 
-		/*
-        TODO: Not yet implemented on SDK
-        if lastBlockheader.timestamp > ctx.params.maxTimestampValid:
-            raise Exception()        
-        */
+		if (ctx.header.timestamp > ctx.params.maxTimestampValid) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error(
+					`Current timestamp is over maxTimestampValid: ${ctx.params.maxTimestampValid}`,
+				),
+			};
+		}
 
 		if (amount0Min > amount0Desired || amount1Min > amount1Desired) {
 			return {

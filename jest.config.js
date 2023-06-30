@@ -1,18 +1,18 @@
 module.exports = {
-	globals: {
-		'ts-jest': {
-			tsconfig: './test/tsconfig.json',
-		},
-	},
 	testMatch: ['<rootDir>/test/**/?(*.)+(spec|test).+(ts|tsx|js)'],
 	setupFilesAfterEnv: ['<rootDir>/test/_setup.js'],
 	transform: {
-		'^.+\\.(ts|tsx)$': 'ts-jest',
+		'^.+\\.(ts|tsx)$': [
+			'ts-jest',
+			{
+				tsconfig: './test/tsconfig.json',
+			},
+		],
 	},
 	verbose: false,
-	collectCoverage: false,
+	collectCoverage: true,
 	coverageReporters: ['json'],
-	coverageDirectory: '.coverage',
+	coverageDirectory: 'coverage',
 	/**
 	 * restoreMocks [boolean]
 	 *
