@@ -41,7 +41,6 @@ import {
 	PriceTicksStoreData,
 	tickToBytes,
 } from '../../../../src/app/modules/dex/stores/priceTicksStore';
-import { InMemoryPrefixedStateDB } from './inMemoryPrefixedStateDB';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 
 const {
@@ -49,6 +48,7 @@ const {
 	createBlockHeaderWithDefaults,
 	createFakeBlockHeader,
 	createTransactionContext,
+	InMemoryPrefixedStateDB
 } = testing;
 const { utils } = cryptography;
 

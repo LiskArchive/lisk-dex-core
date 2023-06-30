@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/member-ordering */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -48,6 +45,7 @@ export class AddLiquidityCommand extends BaseCommand {
 	private _tokenMethod!: TokenMethod;
 
 	public init({ tokenMethod }): void {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		this._tokenMethod = tokenMethod;
 	}
 

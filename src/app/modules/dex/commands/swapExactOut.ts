@@ -1,8 +1,3 @@
-/* eslint-disable import/no-cycle */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/member-ordering */
 /*
  * Copyright © 2021 Lisk Foundation
  *
@@ -53,6 +48,7 @@ export class SwapExactOutCommand extends BaseCommand {
 	private _tokenMethod!: TokenMethod;
 
 	public init({ tokenMethod }): void {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		this._tokenMethod = tokenMethod;
 	}
 	// eslint-disable-next-line @typescript-eslint/require-await

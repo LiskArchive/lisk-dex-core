@@ -1,11 +1,7 @@
-/* eslint-disable import/no-cycle */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable no-param-reassign */
-/* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -355,7 +351,9 @@ export const computeCollectableIncentives = async (
 	if (collectableFeesLSK === BigInt(0)) {
 		return [BigInt(0), BigInt(0)];
 	}
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
 	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 	const totalCollectableLSKFees = dexGlobalStoreData.collectableLSKFees;
 	const availableLPIncentives = await tokenMethod.getAvailableBalance(
 		methodContext,
@@ -1004,7 +1002,7 @@ export const getCredibleDirectPrice = async (
 		);
 		token1ValuesLocked.push(
 			roundDownQ96(token0ValueQ96) +
-				(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
+			(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
 		);
 	}
 

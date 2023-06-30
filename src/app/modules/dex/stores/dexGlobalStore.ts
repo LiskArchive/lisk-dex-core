@@ -26,8 +26,8 @@ export interface PoolCreationSettings {
 
 export interface DexGlobalStoreData {
 	positionCounter: bigint;
-	poolCreationSettings;
-	incentivizedPools;
+	poolCreationSettings: PoolCreationSettings[];
+	incentivizedPools: IncentivizedPools[];
 	totalIncentivesMultiplier: number;
 }
 

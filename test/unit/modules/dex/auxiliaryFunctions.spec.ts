@@ -1,9 +1,3 @@
-/* eslint-disable import/no-cycle */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -22,7 +16,7 @@ import { MethodContext, TokenMethod } from 'lisk-framework';
 import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_machine';
 import { genesisTokenStoreSchema } from 'lisk-framework/dist-node/modules/token';
 import { GenesisTokenStore } from 'lisk-framework/dist-node/modules/token/types';
-import { codec } from 'lisk-sdk';
+import { codec, testing } from 'lisk-sdk';
 
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 import {
@@ -68,7 +62,6 @@ import {
 	subQ96,
 } from '../../../../src/app/modules/dex/utils/q96';
 import { DexModule } from '../../../../src/app/modules';
-import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import {
 	DexGlobalStore,
 	PoolsStore,
@@ -93,6 +86,7 @@ import {
 	TOKEN_ID_DEX,
 } from '../../../../src/app/modules/dex/constants';
 
+const { InMemoryPrefixedStateDB } = testing;
 const skipOnCI = process.env.CI ? describe.skip : describe;
 
 describe('dex:auxiliaryFunctions', () => {

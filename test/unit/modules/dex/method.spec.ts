@@ -13,6 +13,7 @@
  */
 
 import { MethodContext, TokenMethod } from 'lisk-framework';
+import { testing } from 'lisk-sdk';
 import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_machine';
 
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
@@ -21,7 +22,6 @@ import { Address, PoolID, PositionID } from '../../../../src/app/modules/dex/typ
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
 import { DexModule } from '../../../../src/app/modules';
-import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import {
 	DexGlobalStore,
 	PoolsStore,
@@ -37,6 +37,8 @@ import {
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
 import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
+
+const { InMemoryPrefixedStateDB } = testing;
 
 describe('dex:auxiliaryFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');

@@ -1,7 +1,3 @@
-/* eslint-disable import/no-cycle */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * Copyright © 2020 Lisk Foundation
  *
@@ -31,7 +27,6 @@ import { DexModule } from '../../../../src/app/modules';
 import { Address, PoolID } from '../../../../src/app/modules/dex/types';
 
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
-import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 
 import { PoolsStore, PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import { bytesToQ96, numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
@@ -47,7 +42,7 @@ import { SwapExactWithPriceLimitCommand } from '../../../../src/app/modules/dex/
 import { swapWithPriceLimitCommandSchema } from '../../../../src/app/modules/dex/schemas';
 
 const { utils } = cryptography;
-const { createTransactionContext } = testing;
+const { createTransactionContext, InMemoryPrefixedStateDB } = testing;
 
 describe('swapEactIn', () => {
 	let command: SwapExactWithPriceLimitCommand;

@@ -18,14 +18,15 @@
 
 import { BlockHeader, BlockHeaderAttrs, StateStore } from '@liskhq/lisk-chain';
 
-import { ModuleEndpointContext } from 'lisk-sdk';
+import { ModuleEndpointContext, testing } from 'lisk-sdk';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { utils } from '@liskhq/lisk-cryptography';
 import { PrefixedStateReadWriter } from '../stateMachine/prefixedStateReadWriter';
-import { InMemoryPrefixedStateDB } from '../unit/modules/dex/inMemoryPrefixedState';
 import { loggerMock } from '../mocks/loggerMock';
 import { createImmutableMethodContext } from './methodContext';
 import { Logger } from '../logger/logger';
+
+const { InMemoryPrefixedStateDB } = testing;
 
 const createTestHeader = () =>
 	new BlockHeader({
