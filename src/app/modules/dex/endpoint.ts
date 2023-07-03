@@ -1,8 +1,3 @@
-/* eslint-disable import/no-cycle */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable no-param-reassign */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright © 2022 Lisk Foundation
@@ -197,7 +192,7 @@ export class DexEndpoint extends BaseEndpoint {
 		return tickID.slice(0, NUM_BYTES_POOL_ID);
 	}
 
-	public getPositionIndex(methodContext): number {
+	public getPositionIndex(methodContext: ModuleEndpointContext): number {
 		validator.validate<{ positionID: Buffer }>(getPositionIndexRequestSchema, methodContext.params);
 		const { positionID } = methodContext.params;
 		const _buffer: Buffer = positionID.slice(-(2 * (NUM_BYTES_POSITION_ID - NUM_BYTES_ADDRESS)));

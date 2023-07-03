@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright © 2020 Lisk Foundation
  *
@@ -17,12 +16,9 @@ import { createHash } from 'crypto';
 import { TextEncoder } from 'util';
 
 // Convert a hex string to a byte array
-export const hexToBytes = hex => {
+export const hexToBytes = (hex: string) => {
 	const bytes: number[] = [];
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-	for (let c = 0; c < hex.length; c += 2)
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-		bytes.push(parseInt(hex.substr(c, 2), 16));
+	for (let c = 0; c < hex.length; c += 2) bytes.push(parseInt(hex.substr(c, 2), 16));
 	return bytes;
 };
 

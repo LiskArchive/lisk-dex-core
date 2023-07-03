@@ -1,7 +1,3 @@
-/* eslint-disable import/no-cycle */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * Copyright © 2020 Lisk Foundation
  *
@@ -31,7 +27,6 @@ import { Address, PoolID } from '../../../../src/app/modules/dex/types';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 import { DexModule } from '../../../../src/app/modules';
 import { swapExactOutCommandSchema } from '../../../../src/app/modules/dex/schemas';
-import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import { PoolsStore, PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import { bytesToQ96, numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
 import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
@@ -45,7 +40,7 @@ import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGl
 import { SwapExactOutCommand } from '../../../../src/app/modules/dex/commands/swapExactOut';
 
 const { utils } = cryptography;
-const { createTransactionContext } = testing;
+const { createTransactionContext, InMemoryPrefixedStateDB } = testing;
 
 describe('swapEactOutn', () => {
 	let command: SwapExactOutCommand;

@@ -1,13 +1,6 @@
-/* eslint-disable import/no-cycle */
-/* eslint-disable one-var */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-floating-promises */
-/* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable no-param-reassign */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -73,6 +66,7 @@ import {
 import { DexGlobalStore, PriceTicksStore } from '../stores';
 import { tickToBytes } from '../stores/priceTicksStore';
 import { getLPIncentivesInRange } from '../../dexIncentives/utils/auxiliaryFunctions';
+import { DexGlobalStoreData } from '../stores/dexGlobalStore';
 
 export const swapWithin = (
 	sqrtCurrentPrice: bigint,
@@ -173,7 +167,6 @@ export const computeCurrentPrice = async (
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
 	let price = BigInt(1);
 	let tokenInPool = tokenIn;
-	// eslint-disable-next-line @typescript-eslint/no-misused-promises
 	for (const poolId of swapRoute) {
 		const pool = await endpoint.getPool(methodContext, poolId);
 		await endpoint.getPool(methodContext, poolId).catch(() => {
@@ -239,6 +232,7 @@ export const transferFeesFromPool = (
 			id,
 			validatorFee,
 		);
+		// eslint-disable-next-line @typescript-eslint/no-floating-promises
 		tokenMethod.lock(
 			methodContext,
 			ADDRESS_VALIDATOR_INCENTIVES,
@@ -371,10 +365,12 @@ export const computeNewIncentivesPerLiquidity = async (
 	const dexModule = new DexModule();
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
 	const dexGlobalStore = stores.get(DexGlobalStore);
-	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
+	const dexGlobalStoreData: DexGlobalStoreData = await dexGlobalStore.get(
+		methodContext,
+		Buffer.from([]),
+	);
 	let incentivizedPools: { poolId: Buffer; multiplier: number } | undefined;
 
-	// eslint-disable-next-line
 	dexGlobalStoreData.incentivizedPools.forEach(
 		(incentivizedPool: { poolId: Buffer; multiplier: number } | undefined) => {
 			if (incentivizedPool?.poolId.equals(poolID)) {
@@ -471,8 +467,8 @@ export const swap = async (
 	let sqrtTargetPrice;
 	let amountIn: bigint;
 	let amountOut: bigint;
-	let tokenIn;
-	let tokenOut;
+	let tokenIn: Buffer;
+	let tokenOut: Buffer;
 	let tickExist;
 	let amountRemainingTemp;
 	let feeIn;

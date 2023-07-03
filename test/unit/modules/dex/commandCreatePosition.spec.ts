@@ -41,9 +41,8 @@ import { Address, PoolID } from '../../../../src/app/modules/dex/types';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { q96ToBytes, numberToQ96 } from '../../../../src/app/modules/dex/utils/q96';
 import { createPositionFixtures } from './fixtures/createPositionFixture';
-import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 
-const { createTransactionContext } = testing;
+const { createTransactionContext, InMemoryPrefixedStateDB } = testing;
 
 const skipOnCI = process.env.CI ? describe.skip : describe;
 

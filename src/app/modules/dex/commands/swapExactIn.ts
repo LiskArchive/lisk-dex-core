@@ -1,8 +1,3 @@
-/* eslint-disable import/no-cycle */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/member-ordering */
 /*
  * Copyright © 2021 Lisk Foundation
  *
@@ -53,6 +48,7 @@ export class SwapExactInCommand extends BaseCommand {
 	private _tokenMethod!: TokenMethod;
 
 	public init({ tokenMethod }): void {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		this._tokenMethod = tokenMethod;
 	}
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -149,7 +145,7 @@ export class SwapExactInCommand extends BaseCommand {
 		for (const swapRt of swapRoute) {
 			const currentTokenIn = tokens[tokens.length - 1];
 			let zeroToOne = false;
-			let IdOut;
+			let IdOut: Buffer;
 			if (getToken0Id(swapRt).equals(currentTokenIn.id)) {
 				zeroToOne = true;
 				IdOut = getToken1Id(swapRt);

@@ -1,8 +1,3 @@
-/* eslint-disable import/no-cycle */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -17,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { TokenMethod } from 'lisk-sdk';
+import { TokenMethod, testing } from 'lisk-sdk';
 import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_machine';
 import { MethodContext } from 'lisk-framework/dist-node/state_machine/method_context';
 import { DexModule } from '../../../../src/app/modules';
@@ -35,7 +30,6 @@ import {
 	getRoute,
 	raiseSwapException,
 } from '../../../../src/app/modules/dex/utils/swapFunctions';
-import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import { Address, PoolID, TokenID } from '../../../../src/app/modules/dex/types';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
@@ -53,6 +47,8 @@ import {
 	PriceTicksStoreData,
 	tickToBytes,
 } from '../../../../src/app/modules/dex/stores/priceTicksStore';
+
+const { InMemoryPrefixedStateDB } = testing;
 
 describe('dex:swapFunctions', () => {
 	const poolID: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');

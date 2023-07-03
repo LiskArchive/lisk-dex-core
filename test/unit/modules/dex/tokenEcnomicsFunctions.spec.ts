@@ -16,6 +16,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { MethodContext, TokenMethod } from 'lisk-framework';
+import { testing } from 'lisk-sdk';
 import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { createMethodContext, EventQueue } from 'lisk-framework/dist-node/state_machine';
 
@@ -28,7 +29,6 @@ import { Address, PoolID, PositionID } from '../../../../src/app/modules/dex/typ
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { numberToQ96, q96ToBytes } from '../../../../src/app/modules/dex/utils/q96';
 import { DexModule } from '../../../../src/app/modules';
-import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import {
 	DexGlobalStore,
 	PoolsStore,
@@ -48,6 +48,8 @@ import {
 	computeNewIncentivesPerLiquidity,
 	updatePoolIncentives,
 } from '../../../../src/app/modules/dex/utils/tokenEcnomicsFunctions';
+
+const { InMemoryPrefixedStateDB } = testing;
 
 describe('dex:tokenEcnomicsFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');

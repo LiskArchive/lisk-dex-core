@@ -1,4 +1,3 @@
-/* eslint-disable no-bitwise */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -54,6 +53,7 @@ export const tickToPrice = (tickValue: number): Q96 => {
 	let sqrtPrice: Q96 = numberToQ96(BigInt(1));
 
 	PRICE_VALUE_FOR_BIT_POSITION_IN_Q96.forEach((e, i) => {
+		// eslint-disable-next-line no-bitwise
 		if ((absTick >> i) & 1) {
 			sqrtPrice = mulQ96(sqrtPrice, e);
 		}
@@ -82,6 +82,7 @@ export const priceToTick = (sqrtPrice: Q96): number => {
 		const sqrtPriceAtBit = PRICE_VALUE_FOR_BIT_POSITION_IN_Q96[i];
 		const newPrice = mulQ96(tempPrice, sqrtPriceAtBit);
 		if (sqrtPrice <= newPrice) {
+			// eslint-disable-next-line no-bitwise
 			tickValue += 1 << i;
 			tempPrice = newPrice;
 		}

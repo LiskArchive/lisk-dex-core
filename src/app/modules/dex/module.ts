@@ -380,10 +380,15 @@ export class DexModule extends BaseModule {
 			throw new Error('Duplicate poolId in incentivizedPools.');
 		}
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
-		const sortedIncentivizedPools = [...stateStore.incentivizedPools].sort(Buffer.compare);
+		// eslint-disable-next-line @typescript-eslint/unbound-method, @typescript-eslint/require-array-sort-compare
+		const sortedIncentivizedPools = stateStore.incentivizedPools.map(e => e.poolId).sort();
 
-		if (!isDeepStrictEqual(sortedIncentivizedPools, stateStore.incentivizedPools)) {
+		if (
+			!isDeepStrictEqual(
+				sortedIncentivizedPools,
+				stateStore.incentivizedPools.map(e => e.poolId),
+			)
+		) {
 			throw new Error(
 				'Entries in stateStore.incentivizedPools must be sorted with respect to poolId in ascending order.',
 			);
@@ -414,8 +419,7 @@ export class DexModule extends BaseModule {
 		}
 
 		for (const pool of stateStore.incentivizedPools) {
-			const poolId = intToBuffer(pool.poolId, 4).slice(0, NUM_BYTES_POOL_ID);
-			if (!poolSubstore[Number(poolId)]) {
+			if (!poolSubstore[Number(pool.poolId)]) {
 				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				throw new Error(`Invalid poolId on incentivizedPool ${pool.poolId}`);
 			}
@@ -463,16 +467,17 @@ export class DexModule extends BaseModule {
 			}
 		}
 
-		for (const { feeTier } of stateStore.poolCreationSettings.entries()) {
+		for (const [_, { feeTier }] of stateStore.poolCreationSettings.entries()) {
 			if (feeTier > 10 ** 6) {
 				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				throw new Error(`Invalid fee tier ${feeTier}`);
 			}
 		}
 
-		const totalIncentivizedPoolMultiplier = stateStore.incentivizedPools.reduce(
-			(e: { multiplier: number }, acc: number) => acc + e.multiplier,
-		);
+		const totalIncentivizedPoolMultiplier = stateStore.incentivizedPools
+			.map(({ multiplier }) => multiplier)
+			.reduce((e, acc) => acc + e);
+
 		if (stateStore.totalIncentivesMultiplier !== totalIncentivizedPoolMultiplier) {
 			throw new Error(
 				'totalIncentivesMultiplier is not equal to the sum of multipliers in all the incentivized pools.',

@@ -1,8 +1,5 @@
-/* eslint-disable import/no-cycle */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -49,6 +46,7 @@ export const computeNewIncentivesPerLiquidity = async (
 
 	dexGlobalStoreData.incentivizedPools.forEach(incentivizedPool => {
 		if (incentivizedPool.poolId.equals(poolID)) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			incentivizedPools = incentivizedPool;
 		}
 	});
@@ -95,6 +93,7 @@ export const updatePoolIncentives = async (
 
 	dexGlobalStoreData.incentivizedPools.forEach(incentivizedPool => {
 		if (incentivizedPool.poolId.equals(poolID)) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			incentivizedPools = incentivizedPool;
 		}
 	});
@@ -130,6 +129,7 @@ export const getCredibleDirectPrice = async (
 	const directPools: Buffer[] = [];
 	const dexModule = new DexModule();
 	const endpoint = new DexEndpoint(stores, dexModule.offchainStores);
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 	const settings = (await endpoint.getDexGlobalData(methodContext)).poolCreationSettings;
 	const allpoolIDs = await endpoint.getAllPoolIDs(methodContext);
 
@@ -142,6 +142,7 @@ export const getCredibleDirectPrice = async (
 		const result = Buffer.alloc(4);
 		const tokenIDAndSettingsArray = [
 			concatedTokenIDs,
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 			q96ToBytes(BigInt(result.writeUInt32BE(setting.feeTier, 0))),
 		];
 		const potentialPoolId: Buffer = Buffer.concat(tokenIDAndSettingsArray);

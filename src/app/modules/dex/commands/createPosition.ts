@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/member-ordering */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -57,7 +54,9 @@ export class CreatePositionCommand extends BaseCommand {
 	private _feeMethod!: FeeMethod;
 
 	public init({ tokenMethod, feeMethod }): void {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		this._tokenMethod = tokenMethod;
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		this._feeMethod = feeMethod;
 	}
 

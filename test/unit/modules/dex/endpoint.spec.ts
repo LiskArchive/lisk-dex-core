@@ -1,10 +1,3 @@
-/* eslint-disable import/no-cycle */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-floating-promises */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -24,7 +17,7 @@ import {
 	EventQueue,
 	MethodContext,
 } from 'lisk-framework/dist-node/state_machine';
-import { TokenMethod } from 'lisk-sdk';
+import { TokenMethod, testing } from 'lisk-sdk';
 import { DexModule } from '../../../../src/app/modules';
 import {
 	DexGlobalStore,
@@ -37,7 +30,6 @@ import { Address, PoolID, PositionID, TokenID } from '../../../../src/app/module
 
 import { numberToQ96, q96ToBytes, bytesToQ96 } from '../../../../src/app/modules/dex/utils/q96';
 import { priceToTick, tickToPrice } from '../../../../src/app/modules/dex/utils/math';
-import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 
 import {
 	PriceTicksStoreData,
@@ -52,6 +44,8 @@ import { DexEndpoint } from '../../../../src/app/modules/dex/endpoint';
 import { createTransientModuleEndpointContext } from '../../../context/createContext';
 import { PrefixedStateReadWriter } from '../../../stateMachine/prefixedStateReadWriter';
 import { NUM_BYTES_POOL_ID } from '../../../../src/app/modules/dex/constants';
+
+const { InMemoryPrefixedStateDB } = testing;
 
 describe('dex: offChainEndpointFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
@@ -319,6 +313,7 @@ describe('dex: offChainEndpointFunctions', () => {
 
 		it('getTickWithPoolIdAndTickValue', async () => {
 			const tickValue = 5;
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			priceTicksStore.setKey(
 				methodContext,
 				[
