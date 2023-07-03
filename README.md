@@ -9,11 +9,9 @@
 
 # Lisk DEX Core
 
-The Lisk DEX is a decentralized application built with the Lisk SDK v6.0.0 and on the Lisk blockchain. This project was bootstrapped with [Lisk SDK](https://github.com/LiskHQ/lisk-sdk)
+The Lisk DEX is a decentralized application built with the Lisk SDK v6.0.0 and on the Lisk blockchain. This project was bootstrapped with [Lisk SDK](https://github.com/LiskHQ/lisk-sdk). The Lisk DEX is a program that provides the core functionality for implementation of all the liquidity and swap operations. This document details how to install Lisk DEX Core from source and npm registry. 
 
-The Lisk DEX is a program that provides the core functionality for implementing all liquidity operations.
-
-This document details how to install Lisk DEX Core from source and from the npm registry. If you have satisfied the requirements from the Pre-Installation section, you can jump directly to the next section Installation Steps.
+If you have satisfied the requirements from the Pre-Installation section, you can jump directly to the next section "Installation Steps".
 
 ## Index
 
