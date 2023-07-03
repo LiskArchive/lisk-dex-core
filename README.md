@@ -1,4 +1,4 @@
-![Read Me](https://user-images.githubusercontent.com/44484700/235153140-7efc04d9-4cb4-49b7-9026-949cab424c7e.png)
+![Core](https://github.com/LiskHQ/lisk-dex-core/assets/101553630/f298325c-c09d-41d9-99e4-127684857b4b)
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/liskHQ/lisk-dex-core)
