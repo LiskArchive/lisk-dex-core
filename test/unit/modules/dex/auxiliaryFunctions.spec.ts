@@ -522,13 +522,15 @@ describe('dex:auxiliaryFunctions', () => {
 			Buffer.concat(newTokenIDsArray);
 			await poolsStore.set(methodContext, Buffer.concat(newTokenIDsArray), poolsStoreData);
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises, jest/valid-expect
-			expect(getCredibleDirectPrice(
-				tokenMethod,
-				tempModuleEndpointContext,
-				dexModule.stores,
-				Buffer.alloc(0),
-				token1Id,
-			)).rejects.toThrow("No direct pool between given tokens");
+			expect(
+				getCredibleDirectPrice(
+					tokenMethod,
+					tempModuleEndpointContext,
+					dexModule.stores,
+					Buffer.alloc(0),
+					token1Id,
+				),
+			).rejects.toThrow('No direct pool between given tokens');
 		});
 	});
 
