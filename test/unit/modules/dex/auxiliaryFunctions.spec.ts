@@ -498,6 +498,34 @@ describe('dex:auxiliaryFunctions', () => {
 				expect(res.toString()).toBe('79267784519130042428790663800');
 			});
 		});
+
+		it('getCredibleDirectPrice There is no pool swapping tokens token0 and token1.', async () => {
+			const tempModuleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { poolID: getPoolIDFromPositionID(positionId) },
+			});
+			const result = Buffer.alloc(4);
+			const newTokenIDsArray = [
+				token0Id,
+				token1Id,
+				q96ToBytes(
+					BigInt(result.writeUInt32BE(dexGlobalStoreData.poolCreationSettings[0].feeTier, 0)),
+				),
+			];
+			await poolsStore.setKey(methodContext, newTokenIDsArray, poolsStoreData);
+			Buffer.concat(newTokenIDsArray);
+			await poolsStore.set(methodContext, Buffer.concat(newTokenIDsArray), poolsStoreData);
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises, jest/valid-expect
+			expect(
+				getCredibleDirectPrice(
+					tokenMethod,
+					tempModuleEndpointContext,
+					dexModule.stores,
+					Buffer.alloc(0),
+					token1Id,
+				),
+			).rejects.toThrow('No direct pool between given tokens');
+		});
 	});
 
 	it('transferToValidatorLSKPool', async () => {
