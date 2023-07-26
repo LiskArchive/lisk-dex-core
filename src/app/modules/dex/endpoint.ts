@@ -402,14 +402,15 @@ export class DexEndpoint extends BaseEndpoint {
 	): Promise<[bigint, bigint, bigint, bigint]> {
 		validator.validate<{
 			tokenIdIn: string;
-			maxAmountIn: bigint;
+			maxAmountIn: string;
 			tokenIdOut: string;
-			amountOut: bigint;
+			amountOut: string;
 			swapRoute: string[];
 		}>(dryRunSwapExactOutRequestSchema, moduleEndpointContext.params);
 
 		const tokenIdIn = Buffer.from(moduleEndpointContext.params.tokenIdIn, 'hex');
-		const { maxAmountIn, amountOut } = moduleEndpointContext.params;
+		const maxAmountIn = BigInt(moduleEndpointContext.params.maxAmountIn);
+		const amountOut = BigInt(moduleEndpointContext.params.amountOut);
 		const tokenIdOut = Buffer.from(moduleEndpointContext.params.tokenIdOut, 'hex');
 		const swapRoute = moduleEndpointContext.params.swapRoute.map(route =>
 			Buffer.from(route, 'hex'),

@@ -437,9 +437,9 @@ describe('dex: offChainEndpointFunctions', () => {
 			const amountOut = BigInt(10);
 			moduleEndpointContext.params = {
 				tokenIdIn: token0Id.toString('hex'),
-				maxAmountIn,
+				maxAmountIn: maxAmountIn.toString(),
 				tokenIdOut: token1Id.toString('hex'),
-				amountOut,
+				amountOut: amountOut.toString(),
 				swapRoute: [poolId.toString('hex')],
 			};
 			const result = await endpoint.dryRunSwapExactOut(moduleEndpointContext);

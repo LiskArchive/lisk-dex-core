@@ -1236,7 +1236,7 @@ export const dryRunSwapExactOutRequestSchema = {
 			fieldNumber: 1,
 		},
 		maxAmountIn: {
-			dataType: 'uint64',
+			dataType: 'string',
 			fieldNumber: 2,
 		},
 		tokenIdOut: {
@@ -1244,7 +1244,7 @@ export const dryRunSwapExactOutRequestSchema = {
 			fieldNumber: 3,
 		},
 		amountOut: {
-			dataType: 'uint64',
+			dataType: 'string',
 			fieldNumber: 4,
 		},
 		swapRoute: {
