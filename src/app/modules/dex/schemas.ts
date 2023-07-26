@@ -754,7 +754,7 @@ export const getPositionIndexRequestSchema = {
 	required: ['positionID'],
 	properties: {
 		positionID: {
-			dataType: 'bytes',
+			dataType: 'string',
 			fieldNumber: 1,
 		},
 	},
@@ -1012,7 +1012,7 @@ export const getCollectableFeesAndIncentivesRequestSchema = {
 	required: ['positionID'],
 	properties: {
 		positionID: {
-			dataType: 'bytes',
+			dataType: 'string',
 			fieldNumber: 1,
 		},
 	},
@@ -1049,7 +1049,7 @@ export const dryRunSwapExactInRequestSchema = {
 	required: ['tokenIdIn', 'amountIn', 'tokenIdOut', 'minAmountOut', 'swapRoute'],
 	properties: {
 		tokenIdIn: {
-			dataType: 'bytes',
+			dataType: 'string',
 			fieldNumber: 1,
 		},
 		amountIn: {
@@ -1057,7 +1057,7 @@ export const dryRunSwapExactInRequestSchema = {
 			fieldNumber: 2,
 		},
 		tokenIdOut: {
-			dataType: 'bytes',
+			dataType: 'string',
 			fieldNumber: 3,
 		},
 		minAmountOut: {
@@ -1068,7 +1068,7 @@ export const dryRunSwapExactInRequestSchema = {
 			type: 'array',
 			fieldNumber: 5,
 			items: {
-				dataType: 'bytes',
+				dataType: 'string',
 			},
 		},
 	},
@@ -1232,7 +1232,7 @@ export const dryRunSwapExactOutRequestSchema = {
 	required: ['tokenIdIn', 'maxAmountIn', 'tokenIdOut', 'amountOut', 'swapRoute'],
 	properties: {
 		tokenIdIn: {
-			dataType: 'bytes',
+			dataType: 'string',
 			fieldNumber: 1,
 		},
 		maxAmountIn: {
@@ -1240,7 +1240,7 @@ export const dryRunSwapExactOutRequestSchema = {
 			fieldNumber: 2,
 		},
 		tokenIdOut: {
-			dataType: 'bytes',
+			dataType: 'string',
 			fieldNumber: 3,
 		},
 		amountOut: {
@@ -1251,7 +1251,7 @@ export const dryRunSwapExactOutRequestSchema = {
 			type: 'array',
 			fieldNumber: 5,
 			items: {
-				dataType: 'bytes',
+				dataType: 'string',
 			},
 		},
 	},

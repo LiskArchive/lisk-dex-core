@@ -193,9 +193,9 @@ export class DexEndpoint extends BaseEndpoint {
 	}
 
 	public getPositionIndex(methodContext: ModuleEndpointContext): number {
-		validator.validate<{ positionID: Buffer }>(getPositionIndexRequestSchema, methodContext.params);
+		validator.validate<{ positionID: string }>(getPositionIndexRequestSchema, methodContext.params);
 		const { positionID } = methodContext.params;
-		const _buffer: Buffer = positionID.slice(-(2 * (NUM_BYTES_POSITION_ID - NUM_BYTES_ADDRESS)));
+		const _buffer: Buffer = Buffer.from(positionID, 'hex').slice(-(2 * (NUM_BYTES_POSITION_ID - NUM_BYTES_ADDRESS)));
 		const _hexBuffer: string = _buffer.toString('hex');
 		return uint32beInv(_hexBuffer);
 	}
