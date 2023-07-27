@@ -193,9 +193,11 @@ export class DexEndpoint extends BaseEndpoint {
 	}
 
 	public getPositionIndex(methodContext: ModuleEndpointContext): number {
-		validator.validate<{ positionID: Buffer }>(getPositionIndexRequestSchema, methodContext.params);
+		validator.validate<{ positionID: string }>(getPositionIndexRequestSchema, methodContext.params);
 		const { positionID } = methodContext.params;
-		const _buffer: Buffer = positionID.slice(-(2 * (NUM_BYTES_POSITION_ID - NUM_BYTES_ADDRESS)));
+		const _buffer: Buffer = Buffer.from(positionID, 'hex').slice(
+			-(2 * (NUM_BYTES_POSITION_ID - NUM_BYTES_ADDRESS)),
+		);
 		const _hexBuffer: string = _buffer.toString('hex');
 		return uint32beInv(_hexBuffer);
 	}
@@ -313,14 +315,15 @@ export class DexEndpoint extends BaseEndpoint {
 	): Promise<[bigint, bigint, bigint, bigint]> {
 		validator.validate<{
 			tokenIdIn: string;
-			amountIn: bigint;
+			amountIn: string;
 			tokenIdOut: string;
-			minAmountOut: bigint;
+			minAmountOut: string;
 			swapRoute: string[];
 		}>(dryRunSwapExactInRequestSchema, moduleEndpointContext.params);
 
 		const tokenIdIn = Buffer.from(moduleEndpointContext.params.tokenIdIn, 'hex');
-		const { amountIn, minAmountOut } = moduleEndpointContext.params;
+		const amountIn = BigInt(moduleEndpointContext.params.amountIn);
+		const minAmountOut = BigInt(moduleEndpointContext.params.minAmountOut);
 		const tokenIdOut = Buffer.from(moduleEndpointContext.params.tokenIdOut, 'hex');
 		const swapRoute = moduleEndpointContext.params.swapRoute.map(route =>
 			Buffer.from(route, 'hex'),
@@ -400,14 +403,15 @@ export class DexEndpoint extends BaseEndpoint {
 	): Promise<[bigint, bigint, bigint, bigint]> {
 		validator.validate<{
 			tokenIdIn: string;
-			maxAmountIn: bigint;
+			maxAmountIn: string;
 			tokenIdOut: string;
-			amountOut: bigint;
+			amountOut: string;
 			swapRoute: string[];
 		}>(dryRunSwapExactOutRequestSchema, moduleEndpointContext.params);
 
 		const tokenIdIn = Buffer.from(moduleEndpointContext.params.tokenIdIn, 'hex');
-		const { maxAmountIn, amountOut } = moduleEndpointContext.params;
+		const maxAmountIn = BigInt(moduleEndpointContext.params.maxAmountIn);
+		const amountOut = BigInt(moduleEndpointContext.params.amountOut);
 		const tokenIdOut = Buffer.from(moduleEndpointContext.params.tokenIdOut, 'hex');
 		const swapRoute = moduleEndpointContext.params.swapRoute.map(route =>
 			Buffer.from(route, 'hex'),
