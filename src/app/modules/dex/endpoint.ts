@@ -315,14 +315,15 @@ export class DexEndpoint extends BaseEndpoint {
 	): Promise<[bigint, bigint, bigint, bigint]> {
 		validator.validate<{
 			tokenIdIn: string;
-			amountIn: bigint;
+			amountIn: string;
 			tokenIdOut: string;
-			minAmountOut: bigint;
+			minAmountOut: string;
 			swapRoute: string[];
 		}>(dryRunSwapExactInRequestSchema, moduleEndpointContext.params);
 
 		const tokenIdIn = Buffer.from(moduleEndpointContext.params.tokenIdIn, 'hex');
-		const { amountIn, minAmountOut } = moduleEndpointContext.params;
+		const amountIn = BigInt(moduleEndpointContext.params.amountIn);
+		const minAmountOut = BigInt(moduleEndpointContext.params.minAmountOut);
 		const tokenIdOut = Buffer.from(moduleEndpointContext.params.tokenIdOut, 'hex');
 		const swapRoute = moduleEndpointContext.params.swapRoute.map(route =>
 			Buffer.from(route, 'hex'),
