@@ -319,7 +319,7 @@ describe('dex: offChainEndpointFunctions', () => {
 				[
 					Buffer.from(
 						getPoolIDFromPositionID(positionId).toLocaleString() +
-						tickToBytes(tickValue).toLocaleString(),
+							tickToBytes(tickValue).toLocaleString(),
 						'hex',
 					),
 				],
