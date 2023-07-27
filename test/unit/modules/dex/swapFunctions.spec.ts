@@ -34,6 +34,8 @@ import {
 	getOptimalSwapPool,
 	getRoute,
 	raiseSwapException,
+	computeNewIncentivesPerLiquidity,
+	updatePoolIncentives,
 } from '../../../../src/app/modules/dex/utils/swapFunctions';
 import { InMemoryPrefixedStateDB } from './inMemoryPrefixedState';
 import { Address, PoolID, TokenID } from '../../../../src/app/modules/dex/types';
@@ -229,6 +231,21 @@ describe('dex:swapFunctions', () => {
 			).toStrictEqual(token0Id);
 		});
 
+		it('computeNewIncentivesPerLiquidity should throw when poolId is not in the list of incentivized pools', async () => {
+			await expect(
+				(
+					computeNewIncentivesPerLiquidity(moduleEndpointContext, dexModule.stores, Buffer.alloc(0), 1)
+				),
+			).rejects.toThrow('Invalid arguments');
+		});
+
+		it('updatePoolIncentives should not throw', async () => {
+			await expect(
+				(
+					updatePoolIncentives(moduleEndpointContext, dexModule.stores, Buffer.alloc(0), 1)
+				),
+			).resolves.not.toThrow();
+		});
 		it('swap', async () => {
 			const currentTick = priceToTick(bytesToQ96(poolsStoreData.sqrtPrice));
 			const currentTickID = q96ToBytes(BigInt(currentTick));
