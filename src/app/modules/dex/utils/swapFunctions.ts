@@ -754,9 +754,9 @@ export const getOptimalSwapPool = async (
 			try {
 				methodContext.params = {
 					tokenIdIn: tokenIn.toString('hex'),
-					amountIn: amount,
+					amountIn: amount.toString(),
 					tokenIdOut: tokenOut.toString('hex'),
-					minAmountOut: BigInt(0),
+					minAmountOut: BigInt(0).toString(),
 					swapRoute: [pool.toString('hex')],
 				};
 				const amountOut = (await endpoint.dryRunSwapExactIn(methodContext))[1];

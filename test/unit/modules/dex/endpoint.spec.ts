@@ -319,7 +319,7 @@ describe('dex: offChainEndpointFunctions', () => {
 				[
 					Buffer.from(
 						getPoolIDFromPositionID(positionId).toLocaleString() +
-							tickToBytes(tickValue).toLocaleString(),
+						tickToBytes(tickValue).toLocaleString(),
 						'hex',
 					),
 				],
@@ -407,9 +407,9 @@ describe('dex: offChainEndpointFunctions', () => {
 			const minAmountOut = BigInt(10);
 			moduleEndpointContext.params = {
 				tokenIdIn: token0Id.toString('hex'),
-				amountIn,
+				amountIn: amountIn.toString(),
 				tokenIdOut: token1Id.toString('hex'),
-				minAmountOut,
+				minAmountOut: minAmountOut.toString(),
 				swapRoute: [poolId.toString('hex')],
 			};
 			const result = await endpoint.dryRunSwapExactIn(moduleEndpointContext);
