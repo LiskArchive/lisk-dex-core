@@ -233,17 +233,18 @@ describe('dex:swapFunctions', () => {
 
 		it('computeNewIncentivesPerLiquidity should throw when poolId is not in the list of incentivized pools', async () => {
 			await expect(
-				(
-					computeNewIncentivesPerLiquidity(moduleEndpointContext, dexModule.stores, Buffer.alloc(0), 1)
+				computeNewIncentivesPerLiquidity(
+					moduleEndpointContext,
+					dexModule.stores,
+					Buffer.alloc(0),
+					1,
 				),
 			).rejects.toThrow('Invalid arguments');
 		});
 
 		it('updatePoolIncentives should not throw', async () => {
 			await expect(
-				(
-					updatePoolIncentives(moduleEndpointContext, dexModule.stores, Buffer.alloc(0), 1)
-				),
+				updatePoolIncentives(moduleEndpointContext, dexModule.stores, Buffer.alloc(0), 1),
 			).resolves.not.toThrow();
 		});
 		it('swap', async () => {
