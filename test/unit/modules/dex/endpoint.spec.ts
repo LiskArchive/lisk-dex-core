@@ -244,7 +244,7 @@ describe('dex: offChainEndpointFunctions', () => {
 
 		it('getPositionIndex', () => {
 			moduleEndpointContext.params = {
-				positionID: positionId,
+				positionID: positionId.toString('hex'),
 			};
 			expect(endpoint.getPositionIndex(moduleEndpointContext)).toBe(1);
 		});
@@ -406,11 +406,11 @@ describe('dex: offChainEndpointFunctions', () => {
 			const amountIn = BigInt(50);
 			const minAmountOut = BigInt(10);
 			moduleEndpointContext.params = {
-				tokenIdIn: token0Id,
-				amountIn,
-				tokenIdOut: token1Id,
-				minAmountOut,
-				swapRoute: [poolId],
+				tokenIdIn: token0Id.toString('hex'),
+				amountIn: amountIn.toString(),
+				tokenIdOut: token1Id.toString('hex'),
+				minAmountOut: minAmountOut.toString(),
+				swapRoute: [poolId.toString('hex')],
 			};
 			const result = await endpoint.dryRunSwapExactIn(moduleEndpointContext);
 			expect(result).toEqual([BigInt(51), BigInt(50), BigInt(0), BigInt(0)]);
@@ -436,11 +436,11 @@ describe('dex: offChainEndpointFunctions', () => {
 			const maxAmountIn = BigInt(10);
 			const amountOut = BigInt(10);
 			moduleEndpointContext.params = {
-				tokenIdIn: token0Id,
-				maxAmountIn,
-				tokenIdOut: token1Id,
-				amountOut,
-				swapRoute: [poolId],
+				tokenIdIn: token0Id.toString('hex'),
+				maxAmountIn: maxAmountIn.toString(),
+				tokenIdOut: token1Id.toString('hex'),
+				amountOut: amountOut.toString(),
+				swapRoute: [poolId.toString('hex')],
 			};
 			const result = await endpoint.dryRunSwapExactOut(moduleEndpointContext);
 
