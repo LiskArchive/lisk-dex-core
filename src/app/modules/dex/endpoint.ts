@@ -55,7 +55,7 @@ import { DexGlobalStore, DexGlobalStoreData } from './stores/dexGlobalStore';
 import { PositionsStore, PositionsStoreData } from './stores/positionsStore';
 import { PriceTicksStore, PriceTicksStoreData, tickToBytes } from './stores/priceTicksStore';
 import { uint32beInv } from './utils/bigEndian';
-import { getCredibleDirectPrice } from './utils/tokenEcnomicsFunctions';
+import { getCredibleDirectPrice } from './utils/tokenEconomicsFunctions';
 
 export class DexEndpoint extends BaseEndpoint {
 	public async getAllPoolIDs(methodContext): Promise<PoolID[]> {
