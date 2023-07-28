@@ -20,7 +20,7 @@ import { PoolsStore, SettingsStore } from './stores';
 import { PoolID, Q96 } from './types';
 import { getDexGlobalData, getPool } from './utils/auxiliaryFunctions';
 import { bytesToQ96, invQ96 } from './utils/q96';
-import { updatePoolIncentives } from './utils/tokenEcnomicsFunctions';
+import { updatePoolIncentives } from './utils/tokenEconomicsFunctions';
 import { DexGlobalStore, DexGlobalStoreData } from './stores/dexGlobalStore';
 
 export class DexMethod extends BaseMethod {

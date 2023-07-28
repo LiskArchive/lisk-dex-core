@@ -95,7 +95,7 @@ import { ADDRESS_VALIDATOR_INCENTIVES } from '../../dexIncentives/constants';
 import { DexGlobalStoreData } from '../stores/dexGlobalStore';
 import { PoolsStoreData } from '../stores/poolsStore';
 import { PositionsStoreData } from '../stores/positionsStore';
-import { updatePoolIncentives } from './tokenEcnomicsFunctions';
+import { updatePoolIncentives } from './tokenEconomicsFunctions';
 
 const abs = (x: bigint) => (x < BigInt(0) ? -x : x);
 const { utils } = cryptography;

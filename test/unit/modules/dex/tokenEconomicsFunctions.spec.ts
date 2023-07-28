@@ -47,11 +47,11 @@ import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settin
 import {
 	computeNewIncentivesPerLiquidity,
 	updatePoolIncentives,
-} from '../../../../src/app/modules/dex/utils/tokenEcnomicsFunctions';
+} from '../../../../src/app/modules/dex/utils/tokenEconomicsFunctions';
 
 const { InMemoryPrefixedStateDB } = testing;
 
-describe('dex:tokenEcnomicsFunctions', () => {
+describe('dex:tokenEconomicsFunctions', () => {
 	const poolId: PoolID = Buffer.from('0000000000000000000001000000000000c8', 'hex');
 	const poolIdLSK = Buffer.from('0000000100000000', 'hex');
 	const senderAddress: Address = Buffer.from('0000000000000000', 'hex');
