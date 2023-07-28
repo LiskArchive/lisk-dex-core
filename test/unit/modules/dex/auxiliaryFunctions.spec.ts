@@ -334,6 +334,42 @@ describe('dex:auxiliaryFunctions', () => {
 			).toBe(BigInt(3));
 		});
 
+		it('Return value is 10894', () => {
+			expect(
+				getLiquidityForAmounts(
+					BigInt('61703726247759831737814779825'),
+					BigInt('79228162514264337593543950336'),
+					BigInt('965075977353221155028623083472'),
+					BigInt(10000),
+					BigInt(10000),
+				),
+			).toBe(BigInt(10894));
+		});
+
+		it('Return value is 15415.', () => {
+			expect(
+				getLiquidityForAmounts(
+					BigInt('130621891405341611593710811015'),
+					BigInt('79228162514264337593543950336'),
+					BigInt('965075977353221155028623083472'),
+					BigInt(10000),
+					BigInt(10000),
+				),
+			).toBe(BigInt(15415));
+		});
+
+		it('Return value is 894.', () => {
+			expect(
+				getLiquidityForAmounts(
+					BigInt('1591101516320542774261326898334'),
+					BigInt('79228162514264337593543950336'),
+					BigInt('965075977353221155028623083472'),
+					BigInt(10000),
+					BigInt(10000),
+				),
+			).toBe(BigInt(894));
+		});
+
 		it('should not throw any error in result', async () => {
 			expect(
 				await checkPositionExistenceAndOwnership(
@@ -344,6 +380,32 @@ describe('dex:auxiliaryFunctions', () => {
 					positionId,
 				),
 			).toBeUndefined();
+		});
+
+		it('Position with ID positionID does not exist in positions substore', async () => {
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises, jest/valid-expect
+			expect(
+				checkPositionExistenceAndOwnership(
+					dexModule.stores,
+					dexModule.events,
+					methodContext,
+					senderAddress,
+					Buffer.alloc(0),
+				),
+			).rejects.toThrow();
+		});
+
+		it('senderAddress is not equal to positions[positionID].ownerAddress ', async () => {
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises, jest/valid-expect
+			expect(
+				checkPositionExistenceAndOwnership(
+					dexModule.stores,
+					dexModule.events,
+					methodContext,
+					Buffer.alloc(0),
+					positionId,
+				),
+			).rejects.toThrow();
 		});
 
 		it('should return [0n, 0n, 0n, 0n] as collectableFees0, collectableFees1, feeGrowthInside0, feeGrowthInside1 in result', async () => {
