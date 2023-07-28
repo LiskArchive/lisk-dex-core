@@ -36,4 +36,4 @@ COPY --from=builder /home/lisk/build/node_modules/ ./node_modules/
 RUN npm run build
 
 ENTRYPOINT ["/home/lisk/bin/run"]
-CMD ["start", "--network", "mainnet"]
+CMD ["start"]
