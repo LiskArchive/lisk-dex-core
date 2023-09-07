@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/member-ordering */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -39,7 +38,7 @@ export const ProposalVotedEventSchema = {
 		},
 		voterAddress: {
 			dataType: 'bytes',
-			length: LENGTH_ADDRESS,
+			maxLength: LENGTH_ADDRESS,
 			fieldNumber: 2,
 		},
 		decision: {
