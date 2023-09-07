@@ -86,7 +86,6 @@ export interface GenesisDEXGovernanceData {
 	votesStore: VoteStore[];
 }
 
-
 export interface voteOnProposalParamsData {
 	proposalIndex: number;
 	decision: number;
