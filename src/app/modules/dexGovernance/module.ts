@@ -72,6 +72,7 @@ import {
 import { IndexStoreData } from './stores/indexStore';
 import { getVoteOutcome, hasEnded } from './utils/auxiliaryFunctions';
 import { DexModule } from '../dex/module';
+import { VoteOnProposalCommand } from './commands/voteOnProposal';
 
 export class DexGovernanceModule extends BaseModule {
 	public id = MODULE_NAME_DEX_GOVERNANCE;
@@ -84,8 +85,9 @@ export class DexGovernanceModule extends BaseModule {
 	public _feeMethod!: FeeMethod;
 
 	private readonly __createProposalCommand = new CreateProposalCommand(this.stores, this.events);
+	private readonly __voteOnProposalCommand = new VoteOnProposalCommand(this.stores, this.events);
 
-	public commands = [this.__createProposalCommand];
+	public commands = [this.__createProposalCommand, this.__voteOnProposalCommand];
 
 	public constructor() {
 		super();
@@ -303,10 +305,10 @@ export class DexGovernanceModule extends BaseModule {
 
 		votesStore.forEach(votes => {
 			votes.votes.voteInfos.forEach(voteInfo => {
-				if (voteInfo.proposalIndex >= proposalsStore.length) {
+				if (voteInfo && voteInfo.proposalIndex >= proposalsStore.length) {
 					throw new Error('Vote info references incorrect proposal index');
 				}
-				if (voteInfo.decision > 2) {
+				if (voteInfo && voteInfo.decision > 2) {
 					throw new Error('Incorrect vote decision');
 				}
 			});
@@ -327,6 +329,7 @@ export class DexGovernanceModule extends BaseModule {
 		votesStore.forEach(votes => {
 			votes.votes.voteInfos.forEach(voteInfo => {
 				if (
+					voteInfo &&
 					voteInfo.proposalIndex >= firstWithRecordedVotes &&
 					voteInfo.proposalIndex < proposalsStore.length
 				) {
