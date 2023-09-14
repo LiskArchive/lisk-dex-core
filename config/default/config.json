@@ -45,7 +45,8 @@
 		},
 		"fee": {
 			"feeTokenID": "0400001100000000",
-			"feePoolAddress": "lsk9e3umcuq2xbg26kkugygyk4ztqzg2w2e6z8hap"
+			"feePoolAddress": "lsk9e3umcuq2xbg26kkugygyk4ztqzg2w2e6z8hap",
+			"maxBlockHeightZeroFeePerByte": 259975
 		},
 		"token": {
 			"feeTokenID": "0400001100000000"
