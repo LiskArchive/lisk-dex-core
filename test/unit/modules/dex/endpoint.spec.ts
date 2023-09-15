@@ -281,12 +281,14 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getCurrentSqrtPrice', async () => {
+			moduleEndpointContext.params = {
+				poolID: getPoolIDFromPositionID(positionId),
+				priceDirection: false
+			}
 			expect(
 				(
 					await endpoint.getCurrentSqrtPrice(
 						moduleEndpointContext,
-						getPoolIDFromPositionID(positionId),
-						false,
 					)
 				).toString(),
 			).toBe('78833030112140176575862854576');
@@ -319,7 +321,7 @@ describe('dex: offChainEndpointFunctions', () => {
 				[
 					Buffer.from(
 						getPoolIDFromPositionID(positionId).toLocaleString() +
-							tickToBytes(tickValue).toLocaleString(),
+						tickToBytes(tickValue).toLocaleString(),
 						'hex',
 					),
 				],
