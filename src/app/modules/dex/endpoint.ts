@@ -100,10 +100,11 @@ export class DexEndpoint extends BaseEndpoint {
 		return key;
 	}
 
-	public async getCurrentSqrtPrice(
-		methodContext: ModuleEndpointContext,
-	): Promise<Q96> {
-		validator.validate<{ poolID: string; priceDirection: boolean }>(getCurrentSqrtPriceRequestSchema, methodContext.params);
+	public async getCurrentSqrtPrice(methodContext: ModuleEndpointContext): Promise<Q96> {
+		validator.validate<{ poolID: string; priceDirection: boolean }>(
+			getCurrentSqrtPriceRequestSchema,
+			methodContext.params,
+		);
 		const poolID = Buffer.from(methodContext.params.poolID, 'hex');
 		const { priceDirection } = methodContext.params;
 		const pools = await this.getPool(methodContext, poolID);
