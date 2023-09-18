@@ -281,15 +281,13 @@ describe('dex: offChainEndpointFunctions', () => {
 		});
 
 		it('getCurrentSqrtPrice', async () => {
-			expect(
-				(
-					await endpoint.getCurrentSqrtPrice(
-						moduleEndpointContext,
-						getPoolIDFromPositionID(positionId),
-						false,
-					)
-				).toString(),
-			).toBe('78833030112140176575862854576');
+			moduleEndpointContext.params = {
+				poolID: getPoolIDFromPositionID(positionId),
+				priceDirection: false,
+			};
+			expect((await endpoint.getCurrentSqrtPrice(moduleEndpointContext)).toString()).toBe(
+				'78833030112140176575862854576',
+			);
 		});
 
 		it('getDexGlobalData', async () => {

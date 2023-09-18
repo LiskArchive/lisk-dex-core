@@ -48,6 +48,7 @@ import {
 	dryRunSwapExactInRequestSchema,
 	dryRunSwapExactOutRequestSchema,
 	getCollectableFeesAndIncentivesRequestSchema,
+	getCurrentSqrtPriceRequestSchema,
 } from './schemas';
 
 import { addQ96, bytesToQ96, divQ96, invQ96, roundDownQ96, mulQ96 } from './utils/q96';
@@ -99,11 +100,13 @@ export class DexEndpoint extends BaseEndpoint {
 		return key;
 	}
 
-	public async getCurrentSqrtPrice(
-		methodContext: ModuleEndpointContext,
-		poolID: PoolID,
-		priceDirection: boolean,
-	): Promise<Q96> {
+	public async getCurrentSqrtPrice(methodContext: ModuleEndpointContext): Promise<Q96> {
+		validator.validate<{ poolID: string; priceDirection: boolean }>(
+			getCurrentSqrtPriceRequestSchema,
+			methodContext.params,
+		);
+		const poolID = Buffer.from(methodContext.params.poolID, 'hex');
+		const { priceDirection } = methodContext.params;
 		const pools = await this.getPool(methodContext, poolID);
 		if (pools == null) {
 			throw new Error();
