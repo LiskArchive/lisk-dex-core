@@ -1,5 +1,6 @@
 import {
 	AuthModule,
+	DynamicRewardModule,
 	FeeModule,
 	PoSModule,
 	RandomModule,
@@ -8,7 +9,6 @@ import {
 	ValidatorsModule,
 } from 'lisk-framework';
 import { inspect } from 'util';
-import { DynamicRewardModule } from 'lisk-framework/dist-node/modules/dynamic_rewards';
 import { getApplication } from '../../src/app/app';
 import { DexGovernanceModule, DexIncentivesModule, DexModule } from '../../src/app/modules';
 
