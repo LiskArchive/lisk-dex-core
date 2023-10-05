@@ -1,0 +1,58 @@
+{
+	"system": {
+		"dataPath": "~/.lisk/lisk-dex-core",
+		"logLevel": "info",
+		"enableMetrics": true,
+		"keepEventsForHeights": -1
+	},
+	"rpc": {
+		"modes": ["ipc", "ws", "http"],
+		"port": 7887,
+		"host": "0.0.0.0",
+		"allowedMethods": ["*"]
+	},
+	"genesis": {
+		"block": {
+			"fromFile": "./config/genesis_block.blob"
+		},
+		"blockTime": 10,
+		"bftBatchSize": 103,
+		"chainID": "04000011",
+		"maxTransactionsSize": 15360,
+		"minimumCertifyHeight": 1
+	},
+	"generator": {
+		"keys": {
+			"fromFile": "./config/dev-validators.json"
+		}
+	},
+	"network": {
+		"version": "1.0",
+		"seedPeers": [],
+		"port": 7667
+	},
+	"transactionPool": {
+		"maxTransactions": 4096,
+		"maxTransactionsPerAccount": 64,
+		"transactionExpiryTime": 10800000,
+		"minEntranceFeePriority": "0",
+		"minReplacementFeeDifference": "10"
+	},
+	"modules": {
+		"dynamicReward": {
+			"tokenID": "0400001100000000",
+			"offset": 259975,
+			"distance": 3153600,
+			"brackets": ["400000000", "350000000", "300000000", "250000000", "200000000"]
+		},
+		"fee": {
+			"feeTokenID": "0400001100000000",
+			"feePoolAddress": "lsk9e3umcuq2xbg26kkugygyk4ztqzg2w2e6z8hap",
+			"maxBlockHeightZeroFeePerByte": 259975
+		},
+		"token": {
+			"feeTokenID": "0400001100000000"
+		}
+	},
+	"plugins": {}
+}
