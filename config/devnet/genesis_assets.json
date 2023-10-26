@@ -3063,7 +3063,16 @@
 				"poolSubstore": {},
 				"priceTickSubstore": {},
 				"positionSubstore": {},
-				"dexGlobalDataSubstore": {}
+				"dexGlobalDataSubstore": {
+					"positionCounter": 0,
+					"poolCreationSettings": [
+						{ "feeTier": 500, "tickSpacing": 10 },
+						{ "feeTier": 3000, "tickSpacing": 60 },
+						{ "feeTier": 10000, "tickSpacing": 200 }
+					],
+					"incentivizedPools": [],
+					"totalIncentivesMultiplier": 0
+				}
 			},
 			"schema": {
 				"$id": "/dex/module/genesis",
