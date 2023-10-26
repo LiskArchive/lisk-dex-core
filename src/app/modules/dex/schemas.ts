@@ -69,31 +69,15 @@ export const genesisDEXSchema = {
 	$id: '/dex/genesis',
 	type: 'object',
 	required: [
-		'stateSubstore',
 		'poolSubstore',
 		'priceTickSubstore',
 		'positionSubstore',
 		'settingsSubstore',
 	],
 	properties: {
-		stateSubstore: {
-			type: 'object',
-			fieldNumber: 1,
-			required: ['positionCounter', 'collectableLSKFees'],
-			properties: {
-				positionCounter: {
-					dataType: 'uint64',
-					fieldNumber: 1,
-				},
-				collectableLSKFees: {
-					dataType: 'uint64',
-					fieldNumber: 2,
-				},
-			},
-		},
 		poolSubstore: {
 			type: 'array',
-			fieldNumber: 2,
+			fieldNumber: 1,
 			items: {
 				type: 'object',
 				required: [
@@ -149,7 +133,7 @@ export const genesisDEXSchema = {
 		},
 		priceTickSubstore: {
 			type: 'array',
-			fieldNumber: 3,
+			fieldNumber: 2,
 			items: {
 				type: 'object',
 				required: [
@@ -194,7 +178,7 @@ export const genesisDEXSchema = {
 		},
 		positionSubstore: {
 			type: 'array',
-			fieldNumber: 4,
+			fieldNumber: 3,
 			items: {
 				type: 'object',
 				required: [
@@ -250,7 +234,7 @@ export const genesisDEXSchema = {
 		},
 		settingsSubstore: {
 			type: 'object',
-			fieldNumber: 5,
+			fieldNumber: 4,
 			required: [
 				'protocolFeeAddress',
 				'protocolFeePart',
