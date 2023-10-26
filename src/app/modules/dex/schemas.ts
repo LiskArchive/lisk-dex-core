@@ -33,7 +33,7 @@ export const settingsSchema = {
 	properties: {
 		protocolFeeAddress: {
 			dataType: 'bytes',
-			length: NUM_BYTES_ADDRESS,
+			maxLength: NUM_BYTES_ADDRESS,
 			fieldNumber: 1,
 		},
 		protocolFeePart: {
@@ -109,7 +109,7 @@ export const genesisDEXSchema = {
 				properties: {
 					poolId: {
 						dataType: 'bytes',
-						length: NUM_BYTES_POOL_ID,
+						maxLength: NUM_BYTES_POOL_ID,
 						fieldNumber: 1,
 					},
 					liquidity: {
@@ -163,7 +163,7 @@ export const genesisDEXSchema = {
 				properties: {
 					tickId: {
 						dataType: 'bytes',
-						length: NUM_BYTES_TICK_ID,
+						maxLength: NUM_BYTES_TICK_ID,
 						fieldNumber: 1,
 					},
 					liquidityNet: {
@@ -210,7 +210,7 @@ export const genesisDEXSchema = {
 				properties: {
 					positionId: {
 						dataType: 'bytes',
-						length: NUM_BYTES_POSITION_ID,
+						maxLength: NUM_BYTES_POSITION_ID,
 						fieldNumber: 1,
 					},
 					tickLower: {
@@ -237,7 +237,7 @@ export const genesisDEXSchema = {
 					},
 					ownerAddress: {
 						dataType: 'bytes',
-						length: NUM_BYTES_ADDRESS,
+						maxLength: NUM_BYTES_ADDRESS,
 						fieldNumber: 7,
 					},
 					incentivesPerLiquidityLast: {
@@ -260,7 +260,7 @@ export const genesisDEXSchema = {
 			properties: {
 				protocolFeeAddress: {
 					dataType: 'bytes',
-					length: NUM_BYTES_ADDRESS,
+					maxLength: NUM_BYTES_ADDRESS,
 					fieldNumber: 1,
 				},
 				protocolFeePart: {
@@ -994,7 +994,7 @@ export const tokenDistributionSchema = {
 			properties: {
 				address: {
 					dataType: 'bytes',
-					length: ADDRESS_LENGTH,
+					maxLength: ADDRESS_LENGTH,
 					fieldNumber: 1,
 				},
 				balance: {
