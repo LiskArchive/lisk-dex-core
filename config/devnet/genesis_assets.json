@@ -3060,9 +3060,9 @@
 		{
 			"module": "dex",
 			"data": {
-				"poolSubstore": {},
-				"priceTickSubstore": {},
-				"positionSubstore": {},
+				"poolSubstore": [],
+				"priceTickSubstore": [],
+				"positionSubstore": [],
 				"dexGlobalDataSubstore": {
 					"positionCounter": 0,
 					"poolCreationSettings": [

@@ -20,14 +20,12 @@ import { DexGlobalStoreData } from './stores/dexGlobalStore';
 import { PoolsStoreData } from './stores/poolsStore';
 import { PositionsStoreData } from './stores/positionsStore';
 import { PriceTicksStoreData } from './stores/priceTicksStore';
-import { SettingsStoreData } from './stores/settingsStore';
 
 export type GenesisDEX = {
 	stateStore: DexGlobalStoreData;
 	poolSubstore: PoolsStoreData[];
 	priceTickSubstore: PriceTicksStoreData[];
 	positionSubstore: PositionsStoreData[];
-	settingsSubstore: SettingsStoreData[];
 };
 export interface FeeTiers {
 	[id: number]: number;

@@ -27,7 +27,6 @@ import {
 	PoolsStore,
 	PositionsStore,
 	PriceTicksStore,
-	SettingsStore,
 } from '../stores';
 
 import {
@@ -166,7 +165,7 @@ export const transferPoolToPool = async (
 export const transferToProtocolFeeAccount = async (
 	tokenMethod: TokenMethod,
 	methodContext,
-	settings: SettingsStore,
+	settings: DexGlobalStore,
 	senderAddress: Address,
 	tokenId: TokenID,
 	amount: bigint,
@@ -464,6 +463,7 @@ export const createPosition = async (
 		await priceTicksStore.setKey(methodContext, [poolID, tickToBytes(tickUpper)], tickStoreValue);
 	}
 
+	console.log(await dexGlobalStore.has(methodContext, Buffer.from([])));
 	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
 	const positionID = getNewPositionID(dexGlobalStoreData, poolID);
 
@@ -1002,7 +1002,7 @@ export const getCredibleDirectPrice = async (
 		);
 		token1ValuesLocked.push(
 			roundDownQ96(token0ValueQ96) +
-				(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
+			(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
 		);
 	}
 

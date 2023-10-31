@@ -52,7 +52,7 @@ import {
 } from './events';
 
 import { CreatePoolCommand } from './commands/createPool';
-import { PoolsStore, PositionsStore, PriceTicksStore, SettingsStore } from './stores';
+import { PoolsStore, PositionsStore, PriceTicksStore } from './stores';
 import { DexMethod } from './method';
 import { AddLiquidityCommand } from './commands/addLiquidity';
 import { CreatePositionCommand } from './commands/createPosition';
@@ -112,7 +112,6 @@ import { DexEndpoint } from './endpoint';
 import { poolsStoreSchema } from './stores/poolsStore';
 import { positionsStoreSchema } from './stores/positionsStore';
 import { bytesToTick, priceTicksStoreSchema } from './stores/priceTicksStore';
-import { settingsStoreSchema } from './stores/settingsStore';
 import { SwapExactWithPriceLimitCommand } from './commands/swapWithPriceLimit';
 import { SwapExactOutCommand } from './commands/swapExactOut';
 import { GenesisDEX, ModuleConfig } from './types';
@@ -160,7 +159,6 @@ export class DexModule extends BaseModule {
 		this.stores.register(PoolsStore, new PoolsStore(this.name, 1));
 		this.stores.register(PositionsStore, new PositionsStore(this.name, 2));
 		this.stores.register(PriceTicksStore, new PriceTicksStore(this.name, 3));
-		this.stores.register(SettingsStore, new SettingsStore(this.name, 4));
 		this.events.register(PoolCreatedEvent, new PoolCreatedEvent(this.name));
 		this.events.register(PoolCreationFailedEvent, new PoolCreationFailedEvent(this.name));
 		this.events.register(PositionCreatedEvent, new PositionCreatedEvent(this.name));
@@ -182,7 +180,6 @@ export class DexModule extends BaseModule {
 				{ key: PoolsStore.name, data: poolsStoreSchema },
 				{ key: PositionsStore.name, data: positionsStoreSchema },
 				{ key: PriceTicksStore.name, data: priceTicksStoreSchema },
-				{ key: SettingsStore.name, data: settingsStoreSchema },
 			],
 			endpoints: [
 				{
