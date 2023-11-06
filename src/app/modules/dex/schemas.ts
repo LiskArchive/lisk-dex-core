@@ -21,261 +21,231 @@ import {
 	NUM_BYTES_TICK_ID,
 } from './constants';
 
-export const settingsSchema = {
-	$id: '/dex/settings',
-	type: 'object',
-	required: [
-		'protocolFeeAddress',
-		'protocolFeePart',
-		'validatorsLSKRewardsPart',
-		'poolCreationSettings',
-	],
-	properties: {
-		protocolFeeAddress: {
-			dataType: 'bytes',
-			maxLength: NUM_BYTES_ADDRESS,
-			fieldNumber: 1,
-		},
-		protocolFeePart: {
-			dataType: 'uint32',
-			fieldNumber: 2,
-		},
-		validatorsLSKRewardsPart: {
-			dataType: 'uint32',
-			fieldNumber: 3,
-		},
-		poolCreationSettings: {
-			type: 'array',
-			fieldNumber: 4,
-			items: {
-				type: 'object',
-				required: ['feeTier', 'tickSpacing'],
-				properties: {
-					feeTier: {
-						dataType: 'uint32',
-						fieldNumber: 1,
-					},
-					tickSpacing: {
-						dataType: 'uint32',
-						fieldNumber: 2,
-					},
-				},
-			},
-		},
-	},
-};
-
 export const genesisDEXSchema = {
-	$id: '/dex/genesis',
-	type: 'object',
-	required: [
-		'poolSubstore',
-		'priceTickSubstore',
-		'positionSubstore',
-		'settingsSubstore',
+	"$id": "/dex/genesis",
+	"type": "object",
+	"required": [
+		"poolSubstore",
+		"priceTickSubstore",
+		"positionSubstore",
+		"dexGlobalDataSubstore"
 	],
-	properties: {
-		poolSubstore: {
-			type: 'array',
-			fieldNumber: 1,
-			items: {
-				type: 'object',
-				required: [
-					'poolId',
-					'liquidity',
-					'sqrtPrice',
-					'incentivesPerLiquidityAccumulator',
-					'heightIncentivesUpdate',
-					'feeGrowthGlobal0',
-					'feeGrowthGlobal1',
-					'tickSpacing',
+	"properties": {
+		"poolSubstore": {
+			"type": "array",
+			"fieldNumber": 1,
+			"items": {
+				"type": "object",
+				"required": [
+					"poolId",
+					"liquidity",
+					"sqrtPrice",
+					"incentivesPerLiquidityAccumulator",
+					"heightIncentivesUpdate",
+					"feeGrowthGlobal0",
+					"feeGrowthGlobal1",
+					"tickSpacing"
 				],
-				properties: {
-					poolId: {
-						dataType: 'bytes',
-						maxLength: NUM_BYTES_POOL_ID,
-						fieldNumber: 1,
+				"properties": {
+					"poolId": {
+						"dataType": "bytes",
+						"maxLength": NUM_BYTES_POOL_ID,
+						"fieldNumber": 1
 					},
-					liquidity: {
-						dataType: 'uint64',
-						fieldNumber: 2,
+					"liquidity": {
+						"dataType": "uint64",
+						"fieldNumber": 2
 					},
-					sqrtPrice: {
-						dataType: 'bytes',
-						maxLength: MAX_NUM_BYTES_Q96,
-						fieldNumber: 3,
+					"sqrtPrice": {
+						"dataType": "bytes",
+						"maxLength": MAX_NUM_BYTES_Q96,
+						"fieldNumber": 3
 					},
-					incentivesPerLiquidityAccumulator: {
-						dataType: 'bytes',
-						maxLength: MAX_NUM_BYTES_Q96,
-						fieldNumber: 3,
+					"incentivesPerLiquidityAccumulator": {
+						"dataType": "bytes",
+						"maxLength": MAX_NUM_BYTES_Q96,
+						"fieldNumber": 4
 					},
-					heightIncentivesUpdate: {
-						dataType: 'uint32',
-						fieldNumber: 4,
+					"heightIncentivesUpdate": {
+						"dataType": "uint32",
+						"fieldNumber": 5
 					},
-					feeGrowthGlobal0: {
-						dataType: 'bytes',
-						maxLength: MAX_NUM_BYTES_Q96,
-						fieldNumber: 5,
+					"feeGrowthGlobal0": {
+						"dataType": "bytes",
+						"maxLength": MAX_NUM_BYTES_Q96,
+						"fieldNumber": 6
 					},
-					feeGrowthGlobal1: {
-						dataType: 'bytes',
-						maxLength: MAX_NUM_BYTES_Q96,
-						fieldNumber: 6,
+					"feeGrowthGlobal1": {
+						"dataType": "bytes",
+						"maxLength": MAX_NUM_BYTES_Q96,
+						"fieldNumber": 7
 					},
-					tickSpacing: {
-						dataType: 'uint32',
-						fieldNumber: 7,
-					},
-				},
-			},
+					"tickSpacing": {
+						"dataType": "uint32",
+						"fieldNumber": 8
+					}
+				}
+			}
 		},
-		priceTickSubstore: {
-			type: 'array',
-			fieldNumber: 2,
-			items: {
-				type: 'object',
-				required: [
-					'tickId',
-					'liquidityNet',
-					'liquidityGross',
-					'feeGrowthOutside0',
-					'feeGrowthOutside1',
-					'incentivesPerLiquidityOutside',
+		"priceTickSubstore": {
+			"type": "array",
+			"fieldNumber": 2,
+			"items": {
+				"type": "object",
+				"required": [
+					"tickId",
+					"liquidityNet",
+					"liquidityGross",
+					"feeGrowthOutside0",
+					"feeGrowthOutside1",
+					"incentivesPerLiquidityOutside"
 				],
-				properties: {
-					tickId: {
-						dataType: 'bytes',
-						maxLength: NUM_BYTES_TICK_ID,
-						fieldNumber: 1,
+				"properties": {
+					"tickId": {
+						"dataType": "bytes",
+						"maxLength": NUM_BYTES_TICK_ID,
+						"fieldNumber": 1
 					},
-					liquidityNet: {
-						dataType: 'sint64',
-						fieldNumber: 2,
+					"liquidityNet": {
+						"dataType": "sint64",
+						"fieldNumber": 2
 					},
-					liquidityGross: {
-						dataType: 'uint64',
-						fieldNumber: 3,
+					"liquidityGross": {
+						"dataType": "uint64",
+						"fieldNumber": 3
 					},
-					feeGrowthOutside0: {
-						dataType: 'bytes',
-						maxLength: MAX_NUM_BYTES_Q96,
-						fieldNumber: 4,
+					"feeGrowthOutside0": {
+						"dataType": "bytes",
+						"maxLength": MAX_NUM_BYTES_Q96,
+						"fieldNumber": 4
 					},
-					feeGrowthOutside1: {
-						dataType: 'bytes',
-						maxLength: MAX_NUM_BYTES_Q96,
-						fieldNumber: 5,
+					"feeGrowthOutside1": {
+						"dataType": "bytes",
+						"maxLength": MAX_NUM_BYTES_Q96,
+						"fieldNumber": 5
 					},
-					incentivesPerLiquidityOutside: {
-						dataType: 'bytes',
-						maxLength: MAX_NUM_BYTES_Q96,
-						fieldNumber: 6,
-					},
-				},
-			},
+					"incentivesPerLiquidityOutside": {
+						"dataType": "bytes",
+						"maxLength": MAX_NUM_BYTES_Q96,
+						"fieldNumber": 6
+					}
+				}
+			}
 		},
-		positionSubstore: {
-			type: 'array',
-			fieldNumber: 3,
-			items: {
-				type: 'object',
-				required: [
-					'positionId',
-					'tickLower',
-					'tickUpper',
-					'liquidity',
-					'feeGrowthInsideLast0',
-					'feeGrowthInsideLast1',
-					'ownerAddress',
-					'incentivesPerLiquidityLast',
+		"positionSubstore": {
+			"type": "array",
+			"fieldNumber": 3,
+			"items": {
+				"type": "object",
+				"required": [
+					"positionId",
+					"tickLower",
+					"tickUpper",
+					"liquidity",
+					"feeGrowthInsideLast0",
+					"feeGrowthInsideLast1",
+					"ownerAddress",
+					"incentivesPerLiquidityLast"
 				],
-				properties: {
-					positionId: {
-						dataType: 'bytes',
-						maxLength: NUM_BYTES_POSITION_ID,
-						fieldNumber: 1,
+				"properties": {
+					"positionId": {
+						"dataType": "bytes",
+						"maxLength": NUM_BYTES_POSITION_ID,
+						"fieldNumber": 1
 					},
-					tickLower: {
-						dataType: 'sint32',
-						fieldNumber: 2,
+					"tickLower": {
+						"dataType": "sint32",
+						"fieldNumber": 2
 					},
-					tickUpper: {
-						dataType: 'sint32',
-						fieldNumber: 3,
+					"tickUpper": {
+						"dataType": "sint32",
+						"fieldNumber": 3
 					},
-					liquidity: {
-						dataType: 'uint64',
-						fieldNumber: 4,
+					"liquidity": {
+						"dataType": "uint64",
+						"fieldNumber": 4
 					},
-					feeGrowthInsideLast0: {
-						dataType: 'bytes',
-						maxLength: MAX_NUM_BYTES_Q96,
-						fieldNumber: 5,
+					"feeGrowthInsideLast0": {
+						"dataType": "bytes",
+						"maxLength": MAX_NUM_BYTES_Q96,
+						"fieldNumber": 5
 					},
-					feeGrowthInsideLast1: {
-						dataType: 'bytes',
-						maxLength: MAX_NUM_BYTES_Q96,
-						fieldNumber: 6,
+					"feeGrowthInsideLast1": {
+						"dataType": "bytes",
+						"maxLength": MAX_NUM_BYTES_Q96,
+						"fieldNumber": 6
 					},
-					ownerAddress: {
-						dataType: 'bytes',
-						maxLength: NUM_BYTES_ADDRESS,
-						fieldNumber: 7,
+					"ownerAddress": {
+						"dataType": "bytes",
+						"maxLength": NUM_BYTES_ADDRESS,
+						"fieldNumber": 7
 					},
-					incentivesPerLiquidityLast: {
-						dataType: 'bytes',
-						maxLength: MAX_NUM_BYTES_Q96,
-						fieldNumber: 8,
-					},
-				},
-			},
+					"incentivesPerLiquidityLast": {
+						"dataType": "bytes",
+						"maxLength": MAX_NUM_BYTES_Q96,
+						"fieldNumber": 8
+					}
+				}
+			}
 		},
-		settingsSubstore: {
-			type: 'object',
-			fieldNumber: 4,
-			required: [
-				'protocolFeeAddress',
-				'protocolFeePart',
-				'validatorsLSKRewardsPart',
-				'poolCreationSettings',
+		"dexGlobalDataSubstore": {
+			"type": "object",
+			"fieldNumber": 4,
+			"required": [
+				"positionCounter",
+				"poolCreationSettings",
+				"incentivizedPools",
+				"totalIncentivesMultiplier"
 			],
-			properties: {
-				protocolFeeAddress: {
-					dataType: 'bytes',
-					maxLength: NUM_BYTES_ADDRESS,
-					fieldNumber: 1,
+			"properties": {
+				"positionCounter": {
+					"dataType": "uint64",
+					"fieldNumber": 1
 				},
-				protocolFeePart: {
-					dataType: 'uint32',
-					fieldNumber: 2,
-				},
-				validatorsLSKRewardsPart: {
-					dataType: 'uint32',
-					fieldNumber: 3,
-				},
-				poolCreationSettings: {
-					type: 'array',
-					fieldNumber: 4,
-					items: {
-						type: 'object',
-						required: ['feeTier', 'tickSpacing'],
-						properties: {
-							feeTier: {
-								dataType: 'uint32',
-								fieldNumber: 1,
+				"poolCreationSettings": {
+					"type": "array",
+					"fieldNumber": 2,
+					"items": {
+						"type": "object",
+						"required": ["feeTier", "tickSpacing"],
+						"properties": {
+							"feeTier": {
+								"dataType": "uint32",
+								"fieldNumber": 1
 							},
-							tickSpacing: {
-								dataType: 'uint32',
-								fieldNumber: 2,
-							},
-						},
-					},
+							"tickSpacing": {
+								"dataType": "uint32",
+								"fieldNumber": 2
+							}
+						}
+					}
 				},
-			},
-		},
-	},
+				"incentivizedPools": {
+					"type": "array",
+					"fieldNumber": 3,
+					"items": {
+						"type": "object",
+						"required": ["poolId", "multiplier"],
+						"properties": {
+							"poolId": {
+								"dataType": "bytes",
+								"maxLength": NUM_BYTES_POOL_ID,
+								"fieldNumber": 1
+							},
+							"multiplier": {
+								"dataType": "uint32",
+								"fieldNumber": 2
+							}
+						}
+					}
+				},
+				"totalIncentivesMultiplier": {
+					"dataType": "uint32",
+					"fieldNumber": 4
+				}
+			}
+		}
+	}
 };
 
 export const createPoolSchema = {

@@ -162,18 +162,6 @@ export const transferPoolToPool = async (
 	);
 };
 
-export const transferToProtocolFeeAccount = async (
-	tokenMethod: TokenMethod,
-	methodContext,
-	settings: DexGlobalStore,
-	senderAddress: Address,
-	tokenId: TokenID,
-	amount: bigint,
-): Promise<void> => {
-	const { protocolFeeAddress } = await settings.get(methodContext, Buffer.alloc(0));
-	await tokenMethod.transfer(methodContext, senderAddress, protocolFeeAddress, tokenId, amount);
-};
-
 export const transferToValidatorLSKPool = async (
 	tokenMethod: TokenMethod,
 	methodContext,

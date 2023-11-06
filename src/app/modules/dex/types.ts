@@ -22,7 +22,7 @@ import { PositionsStoreData } from './stores/positionsStore';
 import { PriceTicksStoreData } from './stores/priceTicksStore';
 
 export type GenesisDEX = {
-	stateStore: DexGlobalStoreData;
+	dexGlobalDataSubstore: DexGlobalStoreData;
 	poolSubstore: PoolsStoreData[];
 	priceTickSubstore: PriceTicksStoreData[];
 	positionSubstore: PositionsStoreData[];
