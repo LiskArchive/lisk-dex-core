@@ -382,7 +382,7 @@ describe('dex:auxiliaryFunctions', () => {
 			).toBeUndefined();
 		});
 
-		it('Position with ID positionID does not exist in positions substore', async () => {
+		it('Position with ID positionID does not exist in positions substore', () => {
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises, jest/valid-expect
 			expect(
 				checkPositionExistenceAndOwnership(
@@ -395,7 +395,7 @@ describe('dex:auxiliaryFunctions', () => {
 			).rejects.toThrow();
 		});
 
-		it('senderAddress is not equal to positions[positionID].ownerAddress ', async () => {
+		it('senderAddress is not equal to positions[positionID].ownerAddress ', () => {
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises, jest/valid-expect
 			expect(
 				checkPositionExistenceAndOwnership(
