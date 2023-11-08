@@ -385,7 +385,7 @@ describe('dex:auxiliaryFunctions', () => {
 		it('Position with ID positionID does not exist in positions substore', async () => {
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises, jest/valid-expect
 			expect(
-				checkPositionExistenceAndOwnership(
+				await checkPositionExistenceAndOwnership(
 					dexModule.stores,
 					dexModule.events,
 					methodContext,
@@ -398,7 +398,7 @@ describe('dex:auxiliaryFunctions', () => {
 		it('senderAddress is not equal to positions[positionID].ownerAddress ', async () => {
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises, jest/valid-expect
 			expect(
-				checkPositionExistenceAndOwnership(
+				await checkPositionExistenceAndOwnership(
 					dexModule.stores,
 					dexModule.events,
 					methodContext,

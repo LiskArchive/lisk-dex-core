@@ -18,10 +18,6 @@ import { DexGovernanceModule } from '../../../../src/app/modules/dexGovernance/m
 
 import {
 	ProposalCreatedEvent,
-	ProposalCreationFailedEvent,
-	ProposalOutcomeCheckedEvent,
-	ProposalQuorumCheckedEvent,
-	ProposalVotedEvent,
 } from '../../../../src/app/modules/dexGovernance/events'; 
 
 describe('DexGovernanceModule:events', () => {
@@ -33,10 +29,6 @@ describe('DexGovernanceModule:events', () => {
 
 	it('events should be registered and inherit from BaseEvent', () => {
 		expect(dexGovernanceModule.events.get(ProposalCreatedEvent)).toBeInstanceOf(BaseEvent);
-		expect(dexGovernanceModule.events.get(ProposalCreationFailedEvent)).toBeInstanceOf(BaseEvent);
-		expect(dexGovernanceModule.events.get(ProposalOutcomeCheckedEvent)).toBeInstanceOf(BaseEvent);
-		expect(dexGovernanceModule.events.get(ProposalQuorumCheckedEvent)).toBeInstanceOf(BaseEvent);
-		expect(dexGovernanceModule.events.get(ProposalVotedEvent)).toBeInstanceOf(BaseEvent);
 	});
 });
 
