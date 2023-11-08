@@ -394,6 +394,7 @@ describe('dex:auxiliaryFunctions', () => {
 				),
 			).rejects.toThrow();
 		});
+
 		// eslint-disable-next-line @typescript-eslint/require-await
 		it('senderAddress is not equal to positions[positionID].ownerAddress ', async () => {
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises, jest/valid-expect

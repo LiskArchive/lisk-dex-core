@@ -6,3 +6,7 @@ export * from './positionCreated';
 export * from './positionCreationFailed';
 export * from './positionUpdated';
 export * from './positionUpdateFailed';
+export * from './removeLiquidity';
+export * from './removeLiquidityFailed';
+export * from './swapped';
+export * from './swapFailed';
