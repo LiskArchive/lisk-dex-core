@@ -382,7 +382,7 @@ describe('dex:auxiliaryFunctions', () => {
 			).toBeUndefined();
 		});
 
-		// eslint-disable-next-line @typescript-eslint/require-await			
+		// eslint-disable-next-line @typescript-eslint/require-await
 		it('Position with ID positionID does not exist in positions substore', async () => {
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises, jest/valid-expect
 			expect(
