@@ -16,9 +16,7 @@ import { BaseEvent } from 'lisk-sdk';
 
 import { DexGovernanceModule } from '../../../../src/app/modules/dexGovernance/module';
 
-import {
-	ProposalCreatedEvent,
-} from '../../../../src/app/modules/dexGovernance/events'; 
+import { ProposalCreatedEvent } from '../../../../src/app/modules/dexGovernance/events';
 
 describe('DexGovernanceModule:events', () => {
 	let dexGovernanceModule: DexGovernanceModule;
@@ -31,4 +29,3 @@ describe('DexGovernanceModule:events', () => {
 		expect(dexGovernanceModule.events.get(ProposalCreatedEvent)).toBeInstanceOf(BaseEvent);
 	});
 });
-

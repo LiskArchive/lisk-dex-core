@@ -22,7 +22,7 @@ import {
 	ProposalOutcomeCheckedEvent,
 	ProposalQuorumCheckedEvent,
 	ProposalVotedEvent,
-} from '../../../../src/app/modules/dexGovernance/events'; 
+} from '../../../../src/app/modules/dexGovernance/events';
 
 describe('DexGovernanceModule:events', () => {
 	let dexGovernanceModule: DexGovernanceModule;
@@ -39,4 +39,3 @@ describe('DexGovernanceModule:events', () => {
 		expect(dexGovernanceModule.events.get(ProposalVotedEvent)).toBeInstanceOf(BaseEvent);
 	});
 });
-
