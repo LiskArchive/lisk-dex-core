@@ -38,4 +38,52 @@ describe('DexGovernanceModule:events', () => {
 		expect(dexGovernanceModule.events.get(ProposalQuorumCheckedEvent)).toBeInstanceOf(BaseEvent);
 		expect(dexGovernanceModule.events.get(ProposalVotedEvent)).toBeInstanceOf(BaseEvent);
 	});
+
+	it('ProposalCreatedEvent schema property types should be as such', () => {
+		expect(
+			dexGovernanceModule.events.get(ProposalCreatedEvent).schema.properties.creator.dataType,
+		).toBe('bytes');
+		expect(
+			dexGovernanceModule.events.get(ProposalCreatedEvent).schema.properties.index.dataType,
+		).toBe('uint32');
+	});
+
+	it('ProposalCreationFailedEvent schema property types should be as such', () => {
+		expect(
+			dexGovernanceModule.events.get(ProposalCreationFailedEvent).schema.properties.reason.dataType,
+		).toBe('uint32');
+	});
+
+	it('ProposalOutcomeCheckedEvent schema property types should be as such', () => {
+		expect(
+			dexGovernanceModule.events.get(ProposalOutcomeCheckedEvent).schema.properties.index.dataType,
+		).toBe('uint32');
+		expect(
+			dexGovernanceModule.events.get(ProposalOutcomeCheckedEvent).schema.properties.status.dataType,
+		).toBe('uint32');
+	});
+
+	it('ProposalQuorumCheckedEvent schema property types should be as such', () => {
+		expect(
+			dexGovernanceModule.events.get(ProposalQuorumCheckedEvent).schema.properties.index.dataType,
+		).toBe('uint32');
+		expect(
+			dexGovernanceModule.events.get(ProposalQuorumCheckedEvent).schema.properties.status.dataType,
+		).toBe('uint32');
+	});
+
+	it('ProposalVotedEvent schema property types should be as such', () => {
+		expect(
+			dexGovernanceModule.events.get(ProposalVotedEvent).schema.properties.amount.dataType,
+		).toBe('uint64');
+		expect(
+			dexGovernanceModule.events.get(ProposalVotedEvent).schema.properties.decision.dataType,
+		).toBe('uint32');
+		expect(
+			dexGovernanceModule.events.get(ProposalVotedEvent).schema.properties.index.dataType,
+		).toBe('uint32');
+		expect(
+			dexGovernanceModule.events.get(ProposalVotedEvent).schema.properties.voterAddress.dataType,
+		).toBe('bytes');
+	});
 });
