@@ -12,7 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseModule, FeeModule, ModuleMetadata, TokenModule, ValidatorsModule, codec, cryptography, testing } from 'lisk-sdk';
+import {
+	BaseModule,
+	FeeModule,
+	ModuleMetadata,
+	TokenModule,
+	ValidatorsModule,
+	codec,
+	cryptography,
+	testing,
+} from 'lisk-sdk';
+import { EventQueue, GenesisBlockContext } from 'lisk-framework/dist-node/state_machine';
+import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
+import { loggerMock } from 'lisk-framework/dist-node/testing/mocks';
 
 import { DexModule } from '../../../../src/app/modules/dex/module';
 import { DexEndpoint } from '../../../../src/app/modules/dex/endpoint';
@@ -25,9 +37,6 @@ import {
 
 import { DexMethod } from '../../../../src/app/modules/dex/method';
 import { createGenesisBlockContext } from '../../../../node_modules/lisk-framework/dist-node/testing';
-import { EventQueue, GenesisBlockContext } from 'lisk-framework/dist-node/state_machine';
-import { loggerMock } from 'lisk-framework/dist-node/testing/mocks';
-import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
 import { genesisDEXSchema } from '../../../../src/app/modules/dex/schemas';
 import { GenesisDEX, PoolID } from '../../../../src/app/modules/dex/types';
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
@@ -45,7 +54,9 @@ describe('DexModule', () => {
 
 	const poolId: PoolID = q96ToBytes(numberToQ96(BigInt(0)));
 
-	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+	const stateStore: PrefixedStateReadWriter = new PrefixedStateReadWriter(
+		new InMemoryPrefixedStateDB(),
+	);
 	const blockHeader = createBlockHeaderWithDefaults({ height: 100 });
 	const getAsset = jest.fn();
 
@@ -68,7 +79,7 @@ describe('DexModule', () => {
 	};
 
 	const poolsStoreData = {
-		poolId: poolId,
+		poolId,
 		liquidity: BigInt(5),
 		sqrtPrice: q96ToBytes(BigInt(tickToPrice(5))),
 		incentivesPerLiquidityAccumulator: q96ToBytes(numberToQ96(BigInt(0))),
@@ -171,7 +182,7 @@ describe('DexModule', () => {
 	describe('addDependencies', () => {
 		it('should update dependencies', () => {
 			expect(() =>
-				dexModule.addDependencies(tokenModule.method, validatorModule.method, feeModule.method)
+				dexModule.addDependencies(tokenModule.method, validatorModule.method, feeModule.method),
 			).not.toThrow();
 			expect(dexModule._tokenMethod).toEqual(tokenModule.method);
 			expect(dexModule._validatorsMethod).toEqual(validatorModule.method);
@@ -192,7 +203,7 @@ describe('DexModule', () => {
 				dexGlobalDataSubstore: dexGlobalStoreData,
 			};
 
-			let mockAssets = codec.encode(genesisDEXSchema, genesisDEXData);
+			const mockAssets = codec.encode(genesisDEXSchema, genesisDEXData);
 			genesisBlockExecuteContext.assets.getAsset = () => mockAssets;
 			expect(() => dexModule.verifyGenesisBlock(genesisBlockExecuteContext)).toThrow(
 				Error('Incorrect position counter.'),
@@ -210,13 +221,15 @@ describe('DexModule', () => {
 				},
 			};
 
-			let mockAssets = codec.encode(genesisDEXSchema, genesisDEXData);
+			const mockAssets = codec.encode(genesisDEXSchema, genesisDEXData);
 			genesisBlockExecuteContext.assets.getAsset = () => mockAssets;
 			expect(() => dexModule.verifyGenesisBlock(genesisBlockExecuteContext)).toThrow(
-				Error(`Invalid poolId on incentivizedPool ${dexGlobalStoreData.incentivizedPools[0].poolId}`),
+				Error(
+					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+					`Invalid poolId on incentivizedPool ${dexGlobalStoreData.incentivizedPools[0].poolId}`,
+				),
 			);
 		});
-
 
 		it('totalIncentivesMultiplier is not equal to the sum of multipliers in all the incentivized pools.', () => {
 			const genesisDEXData: GenesisDEX = {
@@ -230,10 +243,12 @@ describe('DexModule', () => {
 				},
 			};
 
-			let mockAssets = codec.encode(genesisDEXSchema, genesisDEXData);
+			const mockAssets = codec.encode(genesisDEXSchema, genesisDEXData);
 			genesisBlockExecuteContext.assets.getAsset = () => mockAssets;
 			expect(() => dexModule.verifyGenesisBlock(genesisBlockExecuteContext)).toThrow(
-				Error(`totalIncentivesMultiplier is not equal to the sum of multipliers in all the incentivized pools.`),
+				Error(
+					`totalIncentivesMultiplier is not equal to the sum of multipliers in all the incentivized pools.`,
+				),
 			);
 		});
 
@@ -248,7 +263,7 @@ describe('DexModule', () => {
 				},
 			};
 
-			let mockAssets = codec.encode(genesisDEXSchema, genesisDEXData);
+			const mockAssets = codec.encode(genesisDEXSchema, genesisDEXData);
 			genesisBlockExecuteContext.assets.getAsset = () => mockAssets;
 			expect(() => dexModule.verifyGenesisBlock(genesisBlockExecuteContext)).toThrow(
 				Error(`Invalid poolId on tickId 0`),
