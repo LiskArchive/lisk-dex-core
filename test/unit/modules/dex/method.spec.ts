@@ -27,7 +27,6 @@ import {
 	PoolsStore,
 	PositionsStore,
 	PriceTicksStore,
-	SettingsStore,
 } from '../../../../src/app/modules/dex/stores';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import {

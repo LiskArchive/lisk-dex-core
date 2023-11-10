@@ -176,7 +176,6 @@ export class CreatePoolCommand extends BaseCommand {
 			},
 			[senderAddress, poolID],
 		);
-
 		const [positionCreationResult, positionID] = await createPosition(
 			methodContext,
 			this.stores,

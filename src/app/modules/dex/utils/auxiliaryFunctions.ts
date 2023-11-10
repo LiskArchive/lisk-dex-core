@@ -22,12 +22,7 @@ import { genesisTokenStoreSchema } from 'lisk-framework/dist-node/modules/token'
 import { GenesisTokenStore } from 'lisk-framework/dist-node/modules/token/types';
 import { MAX_SINT32 } from '@liskhq/lisk-validator';
 
-import {
-	DexGlobalStore,
-	PoolsStore,
-	PositionsStore,
-	PriceTicksStore,
-} from '../stores';
+import { DexGlobalStore, PoolsStore, PositionsStore, PriceTicksStore } from '../stores';
 
 import {
 	NUM_BYTES_ADDRESS,
@@ -355,6 +350,7 @@ export const computeCollectableIncentives = async (
 export const computePoolID = (tokenID0: TokenID, tokenID1: TokenID, feeTier: number): Buffer => {
 	const feeTierBuffer = Buffer.alloc(4);
 	feeTierBuffer.writeInt8(feeTier, 0);
+	// feeTierBuffer.writeUInt32BE(feeTier, 0);
 	return Buffer.concat([tokenID0, tokenID1, feeTierBuffer]);
 };
 
@@ -451,7 +447,6 @@ export const createPosition = async (
 		await priceTicksStore.setKey(methodContext, [poolID, tickToBytes(tickUpper)], tickStoreValue);
 	}
 
-	console.log(await dexGlobalStore.has(methodContext, Buffer.from([])));
 	const dexGlobalStoreData = await dexGlobalStore.get(methodContext, Buffer.from([]));
 	const positionID = getNewPositionID(dexGlobalStoreData, poolID);
 
@@ -615,7 +610,7 @@ export const getOwnerAddressOfPosition = async (
 };
 
 export const getPoolIDFromPositionID = (positionID: PositionID): Buffer =>
-	positionID.slice(-NUM_BYTES_POOL_ID, 14);
+	positionID.slice(0, NUM_BYTES_POOL_ID);
 
 export const updatePosition = async (
 	methodContext: MethodContext,
@@ -990,7 +985,7 @@ export const getCredibleDirectPrice = async (
 		);
 		token1ValuesLocked.push(
 			roundDownQ96(token0ValueQ96) +
-			(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
+				(await endpoint.getToken1Amount(tokenMethod, methodContext, directPool)),
 		);
 	}
 
