@@ -665,6 +665,12 @@
 					},
 					{
 						"address": "lskkq73xxzrmzxusw3ot53swq9an5qqt7orzpubku",
+						"tokenID": "0400000000000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskkq73xxzrmzxusw3ot53swq9an5qqt7orzpubku",
 						"tokenID": "0400001100000000",
 						"availableBalance": "100000000000000",
 						"lockedBalances": []
@@ -911,6 +917,10 @@
 					}
 				],
 				"supplySubstore": [
+					{
+						"tokenID": "0400000000000000",
+						"totalSupply": "100000000000000"
+					},
 					{
 						"tokenID": "0400001100000000",
 						"totalSupply": "10300000000000000"
