@@ -44,7 +44,7 @@ const { createTransactionContext, InMemoryPrefixedStateDB } = testing;
 const { utils } = cryptography;
 class CreateProposalCommandExtended extends CreateProposalCommand {
 	getApplication = () => {
-		const { app } = Application.defaultApplication({ genesis: { chainID: '00000000' } });
+		const { app } = Application.defaultApplication({ genesis: { chainID: '04000011' } });
 		return app;
 	};
 }
