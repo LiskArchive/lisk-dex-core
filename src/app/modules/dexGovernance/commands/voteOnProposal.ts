@@ -23,16 +23,11 @@ import {
 	BaseCommand,
 	CommandExecuteContext,
 	CommandVerifyContext,
+	PoSMethod,
 	VerificationResult,
 	VerifyStatus,
 } from 'lisk-sdk';
 
-import { PoSEndpoint } from 'lisk-framework/dist-node/modules/pos/endpoint';
-import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
-import {
-	createTransientModuleEndpointContext,
-	InMemoryPrefixedStateDB,
-} from 'lisk-framework/dist-node/testing';
 import { MIN_SINT32 } from '@liskhq/lisk-validator';
 import { MethodContext } from 'lisk-framework/dist-node/state_machine/method_context';
 import { ProposalsStore, VotesStore } from '../stores';
@@ -45,11 +40,11 @@ import { Vote, voteOnProposalParamsData } from '../types';
 import { addVotes } from '../utils/auxiliaryFunctions';
 
 export class VoteOnProposalCommand extends BaseCommand {
-	private _posEndpoint!: PoSEndpoint;
+	private _posMethod!: PoSMethod;
 	private _methodContext!: MethodContext;
 
-	public init({ posEndpoint, methodContext }): void {
-		this._posEndpoint = posEndpoint;
+	public init({ posMethod, methodContext }): void {
+		this._posMethod = posMethod;
 		this._methodContext = methodContext;
 	}
 
@@ -89,7 +84,6 @@ export class VoteOnProposalCommand extends BaseCommand {
 	}
 
 	public async execute(ctx: CommandExecuteContext<voteOnProposalParamsData>): Promise<void> {
-		const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		const methodContext = ctx.getMethodContext();
 		const votesStoreInfo: VotesStore = this.stores.get(VotesStore);
 		let smallestproposalIndex = 0;
@@ -100,15 +94,9 @@ export class VoteOnProposalCommand extends BaseCommand {
 			LENGTH_ADDRESS,
 		);
 
-		const moduleEndpointContext = createTransientModuleEndpointContext({
-			stateStore,
-			params: { address: senderAddress },
-		});
-
 		const index = ctx.params.proposalIndex;
 
-		const stakedAmount = (await this._posEndpoint.getLockedStakedAmount(moduleEndpointContext))
-			.amount;
+		const stakedAmount = (await this._posMethod.getLockedStakedAmount(methodContext, senderAddress));
 
 		if (!(await votesStoreInfo.get(methodContext, senderAddress))) {
 			votesStoreInfo.set(methodContext, senderAddress, { voteInfos: [] });
@@ -146,7 +134,7 @@ export class VoteOnProposalCommand extends BaseCommand {
 		if (
 			!previousSavedStorescheck &&
 			(await votesStoreInfo.get(methodContext, senderAddress)).voteInfos.length <
-				MAX_NUM_RECORDED_VOTES
+			MAX_NUM_RECORDED_VOTES
 		) {
 			(await votesStoreInfo.getKey(methodContext, [senderAddress])).voteInfos.push(
 				newVoteInfo.voteInfos[0],

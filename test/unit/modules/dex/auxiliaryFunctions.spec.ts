@@ -179,7 +179,6 @@ describe('dex:auxiliaryFunctions', () => {
 
 			await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData);
 
-			await settingsStore.set(methodContext, Buffer.from([]), settingStoreData);
 
 			await poolsStore.setKey(
 				methodContext,
