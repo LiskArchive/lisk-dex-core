@@ -26,7 +26,6 @@ import {
 	PoSMethod,
 } from 'lisk-sdk';
 
-
 import { IndexStore, ProposalsStore } from '../stores';
 import { CreateProposalParamsData } from '../types';
 import { emitProposalCreationFailedEvent, hasEnded } from '../utils/auxiliaryFunctions';

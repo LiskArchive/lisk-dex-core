@@ -96,7 +96,7 @@ export class VoteOnProposalCommand extends BaseCommand {
 
 		const index = ctx.params.proposalIndex;
 
-		const stakedAmount = (await this._posMethod.getLockedStakedAmount(methodContext, senderAddress));
+		const stakedAmount = await this._posMethod.getLockedStakedAmount(methodContext, senderAddress);
 
 		if (!(await votesStoreInfo.get(methodContext, senderAddress))) {
 			votesStoreInfo.set(methodContext, senderAddress, { voteInfos: [] });
@@ -134,7 +134,7 @@ export class VoteOnProposalCommand extends BaseCommand {
 		if (
 			!previousSavedStorescheck &&
 			(await votesStoreInfo.get(methodContext, senderAddress)).voteInfos.length <
-			MAX_NUM_RECORDED_VOTES
+				MAX_NUM_RECORDED_VOTES
 		) {
 			(await votesStoreInfo.getKey(methodContext, [senderAddress])).voteInfos.push(
 				newVoteInfo.voteInfos[0],

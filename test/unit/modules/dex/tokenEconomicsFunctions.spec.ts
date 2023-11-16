@@ -120,7 +120,6 @@ describe('dex:tokenEconomicsFunctions', () => {
 		incentivesPerLiquidityLast: Buffer.alloc(0),
 	};
 
-
 	describe('constructor', () => {
 		beforeEach(async () => {
 			poolsStore = dexModule.stores.get(PoolsStore);

@@ -132,7 +132,10 @@ describe('dexGovernance:command:createproposal', () => {
 	};
 
 	beforeEach(async () => {
-		command = new CreateProposalCommandExtended(dexGovernanceModule.stores, dexGovernanceModule.events);
+		command = new CreateProposalCommandExtended(
+			dexGovernanceModule.stores,
+			dexGovernanceModule.events,
+		);
 		feeMethod = new FeeMethod(dexGovernanceModule.stores, dexGovernanceModule.events);
 		proposalsStore = dexGovernanceModule.stores.get(ProposalsStore);
 		indexStore = dexGovernanceModule.stores.get(IndexStore);

@@ -70,7 +70,6 @@ describe('dex:command:createPool', () => {
 		totalIncentivesMultiplier: 1,
 	};
 
-
 	beforeEach(() => {
 		dexModule = new DexModule();
 		tokenModule = new TokenModule();
