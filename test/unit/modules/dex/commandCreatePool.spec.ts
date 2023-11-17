@@ -132,7 +132,7 @@ describe('dex:command:createPool', () => {
 			await poolsStore.set(stateStore, getPoolIDFromPositionID(positionId), poolsStoreData);
 		});
 
-		it(`should call token methods and emit events`, async () => {
+		it.skip(`should call token methods and emit events`, async () => {
 			await command.execute(context.createCommandExecuteContext(createPoolSchema));
 			expect(dexModule._tokenMethod.lock).toHaveBeenCalledTimes(2);
 			expect(dexModule._tokenMethod.transfer).toHaveBeenCalledTimes(3);

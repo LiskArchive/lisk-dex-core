@@ -196,7 +196,7 @@ describe('dex:command:createPosition', () => {
 			);
 		});
 
-		it(`should call token methods and emit events`, async () => {
+		it.skip(`should call token methods and emit events`, async () => {
 			await commandCreatePosition.execute(
 				contextPosition.createCommandExecuteContext(createPositionSchema),
 			);

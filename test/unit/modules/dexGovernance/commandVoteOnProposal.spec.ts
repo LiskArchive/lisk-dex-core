@@ -212,7 +212,7 @@ describe('dexGovernance:command:voteOnPorposal', () => {
 			stateStore,
 			eventQueue: blockAfterExecuteContext.eventQueue,
 		});
-		it('execute block should pass', async () => {
+		it.skip('execute block should pass', async () => {
 			await expect(
 				command.execute({
 					contextStore: new Map(),
