@@ -692,7 +692,7 @@ export const getRoute = async (
 
 		for (const setting of dexGlobalData.poolCreationSettings) {
 			const feeTierBuffer = Buffer.alloc(4);
-			feeTierBuffer.writeInt8(setting.feeTier, 0);
+			feeTierBuffer.writeUInt32BE(setting.feeTier, 0);
 			const candidatePool = Buffer.concat([token0, token1, feeTierBuffer]);
 			candidatePools.push(candidatePool);
 		}

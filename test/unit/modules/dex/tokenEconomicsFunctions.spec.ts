@@ -34,7 +34,6 @@ import {
 	PoolsStore,
 	PositionsStore,
 	PriceTicksStore,
-	SettingsStore,
 } from '../../../../src/app/modules/dex/stores';
 import { PoolsStoreData } from '../../../../src/app/modules/dex/stores/poolsStore';
 import {
@@ -43,7 +42,6 @@ import {
 } from '../../../../src/app/modules/dex/stores/priceTicksStore';
 import { DexGlobalStoreData } from '../../../../src/app/modules/dex/stores/dexGlobalStore';
 import { PositionsStoreData } from '../../../../src/app/modules/dex/stores/positionsStore';
-import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import {
 	computeNewIncentivesPerLiquidity,
 	updatePoolIncentives,
@@ -72,7 +70,6 @@ describe('dex:tokenEconomicsFunctions', () => {
 	let priceTicksStore: PriceTicksStore;
 	let dexGlobalStore: DexGlobalStore;
 	let positionsStore: PositionsStore;
-	let settingsStore: SettingsStore;
 
 	const transferMock = jest.fn();
 	const lockMock = jest.fn();
@@ -123,27 +120,14 @@ describe('dex:tokenEconomicsFunctions', () => {
 		incentivesPerLiquidityLast: Buffer.alloc(0),
 	};
 
-	const settingStoreData: SettingsStoreData = {
-		protocolFeeAddress: Buffer.from('0000000000000000', 'hex'),
-		protocolFeePart: 10,
-		validatorsLSKRewardsPart: 5,
-		poolCreationSettings: {
-			feeTier: 100,
-			tickSpacing: 1,
-		},
-	};
-
 	describe('constructor', () => {
 		beforeEach(async () => {
 			poolsStore = dexModule.stores.get(PoolsStore);
 			priceTicksStore = dexModule.stores.get(PriceTicksStore);
 			dexGlobalStore = dexModule.stores.get(DexGlobalStore);
 			positionsStore = dexModule.stores.get(PositionsStore);
-			settingsStore = dexModule.stores.get(SettingsStore);
 
 			await dexGlobalStore.set(methodContext, Buffer.from([]), dexGlobalStoreData);
-
-			await settingsStore.set(methodContext, Buffer.from([]), settingStoreData);
 
 			await poolsStore.setKey(
 				methodContext,

@@ -21,79 +21,14 @@ import {
 	NUM_BYTES_TICK_ID,
 } from './constants';
 
-export const settingsSchema = {
-	$id: '/dex/settings',
-	type: 'object',
-	required: [
-		'protocolFeeAddress',
-		'protocolFeePart',
-		'validatorsLSKRewardsPart',
-		'poolCreationSettings',
-	],
-	properties: {
-		protocolFeeAddress: {
-			dataType: 'bytes',
-			length: NUM_BYTES_ADDRESS,
-			fieldNumber: 1,
-		},
-		protocolFeePart: {
-			dataType: 'uint32',
-			fieldNumber: 2,
-		},
-		validatorsLSKRewardsPart: {
-			dataType: 'uint32',
-			fieldNumber: 3,
-		},
-		poolCreationSettings: {
-			type: 'array',
-			fieldNumber: 4,
-			items: {
-				type: 'object',
-				required: ['feeTier', 'tickSpacing'],
-				properties: {
-					feeTier: {
-						dataType: 'uint32',
-						fieldNumber: 1,
-					},
-					tickSpacing: {
-						dataType: 'uint32',
-						fieldNumber: 2,
-					},
-				},
-			},
-		},
-	},
-};
-
 export const genesisDEXSchema = {
 	$id: '/dex/genesis',
 	type: 'object',
-	required: [
-		'stateSubstore',
-		'poolSubstore',
-		'priceTickSubstore',
-		'positionSubstore',
-		'settingsSubstore',
-	],
+	required: ['poolSubstore', 'priceTickSubstore', 'positionSubstore', 'dexGlobalDataSubstore'],
 	properties: {
-		stateSubstore: {
-			type: 'object',
-			fieldNumber: 1,
-			required: ['positionCounter', 'collectableLSKFees'],
-			properties: {
-				positionCounter: {
-					dataType: 'uint64',
-					fieldNumber: 1,
-				},
-				collectableLSKFees: {
-					dataType: 'uint64',
-					fieldNumber: 2,
-				},
-			},
-		},
 		poolSubstore: {
 			type: 'array',
-			fieldNumber: 2,
+			fieldNumber: 1,
 			items: {
 				type: 'object',
 				required: [
@@ -109,7 +44,7 @@ export const genesisDEXSchema = {
 				properties: {
 					poolId: {
 						dataType: 'bytes',
-						length: NUM_BYTES_POOL_ID,
+						maxLength: NUM_BYTES_POOL_ID,
 						fieldNumber: 1,
 					},
 					liquidity: {
@@ -124,32 +59,32 @@ export const genesisDEXSchema = {
 					incentivesPerLiquidityAccumulator: {
 						dataType: 'bytes',
 						maxLength: MAX_NUM_BYTES_Q96,
-						fieldNumber: 3,
+						fieldNumber: 4,
 					},
 					heightIncentivesUpdate: {
 						dataType: 'uint32',
-						fieldNumber: 4,
+						fieldNumber: 5,
 					},
 					feeGrowthGlobal0: {
 						dataType: 'bytes',
 						maxLength: MAX_NUM_BYTES_Q96,
-						fieldNumber: 5,
+						fieldNumber: 6,
 					},
 					feeGrowthGlobal1: {
 						dataType: 'bytes',
 						maxLength: MAX_NUM_BYTES_Q96,
-						fieldNumber: 6,
+						fieldNumber: 7,
 					},
 					tickSpacing: {
 						dataType: 'uint32',
-						fieldNumber: 7,
+						fieldNumber: 8,
 					},
 				},
 			},
 		},
 		priceTickSubstore: {
 			type: 'array',
-			fieldNumber: 3,
+			fieldNumber: 2,
 			items: {
 				type: 'object',
 				required: [
@@ -163,7 +98,7 @@ export const genesisDEXSchema = {
 				properties: {
 					tickId: {
 						dataType: 'bytes',
-						length: NUM_BYTES_TICK_ID,
+						maxLength: NUM_BYTES_TICK_ID,
 						fieldNumber: 1,
 					},
 					liquidityNet: {
@@ -194,7 +129,7 @@ export const genesisDEXSchema = {
 		},
 		positionSubstore: {
 			type: 'array',
-			fieldNumber: 4,
+			fieldNumber: 3,
 			items: {
 				type: 'object',
 				required: [
@@ -210,7 +145,7 @@ export const genesisDEXSchema = {
 				properties: {
 					positionId: {
 						dataType: 'bytes',
-						length: NUM_BYTES_POSITION_ID,
+						maxLength: NUM_BYTES_POSITION_ID,
 						fieldNumber: 1,
 					},
 					tickLower: {
@@ -237,7 +172,7 @@ export const genesisDEXSchema = {
 					},
 					ownerAddress: {
 						dataType: 'bytes',
-						length: NUM_BYTES_ADDRESS,
+						maxLength: NUM_BYTES_ADDRESS,
 						fieldNumber: 7,
 					},
 					incentivesPerLiquidityLast: {
@@ -248,32 +183,23 @@ export const genesisDEXSchema = {
 				},
 			},
 		},
-		settingsSubstore: {
+		dexGlobalDataSubstore: {
 			type: 'object',
-			fieldNumber: 5,
+			fieldNumber: 4,
 			required: [
-				'protocolFeeAddress',
-				'protocolFeePart',
-				'validatorsLSKRewardsPart',
+				'positionCounter',
 				'poolCreationSettings',
+				'incentivizedPools',
+				'totalIncentivesMultiplier',
 			],
 			properties: {
-				protocolFeeAddress: {
-					dataType: 'bytes',
-					length: NUM_BYTES_ADDRESS,
+				positionCounter: {
+					dataType: 'uint64',
 					fieldNumber: 1,
-				},
-				protocolFeePart: {
-					dataType: 'uint32',
-					fieldNumber: 2,
-				},
-				validatorsLSKRewardsPart: {
-					dataType: 'uint32',
-					fieldNumber: 3,
 				},
 				poolCreationSettings: {
 					type: 'array',
-					fieldNumber: 4,
+					fieldNumber: 2,
 					items: {
 						type: 'object',
 						required: ['feeTier', 'tickSpacing'],
@@ -288,6 +214,29 @@ export const genesisDEXSchema = {
 							},
 						},
 					},
+				},
+				incentivizedPools: {
+					type: 'array',
+					fieldNumber: 3,
+					items: {
+						type: 'object',
+						required: ['poolId', 'multiplier'],
+						properties: {
+							poolId: {
+								dataType: 'bytes',
+								maxLength: NUM_BYTES_POOL_ID,
+								fieldNumber: 1,
+							},
+							multiplier: {
+								dataType: 'uint32',
+								fieldNumber: 2,
+							},
+						},
+					},
+				},
+				totalIncentivesMultiplier: {
+					dataType: 'uint32',
+					fieldNumber: 4,
 				},
 			},
 		},
@@ -994,7 +943,7 @@ export const tokenDistributionSchema = {
 			properties: {
 				address: {
 					dataType: 'bytes',
-					length: ADDRESS_LENGTH,
+					maxLength: ADDRESS_LENGTH,
 					fieldNumber: 1,
 				},
 				balance: {

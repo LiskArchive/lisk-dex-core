@@ -23,14 +23,8 @@ import {
 	VerifyStatus,
 	TokenMethod,
 	FeeMethod,
+	PoSMethod,
 } from 'lisk-sdk';
-
-import { PoSEndpoint } from 'lisk-framework/dist-node/modules/pos/endpoint';
-import { PrefixedStateReadWriter } from 'lisk-framework/dist-node/state_machine/prefixed_state_read_writer';
-import {
-	createTransientModuleEndpointContext,
-	InMemoryPrefixedStateDB,
-} from 'lisk-framework/dist-node/testing';
 
 import { IndexStore, ProposalsStore } from '../stores';
 import { CreateProposalParamsData } from '../types';
@@ -58,12 +52,18 @@ export class CreateProposalCommand extends BaseCommand {
 	public id = COMMAND_CREATE_PROPOSAL;
 	public schema = createProposalParamsSchema;
 	private _tokenMethod!: TokenMethod;
-	private _posEndpoint!: PoSEndpoint;
+	private _posMethod!: PoSMethod;
 	private _feeMethod!: FeeMethod;
 
-	public init({ tokenMethod, posEndpoint, feeMethod }): void {
+	public addDependencies({ tokenMethod, posMethod, feeMethod }) {
 		this._tokenMethod = tokenMethod;
-		this._posEndpoint = posEndpoint;
+		this._posMethod = posMethod;
+		this._feeMethod = feeMethod;
+	}
+
+	public init({ tokenMethod, posMethod, feeMethod }): void {
+		this._tokenMethod = tokenMethod;
+		this._posMethod = posMethod;
 		this._feeMethod = feeMethod;
 	}
 
@@ -71,15 +71,10 @@ export class CreateProposalCommand extends BaseCommand {
 	public async verify(
 		ctx: CommandVerifyContext<CreateProposalParamsData>,
 	): Promise<VerificationResult> {
-		const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		const senderAddress = sha256(ctx.transaction.senderPublicKey.toString()).slice(
 			0,
 			LENGTH_ADDRESS,
 		);
-		const moduleEndpointContext = createTransientModuleEndpointContext({
-			stateStore,
-			params: { address: senderAddress },
-		});
 
 		const methodContext = ctx.getMethodContext();
 
@@ -89,10 +84,9 @@ export class CreateProposalCommand extends BaseCommand {
 			TOKEN_ID_DEX,
 		);
 
-		const lockedBalance = (await this._posEndpoint.getLockedStakedAmount(moduleEndpointContext))
-			.amount;
+		const lockedBalance = await this._posMethod.getLockedStakedAmount(methodContext, senderAddress);
 
-		if (availableBalance + BigInt(lockedBalance) < MINIMAL_BALANCE_PROPOSE) {
+		if (availableBalance + lockedBalance < MINIMAL_BALANCE_PROPOSE) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error('Insufficient DEX native token balance to create proposal'),

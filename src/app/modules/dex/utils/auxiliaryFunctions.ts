@@ -22,13 +22,7 @@ import { genesisTokenStoreSchema } from 'lisk-framework/dist-node/modules/token'
 import { GenesisTokenStore } from 'lisk-framework/dist-node/modules/token/types';
 import { MAX_SINT32 } from '@liskhq/lisk-validator';
 
-import {
-	DexGlobalStore,
-	PoolsStore,
-	PositionsStore,
-	PriceTicksStore,
-	SettingsStore,
-} from '../stores';
+import { DexGlobalStore, PoolsStore, PositionsStore, PriceTicksStore } from '../stores';
 
 import {
 	NUM_BYTES_ADDRESS,
@@ -161,18 +155,6 @@ export const transferPoolToPool = async (
 		tokenId,
 		amount,
 	);
-};
-
-export const transferToProtocolFeeAccount = async (
-	tokenMethod: TokenMethod,
-	methodContext,
-	settings: SettingsStore,
-	senderAddress: Address,
-	tokenId: TokenID,
-	amount: bigint,
-): Promise<void> => {
-	const { protocolFeeAddress } = await settings.get(methodContext, Buffer.alloc(0));
-	await tokenMethod.transfer(methodContext, senderAddress, protocolFeeAddress, tokenId, amount);
 };
 
 export const transferToValidatorLSKPool = async (
@@ -368,6 +350,7 @@ export const computeCollectableIncentives = async (
 export const computePoolID = (tokenID0: TokenID, tokenID1: TokenID, feeTier: number): Buffer => {
 	const feeTierBuffer = Buffer.alloc(4);
 	feeTierBuffer.writeInt8(feeTier, 0);
+	// feeTierBuffer.writeUInt32BE(feeTier, 0);
 	return Buffer.concat([tokenID0, tokenID1, feeTierBuffer]);
 };
 
@@ -627,7 +610,7 @@ export const getOwnerAddressOfPosition = async (
 };
 
 export const getPoolIDFromPositionID = (positionID: PositionID): Buffer =>
-	positionID.slice(-NUM_BYTES_POOL_ID, 14);
+	positionID.slice(0, NUM_BYTES_POOL_ID);
 
 export const updatePosition = async (
 	methodContext: MethodContext,

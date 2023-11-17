@@ -16,7 +16,7 @@
  */
 
 import { BaseMethod, ImmutableMethodContext, MethodContext } from 'lisk-sdk';
-import { PoolsStore, SettingsStore } from './stores';
+import { PoolsStore } from './stores';
 import { PoolID, Q96 } from './types';
 import { getDexGlobalData, getPool } from './utils/auxiliaryFunctions';
 import { bytesToQ96, invQ96 } from './utils/q96';
@@ -41,9 +41,9 @@ export class DexMethod extends BaseMethod {
 		if (feeTier > 1000000) {
 			throw new Error('Fee tier can not be greater than 100%');
 		}
-		const settingGlobalStore = this.stores.get(SettingsStore);
+		const settingGlobalStore = this.stores.get(DexGlobalStore);
 		const settingGlobalStoreData = await settingGlobalStore.get(methodContext, Buffer.alloc(0));
-		if (settingGlobalStoreData.poolCreationSettings.feeTier === feeTier) {
+		if (settingGlobalStoreData.poolCreationSettings[0].feeTier === feeTier) {
 			throw new Error('Can not update fee tier');
 		}
 		settingGlobalStoreData.poolCreationSettings[0] = { feeTier, tickSpacing };

@@ -52,7 +52,7 @@ import {
 } from './events';
 
 import { CreatePoolCommand } from './commands/createPool';
-import { PoolsStore, PositionsStore, PriceTicksStore, SettingsStore } from './stores';
+import { PoolsStore, PositionsStore, PriceTicksStore } from './stores';
 import { DexMethod } from './method';
 import { AddLiquidityCommand } from './commands/addLiquidity';
 import { CreatePositionCommand } from './commands/createPosition';
@@ -112,7 +112,6 @@ import { DexEndpoint } from './endpoint';
 import { poolsStoreSchema } from './stores/poolsStore';
 import { positionsStoreSchema } from './stores/positionsStore';
 import { bytesToTick, priceTicksStoreSchema } from './stores/priceTicksStore';
-import { settingsStoreSchema } from './stores/settingsStore';
 import { SwapExactWithPriceLimitCommand } from './commands/swapWithPriceLimit';
 import { SwapExactOutCommand } from './commands/swapExactOut';
 import { GenesisDEX, ModuleConfig } from './types';
@@ -160,7 +159,6 @@ export class DexModule extends BaseModule {
 		this.stores.register(PoolsStore, new PoolsStore(this.name, 1));
 		this.stores.register(PositionsStore, new PositionsStore(this.name, 2));
 		this.stores.register(PriceTicksStore, new PriceTicksStore(this.name, 3));
-		this.stores.register(SettingsStore, new SettingsStore(this.name, 4));
 		this.events.register(PoolCreatedEvent, new PoolCreatedEvent(this.name));
 		this.events.register(PoolCreationFailedEvent, new PoolCreationFailedEvent(this.name));
 		this.events.register(PositionCreatedEvent, new PositionCreatedEvent(this.name));
@@ -182,7 +180,6 @@ export class DexModule extends BaseModule {
 				{ key: PoolsStore.name, data: poolsStoreSchema },
 				{ key: PositionsStore.name, data: positionsStoreSchema },
 				{ key: PriceTicksStore.name, data: priceTicksStoreSchema },
-				{ key: SettingsStore.name, data: settingsStoreSchema },
 			],
 			endpoints: [
 				{
@@ -353,14 +350,18 @@ export class DexModule extends BaseModule {
 			return;
 		}
 		const genesisData = codec.decode<GenesisDEX>(genesisDEXSchema, assetBytes);
-		const { poolSubstore, positionSubstore, priceTickSubstore, stateStore } = genesisData;
+		const { poolSubstore, positionSubstore, priceTickSubstore, dexGlobalDataSubstore } =
+			genesisData;
 
 		function hasDuplicateParams(input, param: string) {
 			const paramValues = input.map(i => i[param] as unknown);
 			return paramValues.length !== new Set(paramValues).size;
 		}
 
-		if (genesisData.stateStore.positionCounter !== BigInt(genesisData.positionSubstore.length)) {
+		if (
+			genesisData.dexGlobalDataSubstore.positionCounter !==
+			BigInt(genesisData.positionSubstore.length)
+		) {
 			throw new Error('Incorrect position counter.');
 		}
 
@@ -376,17 +377,19 @@ export class DexModule extends BaseModule {
 			throw new Error('Duplicate positionId.');
 		}
 
-		if (hasDuplicateParams(stateStore.incentivizedPools, 'poolId')) {
+		if (hasDuplicateParams(dexGlobalDataSubstore.incentivizedPools, 'poolId')) {
 			throw new Error('Duplicate poolId in incentivizedPools.');
 		}
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method, @typescript-eslint/require-array-sort-compare
-		const sortedIncentivizedPools = stateStore.incentivizedPools.map(e => e.poolId).sort();
+		const sortedIncentivizedPools = dexGlobalDataSubstore.incentivizedPools
+			.map(e => e.poolId)
+			.sort();
 
 		if (
 			!isDeepStrictEqual(
 				sortedIncentivizedPools,
-				stateStore.incentivizedPools.map(e => e.poolId),
+				dexGlobalDataSubstore.incentivizedPools.map(e => e.poolId),
 			)
 		) {
 			throw new Error(
@@ -418,7 +421,7 @@ export class DexModule extends BaseModule {
 			}
 		}
 
-		for (const pool of stateStore.incentivizedPools) {
+		for (const pool of dexGlobalDataSubstore.incentivizedPools) {
 			if (!poolSubstore[Number(pool.poolId)]) {
 				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				throw new Error(`Invalid poolId on incentivizedPool ${pool.poolId}`);
@@ -467,18 +470,18 @@ export class DexModule extends BaseModule {
 			}
 		}
 
-		for (const [_, { feeTier }] of stateStore.poolCreationSettings.entries()) {
+		for (const [_, { feeTier }] of dexGlobalDataSubstore.poolCreationSettings.entries()) {
 			if (feeTier > 10 ** 6) {
 				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				throw new Error(`Invalid fee tier ${feeTier}`);
 			}
 		}
 
-		const totalIncentivizedPoolMultiplier = stateStore.incentivizedPools
+		const totalIncentivizedPoolMultiplier = dexGlobalDataSubstore.incentivizedPools
 			.map(({ multiplier }) => multiplier)
 			.reduce((e, acc) => acc + e);
 
-		if (stateStore.totalIncentivesMultiplier !== totalIncentivizedPoolMultiplier) {
+		if (dexGlobalDataSubstore.totalIncentivesMultiplier !== totalIncentivizedPoolMultiplier) {
 			throw new Error(
 				'totalIncentivesMultiplier is not equal to the sum of multipliers in all the incentivized pools.',
 			);
@@ -491,7 +494,7 @@ export class DexModule extends BaseModule {
 			return;
 		}
 		const genesisStore = codec.decode<GenesisDEX>(genesisDEXSchema, assetBytes);
-		const { stateStore } = genesisStore;
+		const { dexGlobalDataSubstore } = genesisStore;
 		const poolSubstoreData = genesisStore.poolSubstore;
 		const priceTickSubstoreData = genesisStore.priceTickSubstore;
 		const positionSubstoreData = genesisStore.positionSubstore;
@@ -535,16 +538,16 @@ export class DexModule extends BaseModule {
 		}
 
 		await dexGlobalStore.set(context, Buffer.alloc(0), {
-			positionCounter: stateStore.positionCounter,
-			poolCreationSettings: stateStore.poolCreationSettings.map(setting => ({
+			positionCounter: dexGlobalDataSubstore.positionCounter,
+			poolCreationSettings: dexGlobalDataSubstore.poolCreationSettings.map(setting => ({
 				feeTier: setting.feeTier,
 				tickSpacing: setting.tickSpacing,
 			})),
-			incentivizedPools: stateStore.incentivizedPools.map(({ poolId, multiplier }) => ({
+			incentivizedPools: dexGlobalDataSubstore.incentivizedPools.map(({ poolId, multiplier }) => ({
 				poolId,
 				multiplier,
 			})),
-			totalIncentivesMultiplier: stateStore.totalIncentivesMultiplier,
+			totalIncentivesMultiplier: dexGlobalDataSubstore.totalIncentivesMultiplier,
 		});
 	}
 }

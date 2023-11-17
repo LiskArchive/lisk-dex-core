@@ -13,7 +13,6 @@
  */
 import { codec } from '@liskhq/lisk-codec';
 
-import { PoSEndpoint } from 'lisk-framework/dist-node/modules/pos/endpoint';
 import {
 	BaseCommand,
 	BaseModule,
@@ -81,7 +80,6 @@ export class DexGovernanceModule extends BaseModule {
 	public _tokenMethod!: TokenMethod;
 	public _posMethod!: PoSMethod;
 	public _moduleConfig!: ModuleConfig;
-	public _posEndpoint!: PoSEndpoint;
 	public _feeMethod!: FeeMethod;
 
 	private readonly __createProposalCommand = new CreateProposalCommand(this.stores, this.events);
@@ -150,6 +148,12 @@ export class DexGovernanceModule extends BaseModule {
 		this._tokenMethod = tokenMethod;
 		this._posMethod = posMethod;
 		this._feeMethod = feeMethod;
+
+		this.__createProposalCommand.addDependencies({
+			tokenMethod: this._tokenMethod,
+			posMethod: this._posMethod,
+			feeMethod: this._feeMethod,
+		});
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -159,7 +163,7 @@ export class DexGovernanceModule extends BaseModule {
 
 		this.__createProposalCommand.init({
 			tokenMethod: this._tokenMethod,
-			posEndpoint: this._posEndpoint,
+			posMethod: this._posMethod,
 			feeMethod: this._feeMethod,
 		});
 	}

@@ -665,6 +665,12 @@
 					},
 					{
 						"address": "lskkq73xxzrmzxusw3ot53swq9an5qqt7orzpubku",
+						"tokenID": "0400000000000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskkq73xxzrmzxusw3ot53swq9an5qqt7orzpubku",
 						"tokenID": "0400001100000000",
 						"availableBalance": "100000000000000",
 						"lockedBalances": []
@@ -912,12 +918,26 @@
 				],
 				"supplySubstore": [
 					{
+						"tokenID": "0400000000000000",
+						"totalSupply": "100000000000000"
+					},
+					{
 						"tokenID": "0400001100000000",
 						"totalSupply": "10300000000000000"
 					}
 				],
-				"escrowSubstore": [],
+				"escrowSubstore": [
+					{
+						"escrowChainID": "04000000",
+						"tokenID": "0400000000000000",
+						"amount": "100000000000000"
+					}
+				],
 				"supportedTokensSubstore": [
+					{
+						"chainID": "04000000",
+						"supportedTokenIDs": []
+					},
 					{
 						"chainID": "04000011",
 						"supportedTokenIDs": []
@@ -3051,6 +3071,259 @@
 									"dataType": "uint64",
 									"fieldNumber": 2
 								}
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"module": "dex",
+			"data": {
+				"poolSubstore": [],
+				"priceTickSubstore": [],
+				"positionSubstore": [],
+				"dexGlobalDataSubstore": {
+					"positionCounter": 0,
+					"poolCreationSettings": [
+						{
+							"feeTier": 500,
+							"tickSpacing": 10
+						},
+						{
+							"feeTier": 3000,
+							"tickSpacing": 60
+						},
+						{
+							"feeTier": 10000,
+							"tickSpacing": 200
+						}
+					],
+					"incentivizedPools": [],
+					"totalIncentivesMultiplier": 0
+				}
+			},
+			"schema": {
+				"$id": "/dex/module/genesis",
+				"type": "object",
+				"required": [
+					"poolSubstore",
+					"priceTickSubstore",
+					"positionSubstore",
+					"dexGlobalDataSubstore"
+				],
+				"properties": {
+					"poolSubstore": {
+						"type": "array",
+						"fieldNumber": 1,
+						"items": {
+							"type": "object",
+							"required": [
+								"poolId",
+								"liquidity",
+								"sqrtPrice",
+								"incentivesPerLiquidityAccumulator",
+								"heightIncentivesUpdate",
+								"feeGrowthGlobal0",
+								"feeGrowthGlobal1",
+								"tickSpacing"
+							],
+							"properties": {
+								"poolId": {
+									"dataType": "bytes",
+									"maxLength": 16,
+									"fieldNumber": 1
+								},
+								"liquidity": {
+									"dataType": "uint64",
+									"fieldNumber": 2
+								},
+								"sqrtPrice": {
+									"dataType": "bytes",
+									"maxLength": 24,
+									"fieldNumber": 3
+								},
+								"incentivesPerLiquidityAccumulator": {
+									"dataType": "bytes",
+									"maxLength": 24,
+									"fieldNumber": 4
+								},
+								"heightIncentivesUpdate": {
+									"dataType": "uint32",
+									"fieldNumber": 5
+								},
+								"feeGrowthGlobal0": {
+									"dataType": "bytes",
+									"maxLength": 24,
+									"fieldNumber": 6
+								},
+								"feeGrowthGlobal1": {
+									"dataType": "bytes",
+									"maxLength": 24,
+									"fieldNumber": 7
+								},
+								"tickSpacing": {
+									"dataType": "uint32",
+									"fieldNumber": 8
+								}
+							}
+						}
+					},
+					"priceTickSubstore": {
+						"type": "array",
+						"fieldNumber": 2,
+						"items": {
+							"type": "object",
+							"required": [
+								"tickId",
+								"liquidityNet",
+								"liquidityGross",
+								"feeGrowthOutside0",
+								"feeGrowthOutside1",
+								"incentivesPerLiquidityOutside"
+							],
+							"properties": {
+								"tickId": {
+									"dataType": "bytes",
+									"maxLength": 20,
+									"fieldNumber": 1
+								},
+								"liquidityNet": {
+									"dataType": "sint64",
+									"fieldNumber": 2
+								},
+								"liquidityGross": {
+									"dataType": "uint64",
+									"fieldNumber": 3
+								},
+								"feeGrowthOutside0": {
+									"dataType": "bytes",
+									"maxLength": 24,
+									"fieldNumber": 4
+								},
+								"feeGrowthOutside1": {
+									"dataType": "bytes",
+									"maxLength": 24,
+									"fieldNumber": 5
+								},
+								"incentivesPerLiquidityOutside": {
+									"dataType": "bytes",
+									"maxLength": 24,
+									"fieldNumber": 6
+								}
+							}
+						}
+					},
+					"positionSubstore": {
+						"type": "array",
+						"fieldNumber": 3,
+						"items": {
+							"type": "object",
+							"required": [
+								"positionId",
+								"tickLower",
+								"tickUpper",
+								"liquidity",
+								"feeGrowthInsideLast0",
+								"feeGrowthInsideLast1",
+								"ownerAddress",
+								"incentivesPerLiquidityLast"
+							],
+							"properties": {
+								"positionId": {
+									"dataType": "bytes",
+									"maxLength": 24,
+									"fieldNumber": 1
+								},
+								"tickLower": {
+									"dataType": "sint32",
+									"fieldNumber": 2
+								},
+								"tickUpper": {
+									"dataType": "sint32",
+									"fieldNumber": 3
+								},
+								"liquidity": {
+									"dataType": "uint64",
+									"fieldNumber": 4
+								},
+								"feeGrowthInsideLast0": {
+									"dataType": "bytes",
+									"maxLength": 24,
+									"fieldNumber": 5
+								},
+								"feeGrowthInsideLast1": {
+									"dataType": "bytes",
+									"maxLength": 24,
+									"fieldNumber": 6
+								},
+								"ownerAddress": {
+									"dataType": "bytes",
+									"maxLength": 20,
+									"fieldNumber": 7
+								},
+								"incentivesPerLiquidityLast": {
+									"dataType": "bytes",
+									"maxLength": 24,
+									"fieldNumber": 8
+								}
+							}
+						}
+					},
+					"dexGlobalDataSubstore": {
+						"type": "object",
+						"fieldNumber": 4,
+						"required": [
+							"positionCounter",
+							"poolCreationSettings",
+							"incentivizedPools",
+							"totalIncentivesMultiplier"
+						],
+						"properties": {
+							"positionCounter": {
+								"dataType": "uint64",
+								"fieldNumber": 1
+							},
+							"poolCreationSettings": {
+								"type": "array",
+								"fieldNumber": 2,
+								"items": {
+									"type": "object",
+									"required": ["feeTier", "tickSpacing"],
+									"properties": {
+										"feeTier": {
+											"dataType": "uint32",
+											"fieldNumber": 1
+										},
+										"tickSpacing": {
+											"dataType": "uint32",
+											"fieldNumber": 2
+										}
+									}
+								}
+							},
+							"incentivizedPools": {
+								"type": "array",
+								"fieldNumber": 3,
+								"items": {
+									"type": "object",
+									"required": ["poolId", "multiplier"],
+									"properties": {
+										"poolId": {
+											"dataType": "bytes",
+											"maxLength": 16,
+											"fieldNumber": 1
+										},
+										"multiplier": {
+											"dataType": "uint32",
+											"fieldNumber": 2
+										}
+									}
+								}
+							},
+							"totalIncentivesMultiplier": {
+								"dataType": "uint32",
+								"fieldNumber": 4
 							}
 						}
 					}
