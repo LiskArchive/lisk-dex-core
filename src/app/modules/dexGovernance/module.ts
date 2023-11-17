@@ -148,6 +148,12 @@ export class DexGovernanceModule extends BaseModule {
 		this._tokenMethod = tokenMethod;
 		this._posMethod = posMethod;
 		this._feeMethod = feeMethod;
+
+		this.__createProposalCommand.addDependencies({
+			tokenMethod: this._tokenMethod,
+			posMethod: this._posMethod,
+			feeMethod: this._feeMethod,
+		});
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

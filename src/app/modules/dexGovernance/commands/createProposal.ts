@@ -55,6 +55,12 @@ export class CreateProposalCommand extends BaseCommand {
 	private _posMethod!: PoSMethod;
 	private _feeMethod!: FeeMethod;
 
+	public addDependencies({ tokenMethod, posMethod, feeMethod }) {
+		this._tokenMethod = tokenMethod;
+		this._posMethod = posMethod;
+		this._feeMethod = feeMethod;
+	}
+
 	public init({ tokenMethod, posMethod, feeMethod }): void {
 		this._tokenMethod = tokenMethod;
 		this._posMethod = posMethod;
