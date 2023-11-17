@@ -350,14 +350,18 @@ export class DexModule extends BaseModule {
 			return;
 		}
 		const genesisData = codec.decode<GenesisDEX>(genesisDEXSchema, assetBytes);
-		const { poolSubstore, positionSubstore, priceTickSubstore, dexGlobalDataSubstore } = genesisData;
+		const { poolSubstore, positionSubstore, priceTickSubstore, dexGlobalDataSubstore } =
+			genesisData;
 
 		function hasDuplicateParams(input, param: string) {
 			const paramValues = input.map(i => i[param] as unknown);
 			return paramValues.length !== new Set(paramValues).size;
 		}
 
-		if (genesisData.dexGlobalDataSubstore.positionCounter !== BigInt(genesisData.positionSubstore.length)) {
+		if (
+			genesisData.dexGlobalDataSubstore.positionCounter !==
+			BigInt(genesisData.positionSubstore.length)
+		) {
 			throw new Error('Incorrect position counter.');
 		}
 
@@ -378,7 +382,9 @@ export class DexModule extends BaseModule {
 		}
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method, @typescript-eslint/require-array-sort-compare
-		const sortedIncentivizedPools = dexGlobalDataSubstore.incentivizedPools.map(e => e.poolId).sort();
+		const sortedIncentivizedPools = dexGlobalDataSubstore.incentivizedPools
+			.map(e => e.poolId)
+			.sort();
 
 		if (
 			!isDeepStrictEqual(

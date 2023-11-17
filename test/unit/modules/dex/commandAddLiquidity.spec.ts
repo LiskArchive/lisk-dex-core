@@ -25,7 +25,6 @@ import { testing } from 'lisk-sdk';
 import { DexModule } from '../../../../src/app/modules';
 import { MAX_TICK, MIN_TICK } from '../../../../src/app/modules/dex/constants';
 import { addLiquiditySchema } from '../../../../src/app/modules/dex/schemas';
-import { SettingsStore } from '../../../../src/app/modules/dex/stores';
 import {
 	DexGlobalStore,
 	DexGlobalStoreData,
@@ -39,7 +38,6 @@ import {
 	PriceTicksStore,
 	PriceTicksStoreData,
 } from '../../../../src/app/modules/dex/stores/priceTicksStore';
-import { SettingsStoreData } from '../../../../src/app/modules/dex/stores/settingsStore';
 import { Address, PoolID } from '../../../../src/app/modules/dex/types';
 import { tickToPrice } from '../../../../src/app/modules/dex/utils/math';
 import { q96ToBytes, numberToQ96 } from '../../../../src/app/modules/dex/utils/q96';
@@ -76,15 +74,6 @@ describe('dex:command:addLiquidity', () => {
 		totalIncentivesMultiplier: 1,
 	};
 
-	const settingStoreData: SettingsStoreData = {
-		protocolFeeAddress: Buffer.from('0000000000000000', 'hex'),
-		protocolFeePart: 10,
-		validatorsLSKRewardsPart: 5,
-		poolCreationSettings: {
-			feeTier: 100,
-			tickSpacing: 1,
-		},
-	};
 	const priceTicksStoreDataTickLower: PriceTicksStoreData = {
 		liquidityNet: BigInt(5),
 		liquidityGross: BigInt(5),
@@ -161,11 +150,9 @@ describe('dex:command:addLiquidity', () => {
 			const poolsStore = dexModule.stores.get(PoolsStore);
 			const positionsStore = dexModule.stores.get(PositionsStore);
 			const dexGlobalStore = dexModule.stores.get(DexGlobalStore);
-			const settingsStore = dexModule.stores.get(SettingsStore);
 			const priceTicksStore = dexModule.stores.get(PriceTicksStore);
 
 			await dexGlobalStore.set(stateStore, Buffer.alloc(0), dexGlobalStoreData);
-			await settingsStore.set(stateStore, Buffer.alloc(0), settingStoreData);
 			await poolsStore.setKey(
 				stateStore,
 				[senderAddress, Buffer.from('1d0fbf936f280000000100', 'hex')],

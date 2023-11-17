@@ -665,6 +665,12 @@
 					},
 					{
 						"address": "lskkq73xxzrmzxusw3ot53swq9an5qqt7orzpubku",
+						"tokenID": "0400000000000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskkq73xxzrmzxusw3ot53swq9an5qqt7orzpubku",
 						"tokenID": "0400001100000000",
 						"availableBalance": "100000000000000",
 						"lockedBalances": []
@@ -912,12 +918,26 @@
 				],
 				"supplySubstore": [
 					{
+						"tokenID": "0400000000000000",
+						"totalSupply": "100000000000000"
+					},
+					{
 						"tokenID": "0400001100000000",
 						"totalSupply": "10300000000000000"
 					}
 				],
-				"escrowSubstore": [],
+				"escrowSubstore": [
+					{
+						"escrowChainID": "04000000",
+						"tokenID": "0400000000000000",
+						"amount": "100000000000000"
+					}
+				],
 				"supportedTokensSubstore": [
+					{
+						"chainID": "04000000",
+						"supportedTokenIDs": []
+					},
 					{
 						"chainID": "04000011",
 						"supportedTokenIDs": []
@@ -3066,9 +3086,18 @@
 				"dexGlobalDataSubstore": {
 					"positionCounter": 0,
 					"poolCreationSettings": [
-						{ "feeTier": 500, "tickSpacing": 10 },
-						{ "feeTier": 3000, "tickSpacing": 60 },
-						{ "feeTier": 10000, "tickSpacing": 200 }
+						{
+							"feeTier": 500,
+							"tickSpacing": 10
+						},
+						{
+							"feeTier": 3000,
+							"tickSpacing": 60
+						},
+						{
+							"feeTier": 10000,
+							"tickSpacing": 200
+						}
 					],
 					"incentivizedPools": [],
 					"totalIncentivesMultiplier": 0
