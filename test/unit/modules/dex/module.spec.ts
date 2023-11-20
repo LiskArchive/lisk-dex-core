@@ -173,7 +173,7 @@ describe('DexModule', () => {
 			const metadata: ModuleMetadata = dexModule.metadata();
 			expect(metadata.stores).toHaveLength(4);
 			expect(metadata.endpoints).toHaveLength(21);
-			expect(metadata.commands).toHaveLength(7);
+			expect(metadata.commands).toHaveLength(8);
 			expect(metadata.assets).toHaveLength(0);
 			expect(metadata.events).toHaveLength(12);
 		});
