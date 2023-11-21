@@ -115,6 +115,7 @@ import { bytesToTick, priceTicksStoreSchema } from './stores/priceTicksStore';
 import { SwapExactWithPriceLimitCommand } from './commands/swapWithPriceLimit';
 import { SwapExactOutCommand } from './commands/swapExactOut';
 import { GenesisDEX, ModuleConfig } from './types';
+import { SwapExactInCommand } from './commands/swapExactIn';
 
 function intToBuffer(input: number, bufferSize: number): Buffer {
 	const outputBuffer = Buffer.alloc(bufferSize);
@@ -140,6 +141,7 @@ export class DexModule extends BaseModule {
 		this.stores,
 		this.events,
 	);
+	private readonly _swapExactInCommand = new SwapExactInCommand(this.stores, this.events);
 	private readonly _swapExactOutCommand = new SwapExactOutCommand(this.stores, this.events);
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
@@ -150,6 +152,7 @@ export class DexModule extends BaseModule {
 		this._addLiquidityCommand,
 		this._createPositionCommand,
 		this._swapExactWithPriceLimitCommand,
+		this._swapExactInCommand,
 		this._swapExactOutCommand,
 	];
 
@@ -337,6 +340,9 @@ export class DexModule extends BaseModule {
 		});
 
 		this._swapExactWithPriceLimitCommand.init({
+			tokenMethod: this._tokenMethod,
+		});
+		this._swapExactInCommand.init({
 			tokenMethod: this._tokenMethod,
 		});
 		this._swapExactOutCommand.init({
