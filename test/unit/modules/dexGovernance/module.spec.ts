@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { FeeMethod } from 'lisk-framework';
+import { FeeMethod, ModuleMetadata } from 'lisk-framework';
 import {
 	BaseModule,
 	PoSModule,
@@ -35,7 +35,12 @@ import {
 } from '../../../../src/app/modules/dexGovernance/stores';
 import { DexGovernanceModule } from '../../../../src/app/modules/dexGovernance/module';
 import { DexGovernanceEndpoint } from '../../../../src/app/modules/dexGovernance/endpoint';
-import { Index, Proposal, Vote } from '../../../../src/app/modules/dexGovernance/types';
+import {
+	GenesisDEXGovernanceData,
+	Index,
+	Proposal,
+	Vote,
+} from '../../../../src/app/modules/dexGovernance/types';
 
 import {
 	EVENT_NAME_PROPOSAL_OUTCOME_CHECKED,
@@ -262,6 +267,72 @@ describe('DexGovernanceModule', () => {
 				e => e.toObject().name === EVENT_NAME_PROPOSAL_OUTCOME_CHECKED,
 			);
 			expect(proposalOutcomeCheckedEvents).toHaveLength(1);
+		});
+	});
+
+	describe('metadata', () => {
+		it('should return metadata', () => {
+			const metadata: ModuleMetadata = dexGovernanceModule.metadata();
+			expect(metadata.stores).toHaveLength(3);
+			expect(metadata.endpoints).toHaveLength(3);
+			expect(metadata.commands).toHaveLength(2);
+			expect(metadata.assets).toHaveLength(0);
+			expect(metadata.events).toHaveLength(5);
+		});
+	});
+
+	describe('addDependencies', () => {
+		it('should update dependencies', () => {
+			expect(() =>
+				dexGovernanceModule.addDependencies(tokenModule.method, posModule.method, feeMethod),
+			).not.toThrow();
+			expect(dexGovernanceModule._tokenMethod).toEqual(tokenModule.method);
+			expect(dexGovernanceModule._posMethod).toEqual(posModule.method);
+		});
+	});
+
+	describe('verifyGenesisBlock', () => {
+		it('verifyGenesisBlock should return undefined', () => {
+			expect(() => dexGovernanceModule.verifyGenesisBlock(genesisBlockExecuteContext)).toThrow(
+				Error('Proposal can not be created in the future'),
+			);
+		});
+
+		it('Incorrect vote data.', () => {
+			proposalsStoreData.creationHeight = 0;
+			const genesisDEXData: GenesisDEXGovernanceData = {
+				proposalsStore: [
+					{
+						...proposalsStoreData,
+					},
+				],
+				votesStore: [],
+			};
+
+			const mockAssets = codec.encode(genesisDEXGovernanceSchema, genesisDEXData);
+			genesisBlockExecuteContext.assets.getAsset = () => mockAssets;
+			expect(() => dexGovernanceModule.verifyGenesisBlock(genesisBlockExecuteContext)).toThrow(
+				Error('Incorrect vote data about the proposals with recorded votes'),
+			);
+		});
+
+		it('Incorrect proposal index.', () => {
+			proposalsStoreData.creationHeight = 0;
+			const genesisDEXData: GenesisDEXGovernanceData = {
+				proposalsStore: [],
+				votesStore: [
+					{
+						address: Buffer.from('00000000', 'hex'),
+						votes: votesStoreData,
+					},
+				],
+			};
+
+			const mockAssets = codec.encode(genesisDEXGovernanceSchema, genesisDEXData);
+			genesisBlockExecuteContext.assets.getAsset = () => mockAssets;
+			expect(() => dexGovernanceModule.verifyGenesisBlock(genesisBlockExecuteContext)).toThrow(
+				Error('Vote info references incorrect proposal index'),
+			);
 		});
 	});
 });
