@@ -35,7 +35,12 @@ import {
 } from '../../../../src/app/modules/dexGovernance/stores';
 import { DexGovernanceModule } from '../../../../src/app/modules/dexGovernance/module';
 import { DexGovernanceEndpoint } from '../../../../src/app/modules/dexGovernance/endpoint';
-import { GenesisDEXGovernanceData, Index, Proposal, Vote } from '../../../../src/app/modules/dexGovernance/types';
+import {
+	GenesisDEXGovernanceData,
+	Index,
+	Proposal,
+	Vote,
+} from '../../../../src/app/modules/dexGovernance/types';
 
 import {
 	EVENT_NAME_PROPOSAL_OUTCOME_CHECKED,
@@ -97,7 +102,6 @@ describe('DexGovernanceModule', () => {
 		},
 		status: 1,
 	};
-
 
 	const votesStoreData: Vote = {
 		address: Buffer.from('00000000', 'hex'),
@@ -280,7 +284,7 @@ describe('DexGovernanceModule', () => {
 	describe('addDependencies', () => {
 		it('should update dependencies', () => {
 			expect(() =>
-			dexGovernanceModule.addDependencies(tokenModule.method, posModule.method, feeMethod),
+				dexGovernanceModule.addDependencies(tokenModule.method, posModule.method, feeMethod),
 			).not.toThrow();
 			expect(dexGovernanceModule._tokenMethod).toEqual(tokenModule.method);
 			expect(dexGovernanceModule._posMethod).toEqual(posModule.method);
@@ -291,17 +295,16 @@ describe('DexGovernanceModule', () => {
 		it('verifyGenesisBlock should return undefined', () => {
 			expect(() => dexGovernanceModule.verifyGenesisBlock(genesisBlockExecuteContext)).toThrow(
 				Error('Proposal can not be created in the future'),
-			);;
+			);
 		});
 
 		it('Incorrect vote data.', () => {
-			proposalsStoreData.creationHeight = 0
-			console.log(proposalsStoreData)
+			proposalsStoreData.creationHeight = 0;
 			const genesisDEXData: GenesisDEXGovernanceData = {
 				proposalsStore: [
 					{
-						...proposalsStoreData,						
-					}
+						...proposalsStoreData,
+					},
 				],
 				votesStore: [],
 			};
@@ -313,16 +316,16 @@ describe('DexGovernanceModule', () => {
 			);
 		});
 
-		it('Incorrect vote info.', () => {
-			proposalsStoreData.creationHeight = 0
+		it('Incorrect proposal index.', () => {
+			proposalsStoreData.creationHeight = 0;
 			const genesisDEXData: GenesisDEXGovernanceData = {
 				proposalsStore: [],
 				votesStore: [
 					{
 						address: Buffer.from('00000000', 'hex'),
-						votes:votesStoreData,					
-					}
-				]
+						votes: votesStoreData,
+					},
+				],
 			};
 
 			const mockAssets = codec.encode(genesisDEXGovernanceSchema, genesisDEXData);
@@ -331,7 +334,5 @@ describe('DexGovernanceModule', () => {
 				Error('Vote info references incorrect proposal index'),
 			);
 		});
-
 	});
-
 });
