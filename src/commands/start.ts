@@ -1,41 +1,19 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/*
- * Copyright © 2022 Lisk Foundation
- *
- * See the LICENSE file at the top-level directory of this distribution
- * for licensing information.
- *
- * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
- * no part of this software, including this file, may be copied, modified,
- * propagated, or distributed except according to the terms contained in the
- * LICENSE file.
- *
- * Removal or modification of this copyright notice is prohibited.
- *
- */
 /* eslint-disable no-param-reassign */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
-/* eslint-disable @typescript-eslint/member-ordering */
 import { Flags as flagParser } from '@oclif/core';
-import * as path from 'path';
+import { FlagInput } from '@oclif/core/lib/interfaces';
 import { BaseStartCommand } from 'lisk-commander';
-import {
-	Application,
-	ApplicationConfig,
-	PartialApplicationConfig,
-	applicationConfigSchema,
-	utils,
-} from 'lisk-sdk';
-import { MonitorPlugin } from '@liskhq/lisk-framework-monitor-plugin';
+import { Application, ApplicationConfig, PartialApplicationConfig } from 'lisk-sdk';
 import { ForgerPlugin } from '@liskhq/lisk-framework-forger-plugin';
+import { MonitorPlugin } from '@liskhq/lisk-framework-monitor-plugin';
+import { ReportMisbehaviorPlugin } from '@liskhq/lisk-framework-report-misbehavior-plugin';
+import { DashboardPlugin } from '@liskhq/lisk-framework-dashboard-plugin';
 import { FaucetPlugin } from '@liskhq/lisk-framework-faucet-plugin';
 import { ChainConnectorPlugin } from '@liskhq/lisk-framework-chain-connector-plugin';
+import { join } from 'path';
 import { getApplication } from '../app/app';
-import { DEFAULT_NETWORK } from '../constants';
-import { flags as commonFlags } from '../utils/flags';
 
 interface Flags {
 	[key: string]: string | number | boolean | undefined;
@@ -59,16 +37,18 @@ const setPluginConfig = (config: ApplicationConfig, flags: Flags): void => {
 		config.plugins[FaucetPlugin.name] = config.plugins[FaucetPlugin.name] ?? {};
 		config.plugins[FaucetPlugin.name].port = flags['faucet-plugin-port'];
 	}
+	if (flags['dashboard-plugin-port'] !== undefined) {
+		config.plugins[DashboardPlugin.name] = config.plugins[DashboardPlugin.name] ?? {};
+		config.plugins[DashboardPlugin.name].port = flags['dashboard-plugin-port'];
+	}
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type StartFlags = typeof BaseStartCommand.flags & FlagInput<any>;
+
 export class StartCommand extends BaseStartCommand {
-	static flags = {
+	static flags: StartFlags = {
 		...BaseStartCommand.flags,
-		network: flagParser.string({
-			...commonFlags.network,
-			env: 'LISK_NETWORK',
-			default: DEFAULT_NETWORK,
-		}),
 		'enable-forger-plugin': flagParser.boolean({
 			description:
 				'Enable Forger Plugin. Environment variable "LISK_ENABLE_FORGER_PLUGIN" can also be used.',
@@ -96,7 +76,7 @@ export class StartCommand extends BaseStartCommand {
 		'enable-report-misbehavior-plugin': flagParser.boolean({
 			description:
 				'Enable ReportMisbehavior Plugin. Environment variable "LISK_ENABLE_REPORT_MISBEHAVIOR_PLUGIN" can also be used.',
-			env: 'LISK_ENABLE_MONITOR_PLUGIN',
+			env: 'LISK_ENABLE_MISBEHAVIOR_PLUGIN',
 			default: false,
 		}),
 		'enable-faucet-plugin': flagParser.boolean({
@@ -125,20 +105,18 @@ export class StartCommand extends BaseStartCommand {
 		}),
 		'enable-chain-connector-plugin': flagParser.boolean({
 			description:
-				'Enable Chain Connector Plugin. Environment variable "LISK_ENABLE_CHAIN_CONNECTOR_PLUGIN" can also be used.',
-			env: 'LISK_ENABLE_CHAIN_CONNECTOR_PLUGIN',
+				'Enable ChainConnector Plugin. Environment variable "LISK_ENABLE_CHAIN_CONNECTOR_PLUGIN" can also be used.',
+			env: 'LISK_ENABLE_CONNECTOR_PLUGIN',
 			default: false,
 		}),
 	};
 
 	public async getApplication(config: PartialApplicationConfig): Promise<Application> {
+		/* eslint-disable @typescript-eslint/no-unsafe-call */
 		const { flags } = await this.parse(StartCommand);
-
 		// Set Plugins Config
 		setPluginConfig(config as ApplicationConfig, flags);
-		const app = getApplication(
-			utils.objects.mergeDeep({}, applicationConfigSchema.default, config),
-		);
+		const app = getApplication(config);
 
 		if (flags['enable-forger-plugin']) {
 			app.registerPlugin(new ForgerPlugin(), { loadAsChildProcess: true });
@@ -146,8 +124,14 @@ export class StartCommand extends BaseStartCommand {
 		if (flags['enable-monitor-plugin']) {
 			app.registerPlugin(new MonitorPlugin(), { loadAsChildProcess: true });
 		}
+		if (flags['enable-report-misbehavior-plugin']) {
+			app.registerPlugin(new ReportMisbehaviorPlugin(), { loadAsChildProcess: true });
+		}
 		if (flags['enable-faucet-plugin']) {
 			app.registerPlugin(new FaucetPlugin(), { loadAsChildProcess: true });
+		}
+		if (flags['enable-dashboard-plugin']) {
+			app.registerPlugin(new DashboardPlugin(), { loadAsChildProcess: true });
 		}
 		if (flags['enable-chain-connector-plugin']) {
 			app.registerPlugin(new ChainConnectorPlugin(), { loadAsChildProcess: true });
@@ -157,10 +141,6 @@ export class StartCommand extends BaseStartCommand {
 	}
 
 	public getApplicationConfigDir(): string {
-		return path.join(__dirname, '../../config');
-	}
-
-	public getApplicationDir(): string {
-		return path.join(__dirname, '../..');
+		return join(__dirname, '../../config');
 	}
 }
