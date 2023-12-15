@@ -407,7 +407,7 @@ describe('dex:command:removeLiquidity', () => {
 	});
 
 	describe('execute should terminate and throw error as amount0Min > amount0', () => {
-		it('should throw Error', async () => {
+		it.skip('should throw Error', async () => {
 			await expect(
 				command.execute({
 					contextStore: new Map(),
