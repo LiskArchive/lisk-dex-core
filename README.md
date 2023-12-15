@@ -9,14 +9,14 @@
 
 # Lisk DEX Core
 
-The Lisk DEX is a decentralized application built with the Lisk SDK v6.0.0 and on the Lisk blockchain. This project was bootstrapped with [Lisk SDK](https://github.com/LiskHQ/lisk-sdk). The Lisk DEX is a program that provides the core functionality for implementation of all the liquidity and swap operations. This document details how to install Lisk DEX Core from source and npm registry. 
+The Lisk DEX is a decentralized application built with the Lisk SDK v6.0.0 and on the Lisk blockchain. This project was bootstrapped with [Lisk SDK](https://github.com/LiskHQ/lisk-sdk). The Lisk DEX is a program that provides the core functionality for implementation of all the liquidity and swap operations. This document details how to install Lisk DEX Core from source and npm registry.
 
 If you have satisfied the requirements from the Pre-Installation section, you can jump directly to the next section "Installation Steps".
 
 ## Index
 
 - [Installation](#installation)
-- [Managing Lisk Node](#managing-lisk-node)
+- [Managing Lisk DEX Node](#managing-lisk-node)
 - [Configuring Nodes, Modules, Assets, and Plugins.](#configuring-lisk-node)
 - [Tests](#tests)
 - [License](#license)
@@ -29,7 +29,7 @@ The following dependencies need to be installed in order to run applications cre
 
 | Dependencies             | Version |
 | ------------------------ | ------- |
-| NodeJS                   | 16.20   |
+| NodeJS                   | 18.12   |
 | Python (for development) | 2.7.18  |
 
 You can find further details on installing these dependencies in our [pre-installation setup guide](https://lisk.com/documentation/lisk-core/setup/source.html#source-pre-install).
@@ -39,8 +39,8 @@ Clone the Lisk DEX Core repository using Git and initialize the modules.
 
 ```bash
 git clone https://github.com/LiskHQ/lisk-dex-core
-cd lisk-core
-git checkout main
+cd lisk-dex-core
+git checkout development
 nvm install
 npm ci
 npm run build
