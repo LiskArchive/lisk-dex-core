@@ -39,7 +39,7 @@
 		"addressPrefix": "lsk"
 	},
 	"oclif": {
-		"bin": "<%= appName %>",
+		"bin": "lisk-dex-core",
 		"commands": "./dist/commands",
 		"plugins": [
 			"@oclif/plugin-help",
@@ -55,40 +55,40 @@
 		"topicSeparator": " ",
 		"topics": {
 			"block": {
-				"description": "Commands relating to <%= appName %> blocks."
+				"description": "Commands relating to lisk-dex-core blocks."
 			},
 			"blockchain": {
-				"description": "Commands relating to <%= appName %> blockchain data."
+				"description": "Commands relating to lisk-dex-core blockchain data."
 			},
 			"console": {
-				"description": "<%= appName %> interactive REPL session to run commands."
+				"description": "lisk-dex-core interactive REPL session to run commands."
 			},
 			"config": {
-				"description": "Commands relating to <%= appName %> node configuration."
+				"description": "Commands relating to lisk-dex-core node configuration."
 			},
 			"keys": {
-				"description": "Commands relating to <%= appName %> key generation."
+				"description": "Commands relating to lisk-dex-core key generation."
 			},
 			"generator": {
-				"description": "Commands relating to <%= appName %> block generator."
+				"description": "Commands relating to lisk-dex-core block generator."
 			},
 			"hash-onion": {
 				"description": "Create hash onions to be used by the forger."
 			},
 			"system": {
-				"description": "Commands relating to <%= appName %> node."
+				"description": "Commands relating to lisk-dex-core node."
 			},
 			"passphrase": {
-				"description": "Commands relating to <%= appName %> passphrases."
+				"description": "Commands relating to lisk-dex-core passphrases."
 			},
 			"endpoint": {
-				"description": "Commands relating to <%= appName %> endpoint."
+				"description": "Commands relating to lisk-dex-core endpoint."
 			},
 			"sdk": {
 				"description": "Commands relating to Lisk SDK development."
 			},
 			"transaction": {
-				"description": "Commands relating to <%= appName %> transactions."
+				"description": "Commands relating to lisk-dex-core transactions."
 			}
 		}
 	},
@@ -97,7 +97,6 @@
 		"/npm-shrinkwrap.json",
 		"/oclif.manifest.json",
 		"/dist",
-		"/config",
 		"/docs"
 	],
 	"husky": {
@@ -118,11 +117,11 @@
 		"@liskhq/lisk-framework-report-misbehavior-plugin": "0.4.1",
 		"@liskhq/lisk-utils": "0.4.0",
 		"@liskhq/lisk-validator": "0.8.0",
-		"@oclif/core": "1.20.4",
-		"@oclif/plugin-autocomplete": "1.3.6",
-		"@oclif/plugin-help": "5.1.19",
-		"@oclif/plugin-version": "1.1.3",
-		"axios": "1.6.0",
+		"@oclif/core": "1.16.1",
+		"@oclif/plugin-autocomplete": "1.3.0",
+		"@oclif/plugin-help": "5.1.12",
+		"@oclif/plugin-version": "1.1.2",
+		"axios": "0.21.2",
 		"bigint-buffer": "^1.1.5",
 		"bunyan": "1.8.15",
 		"fs-extra": "11.1.0",
@@ -136,8 +135,8 @@
 	"devDependencies": {
 		"@oclif/test": "2.2.12",
 		"@types/fs-extra": "9.0.13",
-		"@types/node": "18.15.3",
-		"@types/tar": "6.1.3",
+		"@types/node": "12.20.6",
+		"@types/tar": "4.0.3",
 		"@types/jest": "29.2.3",
 		"@types/jest-when": "3.5.2",
 		"@typescript-eslint/eslint-plugin": "5.44.0",
