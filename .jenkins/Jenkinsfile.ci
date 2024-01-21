@@ -1,5 +1,5 @@
 pipeline {
-	agent { node { label 'lisk-core' } }
+	agent { node { label 'lisk-dex-core' } }
 	options { skipDefaultCheckout() }
 	stages {
 		stage('Checkout SCM') {
@@ -10,19 +10,20 @@ pipeline {
 				}
 			}
 		}
-		stage('Build Lisk Dex Core') {
+		stage('Build Core') {
 			steps {
 				dir('lisk-dex-core') {
 					nvm(readFile(".nvmrc").trim()) {
 						sh '''
-						npm ci
+						npm install --global yarn
+						yarn install --frozen-lockfile
 						npm run build
 						'''
 					}
 				}
 			}
 		}
-		stage('Lint Lisk Dex Core') {
+		stage('Lint Core') {
 			steps {
 				dir('lisk-dex-core') {
 					nvm(readFile(".nvmrc").trim()) {
@@ -31,7 +32,7 @@ pipeline {
 				}
 			}
 		}
-		stage('Format Lisk Dex Core') {
+		stage('Format Core') {
 			steps {
 				dir('lisk-dex-core') {
 					nvm(readFile(".nvmrc").trim()) {
@@ -48,7 +49,7 @@ pipeline {
 				}
 			}
 		}
-		stage('Test Lisk Dex Core') {
+		stage('Test Core') {
 			steps {
 				dir('lisk-dex-core') {
 					nvm(readFile(".nvmrc").trim()) {
