@@ -5,11 +5,12 @@
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
 	"keywords": [
-		"cryptocurrency",
-		"blockchain",
 		"lisk",
+		"blockchain",
+		"dex",
+		"backend",
 		"nodejs",
-		"javascript"
+		"typescript"
 	],
 	"homepage": "https://github.com/LiskHQ/lisk-dex-core#readme",
 	"repository": {
@@ -61,35 +62,8 @@
 		],
 		"topicSeparator": " ",
 		"topics": {
-			"account": {
-				"description": "Commands relating to Lisk DEX: Core accounts."
-			},
-			"block": {
-				"description": "Commands relating to Lisk DEX: Core blocks."
-			},
-			"blockchain": {
-				"description": "Commands relating to Lisk DEX: Core blockchain data."
-			},
-			"forger-info": {
-				"description": "Commands relating to Lisk DEX: Core forger-info data."
-			},
-			"forging": {
-				"description": "Commands relating to Lisk DEX: Core forging."
-			},
-			"system": {
-				"description": "Commands relating to Lisk DEX: Core node."
-			},
-			"config": {
-				"description": "Commands relating to Lisk DEX: Core node configuration."
-			},
-			"passphrase": {
-				"description": "Commands relating to Lisk DEX: Core passphrases."
-			},
-			"sdk": {
-				"description": "Commands relating to Lisk SDK development."
-			},
-			"transaction": {
-				"description": "Commands relating to Lisk DEX: Core transactions."
+			"message": {
+				"description": "Decrypt, encrypt, sign and verify messages."
 			}
 		}
 	},
