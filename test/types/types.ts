@@ -16,13 +16,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Schema } from 'lisk-sdk';
-import { IterateOptions } from '@liskhq/lisk-db';
+import { db, Schema } from 'lisk-sdk';
 
 export interface ImmutableSubStore {
 	get(key: Buffer): Promise<Buffer>;
 	getWithSchema<T>(key: Buffer, schema: Schema): Promise<T>;
 	has(key: Buffer): Promise<boolean>;
-	iterate(input: IterateOptions): Promise<{ key: Buffer; value: Buffer }[]>;
-	iterateWithSchema<T>(input: IterateOptions, schema: Schema): Promise<{ key: Buffer; value: T }[]>;
+	iterate(input: db.IterateOptions): Promise<{ key: Buffer; value: Buffer }[]>;
+	iterateWithSchema<T>(input: db.IterateOptions, schema: Schema): Promise<{ key: Buffer; value: T }[]>;
 }

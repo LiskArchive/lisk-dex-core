@@ -17,15 +17,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { codec, Schema } from '@liskhq/lisk-codec';
-import { IterateOptions } from '@liskhq/lisk-db';
+import { codec, db, Schema } from 'lisk-sdk';
 
 export interface StateDBReadWriter {
 	get(key: Buffer): Promise<Buffer>;
 	has(key: Buffer): Promise<boolean>;
 	set(key: Buffer, value: Buffer): Promise<void>;
 	del(key: Buffer): Promise<void>;
-	range(options?: IterateOptions): Promise<{ key: Buffer; value: Buffer }[]>;
+	range(options?: db.IterateOptions): Promise<{ key: Buffer; value: Buffer }[]>;
 	snapshot(): number;
 	restoreSnapshot(snapshotID: number): void;
 }
@@ -91,7 +90,7 @@ export class PrefixedStateReadWriter {
 		await this._readWriter.del(this._getKey(key));
 	}
 
-	public async iterate(options: IterateOptions): Promise<KeyValue[]> {
+	public async iterate(options: db.IterateOptions): Promise<KeyValue[]> {
 		const optionsWithKey = {
 			...options,
 			gte: options.gte ? this._getKey(options.gte) : undefined,
@@ -105,7 +104,7 @@ export class PrefixedStateReadWriter {
 	}
 
 	public async iterateWithSchema<T>(
-		options: IterateOptions,
+		options: db.IterateOptions,
 		schema: Schema,
 	): Promise<DecodedKeyValue<T>[]> {
 		const optionsWithKey = {

@@ -11,11 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { codec } from '@liskhq/lisk-codec';
-
 import {
 	BaseCommand,
 	BaseModule,
+	codec,
 	FeeMethod,
 	ModuleInitArgs,
 	ModuleMetadata,
