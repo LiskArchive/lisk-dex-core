@@ -19,7 +19,7 @@ jobs:
         uses: ./.github/actions/prepare-build
         with:
           cache-key: ${{ github.event.number }}
-      - run: npm run format
+      - run: yarn run format
       - name: Check format
         run: |
           if [ -z "$(git status --untracked-files=no --porcelain)" ]; then
@@ -28,7 +28,7 @@ jobs:
             echo "Running format is required"
             exit 1
           fi
-      - run: npm run lint
+      - run: yarn run lint
 
   build:
     runs-on: ubuntu-latest
@@ -56,4 +56,4 @@ jobs:
         uses: ./.github/actions/prepare-build
         with:
           cache-key: ${{ github.event.number }}
-      - run: npm test
+      - run: yarn test
