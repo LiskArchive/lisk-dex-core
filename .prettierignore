@@ -33,3 +33,6 @@ tmp/
 *.gz
 
 docker/*
+
+*.blob
+*.lock
