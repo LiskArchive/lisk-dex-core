@@ -23,5 +23,8 @@ export interface ImmutableSubStore {
 	getWithSchema<T>(key: Buffer, schema: Schema): Promise<T>;
 	has(key: Buffer): Promise<boolean>;
 	iterate(input: db.IterateOptions): Promise<{ key: Buffer; value: Buffer }[]>;
-	iterateWithSchema<T>(input: db.IterateOptions, schema: Schema): Promise<{ key: Buffer; value: T }[]>;
+	iterateWithSchema<T>(
+		input: db.IterateOptions,
+		schema: Schema,
+	): Promise<{ key: Buffer; value: T }[]>;
 }
