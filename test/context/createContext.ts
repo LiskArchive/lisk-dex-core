@@ -16,50 +16,44 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockHeader, BlockHeaderAttrs, StateStore } from '@liskhq/lisk-chain';
-
-import { ModuleEndpointContext, testing } from 'lisk-sdk';
-import { InMemoryDatabase } from '@liskhq/lisk-db';
-import { utils } from '@liskhq/lisk-cryptography';
+import { chain, cryptography, db, ModuleEndpointContext, testing } from 'lisk-sdk';
 import { PrefixedStateReadWriter } from '../stateMachine/prefixedStateReadWriter';
 import { loggerMock } from '../mocks/loggerMock';
 import { createImmutableMethodContext } from './methodContext';
 import { Logger } from '../logger/logger';
 
-const { InMemoryPrefixedStateDB } = testing;
-
 const createTestHeader = () =>
-	new BlockHeader({
+	new chain.BlockHeader({
 		height: 0,
-		generatorAddress: utils.getRandomBytes(20),
+		generatorAddress: cryptography.utils.getRandomBytes(20),
 		previousBlockID: Buffer.alloc(0),
 		timestamp: Math.floor(Date.now() / 1000),
 		version: 0,
-		transactionRoot: utils.hash(Buffer.alloc(0)),
-		stateRoot: utils.hash(Buffer.alloc(0)),
+		transactionRoot: cryptography.utils.hash(Buffer.alloc(0)),
+		stateRoot: cryptography.utils.hash(Buffer.alloc(0)),
 		maxHeightGenerated: 0,
 		maxHeightPrevoted: 0,
 		impliesMaxPrevotes: true,
-		assetRoot: utils.hash(Buffer.alloc(0)),
+		assetRoot: cryptography.utils.hash(Buffer.alloc(0)),
 		aggregateCommit: {
 			height: 0,
 			aggregationBits: Buffer.alloc(0),
 			certificateSignature: Buffer.alloc(0),
 		},
-		validatorsHash: utils.hash(Buffer.alloc(0)),
+		validatorsHash: cryptography.utils.hash(Buffer.alloc(0)),
 	});
 
 export const createTransientModuleEndpointContext = (params: {
 	stateStore?: PrefixedStateReadWriter;
-	moduleStore?: StateStore;
-	context?: { header: BlockHeaderAttrs };
+	moduleStore?: chain.StateStore;
+	context?: { header: chain.BlockHeaderAttrs };
 	params?: Record<string, unknown>;
 	logger?: Logger;
 	chainID?: Buffer;
 }): ModuleEndpointContext => {
 	const stateStore =
-		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-	const moduleStore = params.moduleStore ?? new StateStore(new InMemoryDatabase());
+		params.stateStore ?? new PrefixedStateReadWriter(new testing.InMemoryPrefixedStateDB());
+	const moduleStore = params.moduleStore ?? new chain.StateStore(new db.InMemoryDatabase());
 	const parameters = params.params ?? {};
 	const logger = params.logger ?? loggerMock;
 	const chainID = params.chainID ?? Buffer.alloc(0);

@@ -14,15 +14,15 @@
  *
  */
 
-import { InMemoryDatabase, IterateOptions } from '@liskhq/lisk-db';
+import { db } from 'lisk-sdk';
 
 export class InMemoryPrefixedStateDB {
-	private readonly _db: InMemoryDatabase;
+	private readonly _db: db.InMemoryDatabase;
 
 	// private _backup: InMemoryDatabase | undefined;
 
 	public constructor() {
-		this._db = new InMemoryDatabase();
+		this._db = new db.InMemoryDatabase();
 	}
 
 	public async get(key: Buffer): Promise<Buffer> {
@@ -41,7 +41,7 @@ export class InMemoryPrefixedStateDB {
 		return this._db.del(key);
 	}
 
-	public async range(options?: IterateOptions): Promise<{ key: Buffer; value: Buffer }[]> {
+	public async range(options?: db.IterateOptions): Promise<{ key: Buffer; value: Buffer }[]> {
 		const stream = this._db.iterate(options);
 
 		const pairs = await new Promise<{ key: Buffer; value: Buffer }[]>((resolve, reject) => {
