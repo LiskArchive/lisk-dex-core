@@ -137,9 +137,9 @@ https://github.com/LiskHQ/lisk-dex-core/graphs/contributors
 ## Disclaimer
 
 > [!WARNING]
-> The source code contained within this repository has not been security audited and is therefore not suitable for usage in a production environment such as the Lisk Mainnet.
+> The source code of Lisk DEX: Core is considered to be a pre-release beta version that is subject to missing or incomplete features, bugs, and potential security flaws, and is therefore not suitable for usage in a production environment such as the Lisk Mainnet.
 >
-> By using the source code of the Lisk DEX: Core, you acknowledge and agree that you have an adequate understanding of the risks associated with the use of the source code of the Lisk DEX: Core and that it is provided on an “as is” and “as available” basis, without any representations or warranties of any kind. To the fullest extent permitted by law, in no event shall the Lisk Foundation or other parties involved in the development of the Lisk DEX: Core have any liability whatsoever to any person for any direct or indirect loss, liability, cost, claim, expense or damage of any kind, whether in contract or in tort, including negligence, or otherwise, arising out of or related to the use of all or part of the source code of the Lisk DEX: Core.
+> By using the source code of Lisk DEX: Core, you acknowledge and agree that you have an adequate understanding of the risks associated with the use of the source code of Lisk DEX: Core and that it is provided on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. To the fullest extent permitted by law, in no event shall the Lisk Foundation or other parties involved in the development of Lisk DEX: Core have any liability whatsoever to any person for any direct or indirect loss, liability, cost, claim, expense or damage of any kind, whether in contract or in tort, including negligence, or otherwise, arising out of or related to the use of all or part of the source code of Lisk DEX: Core.
 
 ## License
 
