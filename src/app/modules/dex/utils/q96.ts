@@ -1,6 +1,6 @@
 /* eslint-disable no-bitwise */
 /*
- * Copyright © 2022 Lisk Foundation
+ * Copyright © 2024 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
